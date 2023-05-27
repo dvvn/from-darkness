@@ -20,7 +20,7 @@ IMAGE_DOS_HEADER *get_dos(LDR_DATA_TABLE_ENTRY *entry)
 
 IMAGE_NT_HEADERS *get_nt(IMAGE_DOS_HEADER *dos)
 {
-    to<IMAGE_NT_HEADERS *> nt = reinterpret_cast<uintptr_t>(dos) + dos->e_lfanew;
+    to<IMAGE_NT_HEADERS *> nt = to<uintptr_t>(dos) + dos->e_lfanew;
     // check for invalid NT / NT signature.
     assert(nt->Signature == IMAGE_NT_SIGNATURE /* 'PE\0\0' */);
     return nt;

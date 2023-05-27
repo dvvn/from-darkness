@@ -276,14 +276,59 @@ struct bytes_range_unpacked : bytes_range_unpacked_tiny
 };
 #endif
 
-template <bool Rewrap>
-static uint8_t *_find_first(uint8_t *rng_start, uint8_t *rng_end, uint8_t value)
+class filter_owner : public callback_stop_token
 {
-    auto first_value = std::find<uint8_t *>(rng_start, rng_end, value);
+    find_filter *callback_;
+
+  public:
+    filter_owner(find_filter *filter)
+        : callback_(filter)
+    {
+    }
+
+    bool invoke(void *result)
+    {
+        return callback_->invoke(result, this);
+    }
+
+    filter_owner *self()
+    {
+        return this;
+    }
+};
+
+template <bool Rewrap>
+static uint8_t *not_found(uint8_t *end)
+{
     if constexpr (Rewrap)
-        return first_value == rng_end ? nullptr : first_value;
+        return nullptr;
     else
-        return first_value;
+        return end;
+}
+
+template <typename T>
+concept fiter_pointer = requires(T ptr) { static_cast<filter_owner &>(*ptr); };
+
+template <bool Rewrap, typename Filter>
+static uint8_t *_find_first(uint8_t *rng_start, uint8_t *rng_end, uint8_t value, Filter filter)
+{
+    for (;;)
+    {
+        auto result = std::find<uint8_t *>(rng_start, rng_end, value);
+        if (result == rng_end)
+            return not_found<Rewrap>(rng_end);
+        if constexpr (fiter_pointer<Filter>)
+        {
+            if (!filter->invoke(result))
+                return not_found<Rewrap>(rng_end);
+            if (!filter->stop_requested())
+            {
+                ++rng_start;
+                continue;
+            }
+        }
+        return result;
+    }
 }
 
 static bool is_pow_2(size_t val)
@@ -296,103 +341,53 @@ static bool _compare_except_first(uint8_t *rng, uint8_t *part, size_t part_size)
     return std::memcmp(rng + 1, part + 1, part_size - 1) == 0;
 }
 
-template <bool RngEndPreset = false, bool Rewrap = true>
+template <bool RngEndPreset = false, bool Rewrap = true, typename Filter>
 static from<uint8_t *> _search(
     to<uint8_t *> rng_start,
     to<uint8_t *> rng_end,
     to<uint8_t *> part_start,
-    size_t part_size)
+    size_t part_size,
+    Filter filter)
 {
     assert(part_size != 0);
+    if constexpr (fiter_pointer<Filter>)
+        assert(filter != nullptr);
 
     if constexpr (!RngEndPreset)
         rng_end -= part_size;
 
     if (part_size == 1)
-        return _find_first<Rewrap>(rng_start, rng_end, *part_start);
+        return _find_first<Rewrap>(rng_start, rng_end, *part_start, filter);
 
-    do
+    for (;;)
     {
-        auto first_value = _find_first<false>(rng_start, rng_end, *part_start);
-        if (first_value == rng_end)
-            break;
-        if (_compare_except_first(first_value, part_start, part_size))
-            return first_value;
-        rng_start = first_value + 1;
-    }
-    while (rng_start <= rng_end);
-
-    if constexpr (Rewrap)
-        return (nullptr);
-    else
-        return rng_end;
-}
-
-template <bool RngEndPreset = false>
-static bool _search(
-    to<uint8_t *> rng_start,
-    to<uint8_t *> rng_end,
-    to<uint8_t *> part_start,
-    size_t part_size,
-    basic_find_callback *callback)
-{
-    assert(part_size != 0);
-
-    if constexpr (!RngEndPreset)
-        rng_end -= part_size;
-
-    auto do_find = [&]<bool Extended>(std::bool_constant<Extended>) {
-        do
+        auto part_start_found = _find_first<false>(rng_start, rng_end, *part_start, nullptr);
+        if (part_start_found == rng_end)
+            return not_found<Rewrap>(rng_end);
+        size_t compared = 1;
+        if (_compare_except_first(part_start_found, part_start, part_size))
         {
-            auto first_value = _find_first<false>(rng_start, rng_end, *part_start);
-            if (first_value == rng_end)
-                break;
-            size_t jmp = 1;
-            if constexpr (Extended)
+            if constexpr (fiter_pointer<Filter>)
             {
-                if (_compare_except_first(first_value, part_start, part_size))
-                    jmp = part_size;
-                else
-                    goto _NEXT;
+                if (!filter->invoke(part_start_found))
+                    return not_found<Rewrap>(rng_end);
+                if (!filter->stop_requested())
+                {
+                    compared = part_size;
+                    goto _AGAIN;
+                }
             }
-            if (!callback->call(first_value))
-                return true;
-        _NEXT:
-            rng_start = first_value + jmp;
+            return part_start_found;
         }
-        while (rng_start <= rng_end);
-
-        return false;
-    };
-
-    return part_size == 1 ? do_find(std::false_type()) : do_find(std::true_type());
+    _AGAIN:
+        rng_start = part_start_found + compared;
+    }
 }
 
-static from<uint8_t *> _search(to<uint8_t *> rng_start, to<uint8_t *> rng_end, bytes_range &bytes)
+template <typename Filter>
+static from<uint8_t *> _search(to<uint8_t *> rng_start, to<uint8_t *> rng_end, bytes_range &bytes, Filter filter)
 {
-    return _search<true>(rng_start, rng_end - bytes.whole_size(), bytes.part.data(), bytes.part.size());
-}
-
-static bool _search(to<uint8_t *> rng_start, to<uint8_t *> rng_end, bytes_range &bytes, basic_find_callback *callback)
-{
-    if (bytes.skip == 0)
-        return _search(rng_start, rng_end, bytes.part.data(), bytes.part.size(), callback);
-
-    auto end_reached = false;
-
-    find_callback callback_proxy = [rng_end    = static_cast<uint8_t *>(rng_end),
-                                    whole_size = static_cast<std::iter_difference_t<uint8_t *>>(bytes.whole_size()),
-                                    callback,
-                                    &end_reached](uint8_t *search_result) -> bool {
-        if (std::distance<uint8_t *>(search_result, rng_end) < whole_size)
-        {
-            end_reached = true;
-            return false;
-        }
-        return callback->call(search_result);
-    };
-
-    return _search(rng_start, rng_end, bytes.part.data(), bytes.part.size(), callback_proxy.base()) && !end_reached;
+    return _search<true, true>(rng_start, rng_end - bytes.whole_size(), bytes.part.data(), bytes.part.size(), filter);
 }
 
 static void validate_range(uint8_t *rng_start, uint8_t *rng_end, std::iter_difference_t<uint8_t *> length)
@@ -425,99 +420,88 @@ struct bytes_range_unpacked_info
     }
 };
 
-template <bool RngEndPreset = false>
-static from<uint8_t *> _search(to<uint8_t *> rng_start, to<uint8_t *> rng_end, _unknown_bytes_range_unpacked &unk_bytes)
-{
-    validate_range(rng_start, rng_end, unk_bytes.bytes_count);
-
-    if constexpr (!RngEndPreset)
-        rng_end -= unk_bytes.bytes_count;
-
-    bytes_range_unpacked_info unk_bytes0 = unk_bytes[0];
-    auto unk_bytes_start                 = unk_bytes.data();
-    auto unk_bytes_end                   = unk_bytes_start + unk_bytes.size();
-
-    for (;;)
-    {
-        uint8_t *unk_bytes0_found_start = _search<true, false>(rng_start, rng_end, unk_bytes0.start, unk_bytes0.length);
-        if (unk_bytes0_found_start == rng_end)
-            return nullptr;
-        auto unk_bytes0_found_end = unk_bytes0_found_start + unk_bytes0.abs_length;
-        if (compare_except_first(unk_bytes0_found_end, unk_bytes_start, unk_bytes_end))
-            return unk_bytes0_found_start;
-        rng_start = unk_bytes0_found_end;
-    }
-}
-
-template <bool RngEndPreset = false>
-static bool _search(
+template <bool RngEndPreset = false, bool Rewrap = true, typename Filter>
+static from<uint8_t *> _search(
     to<uint8_t *> rng_start,
     to<uint8_t *> rng_end,
     _unknown_bytes_range_unpacked &unk_bytes,
-    basic_find_callback *callback)
+    Filter filter)
 {
+    if constexpr (fiter_pointer<Filter>)
+        assert(filter != nullptr);
+
     validate_range(rng_start, rng_end, unk_bytes.bytes_count);
 
     if constexpr (!RngEndPreset)
         rng_end -= unk_bytes.bytes_count;
 
-    bytes_range_unpacked_info unk_bytes0 = unk_bytes[0];
-    auto unk_bytes_start                 = unk_bytes.data();
-    auto unk_bytes_end                   = unk_bytes_start + unk_bytes.size();
+    auto unk_bytes0      = bytes_range_unpacked_info(unk_bytes[0]);
+    auto unk_bytes_start = unk_bytes.data();
+    auto unk_bytes_end   = unk_bytes_start + unk_bytes.size();
 
     for (;;)
     {
-        uint8_t *unk_bytes0_found_start = _search<true, false>(rng_start, rng_end, unk_bytes0.start, unk_bytes0.length);
-        if (unk_bytes0_found_start == rng_end)
-            return false;
-        auto unk_bytes0_found_end = unk_bytes0_found_start + unk_bytes0.abs_length;
-        auto jmp_to               = unk_bytes0_found_end;
-        if (compare_except_first(unk_bytes0_found_end, unk_bytes_start, unk_bytes_end))
+        uint8_t *first_part_found = _search<true, false>(
+            rng_start, rng_end, unk_bytes0.start, unk_bytes0.length, nullptr);
+        if (first_part_found == rng_end)
+            return not_found<Rewrap>(rng_end);
+        auto compared = unk_bytes0.abs_length;
+        if (compare_except_first(first_part_found + compared, unk_bytes_start, unk_bytes_end))
         {
-            if (callback->call(unk_bytes0_found_start))
-                jmp_to = unk_bytes0_found_start + unk_bytes.bytes_count;
-            else
-                return true;
+            if constexpr (fiter_pointer<Filter>)
+            {
+                if (!filter->invoke(first_part_found))
+                    return not_found<Rewrap>(rng_end);
+                if (!filter->stop_requested())
+                {
+                    compared = unk_bytes.bytes_count;
+                    goto _AGAIN;
+                }
+            }
+            return first_part_found;
         }
-        rng_start = jmp_to;
+    _AGAIN:
+        rng_start = first_part_found + compared;
     }
-    return false;
 }
 
 //-----
 
-void *find_pattern(void *begin, void *end, char const *pattern, size_t pattern_length)
+void *find_pattern(void *begin, void *end, char const *pattern, size_t pattern_length, find_filter *filter)
 {
-    auto invoker = [=](auto &&rng) -> void * {
-        return _search(begin, end, rng);
+    auto range = _unknown_bytes_range(pattern, pattern_length);
+    void *result;
+    auto invoker = [begin, end, filter, &result](auto &&rng) {
+        if (!filter)
+            result = _search(begin, end, rng, nullptr);
+        else
+            result = _search(begin, end, rng, filter_owner(filter).self());
     };
 
-    auto range = _unknown_bytes_range(pattern, pattern_length);
-    return range.size() == 1 ? invoker(range[0]) : invoker(range.unpack());
+    if (range.size() == 1)
+        invoker(range[0]);
+    else
+        invoker(range.unpack());
+
+    return result;
 }
 
-bool find_pattern(void *begin, void *end, char const *pattern, size_t pattern_length, basic_find_callback *callback)
+static auto search_check_filter(void *begin, void *end, void *bytes, size_t length, find_filter *filter)
 {
-    auto invoker = [=](auto &&rng) -> bool {
-        return _search(begin, end, rng, callback);
+    auto invoker = [=](auto filter_wrapped) {
+        return _search(begin, end, bytes, length, filter_wrapped);
     };
 
-    auto range = _unknown_bytes_range(pattern, pattern_length);
-    return range.size() == 1 ? invoker(range[0]) : invoker(range.unpack());
+    return filter ? invoker(filter_owner(filter).self()) : invoker(nullptr);
 }
 
-uintptr_t find_xref(void *begin, void *end, uintptr_t &address)
+uintptr_t find_xref(void *begin, void *end, uintptr_t &address, find_filter *filter)
 {
-    return _search(begin, end, &address, sizeof(uintptr_t));
+    return search_check_filter(begin, end, &address, sizeof(uintptr_t), filter);
 }
 
-bool find_xref(void *begin, void *end, uintptr_t &address, basic_find_callback *callback)
+void *find_bytes(void *begin, void *end, void *bytes, size_t length, find_filter *filter)
 {
-    return _search(begin, end, &address, sizeof(uintptr_t), callback);
-}
-
-bool find_bytes(void *begin, void *end, void *bytes, size_t length, basic_find_callback *callback)
-{
-    return _search(begin, end, bytes, length, callback);
+    return search_check_filter(begin, end, bytes, length, filter);
 }
 } // namespace fd

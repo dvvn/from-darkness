@@ -149,13 +149,7 @@ size_t netvar_type_array_size(netvar_type_array *type)
 
 using boost::filesystem::path;
 
-static auto valve_dir = [] {
-    path p = (BOOST_JOIN(L, BOOST_STRINGIZE(FD_WORK_DIR)));
-    p.make_preferred();
-    p.append("valve2");
-    assert(exists(p));
-    return p;
-}();
+static path valve_dir = BOOST_JOIN(L, BOOST_STRINGIZE(FD_VALVE_DIR));
 
 struct valve_include
 {
@@ -210,11 +204,15 @@ struct valve_include
         };
 
         return find_bytes(
-            data.data(), data.data() + data.size(), to<void *>(name.data()), name.size(), [&](to<char *> ptr) {
+            data.data(),
+            data.data() + data.size(),
+            to<void *>(name.data()),
+            name.size(),
+            [&](to<char *> ptr, find_callback_stop_token *token) {
                 if (is_valid_char(ptr[-1]) && is_valid_char(ptr[name.size()]))
                 {
                     inner.emplace_back(name_hash);
-                    return false;
+                    token->stop();
                 }
                 return true;
             });

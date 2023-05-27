@@ -3,7 +3,7 @@
 #include <fd/console.h>
 #include <fd/hooking/callback.h>
 #include <fd/lazy_invoke.h>
-#include <fd/library_info.h>
+#include <fd/library_info/wrapper.h>
 #include <fd/log.h>
 #include <fd/netvars/core.h>
 #include <fd/players/list.h>

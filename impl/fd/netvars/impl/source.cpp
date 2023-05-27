@@ -1,8 +1,8 @@
 #include "source.h"
 #include "type.h"
 
-#include <fd/valve2/data_map.h>
-#include <fd/valve2/recv_table.h>
+#include <fd/valve/data_map.h>
+#include <fd/valve/recv_table.h>
 
 #include <boost/static_string.hpp>
 #include <boost/unordered/unordered_flat_map.hpp>

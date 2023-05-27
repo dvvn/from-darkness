@@ -1,65 +1,31 @@
 ﻿#include "game_interface.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cctype>
-#include <string_view>
 #include <type_traits>
 
 namespace fd
 {
-enum class game_interface_iterator_mode : uint8_t
-{
-    normal,
-    compare,
-    const_compare
-};
-
-enum class game_interface_cmp_result : uint8_t
-{
-    unset,
-    error,
-    full,
-    partial,
-};
-
-template <game_interface_iterator_mode Mode>
 class game_interface_iterator
 {
-    using mode = game_interface_iterator_mode;
-
-    using cmp_result = game_interface_cmp_result;
-    using cmp_type   = std::conditional_t<Mode == mode::normal, std::false_type, cmp_result>;
-
     game_interface *current_;
-    [[no_unique_address]] //
-    cmp_type compared_;
-
-    template <mode>
-    friend class game_interface_iterator;
-
-    game_interface_iterator(game_interface *ptr, cmp_type cmp)
-        : current_(ptr)
-        , compared_(cmp)
-    {
-    }
 
   public:
-    game_interface_iterator(game_interface_iterator const &) = default;
+    // using iterator_concept  = std::contiguous_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
+    using value_type        = game_interface;
+    using difference_type   = ptrdiff_t;
+    using pointer           = game_interface *;
+    using reference         = game_interface &;
 
-    template <mode M>
-    game_interface_iterator(game_interface_iterator<M> other)
-        : current_(other.current_)
-        , compared_(other.compared_)
+    game_interface_iterator()
     {
-        if constexpr (Mode == mode::const_compare)
-            assert(compared_ != cmp_result::error);
     }
 
-    constexpr game_interface_iterator(game_interface *reg)
-        : current_(reg)
+    constexpr game_interface_iterator(game_interface *current)
+        : current_(current)
     {
-        if constexpr (Mode != mode::normal)
-            compared_ = cmp_result::unset;
     }
 
     game_interface_iterator &operator++()
@@ -75,17 +41,7 @@ class game_interface_iterator
         return tmp;
     }
 
-    game_interface_iterator &operator*() requires(Mode != mode::normal)
-    {
-        return *this;
-    }
-
-    void set(cmp_result status) requires(Mode != mode::normal)
-    {
-        compared_ = status;
-    }
-
-    game_interface const &operator*() const
+    game_interface &operator*() const
     {
         return *this->current_;
     }
@@ -95,97 +51,18 @@ class game_interface_iterator
         return current_;
     }
 
-    game_interface *get() const
+    operator game_interface *() const
     {
         return current_;
     }
 
-    template <mode M>
-    bool operator==(game_interface_iterator<M> other) const
+    bool operator==(game_interface_iterator other) const
     {
         return current_ == other.current_;
     }
 
-    bool operator==(nullptr_t) const
-    {
-        return !current_;
-    }
-
-    explicit operator bool() const
-    {
-        return current_ != nullptr;
-    }
-
-    game_interface_iterator operator+(size_t i) const
-    {
-        assert(i == 1);
-        return {current_->next, compared_};
-    }
-
-    cmp_result status() const
-    {
-        return compared_;
-    }
+    bool operator==(game_interface *) const = delete;
 };
-
-bool operator==(game_interface_iterator<game_interface_iterator_mode::compare> &it, std::string_view interface_name)
-{
-    auto &curr                 = *std::as_const(it);
-    std::string_view curr_name = curr.name;
-
-    auto cmp = game_interface_cmp_result::error;
-    if (curr_name.starts_with(interface_name))
-    {
-        if (curr_name.size() == interface_name.size())
-            cmp = game_interface_cmp_result::full;
-        else if (std::isdigit(curr_name[interface_name.size()]))
-            cmp = game_interface_cmp_result::partial;
-    }
-    it.set(cmp);
-    return cmp != game_interface_cmp_result::error;
-}
-
-bool operator==(
-    game_interface_iterator<game_interface_iterator_mode::const_compare> const &it,
-    std::string_view interface_name)
-{
-    switch (it.status())
-    {
-    case game_interface_cmp_result::full: {
-        return it->name == interface_name;
-    }
-    case game_interface_cmp_result::partial: {
-        std::string_view curr_name = it->name;
-        if (curr_name.size() <= interface_name.size())
-            return false;
-        if (!std::isdigit(curr_name[interface_name.size()]))
-            return false;
-        return curr_name.starts_with(interface_name);
-    }
-    default: {
-        assert(0 && "Wrong state");
-        return false;
-    }
-    }
-}
-
-game_interface game_interface::operator+(size_t offset) const
-{
-    switch (offset)
-    {
-    case 0:
-        return *this;
-    case 1:
-        return *next;
-    default:
-        for (auto src = this;;)
-        {
-            src = src->next;
-            if (--offset == 0)
-                return *src;
-        }
-    }
-}
 
 void *game_interface::get() const
 {
@@ -213,19 +90,41 @@ static bool _all_digits(char const *ptr)
     return true;
 }
 
-found_game_interface find_game_interface(game_interface *root_interface, const char *name, size_t length)
+game_interface *find_game_interface(game_interface *root_interface, const char *name, size_t length, bool exact)
 {
-    using cmp_result = game_interface_cmp_result;
-    using iter_mode  = game_interface_iterator_mode;
+    // unsafe comparison, but ok
 
-    using iterator       = game_interface_iterator<iter_mode::compare>;
-    using const_iterator = game_interface_iterator<iter_mode::const_compare>;
+    using iterator = game_interface_iterator;
 
-    auto target_name = std::string_view(name, length);
+    iterator target;
 
-    auto target = std::find<iterator>(root_interface, nullptr, target_name);
-    assert(target);
+    auto compare_partial = [&](game_interface &ifc) {
+        return (ifc.name[length] == '\0' || isdigit(ifc.name[length])) && std::memcmp(name, ifc.name, length) == 0;
+    };
+    auto compare_exact = [&](game_interface &ifc) {
+        return ifc.name[length] == '\0' && std::memcmp(name, ifc.name, length) == 0;
+    };
 
+    if (exact)
+    {
+        target = std::find_if<iterator>(root_interface, nullptr, compare_exact);
+    }
+    else
+    {
+        target = std::find_if<iterator>(root_interface, (nullptr), compare_partial);
+
+#ifdef _DEBUG
+        if (target && target->name[length] != '\0')
+        {
+            assert(_all_digits(target->name + length + 1));
+            assert(!std::find_if<iterator>(std::next(target), nullptr, compare_partial));
+        }
+#endif
+    }
+
+    return target;
+
+#if 0
     switch (target.status())
     {
     case cmp_result::full:
@@ -237,12 +136,6 @@ found_game_interface find_game_interface(game_interface *root_interface, const c
     default:
         return {nullptr};
     }
+#endif
 }
 } // namespace fd
-
-template <fd::game_interface_iterator_mode Mode>
-struct std::iterator_traits<fd::game_interface_iterator<Mode>>
-{
-    using type       = std::forward_iterator_tag;
-    using value_type = fd::game_interface;
-};

@@ -4,11 +4,11 @@
 #include "impl/tables.h"
 
 #include <fd/lazy_invoke.h>
-#include <fd/library_info.h>
+#include <fd/library_info/wrapper.h>
 #include <fd/log.h>
-#include <fd/valve2/client.h>
-#include <fd/valve2/entity.h>
-#include <fd/valve2/recv_table.h>
+#include <fd/valve/client.h>
+#include <fd/valve/entity.h>
+#include <fd/valve/recv_table.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/nowide/fstream.hpp>
