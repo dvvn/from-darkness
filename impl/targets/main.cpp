@@ -115,6 +115,7 @@ static bool context(HINSTANCE self_handle) noexcept
     if (!own_render.initialized())
         return false;
 
+    render_vtable= render_vtable;
     render_vtable = own_render.device;
     window        = own_render.hwnd;
     window_proc   = own_render.info.lpfnWndProc;

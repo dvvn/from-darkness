@@ -39,10 +39,6 @@ size_t get_vfunc_index(void *instance, size_t vtable_offset, void *function, _x8
     auto vt     = vtable(instance, vtable_offset);
     auto backup = vt.replace(call_vtable[static_cast<num_t>(call)]);
 
-    auto index = member_func_invoker<_x86_call::unknown, size_t>::call(instance, function, call);
-
-    vt.set(backup);
-
-    return index;
+    return member_func_invoker<_x86_call::unknown, size_t>::call(instance, function, call);
 }
 }

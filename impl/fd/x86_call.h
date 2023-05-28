@@ -62,6 +62,9 @@ enum class _x86_call : uint8_t
 X86_CALL_MEMBER(X86_CALL_TYPE);
 #undef X86_CALL_TYPE
 
+template <typename Fn, _x86_call Call>
+concept same_call_type = get_call_type(Fn()) == Call;
+
 template <_x86_call C>
 struct call_type_t
 {
@@ -73,12 +76,12 @@ struct call_type_t
     }
 };
 
-constexpr struct
+namespace call_type
 {
-#define X86_CALL_TYPE(call__, __call, call) call_type_t<call__> call##_;
-    X86_CALL_MEMBER(X86_CALL_TYPE)
+#define X86_CALL_TYPE(call__, __call, call) constexpr call_type_t<call__> call##_;
+X86_CALL_MEMBER(X86_CALL_TYPE)
 #undef X86_CALL_TYPE
-} call_type;
+} // namespace call_type
 
 template <typename T>
 concept member_function = requires(T fn) { get_call_type_member(fn); };

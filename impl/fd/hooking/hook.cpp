@@ -743,6 +743,15 @@ static std::string_view find_name(T hook)
 }
 #endif
 
+template <typename T, typename N>
+static to<hook_id> make_hook_id(T target, N name)
+{
+    if constexpr (sizeof(hook_id) == sizeof(unpacked_hook))
+        return unpacked_hook(target, name);
+    else
+        return target;
+}
+
 hook_id create_hook(void *target, void *replace, hook_name name, void **trampoline)
 {
     (void)init_hooks;
@@ -769,11 +778,7 @@ hook_id create_hook(void *target, void *replace, hook_name name, void **trampoli
         return 0;
     }
 
-    to<hook_id> id;
-    if constexpr (sizeof(hook_id) == sizeof(unpacked_hook))
-        id = unpacked_hook(target, name);
-    else
-        id = target;
+    hook_id id = make_hook_id(target, name);
 #endif
 
 #if 0

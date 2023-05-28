@@ -43,11 +43,13 @@ IncludeCategories:
     Priority: 0
   - Regex: '<fd/.*>'
     Priority: 1
-  - Regex: '<windows.h>'
+  - Regex: '<boost/.*>'
     Priority: 2
-    SortPriority: 1
-  - Regex: '<.*\.(h|hpp)>$'
-    Priority: 2
-  - Regex: '<.*([^.]h|hpp)>$'
+  - Regex: '<fmt/.*>'
     Priority: 3
+  - Regex: '<windows.h>'
+    Priority: 4
+    SortPriority: 3
+  - Regex: '<[\w]+.h|hpp>'
+    Priority: 4
 ...

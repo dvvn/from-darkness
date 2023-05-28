@@ -2,10 +2,10 @@
 
 #include <boost/container/small_vector.hpp>
 #include <boost/nowide/iostream.hpp>
-//
+
 #include <fmt/chrono.h>
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <fcntl.h>
 #include <io.h>
 #endif
@@ -13,8 +13,11 @@
 #include <iostream>
 #include <mutex>
 
+using fmt::basic_string_view;
 using fmt::format_to;
+using fmt::string_view;
 using fmt::vformat_to;
+using fmt::wstring_view;
 
 namespace fd
 {
@@ -25,7 +28,7 @@ static bool logging_initialized = false;
 bool init_logging()
 {
     assert(!logging_initialized);
-#ifdef _MSC_VER
+#ifdef _WIN32
     // constexpr char cp_utf16le[] = ".1200";
     // setlocale(LC_ALL, cp_utf16le);
     if (_setmode(_fileno(stdout), _O_WTEXT) == -1)
@@ -41,7 +44,7 @@ bool init_logging()
 }
 
 template <typename T>
-static void do_log(fmt::basic_string_view<T> fmt, auto &fmt_args, std::basic_ostream<T> *out)
+static void do_log(basic_string_view<T> fmt, auto &fmt_args, std::basic_ostream<T> *out)
 {
     assert(logging_initialized);
 
@@ -59,23 +62,14 @@ static void do_log(fmt::basic_string_view<T> fmt, auto &fmt_args, std::basic_ost
     out->flush();
 }
 
-void log(fmt::string_view fmt, fmt::format_args fmt_args, std::ostream *out)
+void log(string_view fmt, fmt::format_args fmt_args, std::ostream *out)
 {
-    if (!out)
-        out = &boost::nowide::cout;
-    else
-    {
-#ifdef _MSC_VER
-        assert(out != &std::cout);
-#endif
-    }
-    do_log(fmt, fmt_args, out);
+    assert(out != &std::cout);
+    do_log(fmt, fmt_args, out ? out : &boost::nowide::cout);
 }
 
-void log(fmt::wstring_view fmt, fmt::wformat_args fmt_args, std::wostream *out)
+void log(wstring_view fmt, fmt::wformat_args fmt_args, std::wostream *out)
 {
-    if (!out)
-        out = &std::wcout;
-    do_log(fmt, fmt_args, out);
+    do_log(fmt, fmt_args, out ? out : &std::wcout);
 }
-}
+} // namespace fd

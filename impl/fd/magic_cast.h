@@ -1,12 +1,9 @@
 #pragma once
 
-#include <concepts>
+#include "magic_cast_base.h"
 
 namespace fd
 {
-template <typename From, typename To>
-class magic_cast;
-
 template <typename From, typename To>
 magic_cast<From, To> &operator+=(magic_cast<From, To> &obj, size_t offset) requires requires(To val) { val += offset; }
 {
@@ -149,9 +146,6 @@ class magic_cast_helper_ex<From, Ret(__thiscall *)(Args...)>
 };
 
 template <typename From, typename To>
-constexpr bool magic_convertible_v = sizeof(From) == sizeof(To) && std::is_trivial_v<From> && std::is_trivial_v<To>;
-
-template <typename From, typename To>
 class magic_cast : public magic_cast_helper<From, To>
 {
     template <typename, typename>
@@ -166,12 +160,13 @@ class magic_cast : public magic_cast_helper<From, To>
     };
 
   public:
-    explicit(std::same_as<From, To>) magic_cast(From from) requires(magic_convertible_v<From, To>)
+    explicit(std::is_same_v<From, To>) magic_cast(From from) requires(magic_convertible<From, To>)
         : from_(from)
     {
     }
 
-    magic_cast(From from, To hint) requires(!std::same_as<From, To>)
+    [[deprecated]] //
+    magic_cast(From from, To hint) requires(!std::is_same_v<From, To>)
         : magic_cast(from)
     {
     }
@@ -188,9 +183,7 @@ struct magic_cast<From, To &> : magic_cast<From, To *>
     }
 };
 
-struct auto_cast_tag final
-{
-};
+
 
 template <typename From>
 class magic_cast<From, auto_cast_tag>
@@ -230,7 +223,7 @@ class magic_cast<From, auto_cast_tag>
     }
 
     template <typename To>
-    operator To() const requires(magic_convertible_v<From, To>)
+    operator To() const requires(magic_convertible<From, To>)
     {
         return magic_cast<From, To>(from_);
     }
@@ -242,10 +235,33 @@ class magic_cast<From, auto_cast_tag>
     }
 };
 
-// template <typename Ret, typename... T>
-// class vfunc;
+template <typename From, typename To>
+struct auto_cast_resolver
+{
+    consteval auto_cast_resolver()
+    {
+        static_assert(magic_convertible<From, To>);
+    }
 
-class vfunc_holder;
+    To operator()(From from) const
+    {
+        return magic_cast<From, To>(from);
+    }
+};
+
+template <typename From, typename To>
+struct auto_cast_resolver<magic_cast<From, auto_cast_tag>, To>
+{
+    consteval auto_cast_resolver()
+    {
+        static_assert(magic_convertible<From, To>);
+    }
+
+    To operator()(magic_cast<From, auto_cast_tag> from) const
+    {
+        return from.template to<To>();
+    }
+};
 
 template <typename To>
 class magic_cast<auto_cast_tag, To> : public magic_cast_helper<auto_cast_tag, To>
@@ -267,20 +283,8 @@ class magic_cast<auto_cast_tag, To> : public magic_cast_helper<auto_cast_tag, To
     }
 
     template <typename From>
-    magic_cast(From from)
-        : to_(magic_cast<From, To>(from))
-    {
-    }
-
-    template <std::derived_from<vfunc_holder> From>
-    magic_cast(From from)
-        : to_(magic_cast<void *, To>(from.get()))
-    {
-    }
-
-    template <typename From>
-    magic_cast(magic_cast<From, auto_cast_tag> from)
-        : to_(from.template to<To>())
+    magic_cast(From from, auto_cast_resolver<From, To> resolver = {})
+        : to_(resolver(from))
     {
     }
 

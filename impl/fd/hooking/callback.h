@@ -12,7 +12,32 @@
 namespace fd
 {
 template <typename Callback>
-std::optional<Callback> hook_callback_stored;
+class hook_callback_holder
+{
+    Callback callback_;
+
+  public:
+    hook_callback_holder() = default;
+
+    Callback &emplace(Callback &&callback)
+    {
+        using std::swap;
+        swap(callback_, callback);
+        return callback_;
+    }
+
+    Callback &operator*()
+    {
+        return callback_;
+    }
+};
+
+template <typename T>
+using hook_callback_wrapper =
+    std::conditional_t<std::default_initializable<T>, hook_callback_holder<T>, std::optional<T>>;
+
+template <typename Callback>
+hook_callback_wrapper<Callback> hook_callback_stored;
 
 template <typename Callback>
 void *hook_trampoline_stored;
@@ -26,20 +51,23 @@ struct hook_proxy_member;
 //{
 // };
 
-template <typename Callback, typename Unwrapped, bool = std::convertible_to<Callback, Unwrapped>>
-struct try_unwrap_hook_callback;
+template <typename From, typename To, bool = std::convertible_to<From, To>>
+struct convert_or_ref;
 
-template <typename Callback, typename Unwrapped>
-struct try_unwrap_hook_callback<Callback, Unwrapped, true>
+template <typename From, typename To>
+struct convert_or_ref<From, To, true>
 {
-    using type = Unwrapped;
+    using type = To;
+};
+
+template <typename From, typename To>
+struct convert_or_ref<From, To, false>
+{
+    using type = From &;
 };
 
 template <typename Callback, typename Unwrapped>
-struct try_unwrap_hook_callback<Callback, Unwrapped, false>
-{
-    using type = Callback &;
-};
+using try_unwrap_hook_callback = typename convert_or_ref<Callback, Unwrapped>::type;
 
 template <class Callback, _x86_call Call, typename Ret, class C, typename... Args>
 class hook_proxy_member_holder;
@@ -93,7 +121,7 @@ class hook_proxy_member_holder;
         Ret __call proxy(Args... args) noexcept                                                                      \
         {                                                                                                            \
             using callback_unwrapped = Ret(__call *)(hook_proxy_member &, Args...);                                  \
-            using callback_type      = typename try_unwrap_hook_callback<Callback, callback_unwrapped>::type;        \
+            using callback_type      = try_unwrap_hook_callback<Callback, callback_unwrapped>;                       \
             using proxy_holder       = hook_proxy_member_holder<Callback, call__, Ret, C, Args...>;                  \
             callback_type callback   = *hook_callback_stored<Callback>;                                              \
             if constexpr (std::invocable<callback_type, hook_proxy_member &, Args...>)                               \
@@ -117,19 +145,19 @@ struct hook_proxy<Callback, _x86_call::thiscall__, Ret, C, Args...>
 {
 };
 
-#define HOOK_PROXY_STATIC(call__, __call, call)                                                               \
-    template <class Callback, typename Ret, typename... Args>                                                 \
-    struct hook_proxy<Callback, call__, Ret, Args...>                                                         \
-    {                                                                                                         \
-        static Ret __call proxy(Args... args) noexcept                                                        \
-        {                                                                                                     \
-            using function_type      = Ret(__call *)(Args...);                                                \
-            using callback_unwrapped = Ret(__call *)(function_type, Args...);                                 \
-            using callback_type      = typename try_unwrap_hook_callback<Callback, callback_unwrapped>::type; \
-            callback_type callback   = *hook_callback_stored<Callback>;                                       \
-            function_type original   = to<function_type>(hook_trampoline_stored<Callback>);                   \
-            return callback(original, std::forward<Args>(args)...);                                           \
-        }                                                                                                     \
+#define HOOK_PROXY_STATIC(call__, __call, call)                                                \
+    template <class Callback, typename Ret, typename... Args>                                  \
+    struct hook_proxy<Callback, call__, Ret, Args...>                                          \
+    {                                                                                          \
+        static Ret __call proxy(Args... args) noexcept                                         \
+        {                                                                                      \
+            using function_type      = Ret(__call *)(Args...);                                 \
+            using callback_unwrapped = Ret(__call *)(function_type, Args...);                  \
+            using callback_type      = try_unwrap_hook_callback<Callback, callback_unwrapped>; \
+            callback_type callback   = *hook_callback_stored<Callback>;                        \
+            function_type original   = to<function_type>(hook_trampoline_stored<Callback>);    \
+            return callback(original, std::forward<Args>(args)...);                            \
+        }                                                                                      \
     };
 
 X86_CALL(HOOK_PROXY_STATIC);
