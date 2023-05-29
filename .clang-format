@@ -47,9 +47,9 @@ IncludeCategories:
     Priority: 2
   - Regex: '<fmt/.*>'
     Priority: 3
-  - Regex: '<windows.h>'
+  - Regex: '<windows\.h>'
     Priority: 4
     SortPriority: 3
-  - Regex: '<[\w]+.h|hpp>'
+  - Regex: '<[^\\\/]*\.h.*>'
     Priority: 4
 ...

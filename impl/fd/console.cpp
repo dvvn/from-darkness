@@ -1,7 +1,6 @@
 ﻿#include "console.h"
 
 #include <boost/nowide/iostream.hpp>
-//
 
 #include <windows.h>
 #include <tchar.h>
@@ -111,4 +110,4 @@ void destroy_system_console()
 
     FreeConsole();
 }
-}
+} // namespace fd

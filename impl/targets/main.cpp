@@ -115,7 +115,7 @@ static bool context(HINSTANCE self_handle) noexcept
     if (!own_render.initialized())
         return false;
 
-    render_vtable= render_vtable;
+    render_vtable = render_vtable;
     render_vtable = own_render.device;
     window        = own_render.hwnd;
     window_proc   = own_render.info.lpfnWndProc;
@@ -242,7 +242,7 @@ static bool context(HINSTANCE self_handle) noexcept
             })
 #endif
     };
-#if !defined(_DEBUG) || defined(FD_SHARED_LIB_off)
+#if !defined(_DEBUG) && defined(FD_SHARED_LIB)
     MAKE_DESTRUCTOR(disable_hooks);
 #endif
 
@@ -268,7 +268,7 @@ static bool context(HINSTANCE self_handle) noexcept
         return false;
     if (!apply_lazy_hooks())
         return false;
-#elif defined(FD_SHARED_LIB_off)
+#elif defined(FD_SHARED_LIB)
     if (!disable_hooks())
         return false;
 #endif

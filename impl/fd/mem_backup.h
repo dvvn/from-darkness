@@ -65,7 +65,7 @@ struct mem_backup
         from = T(std::forward<T1>(owerride));
     } */
 
-    T const& get() const
+    reference get() const
     {
         return backup_->value;
     }
