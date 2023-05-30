@@ -116,9 +116,12 @@ static class
     map_type<key_type, value_type> cache_;
     map_type<std::string_view, std::string> name_clone_;
 
-    class valve_name
+    struct valve_name
     {
-        boost::static_string<64> buff_;
+        using string_type = boost::static_string<64>;
+
+      private:
+        string_type buff_;
 
       public:
         template <size_t S>
@@ -188,13 +191,13 @@ static class
 
     basic_netvar_type *simple(key_type key, valve_name name)
     {
-        return try_get<simple_netvar_type>(key, name);
+        return try_get<netvar_type<std::string>, std::string_view>(key, name);
     }
 
     template <size_t S>
     basic_netvar_type *trivial(key_type key, char const (&name)[S])
     {
-        return try_get<simple_netvar_type>(key, name);
+        return try_get<netvar_type<char[S - 1]>>(key, name);
     }
 
     template <typename S>

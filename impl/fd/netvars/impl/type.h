@@ -194,21 +194,37 @@ class netvar_type final : public basic_netvar_type
     T type_;
 
   public:
-    constexpr netvar_type(T type)
-        : type_(std::move(type))
+    template <typename... Args>
+    constexpr netvar_type(Args &&...args)
+        : type_(std::forward<Args>(args)...)
     {
     }
 
     std::string_view get() const override
     {
-        return type_;
+        using std::begin;
+        using std::end;
+
+        return {begin(type_), end(type_)};
     }
 };
 
-template <size_t S>
-netvar_type(char const (&)[S]) -> netvar_type<std::string_view>;
+template <typename T, size_t S>
+class netvar_type<T[S]> final : public basic_netvar_type
+{
+    T type_[S];
 
-using simple_netvar_type = netvar_type<std::string_view>;
+  public:
+    netvar_type(T const *begin)
+    {
+        std::copy_n(begin, S, type_);
+    }
+
+    std::string_view get() const override
+    {
+        return {type_, S};
+    }
+};
 
 class netvar_type_array : public basic_netvar_type
 {

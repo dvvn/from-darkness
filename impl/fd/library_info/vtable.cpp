@@ -26,17 +26,16 @@ static void *find_type_descriptor(to<uint8_t *> begin, size_t length, char const
     // to<uint8_t *> begin = nt->OptionalHeader.ImageBase;
     // auto end            = begin + nt->OptionalHeader.SizeOfImage;
 
-    return find_bytes(
-        begin, begin + length, to<void *>(".?A"), 3, [&](to<char *> tmp, find_callback_stop_token *token) -> bool {
-            if constexpr (Prefix != 0)
-            {
-                if (tmp[3] != Prefix)
-                    return true;
-            }
-            if (validate_rtti_name(tmp, name, name_length))
-                token->stop();
-            return true;
-        });
+    return find_bytes(begin, begin + length, to<void *>(".?A"), 3, [&](to<char *> tmp, auto *token) -> bool {
+        if constexpr (Prefix != 0)
+        {
+            if (tmp[3] != Prefix)
+                return true;
+        }
+        if (validate_rtti_name(tmp, name, name_length))
+            token->stop();
+        return true;
+    });
 }
 
 template <char Prefix = 0>
@@ -70,25 +69,6 @@ static bool validate_section(IMAGE_SECTION_HEADER *s, char const (&name)[S])
     return memcmp(s->Name, name, S - 1) == 0;
 }
 
-static uintptr_t find_object_locator(uint8_t *rdata_begin, uint8_t *rdata_end, uintptr_t type_descriptor)
-{
-    auto addr = find_xref(
-                    rdata_begin,
-                    rdata_end,
-                    type_descriptor,
-                    [&](uintptr_t &xref, find_callback_stop_token *token) {
-                        // get offset of vtable in complete class, 0 means it's the class we need, and not
-                        // some class it inherits from
-                        auto offset = *reinterpret_cast<uint32_t *>(xref - 0x8);
-                        if (offset == 0)
-                            token->stop();
-                        return true;
-                    }) -
-                0xC;
-    assert(addr != 0);
-    return addr;
-}
-
 static to<void *> find_vtable_impl(
     IMAGE_SECTION_HEADER *rdata,
     IMAGE_SECTION_HEADER *text,
@@ -108,16 +88,15 @@ static to<void *> find_vtable_impl(
     auto text_begin = dos + text->VirtualAddress;
     auto text_end   = rdata_begin + text->SizeOfRawData;
 
-    auto addr1 = find_xref(
-        rdata_begin, rdata_end, type_descriptor, [&](uintptr_t &xref, find_callback_stop_token *token) {
-            // get offset of vtable in complete class, 0 means it's the class we need, and not
-            // some class it inherits from
-            auto offset = *reinterpret_cast<uint32_t *>(xref - 0x8);
-            if (offset == 0)
-                token->stop();
-            return true;
-        });
-    auto object_locator = addr1 -= 0xC;
+    auto addr1          = find_xref(rdata_begin, rdata_end, type_descriptor, [&](uintptr_t &xref, auto *stop_token) {
+        // get offset of vtable in complete class, 0 means it's the class we need, and not
+        // some class it inherits from
+        auto offset = *reinterpret_cast<uint32_t *>(xref - 0x8);
+        if (offset == 0)
+            stop_token->stop();
+        return true;
+    });
+    auto object_locator = addr1 - 0xC;
     auto addr2          = find_xref(rdata_begin, rdata_end, object_locator) + 0x4;
     // check is valid offset
     assert(addr2 > sizeof(uintptr_t));

@@ -35,6 +35,11 @@ class magic_cast_helper : public magic_cast_helper_ex<From, To>
     {
         return static_cast<base>(this)->to_;
     }
+
+    To get() const
+    {
+        return static_cast<base>(this)->to_;
+    }
 };
 
 #if 0
@@ -173,7 +178,18 @@ class magic_cast : public magic_cast_helper<From, To>
 };
 
 template <typename From, typename To>
-struct magic_cast<From, To &> : magic_cast<From, To *>
+struct magic_cast<From, To &>
+{
+    magic_cast(...) = delete;
+};
+
+template <typename From, typename To>
+struct magic_cast<From &, To>
+{
+    magic_cast(...) = delete;
+};
+
+/*: magic_cast<From, To *>
 {
     using magic_cast<From, To *>::magic_cast;
 
@@ -181,9 +197,7 @@ struct magic_cast<From, To &> : magic_cast<From, To *>
     {
         return *static_cast<To *>(*this);
     }
-};
-
-
+};*/
 
 template <typename From>
 class magic_cast<From, auto_cast_tag>
@@ -191,6 +205,8 @@ class magic_cast<From, auto_cast_tag>
     From from_;
 
   public:
+    magic_cast() = default;
+
     magic_cast(From from)
         : from_(from)
     {

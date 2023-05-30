@@ -9,16 +9,34 @@
 
 #include <algorithm>
 #include <cassert>
-#include <span>
+#include <numeric>
+#include <ranges>
 
 namespace fd
 {
+using pbyte = uint8_t *;
+using byte  = uint8_t;
+
+#ifdef _DEBUG
+template <typename T, size_t S>
+struct static_buffer : std::vector<T>
+{
+    using std::vector<T>::vector;
+
+    ~static_buffer()
+    {
+        assert(this->size() <= S);
+    }
+};
+#else
+template <typename T, size_t S>
+using static_buffer = boost::container::static_vector<T, S>;
+#endif
+
 struct bytes_range : boost::noncopyable
 {
-    using part_storage = boost::container::static_vector<uint8_t, 32>;
-
-    part_storage part;
-    uint8_t skip = 0;
+    static_buffer<byte, 32> part;
+    byte skip = 0;
 
     bytes_range() = default;
 
@@ -43,9 +61,9 @@ struct bytes_range : boost::noncopyable
 
 struct bytes_range_unpacked
 {
-    uint8_t *data;
+    pbyte data;
     size_t known_size;
-    uint8_t skip;
+    byte skip;
     size_t whole_size;
 
     bytes_range_unpacked(bytes_range &rng)
@@ -57,7 +75,7 @@ struct bytes_range_unpacked
     }
 };
 
-static uint8_t to_num(char chr)
+static byte to_num(char chr)
 {
     // maybe slower, but readable
     switch (chr)
@@ -108,10 +126,38 @@ static uint8_t to_num(char chr)
     }
 }
 
+#ifdef _DEBUG
 template <typename T>
-using static_buffer = boost::container::static_vector<T, 8>;
+class simple_range
+{
+    T begin_, end_;
 
-struct unknown_bytes_range : static_buffer<bytes_range>
+  public:
+    simple_range(T begin, T end)
+        : begin_(std::move(begin))
+        , end_(std::move(end))
+    {
+    }
+
+    T begin() const
+    {
+        return begin_;
+    }
+
+    T end() const
+    {
+        return end_;
+    }
+};
+
+template <typename T>
+simple_range(T, T) -> simple_range<T>;
+#else
+template <typename T>
+using simple_range = std::span<T>;
+#endif
+
+struct unknown_bytes_range : static_buffer<bytes_range, 8>
 {
     size_t bytes_count() const
     {
@@ -132,64 +178,61 @@ struct unknown_bytes_range : static_buffer<bytes_range>
     {
         auto back = &this->emplace_back();
 
-        auto store = [&](uint8_t num) {
+        auto store = [&](byte num) {
             if (back->skip > 0)
                 back = &this->emplace_back();
             back->part.push_back(num);
-        };
-        auto store_byte1 = [&](char chr_num) {
-            store(to_num(chr_num));
-        };
-        auto store_byte2 = [&](char part1, char part2) {
-            store(to_num(part1) * 16 + to_num(part2));
         };
 
         auto skip_byte = [&] {
             ++back->skip;
         };
 
-        while (begin < end - 1)
-        {
-            auto c = *begin;
-            if (c == ' ')
+        auto on_1_char = [&](char c) {
+            if (c == '?')
+                skip_byte();
+            else
+                store(to_num(c));
+        };
+
+        auto on_2_chars = [&](char c, char c2) {
+            if (c == '?')
             {
-                ++begin;
-                continue;
-            }
-            auto c2 = *(begin + 1);
-            if (c2 == ' ')
-            {
-                if (c == '?')
-                    skip_byte();
-                else
-                    store_byte1(c);
+                assert(c2 == '?');
+                skip_byte();
             }
             else
             {
-                if (c == '?')
-                {
-                    assert(c2 == '?');
-                    skip_byte();
-                }
-                else
-                {
-                    store_byte2(c, c2);
-                }
+                store(to_num(c) * 16 + to_num(c2));
             }
-            begin += 2;
-        }
+        };
+
+        auto splitted = std::views::lazy_split(simple_range(begin, end), ' ');
+        std::ranges::for_each(splitted, [&](auto part) {
+            auto it = part.begin();
+            switch (std::ranges::distance(part))
+            {
+            case 1:
+                return on_1_char(*it);
+            case 2:
+                return on_2_chars(*it, *std::next(it));
+            default:
+                std::unreachable();
+            }
+        });
     }
 };
 
-struct unknown_bytes_range_unpacked : static_buffer<bytes_range_unpacked>
+struct unknown_bytes_range_unpacked : static_buffer<bytes_range_unpacked, 8>
 {
-    size_t bytes_count = 0;
+    size_t bytes_count;
 
     unknown_bytes_range_unpacked(unknown_bytes_range &rng)
-        : static_buffer<bytes_range_unpacked>(rng.begin(), rng.end())
+        : static_buffer(rng.begin(), rng.end())
     {
-        for (auto &r : *this)
-            bytes_count += r.whole_size;
+        assert(!rng.empty());
+        bytes_count = std::accumulate<const_iterator, size_t>(
+            begin(), end(), (0), [](size_t old, const_reference curr) { return old + curr.whole_size; });
     }
 };
 
@@ -197,8 +240,6 @@ unknown_bytes_range_unpacked unknown_bytes_range::unpack()
 {
     return *this;
 }
-
-//-----
 
 class filter_owner : public callback_stop_token
 {
@@ -222,35 +263,43 @@ class filter_owner : public callback_stop_token
 };
 
 template <bool Rewrap>
-static uint8_t *not_found(uint8_t *end)
+static pbyte not_found(void *end)
 {
     if constexpr (Rewrap)
         return nullptr;
     else
-        return end;
+        return static_cast<pbyte>(end);
 }
 
 template <typename T>
-concept filter_pointer = requires(T ptr) { static_cast<filter_owner &>(*ptr); };
+concept filter_with_token = requires(T ptr) { ptr->stop_requested(); };
+
+template <typename T>
+concept filter_without_token = requires(T ptr) { ptr->have_stop_token(); };
+
+template <typename T>
+concept valid_filter = requires(T ptr) { ptr->invoke(nullptr); };
 
 template <bool Rewrap, typename Filter>
-static uint8_t *find_first(uint8_t *rng_start, uint8_t *rng_end, uint8_t value, Filter filter)
+static pbyte find_first(pbyte rng_start, pbyte rng_end, byte value, Filter filter)
 {
     for (;;)
     {
-        auto result = std::find<uint8_t *>(rng_start, rng_end, value);
+        auto result = std::find(rng_start, rng_end, value);
         if (result == rng_end)
             return not_found<Rewrap>(rng_end);
-        if constexpr (filter_pointer<Filter>)
+        if constexpr (valid_filter<Filter>)
         {
             if (!filter->invoke(result))
                 return not_found<Rewrap>(rng_end);
-            if (!filter->stop_requested())
-            {
-                ++rng_start;
-                continue;
-            }
+            if constexpr (filter_with_token<Filter>)
+                if (!filter->stop_requested())
+                {
+                    rng_start = (result) + 1;
+                    continue;
+                }
         }
+
         return result;
     }
 }
@@ -260,45 +309,31 @@ static uint8_t *find_first(uint8_t *rng_start, uint8_t *rng_end, uint8_t value, 
 //     return val % (val - 1) == 0;
 // }
 
-static bool compare_except_first(uint8_t *rng, uint8_t *part, size_t part_size)
+static bool compare_except_first(pbyte rng, pbyte part, size_t part_size)
 {
     return std::memcmp(rng + 1, part + 1, part_size - 1) == 0;
 }
 
-template <bool RngEndPreset = false, bool Rewrap = true, typename Filter>
-static from<uint8_t *> do_search(
-    to<uint8_t *> rng_start,
-    to<uint8_t *> rng_end,
-    to<uint8_t *> part_start,
-    size_t part_size,
-    Filter filter)
+template <bool Rewrap = true, typename Filter>
+static pbyte find_whole(pbyte rng_start, pbyte rng_end, pbyte part_start, size_t part_size, Filter filter)
 {
-    assert(part_size != 0);
-    if constexpr (filter_pointer<Filter>)
-        assert(filter != nullptr);
-
-    if constexpr (!RngEndPreset)
-        rng_end -= part_size;
-
-    if (part_size == 1)
-        return find_first<Rewrap>(rng_start, rng_end, *part_start, filter);
-
     for (;;)
     {
-        auto part_start_found = find_first<false>(rng_start, rng_end, *part_start, nullptr);
+        auto part_start_found = find_first<false>(rng_start, rng_end, *part_start, std::false_type());
         if (part_start_found == rng_end)
             return not_found<Rewrap>(rng_end);
         if (compare_except_first(part_start_found, part_start, part_size))
         {
-            if constexpr (filter_pointer<Filter>)
+            if constexpr (valid_filter<Filter>)
             {
                 if (!filter->invoke(part_start_found))
                     return not_found<Rewrap>(rng_end);
-                if (!filter->stop_requested())
-                {
-                    rng_start = part_start_found + part_size;
-                    continue;
-                }
+                if constexpr (filter_with_token<Filter>)
+                    if (!filter->stop_requested())
+                    {
+                        rng_start = part_start_found + part_size;
+                        continue;
+                    }
             }
             return part_start_found;
         }
@@ -306,92 +341,132 @@ static from<uint8_t *> do_search(
     }
 }
 
+template <bool RngEndPreset = false, bool Rewrap = true, typename Filter>
+static from<pbyte> do_search(
+    to<pbyte> rng_start,
+    to<pbyte> rng_end,
+    to<pbyte> part_start,
+    size_t part_size,
+    Filter filter)
+{
+    assert(part_size != 0);
+    if constexpr (valid_filter<Filter>)
+        assert(filter != nullptr);
+
+    if constexpr (!RngEndPreset)
+        rng_end -= part_size;
+
+    return part_size == 1 ? find_first<Rewrap>(rng_start, rng_end, *(part_start), filter)
+                          : find_whole<Rewrap>(rng_start, rng_end, part_start, part_size, filter);
+}
+
 template <typename Filter>
-static from<uint8_t *> do_search(to<uint8_t *> rng_start, to<uint8_t *> rng_end, bytes_range &bytes, Filter filter)
+static from<pbyte> do_search(to<pbyte> rng_start, to<pbyte> rng_end, bytes_range &bytes, Filter filter)
 {
     return do_search<true, true>(rng_start, rng_end - bytes.whole_size(), bytes.part.data(), bytes.part.size(), filter);
 }
 
-static bool compare_except_first(uint8_t *checked, bytes_range_unpacked *rng_begin, bytes_range_unpacked *rng_end)
+static bool compare_except_first(pbyte checked, bytes_range_unpacked *rng_begin, bytes_range_unpacked *rng_end)
 {
-    for (auto it = rng_begin + 1; it != rng_end; ++it)
+    for (checked += rng_begin->whole_size, ++rng_begin; // skip previously checked block
+         rng_begin != rng_end;
+         checked += rng_begin->whole_size, ++rng_begin)
     {
-        if (std::memcmp(checked, it->data, it->known_size) != 0)
+        if (std::memcmp(checked, rng_begin->data, rng_begin->known_size) != 0)
             return false;
-        checked += it->whole_size;
-        // checked += it->part.size();
     }
+
     return true;
 }
 
 template <bool RngEndPreset = false, bool Rewrap = true, typename Filter>
-static from<uint8_t *> do_search(
-    to<uint8_t *> rng_start,
-    to<uint8_t *> rng_end,
+static from<pbyte> do_search(
+    to<pbyte> rng_start,
+    to<pbyte> rng_end,
     unknown_bytes_range_unpacked &unk_bytes,
     Filter filter)
 {
-    if constexpr (filter_pointer<Filter>)
+    if constexpr (valid_filter<Filter>)
         assert(filter != nullptr);
 
     if constexpr (!RngEndPreset)
         rng_end -= unk_bytes.bytes_count;
 
     auto unk_bytes_start = unk_bytes.data();
-    auto unk_bytes_end   = unk_bytes_start + unk_bytes.size();
 
-    for (;;)
-    {
-        uint8_t *first_part_found = do_search<true, false>(
-            rng_start, rng_end, unk_bytes_start->data, unk_bytes_start->known_size, nullptr);
-        if (first_part_found == rng_end)
-            return not_found<Rewrap>(rng_end);
-        if (compare_except_first(first_part_found + unk_bytes_start->whole_size, unk_bytes_start, unk_bytes_end))
-        {
-            if constexpr (filter_pointer<Filter>)
+    auto invoker =
+        [rng_start = rng_start.get(),
+         rng_end   = rng_end.get(),
+         unk_bytes_start,
+         unk_bytes_end = unk_bytes_start + unk_bytes.size(),
+         filter,
+         unk_bytes_count = unk_bytes.bytes_count]<bool StartLength1>(std::bool_constant<StartLength1>) mutable {
+            for (pbyte first_part_found;;)
             {
-                if (!filter->invoke(first_part_found))
+#if 1
+                if constexpr (StartLength1)
+                    first_part_found = find_first<false>(rng_start, rng_end, *unk_bytes_start->data, std::false_type());
+                else
+                    first_part_found = find_whole<false>(
+                        rng_start, rng_end, unk_bytes_start->data, unk_bytes_start->known_size, std::false_type());
+#else
+                first_part_found = do_search<true, false>(
+                    rng_start, rng_end, unk_bytes_start->data, unk_bytes_start->known_size, std::false_type());
+#endif
+                if (first_part_found == rng_end)
                     return not_found<Rewrap>(rng_end);
-                if (!filter->stop_requested())
+                if (compare_except_first(first_part_found, unk_bytes_start, unk_bytes_end))
                 {
-                    rng_start = first_part_found + unk_bytes.bytes_count;
-                    continue;
+                    if constexpr (valid_filter<Filter>)
+                    {
+                        if (!filter->invoke(first_part_found))
+                            return not_found<Rewrap>(rng_end);
+                        if constexpr (filter_with_token<Filter>)
+                            if (!filter->stop_requested())
+                            {
+                                rng_start = first_part_found + unk_bytes_count;
+                                continue;
+                            }
+                    }
+                    return first_part_found;
                 }
+                rng_start = first_part_found + unk_bytes_start->known_size;
             }
-            return first_part_found;
-        }
-        rng_start = first_part_found + unk_bytes_start->known_size;
-    }
+        };
+
+    return unk_bytes_start->known_size == 1 ? invoker(std::true_type()) : invoker(std::false_type());
 }
 
 //-----
 
 void *find_pattern(void *begin, void *end, char const *pattern, size_t pattern_length, find_filter *filter)
 {
-    auto range = unknown_bytes_range(pattern, pattern_length);
-    void *result;
+    auto proxy = [=](auto &rng, auto filter_wrapped) -> void * {
+        return do_search(begin, end, rng, filter_wrapped);
+    };
     auto invoker = [&](auto &&rng) {
         if (!filter)
-            result = do_search(begin, end, rng, nullptr);
-        else
-            result = do_search(begin, end, rng, filter_owner(filter).self());
+            return proxy(rng, std::false_type());
+        if (filter->have_stop_token())
+            return proxy(rng, filter_owner(filter).self());
+        return proxy(rng, filter);
     };
 
-    if (range.size() == 1)
-        invoker(range[0]);
-    else
-        invoker(range.unpack());
-
-    return result;
+    auto range = unknown_bytes_range(pattern, pattern_length);
+    return range.size() == 1 ? invoker(range[0]) : invoker(range.unpack());
 }
 
-static auto do_search_wrap_filter(void *begin, void *end, void *bytes, size_t length, find_filter *filter)
+static auto do_search_wrap_filter(void *begin, void *end, void const *bytes, size_t length, find_filter *filter)
 {
-    auto invoker = [=](auto filter_wrapped) {
+    auto proxy = [=](auto filter_wrapped) {
         return do_search(begin, end, bytes, length, filter_wrapped);
     };
 
-    return filter ? invoker(filter_owner(filter).self()) : invoker(nullptr);
+    if (!filter)
+        return proxy(nullptr);
+    if (filter->have_stop_token())
+        return proxy(filter_owner(filter).self());
+    return proxy(filter);
 }
 
 uintptr_t find_xref(void *begin, void *end, uintptr_t &address, find_filter *filter)
@@ -399,7 +474,7 @@ uintptr_t find_xref(void *begin, void *end, uintptr_t &address, find_filter *fil
     return do_search_wrap_filter(begin, end, &address, sizeof(uintptr_t), filter);
 }
 
-void *find_bytes(void *begin, void *end, void *bytes, size_t length, find_filter *filter)
+void *find_bytes(void *begin, void *end, void const *bytes, size_t length, find_filter *filter)
 {
     return do_search_wrap_filter(begin, end, bytes, length, filter);
 }

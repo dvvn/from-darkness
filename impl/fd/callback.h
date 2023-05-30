@@ -3,7 +3,6 @@
 #include "basic_callback.h"
 
 #include <functional>
-#include <stdexcept>
 
 namespace fd
 {
@@ -45,14 +44,33 @@ struct function_argument<I, std::function<Ret(Args...)>>
     using type = select_argument<I, Args...>;
 };
 
+#if 0
 template <typename Fn>
-struct function_return;
+concept std_function_constructible = requires(Fn fn) { std::function(fn); };
+
+
+template <typename Fn, bool = std_function_constructible<Fn>>
+struct function_return_impl;
+
+template <typename Fn>
+struct function_return_impl<Fn, true> : function_return_impl<decltype(std::function(std::declval<Fn>()))>
+{
+};
+
+template <typename Fn>
+struct function_return_impl<std::reference_wrapper<Fn>> : function_return_impl<Fn>
+{
+};
 
 template <typename Ret, typename... Args>
-struct function_return<std::function<Ret(Args...)>>
+struct function_return_impl<std::function<Ret(Args...)>>
 {
     using type = Ret;
 };
+
+template <typename Fn>
+using function_return = typename function_return_impl<Fn>::type;
+#endif
 
 template <typename Arg>
 class callback_arg_protector final : public boost::noncopyable
@@ -64,7 +82,7 @@ class callback_arg_protector final : public boost::noncopyable
     ~callback_arg_protector()
     {
         if (arg_ != backup_)
-            throw std::logic_error("Argument changed!");
+            std::unreachable();
     }
 
     callback_arg_protector(Arg const &arg)
@@ -95,7 +113,7 @@ class callback_arg_protector<Arg &> : public boost::noncopyable
     ~callback_arg_protector()
     {
         if (*arg_ != backup_)
-            throw std::logic_error("Argument changed!");
+            std::unreachable();
     }
 
     callback_arg_protector(Arg &arg)
@@ -110,17 +128,8 @@ class callback_arg_protector<Arg &> : public boost::noncopyable
     }
 };
 
-#if 0
 template <typename Arg>
-class callback_arg_protector<Arg &&> : public callback_arg_protector<Arg>
-{
-  public:
-    callback_arg_protector(Arg &&arg)
-        : callback_arg_protector<Arg>(std::move(arg))
-    {
-    }
-};
-#endif
+class callback_arg_protector<Arg &&>;
 
 template <typename Arg>
 callback_arg_protector(Arg) -> callback_arg_protector<Arg &>;
@@ -145,16 +154,22 @@ class callback_function_proxy
     {
     }
 
-    decltype(auto) operator()(void *result, callback_stop_token *stop_token)
+    template <typename Ret, typename... Args>
+    Ret operator()(std::in_place_type_t<Ret>, void *result, Args... args)
     {
-#ifdef _DEBUG
-        if constexpr (!std::is_const_v<Arg> && std::copyable<Arg>)
+        if constexpr (std::invocable<Fn, Arg, Args...>)
         {
-            auto clone = callback_arg_protector(reinterpret_cast<Arg>(result));
-            return std::invoke(fn_, clone.get(), stop_token);
-        }
+#ifdef _DEBUG
+            if constexpr (!std::is_const_v<Arg> && std::copyable<Arg>)
+            {
+                auto clone = callback_arg_protector(magic_cast_simple<Arg>(result));
+                return std::invoke(fn_, clone.get(), args...);
+            }
 #endif
-        return std::invoke(fn_, reinterpret_cast<Arg>(result), stop_token);
+            return std::invoke(fn_, reinterpret_cast<Arg>(result), args...);
+        }
+
+        std::unreachable();
     }
 };
 
@@ -169,49 +184,74 @@ struct callback_argument<std::reference_wrapper<Fn>> : callback_argument<Fn>
 };
 
 template <typename Ret, typename Fn>
-class callback final : public basic_callback<Ret>
+struct callback final : basic_callback<Ret>
 {
+    using basic_callback<Ret>::return_type;
     using function_type = Fn;
     using argument_type = typename callback_argument<Fn>::type;
 
-    callback_function_proxy<argument_type, function_type> fn_;
+  private:
+    callback_function_proxy<argument_type, function_type> proxy_;
 
   public:
     callback(function_type fn)
-        : fn_(std::move(fn))
+        : proxy_(std::move(fn))
     {
     }
 
-    Ret invoke(void *result, callback_stop_token *stop_token) override
+    bool have_stop_token() const override
     {
-        return fn_(result, stop_token);
+        return std::invocable<Fn, argument_type, callback_stop_token *>;
+    }
+
+    return_type invoke(void *result, callback_stop_token *stop_token) override
+    {
+        return proxy_(std::in_place_type<return_type>, result, stop_token);
+    }
+
+    Ret invoke(void *result) override
+    {
+        return proxy_(std::in_place_type<Ret>, result);
     }
 };
 
 template <typename Ret, typename Arg, typename Fn>
-class callback<Ret, callback_function_proxy<Arg, Fn>> final : public basic_callback<Ret>
+struct callback<Ret, callback_function_proxy<Arg, Fn>> final : basic_callback<Ret>
 {
-    callback_function_proxy<Arg, Fn> fn_;
+    using basic_callback<Ret>::return_type;
+
+  private:
+    callback_function_proxy<Arg, Fn> proxy_;
 
   public:
     callback(std::in_place_type_t<Arg>, Fn fn)
-        : fn_(std::move(fn))
+        : proxy_(std::move(fn))
     {
     }
 
     callback(Fn fn)
-        : fn_(std::move(fn))
+        : proxy_(std::move(fn))
     {
+    }
+
+    bool have_stop_token() const override
+    {
+        return std::invocable<Fn, Arg, callback_stop_token *>;
     }
 
     Ret invoke(void *result, callback_stop_token *stop_token) override
     {
-        return fn_(result, stop_token);
+        return proxy_(std::in_place_type<return_type>, result, stop_token);
+    }
+
+    Ret invoke(void *result) override
+    {
+        return proxy_(std::in_place_type<Ret>, result);
     }
 };
 
 template <typename Ret, typename Fn>
-class callback<Ret, Fn &>;
+struct callback<Ret, Fn &>;
 
 // template <typename Fn>
 // callback(Fn) -> callback<std::decay_t<Fn>>;

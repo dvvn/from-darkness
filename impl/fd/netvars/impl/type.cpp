@@ -147,9 +147,39 @@ size_t netvar_type_array_size(netvar_type_array *type)
     return type->size();
 }
 
+using boost::filesystem::directory_iterator;
+using boost::filesystem::file_type;
 using boost::filesystem::path;
 
-static path valve_dir = BOOST_JOIN(L, BOOST_STRINGIZE(FD_VALVE_DIR));
+static class
+{
+#ifdef _MSC_VER
+    static constexpr
+#endif
+        std::wstring_view dir_ = BOOST_JOIN(L, BOOST_STRINGIZE(FD_VALVE_DIR));
+
+    void gap() const
+    {
+        (void)this;
+    }
+
+  public:
+    template <typename C>
+    path append(std::basic_string_view<C> to_append) const
+    {
+        gap();
+        path::string_type buff;
+        buff.reserve(dir_.length() + 1 + to_append.length());
+        return path(std::move(buff)).append(to_append);
+    }
+
+    directory_iterator iterate() const
+    {
+        gap();
+        return directory_iterator(dir_);
+    }
+
+} valve_dir;
 
 struct valve_include
 {
@@ -191,7 +221,7 @@ struct valve_include
 
         if (data.empty())
         {
-            auto full_path = valve_dir / full_name();
+            auto full_path = valve_dir.append(full_name());
             data.reserve(file_size(full_path));
             std::ifstream file;
             file.open(full_path.native(), std::ios::binary | std::ios::in);
@@ -203,50 +233,64 @@ struct valve_include
             return c == '\t' || c == '\n' || c == ' ';
         };
 
-        return find_bytes(
+        auto found = find_bytes(
             data.data(),
             data.data() + data.size(),
             to<void *>(name.data()),
             name.size(),
-            [&](to<char *> ptr, find_callback_stop_token *token) {
-                if (is_valid_char(ptr[-1]) && is_valid_char(ptr[name.size()]))
-                {
-                    inner.emplace_back(name_hash);
-                    token->stop();
-                }
+            [name_size = name.size()](char *ptr, auto *stop_token) {
+                if (is_valid_char(ptr[-1]) && is_valid_char(ptr[name_size]))
+                    stop_token->stop();
                 return true;
             });
+        if (found)
+            inner.emplace_back(name_hash);
+        return found;
     }
 };
 
-static auto valve_classes = [] {
-    std::vector<valve_include> buff;
+static class
+{
+    std::vector<valve_include> storage_;
 
-    using boost::filesystem::directory_iterator;
-    using boost::filesystem::file_type;
-
-    for (auto &entry : directory_iterator(valve_dir))
+    void fill()
     {
-        if (entry.status().type() != file_type::regular_file)
-            continue;
+        if (!storage_.empty())
+            return;
 
-        auto &file     = entry.path();
-        auto filename  = file.filename();
-        auto extension = filename.extension();
-        if (!extension.native().starts_with(L".h"))
-            continue;
+        for (auto &entry : (valve_dir.iterate()))
+        {
+            if (entry.status().type() != file_type::regular_file)
+                continue;
 
-        // c:/??/??/
-        constexpr auto abs_path_length = std::size(BOOST_STRINGIZE(FD_IMPL_DIR));
+            auto &file     = entry.path();
+            auto filename  = file.filename();
+            auto extension = filename.extension();
+            if (!extension.native().starts_with(L".h"))
+                continue;
 
-        auto full_path       = std::wstring_view(file.native()).substr(abs_path_length);
-        auto filename_offset = full_path.size() - filename.size();
+            // c:/??/??/
+            constexpr auto abs_path_length = std::size(BOOST_STRINGIZE(FD_IMPL_DIR));
 
-        buff.emplace_back(full_path, filename_offset, filename.stem().size());
+            auto full_path       = std::basic_string_view(file.native()).substr(abs_path_length);
+            auto filename_offset = full_path.size() - filename.size();
+
+            storage_.emplace_back(full_path, filename_offset, filename.stem().size());
+        }
+        storage_.shrink_to_fit();
     }
 
-    return buff;
-}();
+  public:
+    valve_include *find(auto callback)
+    {
+        fill();
+
+        auto bg    = storage_.begin();
+        auto ed    = storage_.end();
+        auto found = std::find_if(bg, ed, std::ref(callback));
+        return found == ed ? nullptr : &*found /*storage_.data() + std::distance(bg, found)*/;
+    }
+} valve_classes;
 
 struct valve_class_data
 {
@@ -256,7 +300,7 @@ struct valve_class_data
     valve_class_data(valve_include &info)
         : hash(info.hash)
     {
-        auto full_path = valve_dir / info.full_name();
+        auto full_path = valve_dir.append(info.full_name());
         data.reserve(file_size(full_path));
         std::ifstream file;
         file.open(full_path.native(), std::ios::binary | std::ios::in);
@@ -274,17 +318,14 @@ void netvar_type_includes(std::string_view type, std::vector<std::string> &buff)
     }
     if (auto offset = type.find("valve::"); offset != type.npos)
     {
-        auto bg = valve_classes.begin();
-        auto ed = valve_classes.end();
-
         auto name      = type.substr(offset + 1, type.find('<', offset));
         auto name_hash = netvar_hash(name);
 
-        auto target = std::find_if(bg, ed, [=](valve_include &inc) { return inc.hash == name_hash; });
-        // if (target == ed)
-        //     target = std::find_if(bg, ed, [=](valve_include &inc) { return name.contains(inc.name()); });
-        if (target == ed)
-            target = std::find_if(bg, ed, [=](valve_include &inc) { return inc.inside(name, name_hash); });
+        auto target = valve_classes.find([=](valve_include &inc) { return inc.hash == name_hash; });
+        // if (!target )
+        //     target = valve_classes.find([=](valve_include &inc) { return name.contains(inc.name()); });
+        if (!target)
+            target = valve_classes.find([=](valve_include &inc) { return inc.inside(name, name_hash); });
 
         buff.emplace_back(fmt::format("<{}>", target->path));
     }
