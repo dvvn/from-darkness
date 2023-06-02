@@ -19,10 +19,9 @@ constexpr auto ENT_ENTRY_MASK            = (1 << NUM_SERIAL_NUM_BITS) - 1;
 
 namespace fd::valve
 {
-uint32_t get_entity_index(entity_handle handle)
+uint32_t entity_handle::index() const
 {
-    auto index = handle.value;
-    assert(index != INVALID_EHANDLE_INDEX);
-    return index & ENT_ENTRY_MASK;
+    assert(value != INVALID_EHANDLE_INDEX);
+    return value & ENT_ENTRY_MASK;
 }
 }

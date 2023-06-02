@@ -4,10 +4,12 @@
 
 namespace fd::valve
 {
-struct entity_handle
+class entity_handle
 {
     /*unsigned long*/ uint32_t value;
+
+  public:
+    uint32_t index() const;
 };
 
-uint32_t get_entity_index(entity_handle handle);
 }

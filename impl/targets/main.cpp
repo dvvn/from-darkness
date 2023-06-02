@@ -6,8 +6,9 @@
 #include <fd/library_info/wrapper.h>
 #include <fd/log.h>
 #include <fd/netvars/core.h>
-#include <fd/players/list.h>
+#include <fd/players/cache.h>
 #include <fd/render/context.h>
+#include <fd/valve/entity_handle.h>
 #include <fd/vfunc.h>
 
 #include <windows.h>
@@ -67,6 +68,11 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
 
     return TRUE;
 }
+
+namespace fd::valve
+{
+extern vtable<void> entity_list_interface;
+} // namespace fd::valve
 
 #else
 #define USE_OWN_RENDER_BACKEND
@@ -145,7 +151,7 @@ static bool context(HINSTANCE self_handle) noexcept
     vtable client_interface      = client_dll.find_interface("VClient");
     // vtable engine_interface    = engine_dll.find_interface("VEngineClient");
     vtable vgui_interface        = vgui_dll.find_interface("VGUI_Surface");
-    vtable entity_list_interface = client_dll.find_interface("VClientEntityList");
+    valve::entity_list_interface = client_dll.find_interface("VClientEntityList");
 
     // todo: check if ingame and use exisiting player
     auto player_vtable = client_dll.find_vtable("C_CSPlayer");
@@ -229,7 +235,7 @@ static bool context(HINSTANCE self_handle) noexcept
             [&](auto orig, auto handle_interface, auto handle) {
                 orig(handle_interface, handle);
                 // todo: work with this_ptr
-                on_add_entity(entity_list_interface, handle);
+                on_add_entity(handle.index());
             }),
         make_hook_callback(
             "CClientEntityList::OnRemoveEntity",
@@ -237,7 +243,7 @@ static bool context(HINSTANCE self_handle) noexcept
                 client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
             [&](auto orig, auto handle_interface, auto handle) {
                 // todo: work with this_ptr
-                on_remove_entity(entity_list_interface, handle);
+                on_remove_entity(handle.index());
                 orig(handle_interface, handle);
             })
 #endif

@@ -24,9 +24,4 @@ void basic_player::destroy()
     assert(entity_ != nullptr);
     entity_ = nullptr;
 }
-
-bool basic_player::operator==(basic_player other) const
-{
-    return entity_ == other.entity_;
-}
 } // namespace fd

@@ -4,8 +4,10 @@
 
 namespace fd::valve
 {
-void *get_client_entity(void *entity_list_interface, uint32_t index)
+vtable<void> entity_list_interface;
+
+void *get_client_entity(uint32_t index)
 {
-    return vtable(entity_list_interface)[3](index);
+    return (entity_list_interface)[3](index);
 }
 }

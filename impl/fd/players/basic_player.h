@@ -13,7 +13,5 @@ class basic_player
 
     bool valid() const;
     void destroy();
-
-    bool operator==(basic_player other) const;
 };
 } // namespace fd

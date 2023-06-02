@@ -14,39 +14,12 @@ class player_range final : public basic_player_range
     storage_type storage_;
 
   public:
-    iterator begin() const override
-    {
-        return storage_.data();
-    }
+    iterator begin() const override;
+    iterator end() const override;
 
-    iterator end() const override
-    {
-        return storage_.data() + storage_.size();
-    }
-
-    void add(player *p)
-    {
-        storage_.emplace_back(p);
-    }
-
-    bool remove(player const &p)
-    {
-        auto end = storage_.end();
-        for (auto it = storage_.begin(); it != end; ++it)
-        {
-            if (**it == p)
-            {
-                storage_.erase(it);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    void clear()
-    {
-        storage_.clear();
-    }
+    void add(player *p);
+    bool remove(player const &p);
+    void clear();
 };
 
 struct players_range_impl

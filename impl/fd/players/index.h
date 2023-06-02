@@ -30,7 +30,7 @@ constexpr T convert_entity_index(index_source from, index_source to, T index)
         return index - 1;
     if (from == index_source::own && to == index_source::game)
         return index + 1;
-    
+
     std::unreachable();
 }
 
