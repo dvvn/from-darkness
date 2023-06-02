@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/core/noncopyable.hpp>
+
 #include <optional>
 
 namespace fd
@@ -10,7 +12,7 @@ template <
 class invoke_on_destruct;
 
 template <typename Fn>
-class invoke_on_destruct<Fn, true>
+class invoke_on_destruct<Fn, true> final : public boost::noncopyable
 {
     Fn fn_;
 
@@ -26,14 +28,10 @@ class invoke_on_destruct<Fn, true>
     {
     }
 
-    invoke_on_destruct(invoke_on_destruct const &other) = delete;
-
     invoke_on_destruct(invoke_on_destruct &&other) noexcept
         : fn_(std::exchange(other.fn_, nullptr))
     {
     }
-
-    invoke_on_destruct &operator=(invoke_on_destruct const &other) = delete;
 
     invoke_on_destruct &operator=(invoke_on_destruct &&other) noexcept
     {
@@ -50,7 +48,7 @@ class invoke_on_destruct<Fn, true>
 };
 
 template <typename Fn>
-class invoke_on_destruct<Fn, false>
+class invoke_on_destruct<Fn, false> final : public boost::noncopyable
 {
     std::optional<Fn> fn_;
 
@@ -66,14 +64,10 @@ class invoke_on_destruct<Fn, false>
     {
     }
 
-    invoke_on_destruct(invoke_on_destruct const &other) = delete;
-
     invoke_on_destruct(invoke_on_destruct &&other) noexcept
         : fn_(std::exchange(other.fn_, std::nullopt))
     {
     }
-
-    invoke_on_destruct &operator=(invoke_on_destruct const &other) = delete;
 
     invoke_on_destruct &operator=(invoke_on_destruct &&other) noexcept
     {

@@ -43,6 +43,7 @@ target_link_libraries(fd PUBLIC
     #Boost::lexical_cast
     Boost::unordered
     Boost::nowide
+    Boost::lambda2
 )
 target_include_directories(fd PUBLIC
     ${FD_IMPL_DIR}

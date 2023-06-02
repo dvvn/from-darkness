@@ -4,9 +4,10 @@
 #include <fd/magic_cast.h>
 #include <fd/mem_scanner.h>
 
-#include <fmt/format.h>
-//
 #include <boost/filesystem.hpp>
+#include <boost/lambda2.hpp>
+
+#include <fmt/format.h>
 
 #include <algorithm>
 #include <fstream>
@@ -236,7 +237,7 @@ struct valve_include
         auto found = find_bytes(
             data.data(),
             data.data() + data.size(),
-            to<void *>(name.data()),
+            name.data(),
             name.size(),
             [name_size = name.size()](char *ptr, auto *stop_token) {
                 if (is_valid_char(ptr[-1]) && is_valid_char(ptr[name_size]))
@@ -321,11 +322,14 @@ void netvar_type_includes(std::string_view type, std::vector<std::string> &buff)
         auto name      = type.substr(offset + 1, type.find('<', offset));
         auto name_hash = netvar_hash(name);
 
-        auto target = valve_classes.find([=](valve_include &inc) { return inc.hash == name_hash; });
+        using namespace boost::lambda2;
+
+        auto target = valve_classes.find(_1->*&valve_include::hash == name_hash);
+
         // if (!target )
         //     target = valve_classes.find([=](valve_include &inc) { return name.contains(inc.name()); });
         if (!target)
-            target = valve_classes.find([=](valve_include &inc) { return inc.inside(name, name_hash); });
+            target = valve_classes.find(std::bind_back(&valve_include::inside, name, name_hash));
 
         buff.emplace_back(fmt::format("<{}>", target->path));
     }

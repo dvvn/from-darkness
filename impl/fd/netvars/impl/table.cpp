@@ -15,10 +15,10 @@ std::string_view get(fd::hashed_netvar_table_name const &p)
 
 namespace fd
 {
-static bool operator==(hashed_netvar_table_name const &left, hashed_netvar_name const &right)
-{
-    return left.first == std::get<size_t>(right);
-}
+// static bool operator==(hashed_netvar_table_name const &left, hashed_netvar_name const &right)
+//{
+//     return left.first == std::get<size_t>(right);
+// }
 
 hashed_netvar_table_name::hashed_netvar_table_name()
     : hashed_netvar_table_name(std::string_view())
@@ -56,8 +56,6 @@ bool hashed_netvar_table_name::operator==(std::string_view other) const
 {
     return std::get<std::string_view>(*this) == other;
 }
-
-
 
 std::string const *hashed_netvar_table_name::operator->() const
 {
@@ -128,7 +126,7 @@ bool netvar_table::operator==(std::string_view name) const
 
 bool netvar_table::operator==(size_t name_hash) const
 {
-    return std::get<size_t>(name_)==name_hash;
+    return std::get<size_t>(name_) == name_hash;
 }
 
 #if 0

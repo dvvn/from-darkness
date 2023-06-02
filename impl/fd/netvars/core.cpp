@@ -12,7 +12,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/nowide/fstream.hpp>
-//
+
 #include <fmt/format.h>
 #include <fmt/os.h>
 
@@ -575,7 +575,7 @@ void create_netvar_classes(std::wstring_view dir)
         fmt::format_to(std::back_inserter(buff), "namespace {}\n", table_name);
         buff.push_back('}');
         buff.push_back('\n');
-        std::for_each(table.begin(), table.end(), [&](netvar_info const &info) noexcept {
+        std::for_each(table.begin(), table.end(), [&](netvar_info const &info) {
             fmt::format_to(
                 std::back_inserter(buff),
                 "auto {name} = netvar_getter(std::in_place_type<{type}>, {source}, {name});\n",
