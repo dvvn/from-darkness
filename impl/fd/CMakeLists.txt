@@ -3,14 +3,6 @@ project(fd CXX)
 file(GLOB_RECURSE _FILES ${FD_DIR}/*.cpp)
 add_library(fd ${_FILES})
 
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-    set(FD_DEFAULT_LOG_LEVEL debug)
-elseif(CMAKE_BUILD_TYPE MATCHES Release)
-    set(FD_DEFAULT_LOG_LEVEL off)
-else()
-    set(FD_DEFAULT_LOG_LEVEL err)
-endif()
-
 target_link_libraries(fd PUBLIC 
     #function2
     #robin_hood::robin_hood

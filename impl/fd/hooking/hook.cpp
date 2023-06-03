@@ -1,43 +1,99 @@
-#include <fd/hooking/hook.h>
+#include "hook.h"
+
 #include <fd/lazy_invoke.h>
 #include <fd/log.h>
-#include <fd/magic_cast.h>
 
+#include <boost/container/small_vector.hpp>
+#include <boost/container/static_vector.hpp>
+
+#include <algorithm>
 #include <cassert>
 
-struct correct_word_ed
+struct correct_word_end
 {
     char const *word;
 };
 
-template <>
-struct fmt::formatter<correct_word_ed> : formatter<string_view>
-{
-    auto format(correct_word_ed ed, format_context &ctx) const -> format_context::iterator
-    {
-        std::string_view tmp = ed.word;
-        if (tmp.ends_with("ed"))
-            return formatter<string_view>::format(tmp, ctx);
+using boost::container::small_vector;
+using boost::container::static_vector;
 
-        memory_buffer buff;
-        if (tmp.ends_with('e'))
+// todo: auto it
+constexpr size_t hooks_count = 16;
+
+namespace corrected_word_end
+{
+class result_type
+{
+    char const *word_;
+    small_vector<char, 64> buff_; // vector because not null terminated
+
+  public:
+    bool operator==(correct_word_end other) const
+    {
+        return word_ == other.word;
+    }
+
+    std::string_view get() const
+    {
+        return {buff_.begin(), buff_.end()};
+    }
+
+    result_type(std::string_view str)
+        : word_(str.data())
+    {
+        auto reserve = [l = str.length(), this](size_t extra) {
+            buff_.reserve(l + extra);
+        };
+
+        auto append = [dst = std::back_inserter(buff_)](auto &&rng, size_t length = 0) {
+            using std::begin;
+            using std::end;
+            auto bg = begin(rng);
+            std::copy(bg, length ? bg + length : end(rng), dst);
+        };
+
+        if (str.ends_with('e'))
         {
-            buff.append(tmp);
-            buff.push_back('d');
+            reserve(1);
+            append(str);
+            buff_.push_back('d');
         }
-        else if (tmp.ends_with('y'))
+        else if (str.ends_with('y'))
         {
-            tmp.remove_suffix(1);
-            buff.append(tmp);
-            buff.append(string_view("ied", 3));
+            reserve(-1 + 3);
+            append(str, str.length() - 1);
+            append("ied", 3);
         }
         else
         {
-            buff.append(tmp);
-            buff.append(string_view("ated", 4));
+            reserve(4);
+            append(str);
+            append("ated", 4);
         }
+    }
+};
 
-        return formatter<string_view>::format(string_view(buff.data(), buff.size()), ctx);
+static static_vector<result_type, fd::_internal_hook_words * hooks_count> cache;
+
+static std::string_view get(correct_word_end val) noexcept
+{
+    std::string_view str = val.word;
+    if (str.ends_with("ed"))
+        return str;
+
+    auto ed = cache.end();
+    auto it = std::find(cache.begin(), ed, val);
+
+    return it == ed ? cache.emplace_back(str).get() : it->get();
+}
+} // namespace corrected_word_end
+
+template <>
+struct fmt::formatter<correct_word_end> : formatter<string_view>
+{
+    auto format(correct_word_end ed, format_context &ctx) const -> format_context::iterator
+    {
+        return formatter<string_view>::format(corrected_word_end::get(ed), ctx);
     }
 };
 
@@ -631,19 +687,16 @@ struct fmt::formatter<MH_STATUS> : formatter<string_view>
 {
     auto format(MH_STATUS status, format_context &ctx) const -> format_context::iterator
     {
-        return formatter<string_view>::format(MH_StatusToString(status), ctx);
+        std::string_view tmp = MH_StatusToString(status);
+        return formatter<string_view>::format(tmp.substr(strlen("MH_")), ctx);
     }
 };
 #endif
 
+using action_name = char const *;
+
 namespace fd
 {
-struct unpacked_hook
-{
-    void *id;
-    hook_name name;
-};
-
 #if defined(SUBHOOK_API)
 static auto init_hooks = []() -> uint8_t {
     subhook_set_disasm_handler([](void *src, int *reloc_op_offset) -> int {
@@ -666,22 +719,24 @@ static invoke_on_destruct init_hooks = [] {
     status = MH_SetThreadFreezeMethod(MH_FREEZE_METHOD_NONE_UNSAFE);
     assert(status == MH_OK);
 #endif
-    return (MH_Uninitialize);
+    return MH_Uninitialize;
 }();
 
-static bool mh_action(char const *action_name, hook_id id, MH_STATUS(WINAPI *action)(LPVOID))
+template <typename... Args>
+using mh_function = MH_STATUS(WINAPI *)(Args...);
+
+static bool mh_action(action_name name, hook_id id, mh_function<LPVOID> action)
 {
-    to<unpacked_hook> hook = id;
-    auto status            = action(hook->id);
+    auto status = action(id.target);
     if (status != MH_OK)
-        log("Unable to {} hook {}: {}", action_name, hook->name, status);
+        log("Unable to {} hook {}: {}", name, id.name, status);
     else
-        log("Hook {} {}", hook->name, correct_word_ed(action_name));
+        log("Hook {} {}", id.name, correct_word_end(name));
     return status == MH_OK;
 }
 
 template <typename... Args>
-static bool mh_action(char const *action_name, MH_STATUS(WINAPI *action)(Args...))
+static bool mh_action(action_name name, mh_function<Args...> action)
 {
     MH_STATUS status;
     if constexpr (sizeof...(Args) != 0)
@@ -689,9 +744,9 @@ static bool mh_action(char const *action_name, MH_STATUS(WINAPI *action)(Args...
     else
         status = action();
     if (status != MH_OK)
-        log("Unable to {} hooks: {}", action_name, status);
+        log("Unable to {} hooks: {}", name, status);
     else
-        log("All hooks {}", correct_word_ed(action_name));
+        log("All hooks {}", correct_word_end(name));
     return status == MH_OK;
 }
 
@@ -735,22 +790,13 @@ static std::string_view find_name(T hook)
     return std::find_if(
                hooks.begin(),
                hooks.end(),
-               [id = hook.id](stored_hook const &stored) {
+               [id = hook.target](stored_hook const &stored) {
                    //
-                   return id == stored.id;
+                   return id == stored.target;
                })
         ->name;
 }
 #endif
-
-template <typename T, typename N>
-static to<hook_id> make_hook_id(T target, N name)
-{
-    if constexpr (sizeof(hook_id) == sizeof(unpacked_hook))
-        return unpacked_hook(target, name);
-    else
-        return target;
-}
 
 hook_id create_hook(void *target, void *replace, hook_name name, void **trampoline)
 {
@@ -775,10 +821,9 @@ hook_id create_hook(void *target, void *replace, hook_name name, void **trampoli
     if (status != MH_OK)
     {
         log("{}: init error ({})", name, status);
-        return 0;
+        return nullptr;
     }
 
-    hook_id id = make_hook_id(target, name);
 #endif
 
 #if 0
@@ -788,7 +833,7 @@ hook_id create_hook(void *target, void *replace, hook_name name, void **trampoli
 
     log("Hook {}: created. (target: {:p} replace: {:p})", name, target, replace);
 
-    return id;
+    return {target, name};
 }
 
 bool enable_hook(hook_id id)

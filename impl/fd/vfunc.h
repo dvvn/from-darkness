@@ -1,7 +1,7 @@
 #pragma once
 
 #include "magic_cast_base.h"
-#include "x86_call.h"
+#include "call_type.h"
 
 #include <boost/core/noncopyable.hpp>
 
@@ -12,7 +12,7 @@
 
 namespace fd
 {
-size_t get_vfunc_index(void *instance, size_t vtable_offset, void *function, _x86_call call);
+size_t get_vfunc_index(void *instance, size_t vtable_offset, void *function, call_type_t call);
 
 template <typename Fn>
 void *get_function_pointer(Fn function)
@@ -65,7 +65,7 @@ inline void *get_vfunc(void *instance, size_t vtable_offset, size_t function_ind
 // #undef GET_VFUNC_INDEX
 
 template <typename T>
-constexpr _x86_call vtable_call = _x86_call::thiscall__;
+constexpr call_type_t vtable_call = call_type_t::thiscall_;
 
 template <typename T>
 struct return_type_t
@@ -92,7 +92,7 @@ using unknown_return_type = return_type_t<nullptr_t>;
         return function_;     \
     }
 
-template <_x86_call Call, typename Ret, typename T, typename... Args>
+template <call_type_t Call, typename Ret, typename T, typename... Args>
 class vfunc
 {
     using invoker = member_func_invoker<Call, Ret, Args...>;
@@ -116,7 +116,7 @@ class vfunc
 template <typename From, typename To>
 struct auto_cast_resolver;
 
-template <typename To, _x86_call Call, typename... Args>
+template <typename To, call_type_t Call, typename... Args>
 struct auto_cast_resolver<vfunc<Call, Args...>, To>
 {
     To operator()(vfunc<Call, Args...> from) const
@@ -125,7 +125,7 @@ struct auto_cast_resolver<vfunc<Call, Args...>, To>
     }
 };
 
-template <_x86_call Call, typename... Args>
+template <call_type_t Call, typename... Args>
 struct auto_cast_resolver<vfunc<Call, Args...>, void *>
 {
     void *operator()(vfunc<Call, Args...> from) const
@@ -156,7 +156,7 @@ class vfunc_wrapped_invoker
 template <typename Fn>
 class vfunc_wrapped_invoker<Fn &>;
 
-template <_x86_call Call, typename T>
+template <call_type_t Call, typename T>
 class vfunc<Call, unknown_return_type, T>
 {
     template <typename Ret, typename... Args>
@@ -183,8 +183,8 @@ class vfunc<Call, unknown_return_type, T>
         return invoker<Ret, Args...>::call(instance_void_, function_, args...);
     }
 
-    template <_x86_call Call_1>
-    auto operator()(call_type_t<Call_1>, auto...) const = delete;
+    template <call_type_t Call_1>
+    auto operator()(call_type_holder<Call_1>, auto...) const = delete;
 
     template <typename... Args>
     auto operator()(Args... args) const
@@ -196,9 +196,9 @@ class vfunc<Call, unknown_return_type, T>
 };
 
 template <typename Ret, typename T, typename... Args>
-class vfunc<_x86_call::unknown, Ret, T, Args...>
+class vfunc<call_type_t::unknown, Ret, T, Args...>
 {
-    using invoker = member_func_invoker<_x86_call::unknown, Ret, Args...>;
+    using invoker = member_func_invoker<call_type_t::unknown, Ret, Args...>;
 
     VFUNC_BASE;
 
@@ -210,18 +210,18 @@ class vfunc<_x86_call::unknown, Ret, T, Args...>
         static_assert(std::invocable<Fn, T *, Args...>);
     }
 
-    template <_x86_call Call>
-    Ret operator()(call_type_t<Call> call, Args... args) const
+    template <call_type_t Call>
+    Ret operator()(call_type_holder<Call> call, Args... args) const
     {
         return invoker::call(instance_void_, function_, call, args...);
     }
 };
 
 template <typename T>
-class vfunc<_x86_call::unknown, unknown_return_type, T>
+class vfunc<call_type_t::unknown, unknown_return_type, T>
 {
     template <typename Ret, typename... Args>
-    using invoker = member_func_invoker<_x86_call::unknown, Args...>;
+    using invoker = member_func_invoker<call_type_t::unknown, Args...>;
 
     VFUNC_BASE;
 
@@ -232,14 +232,14 @@ class vfunc<_x86_call::unknown, unknown_return_type, T>
     {
     }
 
-    template <_x86_call Call, typename Ret, typename... Args>
-    Ret operator()(call_type_t<Call> call, return_type_t<Ret>, Args... args) const
+    template <call_type_t Call, typename Ret, typename... Args>
+    Ret operator()(call_type_holder<Call> call, return_type_t<Ret>, Args... args) const
     {
         return invoker<Ret, Args...>::call(instance_void_, function_, call, args...);
     }
 
-    template <_x86_call Call, typename... Args>
-    auto operator()(call_type_t<Call> call, Args... args) const
+    template <call_type_t Call, typename... Args>
+    auto operator()(call_type_holder<Call> call, Args... args) const
     {
         return vfunc_wrapped_invoker([=]<typename Ret>(return_type_t<Ret>) -> Ret {
             return invoker<Ret, Args...>::call(instance_void_, function_, call, args...);
@@ -250,7 +250,7 @@ class vfunc<_x86_call::unknown, unknown_return_type, T>
 #undef VFUNC_BASE
 
 template <typename T>
-vfunc(T *instance, size_t table_offset, size_t func_index) -> vfunc<_x86_call::unknown, unknown_return_type, T>;
+vfunc(T *instance, size_t table_offset, size_t func_index) -> vfunc<call_type_t::unknown, unknown_return_type, T>;
 
 #define VFUNC_T(call__, __call, call)                     \
     template <typename Ret, typename T, typename... Args> \
@@ -462,7 +462,7 @@ struct vtable<void> : basic_vtable<void>
 #undef VFUNC_ACCESS
 
     /*template <typename Ret, typename T, typename... Args>
-    vfunc<_x86_call::thiscall__, Ret, T, Args...> operator[](Ret(__thiscall *func)(void *, Args...)) const
+    vfunc<call_type_t::thiscall__, Ret, T, Args...> operator[](Ret(__thiscall *func)(void *, Args...)) const
     {
         return {instance_, vtable_offset_, func};
     }*/
@@ -522,7 +522,7 @@ magic_cast(vtable<From>, To) -> magic_cast<From *, To>;
 // template <typename From, typename To>
 // magic_cast(vtable<From *>, To) -> magic_cast<From *, To>;
 
-template <_x86_call Call, typename Ret, typename T, typename To, typename... Args>
+template <call_type_t Call, typename Ret, typename T, typename To, typename... Args>
 magic_cast(vfunc<Call, Ret, T, Args...>, To) -> magic_cast<T *, To>;
 
 // template <typename To>

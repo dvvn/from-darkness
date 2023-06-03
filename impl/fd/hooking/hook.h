@@ -1,28 +1,44 @@
 #pragma once
 
 #include <boost/core/noncopyable.hpp>
-#include <boost/predef.h>
 
 #include <utility>
 
-#ifndef off
-#define _OFF_DEFINED
-#define off 1337
-#endif
-
 namespace fd
 {
-#if FD_DEFAULT_LOG_LEVEL == off
-using hook_id = uintptr_t;
-#else
-#if BOOST_ARCH_X86 == BOOST_VERSION_NUMBER_AVAILABLE
-using hook_id = uint64_t;
-#elif BOOST_ARCH_X86_64 == BOOST_VERSION_NUMBER_AVAILABLE
-
-#endif
-#endif
 using hook_name = char const *;
 
+struct hook_id
+{
+    void *target;
+
+#ifdef _DEBUG
+    hook_name name;
+#else
+    static constexpr hook_name name = "Unnamed";
+#endif
+
+    hook_id(nullptr_t)
+        : hook_id(nullptr, "Unnamed")
+    {
+    }
+
+    hook_id(void *target, hook_name name)
+        : target(target)
+#ifdef _DEBUG
+        , name(name)
+#endif
+    {
+        (void)name;
+    }
+
+    explicit operator bool() const
+    {
+        return target != nullptr;
+    }
+};
+
+constexpr size_t _internal_hook_words_begin = __LINE__ + 1;
 hook_id create_hook(void *target, void *replace, hook_name name, void **trampoline);
 bool enable_hook(hook_id id);
 bool enable_hook_lazy(hook_id id);
@@ -31,6 +47,7 @@ bool disable_hook_lazy(hook_id id);
 bool apply_lazy_hooks();
 bool enable_hooks();
 bool disable_hooks();
+constexpr size_t _internal_hook_words = __LINE__ - _internal_hook_words_begin;
 
 class hook : public boost::noncopyable
 {
@@ -50,7 +67,7 @@ class hook : public boost::noncopyable
 
     explicit operator bool() const
     {
-        return id_;
+        return static_cast<bool>(id_);
     }
 
     bool enable() const
@@ -75,12 +92,7 @@ class hook : public boost::noncopyable
 
     bool destroy()
     {
-        return disable_hook(std::exchange(id_, 0));
+        return disable_hook(std::exchange(id_, nullptr));
     }
 };
 } // namespace fd
-
-#ifdef _OFF_DEFINED
-#undef _OFF_DEFINED
-#undef off
-#endif

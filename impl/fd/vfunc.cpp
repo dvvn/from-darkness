@@ -32,13 +32,13 @@ static vtable<void> call_vtable[] = {
 };
 #undef GENERATE_VTABLES
 
-size_t get_vfunc_index(void *instance, size_t vtable_offset, void *function, _x86_call call)
+size_t get_vfunc_index(void *instance, size_t vtable_offset, void *function, call_type_t call)
 {
-    using num_t = std::underlying_type_t<_x86_call>;
+    using num_t = std::underlying_type_t<call_type_t>;
 
     auto vt     = vtable(instance, vtable_offset);
     auto backup = vt.replace(call_vtable[static_cast<num_t>(call)]);
 
-    return member_func_invoker<_x86_call::unknown, size_t>::call(instance, function, call);
+    return member_func_invoker<call_type_t::unknown, size_t>::call(instance, function, call);
 }
 }
