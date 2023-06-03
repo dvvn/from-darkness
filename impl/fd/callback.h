@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "basic_callback.h"
+#include "core.h"
 
 #include <functional>
 
@@ -85,7 +86,7 @@ class callback_arg_protector final : public boost::noncopyable
             std::unreachable();
     }
 
-    callback_arg_protector(Arg const &arg)
+    callback_arg_protector(_const<Arg> &arg)
         : arg_((arg))
         , backup_(arg)
     {

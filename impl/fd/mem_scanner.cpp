@@ -169,12 +169,12 @@ struct unknown_bytes_range : static_buffer<bytes_range, 8>
 
     struct unknown_bytes_range_unpacked unpack();
 
-    unknown_bytes_range(char const *begin, size_t length)
+    unknown_bytes_range(_const<char *> begin, size_t length)
         : unknown_bytes_range(begin, begin + length)
     {
     }
 
-    unknown_bytes_range(char const *begin, char const *end)
+    unknown_bytes_range(_const<char *> begin, _const<char *> end)
     {
         auto back = &this->emplace_back();
 
@@ -231,8 +231,10 @@ struct unknown_bytes_range_unpacked : static_buffer<bytes_range_unpacked, 8>
         : static_buffer(rng.begin(), rng.end())
     {
         assert(!rng.empty());
-        bytes_count = std::accumulate<const_iterator, size_t>(
-            begin(), end(), (0), [](size_t old, const_reference curr) { return old + curr.whole_size; });
+        bytes_count = std::accumulate<const_iterator>(
+            begin(), end(), static_cast<size_t>(0), [](size_t old, const_reference curr) {
+                return old + curr.whole_size;
+            });
     }
 };
 
@@ -439,7 +441,7 @@ static from<pbyte> do_search(
 
 //-----
 
-void *find_pattern(void *begin, void *end, char const *pattern, size_t pattern_length, find_filter *filter)
+void *find_pattern(void *begin, void *end, _const<char *> pattern, size_t pattern_length, find_filter *filter)
 {
     auto proxy = [=](auto &rng, auto filter_wrapped) -> void * {
         return do_search(begin, end, rng, filter_wrapped);
@@ -456,7 +458,7 @@ void *find_pattern(void *begin, void *end, char const *pattern, size_t pattern_l
     return range.size() == 1 ? invoker(range[0]) : invoker(range.unpack());
 }
 
-static auto do_search_wrap_filter(void *begin, void *end, void const *bytes, size_t length, find_filter *filter)
+static auto do_search_wrap_filter(void *begin, void *end, _const<void *> bytes, size_t length, find_filter *filter)
 {
     auto proxy = [=](auto filter_wrapped) {
         return do_search(begin, end, bytes, length, filter_wrapped);
@@ -474,7 +476,7 @@ uintptr_t find_xref(void *begin, void *end, uintptr_t &address, find_filter *fil
     return do_search_wrap_filter(begin, end, &address, sizeof(uintptr_t), filter);
 }
 
-void *find_bytes(void *begin, void *end, void const *bytes, size_t length, find_filter *filter)
+void *find_bytes(void *begin, void *end, _const<void *> bytes, size_t length, find_filter *filter)
 {
     return do_search_wrap_filter(begin, end, bytes, length, filter);
 }

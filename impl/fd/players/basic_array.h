@@ -3,18 +3,23 @@
 #include "index.h"
 #include "player.h"
 
+#include <fd/core.h>
+
 namespace fd
 {
 // for [] access, entries maybe null
-class basic_player_array
+struct basic_player_array
 {
     friend struct player_array;
 
-    player *storage_[max_player_count];
+    using pointer = _const<player *>;
+
+  private:
+    pointer storage_[max_player_count];
 
   public:
     template <index_source Source = index_source::own>
-    player *operator[](player_index<Source> index) const
+    pointer operator[](player_index<Source> index) const
     {
 #ifdef _DEBUG
         if constexpr (Source == index_source::own)

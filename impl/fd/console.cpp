@@ -14,12 +14,12 @@ static FILE *in;
 static FILE *out;
 static FILE *err;
 
-static HANDLE inW;
-static HANDLE outW;
+static HANDLE in_w;
+static HANDLE out_w;
 
-static HANDLE oldOutW;
-static HANDLE oldInW;
-static HANDLE oldErrW;
+static HANDLE old_out_w;
+static HANDLE old_in_w;
+static HANDLE old_err_w;
 
 bool create_system_console()
 {
@@ -35,12 +35,12 @@ bool create_system_console()
     freopen_s(&err, "CONOUT$", "w", stderr);
     freopen_s(&in, "CONIN$", "r", stdin);
 
-    oldOutW = GetStdHandle(STD_OUTPUT_HANDLE);
-    oldErrW = GetStdHandle(STD_ERROR_HANDLE);
-    oldInW  = GetStdHandle(STD_INPUT_HANDLE);
+    old_out_w = GetStdHandle(STD_OUTPUT_HANDLE);
+    old_err_w = GetStdHandle(STD_ERROR_HANDLE);
+    old_in_w  = GetStdHandle(STD_INPUT_HANDLE);
 
     // std::wcout, std::wclog, std::wcerr, std::wcin
-    outW = CreateFile(
+    out_w = CreateFile(
         _T("CONOUT$"),
         GENERIC_READ | GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -48,7 +48,7 @@ bool create_system_console()
         OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL,
         nullptr);
-    inW = CreateFile(
+    in_w = CreateFile(
         _T("CONIN$"),
         GENERIC_READ | GENERIC_WRITE,
         FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -56,11 +56,11 @@ bool create_system_console()
         OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL,
         nullptr);
-    if (!SetStdHandle(STD_OUTPUT_HANDLE, outW))
+    if (!SetStdHandle(STD_OUTPUT_HANDLE, out_w))
         return false;
-    if (!SetStdHandle(STD_ERROR_HANDLE, outW))
+    if (!SetStdHandle(STD_ERROR_HANDLE, out_w))
         return false;
-    if (!SetStdHandle(STD_INPUT_HANDLE, inW))
+    if (!SetStdHandle(STD_INPUT_HANDLE, in_w))
         return false;
 
     std::cout.clear();
@@ -73,19 +73,19 @@ bool create_system_console()
     std::wcerr.clear();
     std::wcin.clear();
 
-#define BOOST_NOWIDE_RECREATE_EX(_T_, _DEF_, ...)         \
+#define BOOST_NO_WIDE_RECREATE_EX(_T_, _DEF_, ...)        \
     if (boost::nowide::_T_.rdbuf() == std::_DEF_.rdbuf()) \
     {                                                     \
         using namespace boost::nowide;                    \
         std::destroy_at(&_T_);                            \
         std::construct_at(&_T_, __VA_ARGS__);             \
     }
-#define BOOST_NOWIDE_RECREATE(_T_, ...) BOOST_NOWIDE_RECREATE_EX(_T_, _T_, __VA_ARGS__)
+#define BOOST_NO_WIDE_RECREATE(_T_, ...) BOOST_NO_WIDE_RECREATE_EX(_T_, _T_, __VA_ARGS__)
 
-    BOOST_NOWIDE_RECREATE(cout, true, nullptr);
-    BOOST_NOWIDE_RECREATE(cin, &cout);
-    BOOST_NOWIDE_RECREATE(cerr, false, &cout);
-    BOOST_NOWIDE_RECREATE_EX(clog, cerr, false, nullptr);
+    BOOST_NO_WIDE_RECREATE(cout, true, nullptr);
+    BOOST_NO_WIDE_RECREATE(cin, &cout);
+    BOOST_NO_WIDE_RECREATE(cerr, false, &cout);
+    BOOST_NO_WIDE_RECREATE_EX(clog, cerr, false, nullptr);
 
     /*boost::nowide::cout.clear();
     boost::nowide::clog.clear();
@@ -97,12 +97,12 @@ bool create_system_console()
 
 void destroy_system_console()
 {
-    SetStdHandle(STD_ERROR_HANDLE, oldErrW);
-    SetStdHandle(STD_INPUT_HANDLE, oldInW);
-    SetStdHandle(STD_OUTPUT_HANDLE, oldOutW);
+    SetStdHandle(STD_ERROR_HANDLE, old_err_w);
+    SetStdHandle(STD_INPUT_HANDLE, old_in_w);
+    SetStdHandle(STD_OUTPUT_HANDLE, old_out_w);
 
-    CloseHandle(inW);
-    CloseHandle(outW);
+    CloseHandle(in_w);
+    CloseHandle(out_w);
 
     fclose(err);
     fclose(in);

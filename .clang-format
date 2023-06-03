@@ -47,9 +47,11 @@ IncludeCategories:
     Priority: 2
   - Regex: '<fmt/.*>'
     Priority: 3
+  - Regex: '<imgui.*h>'
+    Priority: 4
   - Regex: '<windows\.h>'
-    Priority: 4
-    SortPriority: 3
+    Priority: 5
   - Regex: '<[^\\\/]*\.h.*>'
-    Priority: 4
+    Priority: 5
+    SortPriority: 6
 ...

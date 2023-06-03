@@ -1,43 +1,8 @@
-#include "hash.h"
 #include "info.h"
-
-#include <cassert>
 
 namespace fd
 {
-
-hashed_netvar_name::hashed_netvar_name(std::string_view name)
-    : std::pair<size_t, std::string_view>(netvar_hash(name), name)
-{
-    assert(!name.empty());
-}
-
-hashed_netvar_name::hashed_netvar_name(const char *name)
-    : hashed_netvar_name(std::string_view(name))
-{
-}
-
-bool hashed_netvar_name::operator==(hashed_netvar_name const &other) const
-{
-    return std::get<size_t>(*this) == std::get<size_t>(other);
-}
-
-bool hashed_netvar_name::operator==(std::string_view other) const
-{
-    return std::get<std::string_view>(*this) == other;
-}
-
-std::string_view const *hashed_netvar_name::operator->() const
-{
-    return &std::get<std::string_view>(*this);
-}
-
-std::string_view hashed_netvar_name::get() const
-{
-    return std::get<std::string_view>(*this);
-}
-
-netvar_info::netvar_info(size_t offset, uint16_t array_size, netvar_source source, hashed_netvar_name const &name)
+netvar_info::netvar_info(size_t offset, uint16_t array_size, netvar_source source, _const<hashed_name &> name)
     : offset_(offset)
     , array_size_(array_size)
     , source_(source)
@@ -46,7 +11,7 @@ netvar_info::netvar_info(size_t offset, uint16_t array_size, netvar_source sourc
 {
 }
 
-netvar_info::netvar_info(size_t offset, netvar_source source, hashed_netvar_name const &name)
+netvar_info::netvar_info(size_t offset, netvar_source source, _const<hashed_name &> name)
     : offset_(offset)
     , array_size_(0)
     , source_(source)
@@ -77,7 +42,7 @@ size_t netvar_info::array_size() const
     return netvar_type_array_size(source_.type(name(), array_size_));
 }
 
-bool netvar_info::operator==(netvar_info const &other) const
+bool netvar_info::operator==(_const<netvar_info &> other) const
 {
     return name_ == other.name_ &&             //
            offset_ == other.offset_ &&         //
@@ -90,7 +55,7 @@ bool netvar_info::operator==(std::string_view name) const
     return std::get<std::string_view>(name_) == name;
 }
 
-bool netvar_info::operator==(hashed_netvar_name const &name_hash) const
+bool netvar_info::operator==(_const<hashed_name &> name_hash) const
 {
     return name_ == name_hash;
 }

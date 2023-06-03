@@ -1,59 +1,53 @@
 #pragma once
 
-#include <optional>
+#include "core.h"
+
+#include <boost/core/noncopyable.h>
+
+#include <cassert>
 
 namespace fd
 {
 template <typename T>
-struct mem_backup
+struct mem_backup : boost::noncopyable
 {
     using value_type = T;
-    using pointer    = T*;
-    using reference  = T const&;
+    using pointer    = T *;
+    using reference  = _const<T> &;
 
   private:
-    struct value_stored
-    {
-        value_type value;
-        pointer    owner;
-    };
-
-    std::optional<value_stored> backup_;
+    value_type value_;
+    pointer owner_;
 
     void restore_impl()
     {
-        auto& b = *backup_;
-        using std::swap;
-        swap(*b.owner, b.value);
+        *owner_ = std::move(value_);
     }
 
   public:
     ~mem_backup()
     {
         if (has_value())
-        {
             restore_impl();
-        }
     }
 
-    mem_backup(mem_backup const& other)            = delete;
-    mem_backup& operator=(mem_backup const& other) = delete;
-
-    mem_backup(mem_backup&& other) noexcept
+    mem_backup(mem_backup &&other) noexcept
+        : value_(std::move(other.value_))
+        , owner_(std::exchange(other_.owner_, nullptr))
     {
-        *this = std::move(other);
     }
 
-    mem_backup& operator=(mem_backup&& other) noexcept
+    mem_backup &operator=(mem_backup &&other) noexcept
     {
         using std::swap;
-        swap(backup_, other.backup_);
+        swap(value_, other.value_);
+        swap(owner_, other.owner_);
         return *this;
     }
 
     mem_backup() = default;
 
-    mem_backup(T& from)
+    mem_backup(T &from)
     {
         backup_.emplace(from, &from);
     }
@@ -67,7 +61,8 @@ struct mem_backup
 
     reference get() const
     {
-        return backup_->value;
+        assert(has_value());
+        return value_;
     }
 
     void restore()
@@ -81,12 +76,12 @@ struct mem_backup
 
     void reset()
     {
-        backup_.reset();
+        owner_ = nullptr;
     }
 
     bool has_value() const
     {
-        return backup_.has_value();
+        return owner_ != nullptr;
     }
 };
 } // namespace fd

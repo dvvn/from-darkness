@@ -160,6 +160,11 @@ static bool context(HINSTANCE self_handle) noexcept
     store_extra_netvars(player_vtable);
     store_custom_netvars(client_dll);
 #endif
+
+    if (!create_hook_data())
+        return false;
+    MAKE_DESTRUCTOR(destroy_hook_data);
+
     hook_id hooks[] = {
         make_hook_callback(
             "WinAPI.WndProc",

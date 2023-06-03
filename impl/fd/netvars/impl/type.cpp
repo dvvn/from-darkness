@@ -1,7 +1,6 @@
-#include "hash.h"
+#include "hashed_object.h"
 #include "type.h"
 
-#include <fd/magic_cast.h>
 #include <fd/mem_scanner.h>
 
 #include <boost/filesystem.hpp>
@@ -11,6 +10,18 @@
 
 #include <algorithm>
 #include <fstream>
+
+using fd::_const;
+using fd::hashed_object;
+
+template <typename T, typename C>
+struct fmt::formatter<hashed_object<T>, C> : formatter<T, C>
+{
+    auto format(_const<hashed_object<T> &> obj, auto &ctx) const -> decltype(ctx.out())
+    {
+        return formatter<T, C>::format(get<T>(obj), ctx);
+    }
+};
 
 namespace fd
 {
@@ -152,41 +163,29 @@ using boost::filesystem::directory_iterator;
 using boost::filesystem::file_type;
 using boost::filesystem::path;
 
-static class
+namespace valve_dir
 {
-#ifdef _MSC_VER
-    static constexpr
-#endif
-        std::wstring_view dir_ = BOOST_JOIN(L, BOOST_STRINGIZE(FD_VALVE_DIR));
+static constexpr std::wstring_view dir_ = BOOST_JOIN(L, BOOST_STRINGIZE(FD_VALVE_DIR));
 
-    void gap() const
-    {
-        (void)this;
-    }
+template <typename C>
+static path append(std::basic_string_view<C> to_append)
+{
+    path::string_type buff;
+    buff.reserve(dir_.length() + 1 + to_append.length());
+    return path(std::move(buff)).append(to_append);
+}
 
-  public:
-    template <typename C>
-    path append(std::basic_string_view<C> to_append) const
-    {
-        gap();
-        path::string_type buff;
-        buff.reserve(dir_.length() + 1 + to_append.length());
-        return path(std::move(buff)).append(to_append);
-    }
+static directory_iterator iterate()
+{
+    return directory_iterator(dir_);
+}
 
-    directory_iterator iterate() const
-    {
-        gap();
-        return directory_iterator(dir_);
-    }
-
-} valve_dir;
+} // namespace valve_dir
 
 struct valve_include
 {
     // fd/valve/XXXX.h
-    std::string path;
-    size_t hash;
+    hashed_object<std::string> path;
     size_t name_offset;
     size_t name_size;
 
@@ -194,35 +193,36 @@ struct valve_include
     std::vector<char> data;
 
     valve_include(std::wstring_view wpath, size_t name_offset, size_t name_size)
-        : path(wpath.begin(), wpath.end())
-        , hash(netvar_hash(wpath.substr(name_offset, name_size)))
+        : path({wpath.begin(), wpath.end()}, get_hash(wpath.substr(name_offset, name_size)))
         , name_offset(name_offset)
         , name_size(name_size)
     {
-        std::replace(path.begin(), path.end(), '\\', '/');
+        std::replace(path.first.begin(), path.first.end(), '\\', '/');
     }
 
     std::string_view name() const
     {
-        return std::string_view(path).substr(name_offset, name_size);
+        return get<std::string_view>(path).substr(name_offset, name_size);
     }
 
     std::string_view full_name() const
     {
-        return std::string_view(path).substr(name_offset);
+        return get<std::string_view>(path).substr(name_offset);
     }
 
-    bool inside(std::string_view name, size_t name_hash = 0)
+    bool inside(_const<hashed_object<std::string_view> &> name)
     {
-        if (!name_hash)
-            name_hash = netvar_hash(name);
+        /* if (!name_hash)
+             name_hash = netvar_hash(name);*/
 
-        if (std::any_of(inner.begin(), inner.end(), [=](size_t h) { return h == name_hash; }))
+        using namespace boost::lambda2;
+
+        if (std::any_of(inner.begin(), inner.end(), _1 == get_hash(name)))
             return true;
 
         if (data.empty())
         {
-            auto full_path = valve_dir.append(full_name());
+            auto full_path = valve_dir::append(full_name());
             data.reserve(file_size(full_path));
             std::ifstream file;
             file.open(full_path.native(), std::ios::binary | std::ios::in);
@@ -237,71 +237,70 @@ struct valve_include
         auto found = find_bytes(
             data.data(),
             data.data() + data.size(),
-            name.data(),
-            name.size(),
-            [name_size = name.size()](char *ptr, auto *stop_token) {
+            name.first.data(),
+            name.first.size(),
+            [name_size = name.first.size()](char *ptr, auto *stop_token) {
                 if (is_valid_char(ptr[-1]) && is_valid_char(ptr[name_size]))
                     stop_token->stop();
                 return true;
             });
         if (found)
-            inner.emplace_back(name_hash);
+            inner.emplace_back(name.second);
         return found;
     }
 };
 
-static class
+namespace valve_classes
 {
-    std::vector<valve_include> storage_;
+std::vector<valve_include> storage_;
 
-    void fill()
+void fill()
+{
+    if (!storage_.empty())
+        return;
+
+    for (auto &entry : (valve_dir::iterate()))
     {
-        if (!storage_.empty())
-            return;
+        if (entry.status().type() != file_type::regular_file)
+            continue;
 
-        for (auto &entry : (valve_dir.iterate()))
-        {
-            if (entry.status().type() != file_type::regular_file)
-                continue;
+        auto &file     = entry.path();
+        auto filename  = file.filename();
+        auto extension = filename.extension();
+        if (!extension.native().starts_with(L".h"))
+            continue;
 
-            auto &file     = entry.path();
-            auto filename  = file.filename();
-            auto extension = filename.extension();
-            if (!extension.native().starts_with(L".h"))
-                continue;
+        // c:/??/??/
+        constexpr auto abs_path_length = std::size(BOOST_STRINGIZE(FD_IMPL_DIR));
 
-            // c:/??/??/
-            constexpr auto abs_path_length = std::size(BOOST_STRINGIZE(FD_IMPL_DIR));
+        auto full_path       = std::basic_string_view(file.native()).substr(abs_path_length);
+        auto filename_offset = full_path.size() - filename.size();
 
-            auto full_path       = std::basic_string_view(file.native()).substr(abs_path_length);
-            auto filename_offset = full_path.size() - filename.size();
-
-            storage_.emplace_back(full_path, filename_offset, filename.stem().size());
-        }
-        storage_.shrink_to_fit();
+        storage_.emplace_back(full_path, filename_offset, filename.stem().size());
     }
+    storage_.shrink_to_fit();
+}
 
-  public:
-    valve_include *find(auto callback)
-    {
-        fill();
+static valve_include *find(auto callback)
+{
+    fill();
 
-        auto bg    = storage_.begin();
-        auto ed    = storage_.end();
-        auto found = std::find_if(bg, ed, std::ref(callback));
-        return found == ed ? nullptr : &*found /*storage_.data() + std::distance(bg, found)*/;
-    }
-} valve_classes;
+    auto bg    = storage_.begin();
+    auto ed    = storage_.end();
+    auto found = std::find_if(bg, ed, std::ref(callback));
+    return found == ed ? nullptr : &*found /*storage_.data() + std::distance(bg, found)*/;
+}
+} // namespace valve_classes
 
 struct valve_class_data
 {
-    size_t hash;
     std::vector<char> data;
+    size_t include_hash;
 
     valve_class_data(valve_include &info)
-        : hash(info.hash)
+        : include_hash(get_hash(info.path))
     {
-        auto full_path = valve_dir.append(info.full_name());
+        auto full_path = valve_dir::append(info.full_name());
         data.reserve(file_size(full_path));
         std::ifstream file;
         file.open(full_path.native(), std::ios::binary | std::ios::in);
@@ -319,17 +318,16 @@ void netvar_type_includes(std::string_view type, std::vector<std::string> &buff)
     }
     if (auto offset = type.find("valve::"); offset != type.npos)
     {
-        auto name      = type.substr(offset + 1, type.find('<', offset));
-        auto name_hash = netvar_hash(name);
+        hashed_object name = type.substr(offset + 1, type.find('<', offset));
 
         using namespace boost::lambda2;
 
-        auto target = valve_classes.find(_1->*&valve_include::hash == name_hash);
+        auto target = valve_classes::find(_1->*&valve_include::path == name);
 
         // if (!target )
-        //     target = valve_classes.find([=](valve_include &inc) { return name.contains(inc.name()); });
+        //     target = valve_classes::find([=](valve_include &inc) { return name.contains(inc.name()); });
         if (!target)
-            target = valve_classes.find(std::bind_back(&valve_include::inside, name, name_hash));
+            target = valve_classes::find(std::bind_back(&valve_include::inside, name));
 
         buff.emplace_back(fmt::format("<{}>", target->path));
     }

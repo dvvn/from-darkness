@@ -19,53 +19,60 @@
 #include <algorithm>
 #include <optional>
 
+using fd::_const;
+
+using boost::filesystem::path;
+
 namespace boost::filesystem
 {
-static_assert(std::same_as<path::string_type, std::wstring>);
-
-bool exists(std::wstring const &dir)
+static bool exists(_const<path::string_type &> dir)
 {
-    return exists(reinterpret_cast<path const &>(dir));
+    return exists(reinterpret_cast<_const<path &>>(dir));
 }
 
-bool create_directory(std::wstring const &dir)
+static bool create_directory(_const<path::string_type &> dir)
 {
-    return create_directory(reinterpret_cast<path const &>(dir));
+    return create_directory(reinterpret_cast<_const<path &>>(dir));
 }
 
-bool create_directories(std::wstring const &dir)
+static bool create_directories(_const<path::string_type &> dir)
 {
-    return create_directories(reinterpret_cast<path const &>(dir));
+    return create_directories(reinterpret_cast<_const<path &>>(dir));
 }
 
-bool is_empty(std::wstring const &dir)
+static bool is_empty(_const<path::string_type &> dir)
 {
-    return is_empty(reinterpret_cast<path const &>(dir));
+    return is_empty(reinterpret_cast<_const<path &>>(dir));
 }
 } // namespace boost::filesystem
 
+using path_formatter_base = fmt::formatter<fmt::basic_string_view<path::value_type>, path::value_type>;
+
 template <>
-struct fmt::formatter<boost::filesystem::path, wchar_t> : formatter<wstring_view, wchar_t>
+struct fmt::formatter<path, path::value_type> : path_formatter_base
 {
-    auto format(boost::filesystem::path const &p, wformat_context &ctx) const -> wformat_context::iterator
+    auto format(_const<path &> p, auto &ctx) const -> decltype(ctx.out())
     {
-        return formatter<wstring_view, wchar_t>::format(p.generic_wstring(), ctx);
+        return path_formatter_base::format(p.native(), ctx);
     }
 };
 
+using fd::netvar_info;
+using fd::netvar_table;
+
 template <>
-struct fmt::formatter<fd::netvar_info> : formatter<string_view>
+struct fmt::formatter<netvar_info> : formatter<string_view>
 {
-    auto format(fd::netvar_info const &info, format_context &ctx) const -> format_context::iterator
+    auto format(netvar_info const &info, format_context &ctx) const -> format_context::iterator
     {
         return formatter<string_view>::format(info.name(), ctx);
     }
 };
 
 template <>
-struct fmt::formatter<fd::netvar_table> : formatter<string_view>
+struct fmt::formatter<netvar_table> : formatter<string_view>
 {
-    auto format(fd::netvar_table const &info, format_context &ctx) const -> format_context::iterator
+    auto format(netvar_table const &info, format_context &ctx) const -> format_context::iterator
     {
         return formatter<string_view>::format(info.name(), ctx);
     }
@@ -151,7 +158,7 @@ static auto _correct_class_name(std::string_view name)
     return buff;
 }
 
-static bool _can_skip_netvar(char const *name)
+static bool _can_skip_netvar(_const<char *> name)
 {
     for (;;)
     {
@@ -249,23 +256,19 @@ static size_t _store(
         return _get_array_size(arrayStart, arrayEnd, real_prop_name);
     }
 
-    hashed_netvar_name real_prop_name = propName.substr(0, propName.size() - 3);
+    hashed_object real_prop_name = propName.substr(0, propName.size() - 3);
     assert(!real_prop_name->contains(']'));
 
     if (auto found_array_size = do_find(*netvarTable, real_prop_name, &netvar_info::array_size))
         return *found_array_size;
 
-    auto array_size = _get_array_size(arrayStart, arrayEnd, real_prop_name.get());
+    auto array_size = _get_array_size(arrayStart, arrayEnd, real_prop_name.first);
     netvarTable->emplace_back(arrayStart->offset + extraOffset, array_size, arrayStart, real_prop_name);
 
     return array_size;
 }
 
-static void _store(
-    valve::recv_prop *prop,
-    hashed_netvar_name const &propName,
-    netvar_table *netvarTable,
-    size_t extraOffset = 0)
+static void _store(valve::recv_prop *prop, auto &propName, netvar_table *netvarTable, size_t extraOffset = 0)
 {
     if (do_contains(*netvarTable, propName))
         return;
@@ -282,7 +285,7 @@ static size_t _store(
 {
     assert(arrayStart->type != valve::DPT_DataTable); // not implemented
 
-    hashed_netvar_name table_name = recvTable->name;
+    hashed_object table_name = recvTable->name;
 
     if (auto found_array_size = do_find(*netvarTable, table_name, &netvar_info::array_size))
         return *found_array_size;
@@ -300,12 +303,12 @@ static bool _store(
     valve::recv_table *recvTable,
     valve::recv_prop *arrayEnd,
     netvar_table *netvarTable,
-    hashed_netvar_name const &type,
+    auto &type,
     size_t extraOffset)
 {
     assert(arrayStart->type == valve::DPT_DataTable);
 
-    hashed_netvar_name table_name = recvTable->name;
+    hashed_object table_name = recvTable->name;
     if (do_contains(*netvarTable, table_name))
         return false;
 
@@ -341,13 +344,13 @@ static void _parse_lproxy(
     }
     else if (auto dt = prop->data_table; dt && !dt->props.empty())
     {
-        hashed_netvar_name tableName = dt->name;
+        hashed_object tableName = dt->name;
         if (!_store(prop, dt, propsEnd, netvarTable, tableName, rootOffset + proxy->offset))
             return;
         if (do_contains(internalStorage, tableName))
             return;
 
-        auto tmp = netvar_table(tableName);
+        netvar_table tmp = (tableName);
         _parse(dt, &tmp, internalStorage);
         if (!tmp.empty())
             internalStorage.emplace_back(std::move(tmp));
@@ -404,13 +407,13 @@ static std::string_view _correct_recv_name(std::string_view name)
     return name;
 }
 
-static std::string_view _correct_recv_name(char const *name)
+static std::string_view _correct_recv_name(_const<char *> name)
 {
     return _correct_recv_name(std::string_view(name));
 }
 
 [[maybe_unused]]
-static void _correct_recv_name(std::string const &name)
+static void _correct_recv_name(_const<std::string &> name)
 {
     (void)name;
 }
@@ -482,13 +485,12 @@ static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
             continue;
 
 #ifdef FD_NETVARS_DT_MERGE
-        hashed_netvar_table_name class_name = _correct_class_name(map->name);
+        hashed_object class_name = _correct_class_name(map->name);
 #else
-        auto nameBegin = static_cast<char const *>(memchr(map->name, '_', std::numeric_limits<size_t>::max()));
+        auto nameBegin = static_cast<_const<char *>>(memchr(map->name, '_', std::numeric_limits<size_t>::max()));
         write_std::string(className, "DT_", nameBegin);
         _correct_recv_name(className);
 #endif
-
         auto table      = do_find(storage, class_name);
         auto tableFound = table != storage.end();
         if (!tableFound)
@@ -509,7 +511,7 @@ static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
                 std::string_view name0 = desc.name;
                 if (_can_skip_netvar(name0))
                     continue;
-                hashed_netvar_name name = name0;
+                hashed_object name = name0;
                 if (tableFound && do_contains(*table, name)) // todo: check & correct type
                     continue;
                 // fieldOffset[TD_OFFSET_NORMAL], array replaced with two varaibles
@@ -527,7 +529,7 @@ void store_extra_netvars(void *entity)
     log("[NETVARS] data map stored!");
 }
 
-void store_custom_netvars(library_info const &client_dll)
+void store_custom_netvars(_const<library_info &> client_dll)
 {
 #if 0
     auto baseent = this->find("C_BaseEntity");

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/core/noncopyable.hpp>
+
 #include <cstdint>
 
 namespace fd
@@ -27,16 +29,13 @@ void reset_render_context();
 bool begin_render_frame();
 void end_render_frame();
 
-class render_frame
+class render_frame : public boost::noncopyable
 {
     bool valid_;
 
   public:
     render_frame();
     ~render_frame();
-
-    render_frame(render_frame const &other)            = delete;
-    render_frame &operator=(render_frame const &other) = delete;
 
     explicit operator bool() const;
 };

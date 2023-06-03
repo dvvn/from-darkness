@@ -5,7 +5,8 @@
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_win32.h>
 #include <imgui_internal.h>
-//
+
+#include <Windows.h>
 #include <d3d9.h>
 
 #include <utility>
@@ -85,18 +86,18 @@ void *create_render_context(void *window, void *backend) noexcept
 
     if (!ImGui_ImplDX9_Init(static_cast<IDirect3DDevice9 *>(backend)))
         return nullptr;
-    invoke_on_destruct shutdown_dx = ImGui_ImplDX9_Shutdown;
+    invoke_on_destruct shutdown_backend = ImGui_ImplDX9_Shutdown;
 
     if (!ImGui_ImplWin32_Init(window))
         return nullptr;
 
-    shutdown    = nullptr;
-    shutdown_dx = nullptr;
+    shutdown         = nullptr;
+    shutdown_backend = nullptr;
 
     render_backend = backend;
 
     (void)shutdown;
-    (void)shutdown_dx;
+    (void)shutdown_backend;
 
     return &render_context;
 }
@@ -212,4 +213,4 @@ render_frame::operator bool() const
 {
     return valid_;
 }
-}
+} // namespace fd

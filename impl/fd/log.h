@@ -25,15 +25,17 @@ struct formatter<T> : formatter<string_view>
 template <std::convertible_to<string_view> T>
 struct formatter<T, char8_t> : private formatter<string_view>
 {
-    auto parse(auto &ctx) -> char8_t const *
+    using char_pointer = std::add_const_t<char8_t> *;
+
+    auto parse(auto &ctx) -> char_pointer
     {
         auto end = formatter<string_view>::parse(reinterpret_cast<format_context::parse_context_type &>(ctx));
-        return reinterpret_cast<char8_t const *>(end);
+        return reinterpret_cast<char_pointer>(end);
     }
 
     auto format(string_view str, auto &ctx) const -> decltype(ctx.out())
     {
-        formatter<string_view>::format((str), reinterpret_cast<format_context &>(ctx));
+        formatter<string_view>::format(str, reinterpret_cast<format_context &>(ctx));
         return ctx.out();
     }
 };
@@ -53,19 +55,19 @@ template <typename... Args>
 void log(fmt::u8format_string<Args...> fmt, Args &&...args)
 {
     auto in = fmt.get();
-    log(reinterpret_cast<fmt::string_view &>(in), fmt::format_args(fmt::make_format_args((args)...)));
+    log(reinterpret_cast<fmt::string_view &>(in), fmt::format_args(fmt::make_format_args(args...)));
 }
 
 template <typename... Args>
 void log(fmt::format_string<Args...> fmt, Args &&...args)
 {
-    log(fmt.get(), fmt::format_args(fmt::make_format_args((args)...)));
+    log(fmt.get(), fmt::format_args(fmt::make_format_args(args...)));
 }
 
 template <typename... Args>
 void log(fmt::wformat_string<Args...> fmt, Args &&...args)
 {
-    log(fmt.get(), fmt::wformat_args(fmt::make_wformat_args((args)...)));
+    log(fmt.get(), fmt::wformat_args(fmt::make_wformat_args(args...)));
 }
 #else
 void log(...)

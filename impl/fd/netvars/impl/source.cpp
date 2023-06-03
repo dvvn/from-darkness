@@ -4,9 +4,7 @@
 #include <fd/valve/data_map.h>
 #include <fd/valve/recv_table.h>
 
-#include <boost/static_string.hpp>
 #include <boost/unordered/unordered_flat_map.hpp>
-#include <boost/unordered/unordered_flat_set.hpp>
 
 #include <algorithm>
 #include <cctype>
@@ -34,27 +32,32 @@ static map_type<std::string> cloned_names;
 
 //----------
 
-struct valve_name
+class valve_name
 {
-    using string_type = boost::static_string<64>;
-
-  private:
-    string_type buff_;
+    char buff_[32];
+    uint8_t length_;
 
   public:
-    template <size_t S>
-    consteval valve_name(char const (&name)[S])
+    consteval valve_name(auto &name)
+        : buff_()
+        , length_(0)
     {
-        buff_.append("valve::", 7).append(name, S - 1);
+        auto append = [this](auto &val) {
+            std::copy(std::begin(val), std::end(val) - 1, buff_);
+            length_ += std::size(val) - 1;
+        };
+
+        append("valve::");
+        append(name);
     }
 
     operator std::string_view() const
     {
-        return {buff_.begin(), buff_.end()};
+        return {buff_, length_};
     }
 };
 
-static std::string_view clone_key(std::string_view key, char const *gap)
+static std::string_view clone_key(std::string_view key, _const<char *> gap)
 {
     auto result = cloned_names.try_emplace(key);
     auto &str   = result.first->second;
@@ -86,16 +89,16 @@ static basic_netvar_type *try_get(std::string_view key)
     return it->second.get();
 }
 
-static basic_netvar_type *simple(std::string_view key, valve_name const &name)
+static basic_netvar_type *simple(std::string_view key, _const<valve_name &> name)
 {
     return try_get<netvar_type<std::string>, std::string_view>(key, name);
 }
 
-template <size_t S>
-static basic_netvar_type *trivial(std::string_view key, char const (&name)[S])
+static basic_netvar_type *trivial(std::string_view key, auto &name)
 {
-    assert(strlen(name) == S - 1);
-    return try_get<netvar_type<char[S - 1]>>(key, name);
+    constexpr auto name_length = sizeof(name) - 1;
+    assert(strlen(name) == name_length);
+    return try_get<netvar_type<char[name_length]>>(key, name);
 }
 
 template <typename S>
@@ -506,7 +509,7 @@ static auto extract(void *pointer, Fn fn)
     return std::invoke(fn, static_cast<T *>(pointer));
 }
 
-char const *netvar_source::name() const
+_const<char *> netvar_source::name() const
 {
     switch (src_)
     {
@@ -563,7 +566,7 @@ basic_netvar_type *netvar_source::type(std::string_view correct_name, size_t arr
     }
 }
 
-bool netvar_source::operator==(netvar_source const &other) const
+bool netvar_source::operator==(_const<netvar_source &> other) const
 {
     return pointer_ == other.pointer_;
 }

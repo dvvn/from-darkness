@@ -19,13 +19,13 @@ namespace fd
     static struct                                                       \
     {                                                                   \
         BOOST_PP_REPEAT(BOOST_PP_LIMIT_REPEAT, VTIC_GET_INDEX, __call); \
-    } call##_calculator;
+    } call##_table;
 
 X86_CALL_MEMBER(GENERATE_CALL);
 #undef GENERATE_CALL
 #undef VTIC_GET_INDEX
 
-#define GENERATE_VTABLES(call__, __call, call) &call##_calculator,
+#define GENERATE_VTABLES(call__, __call, call) &call##_table,
 
 static vtable<void> call_vtable[] = {
     X86_CALL_MEMBER(GENERATE_VTABLES) //

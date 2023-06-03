@@ -1,101 +1,8 @@
 #include "hook.h"
 
-#include <fd/lazy_invoke.h>
 #include <fd/log.h>
 
-#include <boost/container/small_vector.hpp>
-#include <boost/container/static_vector.hpp>
-
-#include <algorithm>
 #include <cassert>
-
-struct correct_word_end
-{
-    char const *word;
-};
-
-using boost::container::small_vector;
-using boost::container::static_vector;
-
-// todo: auto it
-constexpr size_t hooks_count = 16;
-
-namespace corrected_word_end
-{
-class result_type
-{
-    char const *word_;
-    small_vector<char, 64> buff_; // vector because not null terminated
-
-  public:
-    bool operator==(correct_word_end other) const
-    {
-        return word_ == other.word;
-    }
-
-    std::string_view get() const
-    {
-        return {buff_.begin(), buff_.end()};
-    }
-
-    result_type(std::string_view str)
-        : word_(str.data())
-    {
-        auto reserve = [l = str.length(), this](size_t extra) {
-            buff_.reserve(l + extra);
-        };
-
-        auto append = [dst = std::back_inserter(buff_)](auto &&rng, size_t length = 0) {
-            using std::begin;
-            using std::end;
-            auto bg = begin(rng);
-            std::copy(bg, length ? bg + length : end(rng), dst);
-        };
-
-        if (str.ends_with('e'))
-        {
-            reserve(1);
-            append(str);
-            buff_.push_back('d');
-        }
-        else if (str.ends_with('y'))
-        {
-            reserve(-1 + 3);
-            append(str, str.length() - 1);
-            append("ied", 3);
-        }
-        else
-        {
-            reserve(4);
-            append(str);
-            append("ated", 4);
-        }
-    }
-};
-
-static static_vector<result_type, fd::_internal_hook_words * hooks_count> cache;
-
-static std::string_view get(correct_word_end val) noexcept
-{
-    std::string_view str = val.word;
-    if (str.ends_with("ed"))
-        return str;
-
-    auto ed = cache.end();
-    auto it = std::find(cache.begin(), ed, val);
-
-    return it == ed ? cache.emplace_back(str).get() : it->get();
-}
-} // namespace corrected_word_end
-
-template <>
-struct fmt::formatter<correct_word_end> : formatter<string_view>
-{
-    auto format(correct_word_end ed, format_context &ctx) const -> format_context::iterator
-    {
-        return formatter<string_view>::format(corrected_word_end::get(ed), ctx);
-    }
-};
 
 #if __has_include(<subhook.h>)
 #include <subhook.h>
@@ -693,12 +600,162 @@ struct fmt::formatter<MH_STATUS> : formatter<string_view>
 };
 #endif
 
-using action_name = char const *;
-
 namespace fd
 {
+#if 0
+template <size_t S>
+class action_name
+{
+    char buff_[S + 4]; // vector because not null terminated
+    uint8_t length_;
+    _const<char*>raw_;
+
+    constexpr bool ends_with(auto &str) const
+    {
+        auto length = std::size(str) - 1;
+        return std::char_traits<char>::compare(raw_ + S - length, str, length) == 0;
+    }
+
+    constexpr bool ends_with(char c) const
+    {
+        return raw_[S - 1] == c;
+    }
+
+    constexpr void fill()
+    {
+        if (ends_with("ed"))
+        {
+            length_ = -1;
+        }
+        else if (ends_with('e'))
+        {
+            std::copy(raw_, raw_ + S, buff_);
+            buff_[S] = 'd';
+            length_  = 1;
+        }
+        else if (ends_with('y'))
+        {
+            std::copy(raw_, raw_ + S - 1, buff_);
+            buff_[S]     = ('i');
+            buff_[S + 1] = ('e');
+            buff_[S + 2] = ('d');
+            length_      = 3;
+        }
+        else
+        {
+            std::copy(raw_, raw_ + S - 1, buff_);
+            buff_[S]     = ('a');
+            buff_[S + 1] = ('t');
+            buff_[S + 2] = ('e');
+            buff_[S + 3] = ('d');
+            length_      = 4;
+        }
+    }
+
+  public:
+    consteval action_name(_const<char*>raw)
+        : buff_()
+        , length_(0)
+        , raw_(raw)
+    {
+        fill();
+    }
+
+    std::string_view raw() const
+    {
+        return {raw_, S};
+    }
+
+    std::string_view get() const
+    {
+        return length_ == -1 ? std::string_view(raw_, S) : std::string_view(buff_, length_);
+    }
+};
+
+template <typename T>
+action_name(T &) -> action_name<sizeof(T) - 1>;
+
+#define ACTION_NAME(_V_, _RAW_, _FIXED_) constexpr auto _V_ = action_name(_RAW_);
+
+#else
+class simple_action_name
+{
+    std::string_view raw_;
+    std::string_view fixed_;
+
+  public:
+    consteval simple_action_name(_const<char *> raw, _const<char *> fixed)
+        : raw_(raw)
+        , fixed_(fixed)
+    {
+    }
+
+    std::string_view raw() const
+    {
+        return raw_;
+    }
+
+    std::string_view get() const
+    {
+        return fixed_;
+    }
+};
+
+#define ACTION_NAME(_V_, _RAW_, _FIXED_) constexpr auto _V_ = simple_action_name(_RAW_, _FIXED_);
+
+#endif
+namespace actions
+{
+
+ACTION_NAME(enable, "enable", "enabled");
+ACTION_NAME(disable, "disable", "disabled");
+ACTION_NAME(lazy_enable, "lazy enable", "lazy enabled");
+ACTION_NAME(lazy_disable, "lazy disable", "lazy disabled");
+ACTION_NAME(sync, "sync", "synced");
+ACTION_NAME(create, "create", "created");
+ACTION_NAME(destroy, "destroy", "destroyed");
+} // namespace actions
+
+#undef ACTION_NAME
+
+template <typename... Args>
+using mh_function = MH_STATUS(WINAPI *)(Args...);
+
+template <typename... Args>
+static bool mh_action(auto &name, mh_function<LPVOID, Args...> action, hook_id id, Args... args)
+{
+    auto status = action(id.target, args...);
+    if (status != MH_OK)
+        log("Unable to {} hook {}: {}", name.raw(), id.name, status);
+    else
+        log("Hook {} {}", id.name, name.get());
+    return status == MH_OK;
+}
+
+static bool mh_action(auto &name, mh_function<LPVOID> action)
+{
+    // ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
+    auto status = action(MH_ALL_HOOKS);
+    if (status != MH_OK)
+        log("Unable to {} hooks: {}", name.raw(), status);
+    else
+        log("All hooks {}", name.get());
+    return status == MH_OK;
+}
+
+static bool mh_action(auto &name, mh_function<> action)
+{
+    auto status = action();
+    if (status != MH_OK)
+        log("Unable to {} hook data: {}", name.raw(), status);
+    else
+        log("Hook data {}", name.get());
+    return status == MH_OK;
+}
+
+bool create_hook_data()
+{
 #if defined(SUBHOOK_API)
-static auto init_hooks = []() -> uint8_t {
     subhook_set_disasm_handler([](void *src, int *reloc_op_offset) -> int {
         if (auto ret = subhook_disasm(src, reloc_op_offset); ret)
             return ret;
@@ -707,100 +764,24 @@ static auto init_hooks = []() -> uint8_t {
 
         return 0;
     });
-    return 1;
-}();
+    return true;
 #elif defined(MH_ALL_HOOKS)
-static invoke_on_destruct init_hooks = [] {
-    MH_STATUS status;
-    (void)status;
-    status = MH_Initialize();
-    assert(status == MH_OK);
-#ifdef MH_DEFAULT_IDENT
-    status = MH_SetThreadFreezeMethod(MH_FREEZE_METHOD_NONE_UNSAFE);
-    assert(status == MH_OK);
+    return mh_action(actions::create, MH_Initialize);
 #endif
-    return MH_Uninitialize;
-}();
-
-template <typename... Args>
-using mh_function = MH_STATUS(WINAPI *)(Args...);
-
-static bool mh_action(action_name name, hook_id id, mh_function<LPVOID> action)
-{
-    auto status = action(id.target);
-    if (status != MH_OK)
-        log("Unable to {} hook {}: {}", name, id.name, status);
-    else
-        log("Hook {} {}", id.name, correct_word_end(name));
-    return status == MH_OK;
 }
 
-template <typename... Args>
-static bool mh_action(action_name name, mh_function<Args...> action)
+bool destroy_hook_data()
 {
-    MH_STATUS status;
-    if constexpr (sizeof...(Args) != 0)
-        status = action(MH_ALL_HOOKS);
-    else
-        status = action();
-    if (status != MH_OK)
-        log("Unable to {} hooks: {}", name, status);
-    else
-        log("All hooks {}", correct_word_end(name));
-    return status == MH_OK;
+#if defined(SUBHOOK_API)
+    return true;
+#elif defined(MH_ALL_HOOKS)
+    return mh_action(actions::destroy, MH_Uninitialize);
+#endif
 }
-
-#endif
-
-#if 0
-constexpr size_t max_hooks_count = store_hook_name ? 16 : 0;
-
-template <typename T>
-using hooks_storage =
-    std::conditional_t<max_hooks_count == 0, std::vector<T>, boost::container::static_vector<T, max_hooks_count>>;
-
-struct stored_hook;
-static hooks_storage<stored_hook> hooks;
-
-template <typename T>
-concept contains_name = requires(T obj) { obj.name; };
-#endif
-
-#if 0
-struct stored_hook
-{
-    void *id;
-#if defined(_DEBUG) || defined(SUBHOOK_API)
-    void *trampoline;
-#else
-    std::string_view name;
-#endif
-};
-
-
-template <typename T>
-static hook_name get_name(T hook)
-{
-    return hook.name;
-}
-
-template <typename T>
-static std::string_view find_name(T hook)
-{
-    return std::find_if(
-               hooks.begin(),
-               hooks.end(),
-               [id = hook.target](stored_hook const &stored) {
-                   //
-                   return id == stored.target;
-               })
-        ->name;
-}
-#endif
 
 hook_id create_hook(void *target, void *replace, hook_name name, void **trampoline)
 {
-    (void)init_hooks;
+    auto id = hook_id(target, name);
 
 #if defined(SUBHOOK_API)
     auto entry = subhook_new(target, replace, SUBHOOK_TRAMPOLINE);
@@ -817,23 +798,8 @@ hook_id create_hook(void *target, void *replace, hook_name name, void **trampoli
     }
     entry_ = entry;
 #elif defined(MH_ALL_HOOKS)
-    auto status = MH_CreateHook(target, replace, trampoline);
-    if (status != MH_OK)
-    {
-        log("{}: init error ({})", name, status);
-        return nullptr;
-    }
-
+    return mh_action(actions::create, MH_CreateHook, id, replace, trampoline) ? id : nullptr;
 #endif
-
-#if 0
-    if constexpr (store_hook_name)
-        hooks.emplace_back(target, name);
-#endif
-
-    log("Hook {}: created. (target: {:p} replace: {:p})", name, target, replace);
-
-    return {target, name};
 }
 
 bool enable_hook(hook_id id)
@@ -841,7 +807,7 @@ bool enable_hook(hook_id id)
 #if defined(SUBHOOK_API)
 
 #elif defined(MH_ALL_HOOKS)
-    return mh_action("enable", id, MH_EnableHook);
+    return mh_action(actions::enable, MH_EnableHook, id);
 #endif
 }
 
@@ -850,7 +816,7 @@ bool enable_hook_lazy(hook_id id)
 #if defined(SUBHOOK_API)
 
 #elif defined(MH_ALL_HOOKS)
-    return mh_action("lazy enable", id, MH_QueueEnableHook);
+    return mh_action(actions::lazy_enable, MH_QueueEnableHook, id);
 #endif
 }
 
@@ -859,7 +825,7 @@ bool disable_hook(hook_id id)
 #if defined(SUBHOOK_API)
 
 #elif defined(MH_ALL_HOOKS)
-    return mh_action("disable", id, MH_DisableHook);
+    return mh_action(actions::disable, MH_DisableHook, id);
 #endif
 }
 
@@ -868,7 +834,7 @@ bool disable_hook_lazy(hook_id id)
 #if defined(SUBHOOK_API)
 
 #elif defined(MH_ALL_HOOKS)
-    return mh_action("lazy disable", id, MH_QueueDisableHook);
+    return mh_action(actions::lazy_disable, MH_QueueDisableHook, id);
 #endif
 }
 
@@ -877,7 +843,7 @@ bool apply_lazy_hooks()
 #if defined(SUBHOOK_API)
 
 #elif defined(MH_ALL_HOOKS)
-    return mh_action("lazy apply", MH_ApplyQueued);
+    return mh_action(actions::sync, MH_ApplyQueued);
 #endif
 }
 
@@ -886,7 +852,7 @@ bool enable_hooks()
 #if defined(SUBHOOK_API)
 
 #elif defined(MH_ALL_HOOKS)
-    return mh_action("enable", MH_EnableHook);
+    return mh_action(actions::enable, MH_EnableHook);
 #endif
 }
 
@@ -895,7 +861,7 @@ bool disable_hooks()
 #if defined(SUBHOOK_API)
 
 #elif defined(MH_ALL_HOOKS)
-    return mh_action("disable", MH_DisableHook);
+    return mh_action(actions::disable, MH_DisableHook);
 #endif
 }
 } // namespace fd
