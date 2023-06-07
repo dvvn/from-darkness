@@ -40,7 +40,7 @@ void *library_info::find_export(std::string_view name) const
     return find_export(dos, nt, name.data(), name.length());
 }
 
-from<void *> library_info::find_pattern(std::string_view pattern) const
+void * library_info::find_pattern(std::string_view pattern) const
 {
     using fd::find_pattern;
     return find_pattern(nt(), pattern.data(), pattern.length());

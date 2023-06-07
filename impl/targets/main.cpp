@@ -1,7 +1,7 @@
 ﻿#include "own_backend.h"
 
 #include <fd/console.h>
-#include <fd/hooking/callback.h>
+#include <fd/hook.h>
 #include <fd/lazy_invoke.h>
 #include <fd/library_info/wrapper.h>
 #include <fd/log.h>
@@ -24,7 +24,7 @@ namespace ImGui
 extern void ShowDemoWindow(bool *open = nullptr);
 } // namespace ImGui
 
-static bool context(HINSTANCE self_handle) noexcept;
+static bool context(HINSTANCE self_handle);
 
 #ifdef FD_SHARED_LIB
 static HANDLE thread;
@@ -32,9 +32,16 @@ static DWORD thread_id;
 
 static DWORD WINAPI context_proxy(LPVOID ptr)
 {
-    auto result = context(static_cast<HINSTANCE>(ptr));
+    bool result;
+    try
+    {
+        result = context(static_cast<HINSTANCE>(ptr));
+    }
+    catch (...)
+    {
+        result = false;
+    }
     FreeLibraryAndExitThread(static_cast<HMODULE>(ptr), result ? EXIT_SUCCESS : EXIT_FAILURE);
-    // return TRUE;
 }
 
 // ReSharper disable once CppInconsistentNaming
@@ -82,7 +89,18 @@ int main(int argc, char *argv[])
     (void)argc;
     (void)argv;
 
-    return context(GetModuleHandle(nullptr)) ? EXIT_SUCCESS : EXIT_FAILURE;
+    bool result;
+
+    try
+    {
+        result = context(GetModuleHandle(nullptr));
+    }
+    catch (...)
+    {
+        result = false;
+    }
+
+    return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 #endif
 
@@ -93,7 +111,7 @@ int main(int argc, char *argv[])
     [[maybe_unused]]               \
     invoke_on_destruct SECOND_ARG(unused, ##__VA_ARGS__, const DUMMY_VAR) = _FN_;
 
-static bool context(HINSTANCE self_handle) noexcept
+static bool context(HINSTANCE self_handle)
 {
     (void)self_handle;
 
@@ -114,7 +132,7 @@ static bool context(HINSTANCE self_handle) noexcept
 
     vtable<IDirect3DDevice9> render_vtable;
     HWND window;
-    to<WNDPROC> window_proc;
+    WNDPROC window_proc;
 
 #ifdef USE_OWN_RENDER_BACKEND
     auto own_render = own_render_backend(L"Unnamed", self_handle);
@@ -128,14 +146,14 @@ static bool context(HINSTANCE self_handle) noexcept
 #else
     library_info shader_api_dll = L"shaderapidx9.dll";
     render_vtable               = [&] {
-        uintptr_t val = shader_api_dll.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+        to<uintptr_t> val = shader_api_dll.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
         return **reinterpret_cast<IDirect3DDevice9 ***>(val + 1);
     }();
     D3DDEVICE_CREATION_PARAMETERS creation_parameters;
     if (FAILED(render_vtable->GetCreationParameters(&creation_parameters)))
         return false;
     window      = creation_parameters.hFocusWindow;
-    window_proc = GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC);
+    window_proc = reinterpret_cast<WNDPROC>(GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC));
 
 #endif
 
@@ -161,111 +179,88 @@ static bool context(HINSTANCE self_handle) noexcept
     store_custom_netvars(client_dll);
 #endif
 
-    if (!create_hook_data())
-        return false;
-    MAKE_DESTRUCTOR(destroy_hook_data);
+    hook_context hooks;
 
-    hook_id hooks[] = {
-        make_hook_callback(
-            "WinAPI.WndProc",
-            window_proc,
-            [](auto orig, auto... args) -> LRESULT {
-                render_message_result pmr;
-                process_render_message(args..., &pmr);
-                switch (pmr)
-                {
-                case render_message_result::idle:
-                    return orig(args...);
-                case render_message_result::updated:
-                    return DefWindowProc(args...);
-                case render_message_result::locked:
-                    return TRUE;
-                default:
-                    std::unreachable();
-                }
-            }),
+    hooks.set_error_handler([](void *source) {
+        //
+        throw;
+    });
+
+    hooks.create("WinAPI.WndProc", window_proc, [](auto orig, auto... args) -> LRESULT {
+        render_message_result pmr;
+        process_render_message(args..., &pmr);
+        switch (pmr)
+        {
+        case render_message_result::idle:
+            return orig(args...);
+        case render_message_result::updated:
+            return DefWindowProc(args...);
+        case render_message_result::locked:
+            return TRUE;
+        default:
+            std::unreachable();
+        }
+    });
 #ifndef USE_OWN_RENDER_BACKEND
-        make_hook_callback(
-            "IDirect3DDevice9::Release",
-            render_vtable[&IDirect3DDevice9::Release],
-            [](auto orig) -> ULONG {
-                auto refs = orig();
-                if (refs == 0)
-                    render_backend_detach();
-                return refs;
-            }),
+    hooks.create("IDirect3DDevice9::Release", render_vtable[&IDirect3DDevice9::Release], [](auto orig) -> ULONG {
+        auto refs = orig();
+        if (refs == 0)
+            render_backend_detach();
+        return refs;
+    });
 #endif
-        make_hook_callback(
-            "IDirect3DDevice9::Reset",
-            render_vtable[&IDirect3DDevice9::Reset],
-            [](auto orig, auto... args) {
-                reset_render_context();
-                return orig(args...);
-            }),
-        make_hook_callback(
-            "IDirect3DDevice9::Present",
-            render_vtable[&IDirect3DDevice9::Present],
-            [](auto orig, auto... args) {
-                if (auto frame = render_frame())
-                {
-                    // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
-                    ImGui::ShowDemoWindow();
-                    // #endif
-                }
-                return orig(args...);
-            }),
+    hooks.create("IDirect3DDevice9::Reset", render_vtable[&IDirect3DDevice9::Reset], [](auto orig, auto... args) {
+        reset_render_context();
+        return orig(args...);
+    });
+    hooks.create("IDirect3DDevice9::Present", render_vtable[&IDirect3DDevice9::Present], [](auto orig, auto... args) {
+        if (auto frame = render_frame())
+        {
+            // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
+            ImGui::ShowDemoWindow();
+            // #endif
+        }
+        return orig(args...);
+    });
 #ifdef FD_SHARED_LIB
-        make_hook_callback(
-            "VGUI.ISurface::LockCursor",
-            to<void(__thiscall *)(void *)>(vgui_interface[67]),
-            [&](auto orig) {
-                // if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
-                //{
-                //     this_ptr->UnlockCursor();
-                //     return;
-                // }
-                orig();
-            }),
-        make_hook_callback(
-            "CHLClient::CreateMove",
-            to<void(__thiscall *)(void *, int, int, bool)>(client_interface[22]),
-            [&](auto orig, auto... args) {
-                //
-                orig(args...);
-            }),
-        make_hook_callback(
-            "CClientEntityList::OnAddEntity",
-            to<void(__thiscall *)(void *, void *, valve::entity_handle)>(
-                client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
-            [&](auto orig, auto handle_interface, auto handle) {
-                orig(handle_interface, handle);
-                // todo: work with this_ptr
-                on_add_entity(handle.index());
-            }),
-        make_hook_callback(
-            "CClientEntityList::OnRemoveEntity",
-            to<void(__thiscall *)(void *, void *, valve::entity_handle)>(
-                client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
-            [&](auto orig, auto handle_interface, auto handle) {
-                // todo: work with this_ptr
-                on_remove_entity(handle.index());
-                orig(handle_interface, handle);
-            })
-#endif
-    };
-#if !defined(_DEBUG) && defined(FD_SHARED_LIB)
-    MAKE_DESTRUCTOR(disable_hooks);
+    hooks.create("VGUI.ISurface::LockCursor", vgui_interface[67].get<void *>(), [&](auto orig) {
+        // if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
+        //{
+        //     this_ptr->UnlockCursor();
+        //     return;
+        // }
+        orig();
+    });
+    hooks.create(
+        "CHLClient::CreateMove", client_interface[22].get<void, int, int, int>(), [&](auto orig, auto... args) {
+            //
+            orig(args...);
+        });
+    hooks.create(
+        "CClientEntityList::OnAddEntity",
+        reinterpret_cast<void(__thiscall *)(void *, void *, valve::entity_handle)>(
+            client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
+        [&](auto orig, auto handle_interface, auto handle) {
+            orig(handle_interface, handle);
+            // todo: work with this_ptr
+            on_add_entity(handle.index());
+        });
+    hooks.create(
+        "CClientEntityList::OnRemoveEntity",
+        reinterpret_cast<void(__thiscall *)(void *, void *, valve::entity_handle)>(
+            client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
+        [&](auto orig, auto handle_interface, auto handle) {
+            // todo: work with this_ptr
+            on_remove_entity(handle.index());
+            orig(handle_interface, handle);
+        });
 #endif
 
-#ifdef _DEBUG
-    if (!std::all_of(std::begin(hooks), std::end(hooks), enable_hook_lazy))
-        return false;
-    if (!apply_lazy_hooks())
+#if 1
+    if (!hooks.enable_lazy())
         return false;
 #else
-    if (std::any_of(std::begin(hooks), std::end(hooks), [](auto id) { return !id; }))
-        return false;
-    if (!enable_hooks())
+    if (!hooks.enable())
         return false;
 #endif
 
@@ -274,13 +269,11 @@ static bool context(HINSTANCE self_handle) noexcept
         return false;
 #endif
 
-#ifdef _DEBUG
-    if (!std::all_of(std::rbegin(hooks), std::rend(hooks), disable_hook_lazy))
+#if 1
+    if (!hooks.disable_lazy())
         return false;
-    if (!apply_lazy_hooks())
-        return false;
-#elif defined(FD_SHARED_LIB)
-    if (!disable_hooks())
+#else
+    if (!hooks.disable())
         return false;
 #endif
 

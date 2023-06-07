@@ -20,6 +20,7 @@ template <typename T>
 constexpr bool is_void_pointer_v<T ***> = is_void_pointer_v<T *>;
 
 template <typename To, typename From>
+[[deprecated]]
 To magic_cast_simple(From from) noexcept
 {
     using wrapper = magic_cast<From, To>;

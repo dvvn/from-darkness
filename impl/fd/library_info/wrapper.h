@@ -49,7 +49,7 @@ class library_info
         return find_export(name);
     }
 
-    from<void *> find_pattern(std::string_view pattern) const;
+    void * find_pattern(std::string_view pattern) const;
     IMAGE_SECTION_HEADER *find_section(std::string_view name) const;
 };
 

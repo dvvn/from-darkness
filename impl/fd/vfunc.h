@@ -1,9 +1,8 @@
 #pragma once
 
-#include "magic_cast_base.h"
 #include "call_type.h"
-
-#include <boost/core/noncopyable.hpp>
+#include "core.h"
+#include "magic_cast_base.h"
 
 #include <concepts>
 #include <utility>
@@ -14,16 +13,10 @@ namespace fd
 {
 size_t get_vfunc_index(void *instance, size_t vtable_offset, void *function, call_type_t call);
 
-template <typename Fn>
-void *get_function_pointer(Fn function)
-{
-    return magic_cast_simple<void *>(function);
-}
-
 template <typename T>
 void ***get_vtable(T *instance)
 {
-    return magic_cast_simple<void ***>(instance);
+    return static_cast<void ***>(remove_const(instance));
 }
 
 inline void ***get_vtable(void *instance)
@@ -164,6 +157,12 @@ class vfunc<Call, unknown_return_type, T>
 
     VFUNC_BASE;
 
+    template <typename Ret, typename... Args>
+    auto get() const -> build_member_func<Call, Ret, T, Args...>
+    {
+        return member_func_caster<Call, Ret, T, Args...>::get(function_);
+    }
+
     template <same_call_type<Call> Fn>
     vfunc(T *instance, size_t table_offset, Fn function)
         : instance_(instance)
@@ -224,6 +223,12 @@ class vfunc<call_type_t::unknown, unknown_return_type, T>
     using invoker = member_func_invoker<call_type_t::unknown, Args...>;
 
     VFUNC_BASE;
+
+    template <call_type_t Call, typename Ret, typename... Args>
+    auto get(call_type_holder<Call>) const -> build_member_func<Call, Ret, T, Args...>
+    {
+        return member_func_caster<Call, Ret, T, Args...>::get(function_);
+    }
 
     template <typename Fn>
     vfunc(T *instance, size_t table_offset, Fn function)

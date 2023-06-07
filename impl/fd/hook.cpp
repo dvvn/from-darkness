@@ -1,8 +1,9 @@
-#include "hook.h"
+﻿#include "hook.h"
+#include "log.h"
 
-#include <fd/log.h>
-
+#include <algorithm>
 #include <cassert>
+#include <ranges>
 
 #if __has_include(<subhook.h>)
 #include <subhook.h>
@@ -704,9 +705,8 @@ class simple_action_name
 #define ACTION_NAME(_V_, _RAW_, _FIXED_) constexpr auto _V_ = simple_action_name(_RAW_, _FIXED_);
 
 #endif
-namespace actions
+namespace act_names
 {
-
 ACTION_NAME(enable, "enable", "enabled");
 ACTION_NAME(disable, "disable", "disabled");
 ACTION_NAME(lazy_enable, "lazy enable", "lazy enabled");
@@ -714,21 +714,45 @@ ACTION_NAME(lazy_disable, "lazy disable", "lazy disabled");
 ACTION_NAME(sync, "sync", "synced");
 ACTION_NAME(create, "create", "created");
 ACTION_NAME(destroy, "destroy", "destroyed");
-} // namespace actions
+} // namespace act_names
 
 #undef ACTION_NAME
 
 template <typename... Args>
 using mh_function = MH_STATUS(WINAPI *)(Args...);
 
-template <typename... Args>
-static bool mh_action(auto &name, mh_function<LPVOID, Args...> action, hook_id id, Args... args)
+struct hook_info
 {
-    auto status = action(id.target, args...);
+    std::string_view name;
+    void *target;
+
+    hook_info(const hook_info &) = default;
+
+    hook_info(std::string_view name, void *target)
+        : name(name)
+        , target(target)
+    {
+    }
+
+    hook_info(hook_name name, void *target)
+        :
+#ifdef _DEBUG
+        name(name)
+        ,
+#endif
+        target(target)
+    {
+    }
+};
+
+template <typename... Args>
+static bool mh_action(auto &name, mh_function<LPVOID, Args...> action, hook_info info, Args... args)
+{
+    auto status = action(info.target, args...);
     if (status != MH_OK)
-        log("Unable to {} hook {}: {}", name.raw(), id.name, status);
+        log("Unable to {} hook {}: {}", name.raw(), info.name, status);
     else
-        log("Hook {} {}", id.name, name.get());
+        log("Hook {} {}", info.name, name.get());
     return status == MH_OK;
 }
 
@@ -753,115 +777,125 @@ static bool mh_action(auto &name, mh_function<> action)
     return status == MH_OK;
 }
 
-bool create_hook_data()
-{
-#if defined(SUBHOOK_API)
-    subhook_set_disasm_handler([](void *src, int *reloc_op_offset) -> int {
-        if (auto ret = subhook_disasm(src, reloc_op_offset); ret)
-            return ret;
-        if (auto ret = hde_disasm(src, reloc_op_offset); ret)
-            return ret;
+using std::ranges::all_of;
+using std::ranges::for_each;
+using std::views::reverse;
+using std::views::transform;
 
-        return 0;
-    });
-    return true;
-#elif defined(MH_ALL_HOOKS)
-    return mh_action(actions::create, MH_Initialize);
-#endif
+template <typename Fn>
+static auto handle_callback(auto &callback, Fn fn)
+{
+    return [&callback, fn]<class T>(T *obj) -> bool {
+        auto ok = std::invoke(fn, obj);
+        if (!ok)
+            callback(obj);
+        return ok;
+    };
 }
 
-bool destroy_hook_data()
+#define HANDLE_ERROR(_ALG_, _STORAGE_, _FN_) \
+    (error_handler_ ? _ALG_(_STORAGE_, handle_callback(error_handler_, _FN_)) : _ALG_(_STORAGE_, _FN_))
+
+hook_context::~hook_context()
 {
-#if defined(SUBHOOK_API)
-    return true;
-#elif defined(MH_ALL_HOOKS)
-    return mh_action(actions::destroy, MH_Uninitialize);
-#endif
+    for_each(storage_ | reverse, std::default_delete<basic_hook>());
+    mh_action(act_names::destroy, MH_Uninitialize);
 }
 
-hook_id create_hook(void *target, void *replace, hook_name name, void **trampoline)
+hook_context::hook_context()
 {
-    auto id = hook_id(target, name);
+    if (!mh_action(act_names::create, MH_Initialize))
+        std::destroy_at(&storage_);
+}
 
-#if defined(SUBHOOK_API)
-    auto entry = subhook_new(target, replace, SUBHOOK_TRAMPOLINE);
-    if (!entry)
+bool basic_hook_proxy::enable()
+{
+    return mh_action(act_names::enable, MH_EnableHook, static_cast<basic_hook_data *>(this)->info());
+}
+
+bool basic_hook_proxy::disable()
+{
+    return mh_action(act_names::disable, MH_DisableHook, static_cast<basic_hook_data *>(this)->info());
+}
+
+bool basic_hook_lazy_proxy::enable()
+{
+    return mh_action(act_names::lazy_enable, MH_QueueEnableHook, static_cast<basic_hook_data *>(this)->info());
+}
+
+bool basic_hook_lazy_proxy::disable()
+{
+    return mh_action(act_names::lazy_disable, MH_QueueDisableHook, static_cast<basic_hook_data *>(this)->info());
+}
+
+hook_info basic_hook_data::info() const
+{
+    return {name_, target_};
+}
+basic_hook_data::basic_hook_data(hook_name name, void *target)
+    :
+#ifdef _DEBUG
+    name_((name))
+    ,
+#endif
+    target_(target)
+{
+}
+
+basic_hook_lazy *basic_hook_data::lazy()
+{
+    return this;
+}
+
+char const *basic_hook_data::name() const
+{
+    return name_.data();
+}
+
+void *hook_context::create_trampoline(hook_name name, void *target, void *replace)
+{
+    auto info        = hook_info(name, target);
+    void *trampoline = nullptr;
+    auto created     = mh_action(act_names::create, MH_CreateHook, info, replace, &trampoline);
+    if (!created && error_handler_)
     {
-        log("{}: init error", name_);
-        return false;
+        error_handler_(nullptr);
     }
-    if (!subhook_get_trampoline(entry))
-    {
-        log("{}: unsupported function", name_);
-        subhook_free(entry);
-        return false;
-    }
-    entry_ = entry;
-#elif defined(MH_ALL_HOOKS)
-    return mh_action(actions::create, MH_CreateHook, id, replace, trampoline) ? id : nullptr;
-#endif
+    return trampoline;
 }
 
-bool enable_hook(hook_id id)
+void hook_context::set_error_handler(error_handler handler)
 {
-#if defined(SUBHOOK_API)
-
-#elif defined(MH_ALL_HOOKS)
-    return mh_action(actions::enable, MH_EnableHook, id);
-#endif
+    error_handler_ = std::move(handler);
 }
 
-bool enable_hook_lazy(hook_id id)
+bool hook_context::enable()
 {
-#if defined(SUBHOOK_API)
-
-#elif defined(MH_ALL_HOOKS)
-    return mh_action(actions::lazy_enable, MH_QueueEnableHook, id);
-#endif
+    return HANDLE_ERROR(all_of, storage_, &basic_hook::enable);
 }
 
-bool disable_hook(hook_id id)
+bool hook_context::disable()
 {
-#if defined(SUBHOOK_API)
-
-#elif defined(MH_ALL_HOOKS)
-    return mh_action(actions::disable, MH_DisableHook, id);
-#endif
+    return HANDLE_ERROR(all_of, storage_ | reverse, &basic_hook::disable);
 }
 
-bool disable_hook_lazy(hook_id id)
+bool hook_context::enable_lazy()
 {
-#if defined(SUBHOOK_API)
-
-#elif defined(MH_ALL_HOOKS)
-    return mh_action(actions::lazy_disable, MH_QueueDisableHook, id);
-#endif
+    assert(!storage_.empty());
+    return HANDLE_ERROR(all_of, storage_ | transform(&basic_hook::lazy), &basic_hook_lazy::enable) &&
+           mh_action(act_names::sync, MH_ApplyQueued);
 }
 
-bool apply_lazy_hooks()
+bool hook_context::disable_lazy()
 {
-#if defined(SUBHOOK_API)
-
-#elif defined(MH_ALL_HOOKS)
-    return mh_action(actions::sync, MH_ApplyQueued);
-#endif
+    assert(!storage_.empty());
+    return HANDLE_ERROR(all_of, storage_ | transform(&basic_hook::lazy) | reverse, &basic_hook_lazy::disable) &&
+           mh_action(act_names::sync, MH_ApplyQueued);
 }
 
-bool enable_hooks()
+size_t hook_context::size() const
 {
-#if defined(SUBHOOK_API)
-
-#elif defined(MH_ALL_HOOKS)
-    return mh_action(actions::enable, MH_EnableHook);
-#endif
+    return storage_.size();
 }
 
-bool disable_hooks()
-{
-#if defined(SUBHOOK_API)
-
-#elif defined(MH_ALL_HOOKS)
-    return mh_action(actions::disable, MH_DisableHook);
-#endif
-}
 } // namespace fd

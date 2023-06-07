@@ -152,4 +152,57 @@ struct member_func_invoker<call_type_t::unknown, Ret, Args...>
         return member_func_invoker<call_t, Ret, Args...>::call(instance, func_ptr, (args)...);
     }
 };
+
+template <call_type_t Call, typename Ret, typename T, typename... Args>
+struct member_func_builder;
+
+template <call_type_t Call, typename Ret, typename T, typename... Args>
+using build_member_func = typename member_func_builder<Call, Ret, T, Args...>::type;
+
+template <call_type_t Call, typename Ret, typename T, typename... Args>
+struct member_func_caster
+{
+    using type = build_member_func<Call, Ret, T, Args>;
+
+    static type get(void *function)
+    {
+        if constexpr (std::convertible_to<void *, type>)
+            return static_cast<type>(function);
+        else
+        {
+            static_assert(sizeof(type) == sizeof(void *));
+
+            union
+            {
+                void *from;
+                type to;
+            };
+
+            from = function;
+            return to;
+        }
+    }
+};
+
+template <call_type_t Call, typename Ret, typename... Args>
+struct member_func_builder<Call, Ret, void, Args...> : member_func_builder<Call, Ret, member_func_invoker_gap, Args...>
+{
+};
+
+template <typename Ret, typename... Args>
+struct member_func_builder<call_type_t::thiscall_, Ret, void, Args...>
+    : member_func_caster<call_type_t::thiscall_, Ret, void, Args...>
+{
+    using type = Ret(__thiscall *)(void *, Args...);
+};
+
+#define MEMBER_FN_BUILDER(call__, __call, _call_)                                                     \
+    template <typename Ret, typename T, typename... Args>                                             \
+    struct member_func_builder<call__, Ret, T, Args...> : member_func_caster<call__, Ret, T, Args...> \
+    {                                                                                                 \
+        using type = Ret (__call T::*)(Args...);                                                      \
+    };
+
+X86_CALL_MEMBER(MEMBER_FN_BUILDER)
+#undef MEMBER_FN_BUILDER
 }
