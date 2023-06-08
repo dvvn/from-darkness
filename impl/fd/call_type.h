@@ -132,17 +132,17 @@ struct member_func_invoker
     }
 };
 
-template <class Ret, typename... Args>
-struct member_func_invoker<Ret, Ret(__thiscall *)(void *, Args...), void, Args...>
+template <class Ret, typename T, typename... Args>
+struct member_func_invoker<Ret, Ret(__thiscall *)(T *, Args...), void, Args...>
 {
-    Ret operator()(Ret(__thiscall *function)(void *, Args...), void *instance, Args... args) const
+    Ret operator()(Ret(__thiscall *function)(T *, Args...), T *instance, Args... args) const
     {
         return std::invoke(function, (instance), args...);
     }
 
-    Ret operator()(void *function, void *instance, Args... args) const
+    Ret operator()(void *function, T *instance, Args... args) const
     {
-        return operator()(static_cast<Ret(__thiscall *)(void *, Args...)>(function), (instance), args...);
+        return operator()(static_cast<Ret(__thiscall *)(T *, Args...)>(function), (instance), args...);
     }
 };
 

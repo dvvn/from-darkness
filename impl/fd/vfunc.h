@@ -15,7 +15,7 @@ size_t get_vfunc_index(call_type_t call, void *function, void *instance, size_t 
 template <typename T>
 void ***get_vtable(T *instance)
 {
-    return static_cast<void ***>(remove_const(instance));
+    return static_cast<void ***>(/*remove_const*/ (instance));
 }
 
 inline void ***get_vtable(void *instance)
@@ -75,7 +75,8 @@ class vfunc
     }
 
     vfunc(typename builder::type function, T *instance, size_t table_offset)
-        : function_(get_vfunc(builder::call_type, get_function_pointer(function), remove_const(instance), table_offset))
+        : function_(
+              get_vfunc(builder::call_type, get_function_pointer(function), /*remove_const*/ (instance), table_offset))
         , instance_(instance)
     {
     }
@@ -106,33 +107,16 @@ class unknown_vfunc_args
 
     template <same_call_type<Call> Fn>
     unknown_vfunc_args(Fn function, T *instance, size_t table_offset)
-        : function_(get_vfunc(function, remove_const(instance), table_offset))
+        : function_(get_vfunc(function, /*remove_const*/ (instance), table_offset))
         , instance_(instance)
     {
     }
 
     unknown_vfunc_args(size_t function_index, T *instance, size_t table_offset)
-        : function_(get_vfunc(function_index, remove_const(instance), table_offset))
+        : function_(get_vfunc(function_index, /*remove_const*/ (instance), table_offset))
         , instance_(instance)
     {
     }
-
-    /*template <typename Ret, typename... Args>
-    Ret operator()(return_type_t<Ret>, Args... args) const
-    {
-        return builder<Ret, Args...>::invoke(function_, instance_, args...);
-    }
-
-    template <call_type_t Call_1>
-    auto operator()(call_type_holder<Call_1>, auto...) const = delete;
-
-    template <typename... Args>
-    auto operator()(Args... args) const
-    {
-        return vfunc_wrapped_invoker([=]<typename Ret>(return_type_t<Ret>) -> Ret {
-            return builder<Ret, Args...>::invoke(function_, instance_, args...);
-        });
-    }*/
 };
 
 template <call_type_t Call, typename T, typename... Args>
@@ -155,7 +139,7 @@ class unknown_vfunc_call
 
     template <typename Fn>
     unknown_vfunc_call(T *instance, size_t table_offset, Fn function)
-        : function_(get_vfunc(remove_const(instance), table_offset, function))
+        : function_(get_vfunc(/*remove_const*/ (instance), table_offset, function))
         , instance_(instance)
     {
         static_assert(std::invocable<Fn, T *, Args...>);
@@ -200,24 +184,10 @@ class unknown_vfunc
 
     template <typename Fn>
     unknown_vfunc(T *instance, size_t table_offset, Fn function)
-        : function_(get_vfunc(remove_const(instance), table_offset, function))
+        : function_(get_vfunc(/*remove_const*/ (instance), table_offset, function))
         , instance_(instance)
     {
     }
-
-    /* template <call_type_t Call, typename Ret, typename... Args>
-     Ret operator()(call_type_holder<Call> call, return_type_t<Ret>, Args... args) const
-     {
-         return invoker<Ret, Args...>::call(remove_const(instance), function_, call, args...);
-     }
-
-     template <call_type_t Call, typename... Args>
-     auto operator()(call_type_holder<Call> call, Args... args) const
-     {
-         return vfunc_wrapped_invoker([=]<typename Ret>(return_type_t<Ret>) -> Ret {
-             return invoker<Ret, Args...>::call(remove_const(instance), function_, call, args...);
-         });
-     }*/
 };
 
 #undef VFUNC_BASE
@@ -234,18 +204,6 @@ auto invoke(unknown_vfunc<T> func, Args... args) -> member_func_return_type_reso
 {
     return {func.get(), func.instance(), args...};
 }
-
-#if 0
-template <typename T>
-vfunc(T *instance, size_t table_offset, size_t func_index) -> vfunc<call_type_t::unknown, unknown_return_type, T>;
-
-#define VFUNC_T(call__, __call, call)                     \
-    template <typename Ret, typename T, typename... Args> \
-    vfunc(T *instance, size_t table_offset, Ret (__call T::*func)(Args...)) -> vfunc<call__, Ret, T, Args...>;
-
-X86_CALL_MEMBER(VFUNC_T);
-#undef VFUNC_T
-#endif
 
 struct vtable_backup : noncopyable
 {
@@ -388,12 +346,6 @@ struct vtable : basic_vtable<T>
 {
     using basic_vtable<T>::basic_vtable;
     using basic_vtable<T>::operator[];
-    /*template <typename From, typename To>
-    vtable &operator=(magic_cast<From, To> val)
-    {
-        instance_holder<T>::operator=(static_cast<T *>(val));
-        return *this;
-    }*/
 
 #define VFUNC_ACCESS(call__, __call, _call_)                                        \
     template <typename Ret, typename... Args>                                       \
@@ -403,7 +355,6 @@ struct vtable : basic_vtable<T>
     }
 
     X86_CALL_MEMBER(VFUNC_ACCESS);
-
 #undef VFUNC_ACCESS
 };
 
@@ -413,12 +364,6 @@ struct vtable<void> : basic_vtable<void>
     using basic_vtable::basic_vtable;
     using basic_vtable::operator[];
 
-    /*template <member_function Fn>
-    auto operator[](Fn fn) const
-    {
-        return vfunc(instance_, vtable_offset_, fn);
-    }*/
-
 #define VFUNC_ACCESS(call__, __call, _call_)                                        \
     template <typename Ret, typename T, typename... Args>                           \
     vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
@@ -427,14 +372,7 @@ struct vtable<void> : basic_vtable<void>
     }
 
     X86_CALL_MEMBER(VFUNC_ACCESS);
-
 #undef VFUNC_ACCESS
-
-    /*template <typename Ret, typename T, typename... Args>
-    vfunc<call_type_t::thiscall__, Ret, T, Args...> operator[](Ret(__thiscall *func)(void *, Args...)) const
-    {
-        return {instance_, vtable_offset_, func};
-    }*/
 };
 
 template <typename T>
