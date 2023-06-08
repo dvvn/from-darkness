@@ -1,26 +1,30 @@
 #include "export.h"
 
-#include <fd/magic_cast.h>
-
 #include <windows.h>
 #include <winternl.h>
 
 #include <algorithm>
 #include <cassert>
 
+template <typename To, typename From>
+static FORCEINLINE void ptr_cast(To *&to, From *from)
+{
+    to = reinterpret_cast<To *>(from);
+}
+
 namespace fd
 {
 class dll_exports
 {
-    to<uint8_t *> dos_;
+    uint8_t *dos_;
 
-    to<uint32_t *> names_;
-    to<uint32_t *> funcs_;
-    to<uint16_t *> ords_;
+    uint32_t *names_;
+    uint32_t *funcs_;
+    uint16_t *ords_;
 
     union
     {
-        to<IMAGE_EXPORT_DIRECTORY *> export_dir_;
+        IMAGE_EXPORT_DIRECTORY *export_dir_;
         uint8_t *virtual_addr_start_;
     };
 
@@ -30,22 +34,22 @@ class dll_exports
 
   public:
     dll_exports(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt)
-        : dos_(dos)
     {
+        ptr_cast(dos_, dos);
         auto const &data_dir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
         // get export export_dir.
-        export_dir_       = dos_ + data_dir.VirtualAddress;
-        virtual_addr_end_ = virtual_addr_start_ + data_dir.Size;
+        ptr_cast(export_dir_, dos_ + data_dir.VirtualAddress);
+        ptr_cast(virtual_addr_end_, virtual_addr_start_ + data_dir.Size);
 
-        names_ = dos_ + export_dir_->AddressOfNames;
-        funcs_ = dos_ + export_dir_->AddressOfFunctions;
-        ords_  = dos_ + export_dir_->AddressOfNameOrdinals;
+        ptr_cast(names_, dos_ + export_dir_->AddressOfNames);
+        ptr_cast(funcs_, dos_ + export_dir_->AddressOfFunctions);
+        ptr_cast(ords_, dos_ + export_dir_->AddressOfNameOrdinals);
     }
 
-    to<char const *> name(DWORD offset) const
+    char const *name(DWORD offset) const
     {
-        return dos_ + names_[offset];
+        return reinterpret_cast<char const *>(dos_ + names_[offset]);
     }
 
     void *function(DWORD offset) const

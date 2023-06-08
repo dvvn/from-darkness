@@ -36,11 +36,11 @@ struct netvar_source
     netvar_source(valve::recv_prop *pointer);
     netvar_source(valve::data_map_description *pointer);
     netvar_source(void *pointer, source src);
-    _const<char *> name() const;
+    char const * name() const;
     size_t offset() const;
     basic_netvar_type *type(std::string_view correct_name, size_t array_size) const;
 
-    bool operator==(_const<netvar_source &> other) const;
+    bool operator==(netvar_source const & other) const;
 };
 
 #endif

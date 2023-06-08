@@ -19,30 +19,28 @@
 #include <algorithm>
 #include <optional>
 
-using fd::_const;
-
 using boost::filesystem::path;
 
 namespace boost::filesystem
 {
-static bool exists(_const<path::string_type &> dir)
+static bool exists(path::string_type const &dir)
 {
-    return exists(reinterpret_cast<_const<path &>>(dir));
+    return exists(reinterpret_cast<path const &>(dir));
 }
 
-static bool create_directory(_const<path::string_type &> dir)
+static bool create_directory(path::string_type const &dir)
 {
-    return create_directory(reinterpret_cast<_const<path &>>(dir));
+    return create_directory(reinterpret_cast<path const &>(dir));
 }
 
-static bool create_directories(_const<path::string_type &> dir)
+static bool create_directories(path::string_type const &dir)
 {
-    return create_directories(reinterpret_cast<_const<path &>>(dir));
+    return create_directories(reinterpret_cast<path const &>(dir));
 }
 
-static bool is_empty(_const<path::string_type &> dir)
+static bool is_empty(path::string_type const &dir)
 {
-    return is_empty(reinterpret_cast<_const<path &>>(dir));
+    return is_empty(reinterpret_cast<path const &>(dir));
 }
 } // namespace boost::filesystem
 
@@ -51,7 +49,7 @@ using path_formatter_base = fmt::formatter<fmt::basic_string_view<path::value_ty
 template <>
 struct fmt::formatter<path, path::value_type> : path_formatter_base
 {
-    auto format(_const<path &> p, auto &ctx) const -> decltype(ctx.out())
+    auto format(path const &p, auto &ctx) const -> decltype(ctx.out())
     {
         return path_formatter_base::format(p.native(), ctx);
     }
@@ -158,7 +156,7 @@ static auto _correct_class_name(std::string_view name)
     return buff;
 }
 
-static bool _can_skip_netvar(_const<char *> name)
+static bool _can_skip_netvar(char const *name)
 {
     for (;;)
     {
@@ -407,13 +405,13 @@ static std::string_view _correct_recv_name(std::string_view name)
     return name;
 }
 
-static std::string_view _correct_recv_name(_const<char *> name)
+static std::string_view _correct_recv_name(char const *name)
 {
     return _correct_recv_name(std::string_view(name));
 }
 
 [[maybe_unused]]
-static void _correct_recv_name(_const<std::string &> name)
+static void _correct_recv_name(std::string const &name)
 {
     (void)name;
 }
@@ -487,7 +485,7 @@ static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
 #ifdef FD_NETVARS_DT_MERGE
         hashed_object class_name = _correct_class_name(map->name);
 #else
-        auto nameBegin = static_cast<_const<char *>>(memchr(map->name, '_', std::numeric_limits<size_t>::max()));
+        auto nameBegin = static_cast<char const *>(memchr(map->name, '_', std::numeric_limits<size_t>::max()));
         write_std::string(className, "DT_", nameBegin);
         _correct_recv_name(className);
 #endif
@@ -529,7 +527,7 @@ void store_extra_netvars(void *entity)
     log("[NETVARS] data map stored!");
 }
 
-void store_custom_netvars(_const<library_info &> client_dll)
+void store_custom_netvars(library_info client_dll)
 {
 #if 0
     auto baseent = this->find("C_BaseEntity");

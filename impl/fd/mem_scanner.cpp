@@ -2,7 +2,6 @@
 #pragma optimize("gty", on)
 #endif
 
-#include "magic_cast.h"
 #include "mem_scanner.h"
 
 #include <boost/container/static_vector.hpp>
@@ -169,12 +168,12 @@ struct unknown_bytes_range : static_buffer<bytes_range, 8>
 
     struct unknown_bytes_range_unpacked unpack();
 
-    unknown_bytes_range(_const<char *> begin, size_t length)
-        : unknown_bytes_range(begin, begin + length)
+    unknown_bytes_range(raw_pattern begin, size_t length)
+        : unknown_bytes_range((pbyte)(begin), (pbyte)begin + length)
     {
     }
 
-    unknown_bytes_range(_const<char *> begin, _const<char *> end)
+    unknown_bytes_range(pbyte begin, pbyte end)
     {
         auto back = &this->emplace_back();
 
@@ -188,14 +187,14 @@ struct unknown_bytes_range : static_buffer<bytes_range, 8>
             ++back->skip;
         };
 
-        auto on_1_char = [&](char c) {
+        auto on_1_char = [&](byte c) {
             if (c == '?')
                 skip_byte();
             else
                 store(to_num(c));
         };
 
-        auto on_2_chars = [&](char c, char c2) {
+        auto on_2_chars = [&](byte c, byte c2) {
             if (c == '?')
             {
                 assert(c2 == '?');
@@ -344,12 +343,7 @@ static pbyte find_whole(pbyte rng_start, pbyte rng_end, pbyte part_start, size_t
 }
 
 template <bool RngEndPreset = false, bool Rewrap = true, typename Filter>
-static from<pbyte> do_search(
-    to<pbyte> rng_start,
-    to<pbyte> rng_end,
-    to<pbyte> part_start,
-    size_t part_size,
-    Filter filter)
+static pbyte do_search(pbyte rng_start, pbyte rng_end, pbyte part_start, size_t part_size, Filter filter)
 {
     assert(part_size != 0);
     if constexpr (valid_filter<Filter>)
@@ -363,7 +357,7 @@ static from<pbyte> do_search(
 }
 
 template <typename Filter>
-static from<pbyte> do_search(to<pbyte> rng_start, to<pbyte> rng_end, bytes_range &bytes, Filter filter)
+static pbyte do_search(pbyte rng_start, pbyte rng_end, bytes_range &bytes, Filter filter)
 {
     return do_search<true, true>(rng_start, rng_end - bytes.whole_size(), bytes.part.data(), bytes.part.size(), filter);
 }
@@ -382,11 +376,7 @@ static bool compare_except_first(pbyte checked, bytes_range_unpacked *rng_begin,
 }
 
 template <bool RngEndPreset = false, bool Rewrap = true, typename Filter>
-static from<pbyte> do_search(
-    to<pbyte> rng_start,
-    to<pbyte> rng_end,
-    unknown_bytes_range_unpacked &unk_bytes,
-    Filter filter)
+static pbyte do_search(pbyte rng_start, pbyte rng_end, unknown_bytes_range_unpacked &unk_bytes, Filter filter)
 {
     if constexpr (valid_filter<Filter>)
         assert(filter != nullptr);
@@ -397,8 +387,8 @@ static from<pbyte> do_search(
     auto unk_bytes_start = unk_bytes.data();
 
     auto invoker =
-        [rng_start = rng_start.get(),
-         rng_end   = rng_end.get(),
+        [rng_start,
+         rng_end,
          unk_bytes_start,
          unk_bytes_end = unk_bytes_start + unk_bytes.size(),
          filter,
@@ -441,9 +431,10 @@ static from<pbyte> do_search(
 
 //-----
 
-void *find_pattern(void *begin, void *end, _const<char *> pattern, size_t pattern_length, find_filter *filter)
+void *find_pattern(void *begin, void *end, raw_pattern pattern, size_t pattern_length, find_filter *filter)
 {
-    auto proxy = [=](auto &rng, auto filter_wrapped) -> void * {
+    auto proxy = [begin = static_cast<pbyte>(begin),
+                  end   = static_cast<pbyte>(end)](auto &rng, auto filter_wrapped) -> void * {
         return do_search(begin, end, rng, filter_wrapped);
     };
     auto invoker = [&](auto &&rng) {
@@ -458,9 +449,12 @@ void *find_pattern(void *begin, void *end, _const<char *> pattern, size_t patter
     return range.size() == 1 ? invoker(range[0]) : invoker(range.unpack());
 }
 
-static auto do_search_wrap_filter(void *begin, void *end, _const<void *> bytes, size_t length, find_filter *filter)
+static auto do_search_wrap_filter(void *begin, void *end, raw_bytes bytes, size_t length, find_filter *filter)
 {
-    auto proxy = [=](auto filter_wrapped) {
+    auto proxy = [begin = static_cast<pbyte>(begin),
+                  end   = static_cast<pbyte>(end),
+                  bytes = static_cast<pbyte>(remove_const(bytes)),
+                  length](auto filter_wrapped) -> void * {
         return do_search(begin, end, bytes, length, filter_wrapped);
     };
 
@@ -473,10 +467,10 @@ static auto do_search_wrap_filter(void *begin, void *end, _const<void *> bytes, 
 
 uintptr_t find_xref(void *begin, void *end, uintptr_t &address, find_filter *filter)
 {
-    return do_search_wrap_filter(begin, end, &address, sizeof(uintptr_t), filter);
+    return reinterpret_cast<uintptr_t>(do_search_wrap_filter(begin, end, &address, sizeof(uintptr_t), filter));
 }
 
-void *find_bytes(void *begin, void *end, _const<void *> bytes, size_t length, find_filter *filter)
+void *find_bytes(void *begin, void *end, raw_bytes bytes, size_t length, find_filter *filter)
 {
     return do_search_wrap_filter(begin, end, bytes, length, filter);
 }

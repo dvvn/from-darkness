@@ -26,69 +26,83 @@ struct hook_proxy_member;
 //{
 // };
 
-template <class Callback, call_type_t Call, typename Ret, class C, typename... Args>
-class hook_proxy_member_holder;
+template <call_type_t Call, typename Ret, class C, typename... Args>
+class hook_proxy_member_holder
+{
+    using builder = member_func_builder<Call, Ret, void, Args...>;
 
-#define HOOK_PROXY_MEMBER(call__, __call, _call_)                                                                    \
-    template <class Callback, typename Ret, class C, typename... Args>                                               \
-    class hook_proxy_member_holder<Callback, call__, Ret, C, Args...>                                                \
-    {                                                                                                                \
-        union                                                                                                        \
-        {                                                                                                            \
-            void *proxy_;                                                                                            \
-            C *this_;                                                                                                \
-        };                                                                                                           \
-                                                                                                                     \
-        void *original_;                                                                                             \
-                                                                                                                     \
-      public:                                                                                                        \
-        hook_proxy_member_holder(void *proxy)                                                                        \
-            : proxy_(proxy)                                                                                          \
-            , original_(unique_hook_trampoline<Callback>)                                                            \
-        {                                                                                                            \
-        }                                                                                                            \
-        Ret __call operator()(Args... args) noexcept                                                                 \
-        {                                                                                                            \
-            return member_func_invoker<call__, Ret, Args...>::call(proxy_, original_, args...);                      \
-        }                                                                                                            \
-        operator C *()                                                                                               \
-        {                                                                                                            \
-            return this_;                                                                                            \
-        }                                                                                                            \
-        C *operator->()                                                                                              \
-        {                                                                                                            \
-            return this_;                                                                                            \
-        }                                                                                                            \
-    };                                                                                                               \
-    template <class Callback, typename Ret, class C, typename... Args>                                               \
-    struct hook_proxy_member<Callback, call__, Ret, C, Args...> : noncopyable                                        \
-    {                                                                                                                \
-        Ret __call operator()(Args... args) noexcept                                                                 \
-        {                                                                                                            \
-            return member_func_invoker<call__, Ret, Args...>::call(this, unique_hook_trampoline<Callback>, args...); \
-        }                                                                                                            \
-        operator C *()                                                                                               \
-        {                                                                                                            \
-            return reinterpret_cast<C *>(this);                                                                      \
-        }                                                                                                            \
-        C *operator->()                                                                                              \
-        {                                                                                                            \
-            return reinterpret_cast<C *>(this);                                                                      \
-        }                                                                                                            \
-        Ret __call proxy(Args... args) noexcept                                                                      \
-        {                                                                                                            \
-            using proxy_holder = hook_proxy_member_holder<Callback, call__, Ret, C, Args...>;                        \
-            auto &callback     = *unique_hook_callback<Callback>;                                                    \
-            if constexpr (std::invocable<Callback, hook_proxy_member &, Args...>)                                    \
-                return callback(*this, args...);                                                                     \
-            else                                                                                                     \
-                return callback(proxy_holder(this), args...);                                                        \
-        }                                                                                                            \
-        static void *get_proxy()                                                                                     \
-        {                                                                                                            \
-            return get_function_pointer(&hook_proxy_member::proxy);                                                  \
-        }                                                                                                            \
+    void *original_;
+
+    union
+    {
+        void *proxy_;
+        C *this_;
     };
+
+  public:
+    hook_proxy_member_holder(void *original, void *proxy)
+        : original_(original)
+        , proxy_(proxy)
+    {
+    }
+
+    Ret operator()(Args... args)
+    {
+        return builder::invoke(original_, this_, args...);
+    }
+
+    operator C *()
+    {
+        return this_;
+    }
+
+    C *operator->()
+    {
+        return this_;
+    }
+};
+
+#define HOOK_PROXY_MEMBER(call__, __call, _call_)                                               \
+    template <class Callback, typename Ret, class C, typename... Args>                          \
+    struct hook_proxy_member<Callback, call__, Ret, C, Args...> : noncopyable                   \
+    {                                                                                           \
+        Ret operator()(Args... args)                                                            \
+        {                                                                                       \
+            return member_func_builder<call__, Ret, void, Args...>::invoke(                     \
+                unique_hook_trampoline<Callback>, this, args...);                               \
+        }                                                                                       \
+        operator C *()                                                                          \
+        {                                                                                       \
+            return reinterpret_cast<C *>(this);                                                 \
+        }                                                                                       \
+        C *operator->()                                                                         \
+        {                                                                                       \
+            return reinterpret_cast<C *>(this);                                                 \
+        }                                                                                       \
+        Ret __call proxy(Args... args) noexcept                                                 \
+        {                                                                                       \
+            using proxy_holder = hook_proxy_member_holder<call__, Ret, C, Args...>;             \
+            auto &callback     = *unique_hook_callback<Callback>;                               \
+            if constexpr (std::invocable<Callback, hook_proxy_member &, Args...>)               \
+                return callback(*this, args...);                                                \
+            else                                                                                \
+                return callback(proxy_holder(unique_hook_trampoline<Callback>, this), args...); \
+        }                                                                                       \
+        static void *get_proxy()                                                                \
+        {                                                                                       \
+            return get_function_pointer(&hook_proxy_member::proxy);                             \
+        }                                                                                       \
+    };
+
+X86_CALL_MEMBER(HOOK_PROXY_MEMBER);
+#undef HOOK_PROXY_MEMBER
+
+// template <class Callback, call_type_t Call, typename Ret, class C, typename... Args>
+// auto hook_proxy_member<Callback, Call, Ret, C, Args...>::operator()(Args... args) -> Ret
+//{
+//     return member_func_builder<Call, Ret, C, Args...>::invoke(this, unique_hook_trampoline<Callback>, args...);
+// }
+
 template <class Callback, call_type_t Call, typename Ret, typename... Args>
 struct hook_proxy;
 
@@ -117,8 +131,6 @@ struct hook_proxy<Callback, call_type_t::thiscall__, Ret, C, Args...>
 
 X86_CALL(HOOK_PROXY_STATIC);
 #undef HOOK_PROXY_STATIC
-X86_CALL_MEMBER(HOOK_PROXY_MEMBER);
-#undef HOOK_PROXY_MEMBER
 
 //----------------
 

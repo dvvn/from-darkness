@@ -11,13 +11,12 @@
 #include <algorithm>
 #include <fstream>
 
-using fd::_const;
 using fd::hashed_object;
 
 template <typename T, typename C>
 struct fmt::formatter<hashed_object<T>, C> : formatter<T, C>
 {
-    auto format(_const<hashed_object<T> &> obj, auto &ctx) const -> decltype(ctx.out())
+    auto format(hashed_object<T> const &obj, auto &ctx) const -> decltype(ctx.out())
     {
         return formatter<T, C>::format(get<T>(obj), ctx);
     }
@@ -210,7 +209,7 @@ struct valve_include
         return get<std::string_view>(path).substr(name_offset);
     }
 
-    bool inside(_const<hashed_object<std::string_view> &> name)
+    bool inside(hashed_object<std::string_view> const &name)
     {
         /* if (!name_hash)
              name_hash = netvar_hash(name);*/

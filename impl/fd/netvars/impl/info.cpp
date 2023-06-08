@@ -2,7 +2,7 @@
 
 namespace fd
 {
-netvar_info::netvar_info(size_t offset, uint16_t array_size, netvar_source source, _const<hashed_name &> name)
+netvar_info::netvar_info(size_t offset, uint16_t array_size, netvar_source source, hashed_name const& name)
     : offset_(offset)
     , array_size_(array_size)
     , source_(source)
@@ -11,7 +11,7 @@ netvar_info::netvar_info(size_t offset, uint16_t array_size, netvar_source sourc
 {
 }
 
-netvar_info::netvar_info(size_t offset, netvar_source source, _const<hashed_name &> name)
+netvar_info::netvar_info(size_t offset, netvar_source source, hashed_name const& name)
     : offset_(offset)
     , array_size_(0)
     , source_(source)
@@ -42,7 +42,7 @@ size_t netvar_info::array_size() const
     return netvar_type_array_size(source_.type(name(), array_size_));
 }
 
-bool netvar_info::operator==(_const<netvar_info &> other) const
+bool netvar_info::operator==(netvar_info const& other) const
 {
     return name_ == other.name_ &&             //
            offset_ == other.offset_ &&         //
@@ -55,7 +55,7 @@ bool netvar_info::operator==(std::string_view name) const
     return std::get<std::string_view>(name_) == name;
 }
 
-bool netvar_info::operator==(_const<hashed_name &> name_hash) const
+bool netvar_info::operator==(hashed_name const& name_hash) const
 {
     return name_ == name_hash;
 }

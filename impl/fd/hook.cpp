@@ -685,7 +685,7 @@ class simple_action_name
     std::string_view fixed_;
 
   public:
-    consteval simple_action_name(_const<char *> raw, _const<char *> fixed)
+    consteval simple_action_name(char const * raw, char const * fixed)
         : raw_(raw)
         , fixed_(fixed)
     {

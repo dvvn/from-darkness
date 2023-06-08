@@ -74,7 +74,7 @@ using function_return = typename function_return_impl<Fn>::type;
 #endif
 
 template <typename Arg>
-class callback_arg_protector final : public boost::noncopyable
+class callback_arg_protector final : public noncopyable
 {
     Arg arg_;
     Arg backup_;
@@ -86,7 +86,7 @@ class callback_arg_protector final : public boost::noncopyable
             std::unreachable();
     }
 
-    callback_arg_protector(_const<Arg> &arg)
+    callback_arg_protector(Arg const &arg)
         : arg_((arg))
         , backup_(arg)
     {
@@ -105,7 +105,7 @@ class callback_arg_protector final : public boost::noncopyable
 };
 
 template <typename Arg>
-class callback_arg_protector<Arg &> : public boost::noncopyable
+class callback_arg_protector<Arg &> : public noncopyable
 {
     Arg *arg_;
     Arg backup_;
@@ -163,7 +163,7 @@ class callback_function_proxy
 #ifdef _DEBUG
             if constexpr (!std::is_const_v<Arg> && std::copyable<Arg>)
             {
-                auto clone = callback_arg_protector(magic_cast_simple<Arg>(result));
+                auto clone = callback_arg_protector(reinterpret_cast<Arg>(result));
                 return std::invoke(fn_, clone.get(), args...);
             }
 #endif

@@ -1,6 +1,5 @@
 #include "vtable.h"
 
-#include <fd/magic_cast.h>
 #include <fd/mem_scanner.h>
 
 #include <windows.h>
@@ -21,12 +20,12 @@ static bool validate_rtti_name(char const *begin, char const *name, size_t lengt
 }
 
 template <char Prefix = 0>
-static void *find_type_descriptor(to<uint8_t *> begin, size_t length, char const *name, size_t name_length)
+static void *find_type_descriptor(uint8_t *begin, size_t length, char const *name, size_t name_length)
 {
     // to<uint8_t *> begin = nt->OptionalHeader.ImageBase;
     // auto end            = begin + nt->OptionalHeader.SizeOfImage;
 
-    return find_bytes(begin, begin + length, to<void *>(".?A"), 3, [&](to<char *> tmp, auto *token) -> bool {
+    return find_bytes(begin, begin + length, (".?A"), 3, [&](char const *tmp, auto *token) -> bool {
         if constexpr (Prefix != 0)
         {
             if (tmp[3] != Prefix)
@@ -41,7 +40,8 @@ static void *find_type_descriptor(to<uint8_t *> begin, size_t length, char const
 template <char Prefix = 0>
 static void *find_type_descriptor(IMAGE_NT_HEADERS *nt, char const *name, size_t name_length)
 {
-    return find_type_descriptor<Prefix>(nt, nt->OptionalHeader.SizeOfImage, name, name_length);
+    return find_type_descriptor<Prefix>(
+        reinterpret_cast<uint8_t *>(nt), nt->OptionalHeader.SizeOfImage, name, name_length);
 }
 
 void *find_rtti_descriptor(IMAGE_NT_HEADERS *nt, char const *name, size_t length)
@@ -69,12 +69,11 @@ static bool validate_section(IMAGE_SECTION_HEADER *s, char const (&name)[S])
     return memcmp(s->Name, name, S - 1) == 0;
 }
 
-static to<void *> find_vtable_impl(
-    IMAGE_SECTION_HEADER *rdata,
-    IMAGE_SECTION_HEADER *text,
-    /*IMAGE_DOS_HEADER **/ to<uint8_t *> dos,
-    void *rtti_decriptor)
+void *find_vtable(IMAGE_SECTION_HEADER *rdata, IMAGE_SECTION_HEADER *text, IMAGE_DOS_HEADER *dos, void *rtti_decriptor)
 {
+    assert(validate_section(rdata, ".rdata"));
+    assert(validate_section(text, ".text"));
+
     // get rtti type descriptor
     auto type_descriptor = reinterpret_cast<uintptr_t>(rtti_decriptor);
     // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string
@@ -82,10 +81,10 @@ static to<void *> find_vtable_impl(
 
     // dos + section->VirtualAddress, section->SizeOfRawData
 
-    auto rdata_begin = (dos) + rdata->VirtualAddress;
+    auto rdata_begin = reinterpret_cast<uint8_t *>(dos) + rdata->VirtualAddress;
     auto rdata_end   = rdata_begin + rdata->SizeOfRawData;
 
-    auto text_begin = dos + text->VirtualAddress;
+    auto text_begin = reinterpret_cast<uint8_t *>(dos) + text->VirtualAddress;
     auto text_end   = rdata_begin + text->SizeOfRawData;
 
     auto addr1          = find_xref(rdata_begin, rdata_end, type_descriptor, [&](uintptr_t &xref, auto *stop_token) {
@@ -100,14 +99,6 @@ static to<void *> find_vtable_impl(
     auto addr2          = find_xref(rdata_begin, rdata_end, object_locator) + 0x4;
     // check is valid offset
     assert(addr2 > sizeof(uintptr_t));
-    return find_xref(text_begin, text_end, addr2);
-}
-
-void *find_vtable(IMAGE_SECTION_HEADER *rdata, IMAGE_SECTION_HEADER *text, IMAGE_DOS_HEADER *dos, void *rtti_decriptor)
-{
-    assert(validate_section(rdata, ".rdata"));
-    assert(validate_section(text, ".text"));
-
-    return find_vtable_impl(rdata, text, dos, rtti_decriptor);
+    return reinterpret_cast<void *>(find_xref(text_begin, text_end, addr2));
 }
 }

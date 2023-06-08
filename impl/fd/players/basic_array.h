@@ -3,8 +3,6 @@
 #include "index.h"
 #include "player.h"
 
-#include <fd/core.h>
-
 namespace fd
 {
 // for [] access, entries maybe null
@@ -12,7 +10,7 @@ struct basic_player_array
 {
     friend struct player_array;
 
-    using pointer = _const<player *>;
+    using pointer = player const *;
 
   private:
     pointer storage_[max_player_count];

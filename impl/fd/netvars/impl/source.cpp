@@ -57,7 +57,7 @@ class valve_name
     }
 };
 
-static std::string_view clone_key(std::string_view key, _const<char *> gap)
+static std::string_view clone_key(std::string_view key, char const *gap)
 {
     auto result = cloned_names.try_emplace(key);
     auto &str   = result.first->second;
@@ -89,7 +89,7 @@ static basic_netvar_type *try_get(std::string_view key)
     return it->second.get();
 }
 
-static basic_netvar_type *simple(std::string_view key, _const<valve_name &> name)
+static basic_netvar_type *simple(std::string_view key, valve_name const &name)
 {
     return try_get<netvar_type<std::string>, std::string_view>(key, name);
 }
@@ -509,7 +509,7 @@ static auto extract(void *pointer, Fn fn)
     return std::invoke(fn, static_cast<T *>(pointer));
 }
 
-_const<char *> netvar_source::name() const
+char const *netvar_source::name() const
 {
     switch (src_)
     {
@@ -566,7 +566,7 @@ basic_netvar_type *netvar_source::type(std::string_view correct_name, size_t arr
     }
 }
 
-bool netvar_source::operator==(_const<netvar_source &> other) const
+bool netvar_source::operator==(netvar_source const &other) const
 {
     return pointer_ == other.pointer_;
 }

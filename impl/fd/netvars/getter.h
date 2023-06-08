@@ -3,8 +3,6 @@
 #include "core.h"
 #include "tag.h"
 
-#include <fd/magic_cast.h>
-
 #include <mutex>
 #ifndef _DEBUG
 #include <variant>
@@ -47,15 +45,15 @@ template <typename T, netvar_getter_mode Mode>
 class netvar_getter;
 
 template <typename T>
-to<T &> get_netvar(std::in_place_type_t<T>, to<uintptr_t> thisptr, size_t offset)
+T &get_netvar(std::in_place_type_t<T>, void *thisptr, size_t offset)
 {
-    return thisptr + offset;
+    return *static_cast<T *>(static_cast<uint8_t *>(thisptr) + offset);
 }
 
 template <typename T>
-to<T *> get_netvar(std::in_place_type_t<T *>, to<uintptr_t> thisptr, size_t offset)
+T *get_netvar(std::in_place_type_t<T *>, void *thisptr, size_t offset)
 {
-    return thisptr + offset;
+    return static_cast<T *>(static_cast<uint8_t *>(thisptr) + offset);
 }
 
 template <typename T>
@@ -155,7 +153,7 @@ class netvar_getter<T, netvar_getter_mode::runtime>
     {
     }
 
-    auto get(void *thisptr)
+    decltype(auto) get(void *thisptr)
     {
         update();
 #ifndef _DEBUG
@@ -180,7 +178,7 @@ class netvar_getter<T, netvar_getter_mode::compile>
     {
     }
 
-    auto get(void *thisptr) const
+    decltype(auto) get(void *thisptr) const
     {
         return get_netvar(std::in_place_type<T>, thisptr, offset_);
     }

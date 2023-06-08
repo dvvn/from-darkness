@@ -6,11 +6,10 @@
 
 namespace fd
 {
-class library_info;
 
 void store_netvars(void *client_interface);
 void store_extra_netvars(void *entity);
-void store_custom_netvars(_const<library_info &>client_dll);
+void store_custom_netvars(class library_info client_dll);
 
 void create_netvar_classes(std::wstring_view dir);
 void dump_netvars(std::wstring_view dir);

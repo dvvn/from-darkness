@@ -6,7 +6,7 @@ namespace fd::valve
 {
 auto client_class_range::begin() const -> iterator
 {
-    return vtable(interface_)[8](return_type<client_class *>);
+    return invoke<client_class *>(vtable(interface_)[8]);
 }
 
 auto client_class_range::end() const -> iterator

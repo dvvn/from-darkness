@@ -40,7 +40,7 @@ void netvar_table::on_item_added(std::string_view name) const
     assert(count(this->begin(), this->end(), name) == 1);
 }
 
-bool netvar_table::operator==(_const<hashed_name_view &> name_hash) const
+bool netvar_table::operator==(hashed_name_view const & name_hash) const
 {
     return name_ == name_hash;
 }

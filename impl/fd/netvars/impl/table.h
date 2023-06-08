@@ -36,7 +36,7 @@ struct netvar_table final : std::vector<netvar_info>, boost::noncopyable
     void sort();
     void on_item_added(std::string_view name) const;
 
-    bool operator==(_const<hashed_name_view &> name_hash) const;
+    bool operator==(hashed_name_view const & name_hash) const;
     bool operator==(std::string_view name) const;
     bool operator==(size_t name_hash) const;
 };

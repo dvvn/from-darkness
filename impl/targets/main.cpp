@@ -139,15 +139,14 @@ static bool context(HINSTANCE self_handle)
     if (!own_render.initialized())
         return false;
 
-    render_vtable = render_vtable;
-    render_vtable = own_render.device;
+    render_vtable = own_render.device.get();
     window        = own_render.hwnd;
     window_proc   = own_render.info.lpfnWndProc;
 #else
     library_info shader_api_dll = L"shaderapidx9.dll";
     render_vtable               = [&] {
-        to<uintptr_t> val = shader_api_dll.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
-        return **reinterpret_cast<IDirect3DDevice9 ***>(val + 1);
+        auto val = shader_api_dll.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+        return **reinterpret_cast<IDirect3DDevice9 ***>(static_cast<uint8_t *>(val) + 1);
     }();
     D3DDEVICE_CREATION_PARAMETERS creation_parameters;
     if (FAILED(render_vtable->GetCreationParameters(&creation_parameters)))
@@ -202,7 +201,7 @@ static bool context(HINSTANCE self_handle)
         }
     });
 #ifndef USE_OWN_RENDER_BACKEND
-    hooks.create("IDirect3DDevice9::Release", render_vtable[&IDirect3DDevice9::Release], [](auto orig) -> ULONG {
+    hooks.create("IDirect3DDevice9::Release", render_vtable[&IDirect3DDevice9::Release], [](auto orig) {
         auto refs = orig();
         if (refs == 0)
             render_backend_detach();
@@ -223,7 +222,7 @@ static bool context(HINSTANCE self_handle)
         return orig(args...);
     });
 #ifdef FD_SHARED_LIB
-    hooks.create("VGUI.ISurface::LockCursor", vgui_interface[67].get<void *>(), [&](auto orig) {
+    hooks.create("VGUI.ISurface::LockCursor", vgui_interface[67].get<void>(), [&](auto orig) {
         // if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
         //{
         //     this_ptr->UnlockCursor();

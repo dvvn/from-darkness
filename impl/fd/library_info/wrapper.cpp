@@ -40,7 +40,7 @@ void *library_info::find_export(std::string_view name) const
     return find_export(dos, nt, name.data(), name.length());
 }
 
-void * library_info::find_pattern(std::string_view pattern) const
+void *library_info::find_pattern(std::string_view pattern) const
 {
     using fd::find_pattern;
     return find_pattern(nt(), pattern.data(), pattern.length());
@@ -58,7 +58,7 @@ game_library_info::game_library_info(std::wstring_view name)
 {
 }
 
-from<void *> game_library_info::find_interface(std::string_view name) const
+void *game_library_info::find_interface(std::string_view name) const
 {
     return find_game_interface(root_interface_, name.data(), name.length(), false)->get();
 }
@@ -92,7 +92,7 @@ game_library_info_ex::game_library_info_ex(std::wstring_view name)
     });
 }
 
-from<void *> game_library_info_ex::find_vtable(std::string_view name) const
+void *game_library_info_ex::find_vtable(std::string_view name) const
 {
     using fd::find_vtable;
     auto dos = get_dos(entry_);
