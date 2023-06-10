@@ -4,9 +4,6 @@
 #include "core.h"
 
 #include <concepts>
-#include <utility>
-
-#undef cdecl
 
 namespace fd
 {
@@ -15,7 +12,7 @@ size_t get_vfunc_index(call_type_t call, void *function, void *instance, size_t 
 template <typename T>
 void ***get_vtable(T *instance)
 {
-    return static_cast<void ***>(/*remove_const*/ (instance));
+    return reinterpret_cast<void ***>(/*remove_const*/ (instance));
 }
 
 inline void ***get_vtable(void *instance)
@@ -204,177 +201,4 @@ auto invoke(unknown_vfunc<T> func, Args... args) -> member_func_return_type_reso
 {
     return {func.get(), func.instance(), args...};
 }
-
-struct vtable_backup : noncopyable
-{
-    using table_pointer = void **;
-
-  private:
-    table_pointer *target_;
-    table_pointer backup_;
-
-  public:
-    ~vtable_backup()
-    {
-        if (!target_)
-            return;
-        *target_ = backup_;
-    }
-
-    template <typename T>
-    vtable_backup(T *instance, size_t vtable_offset)
-        : target_(get_vtable(instance) + vtable_offset)
-        , backup_(*target_)
-    {
-    }
-
-    vtable_backup(table_pointer *target)
-        : target_(target)
-        , backup_(*target)
-    {
-    }
-
-    vtable_backup(vtable_backup &&other) noexcept
-        : target_(std::exchange(other.target_, nullptr))
-        , backup_(other.backup_)
-    {
-    }
-
-    vtable_backup &operator=(vtable_backup &&other) noexcept
-    {
-        using std::swap;
-        swap(target_, other.target_);
-        swap(backup_, other.backup_);
-        return *this;
-    }
-
-    table_pointer get() const
-    {
-        return backup_;
-    }
-
-    table_pointer release()
-    {
-        target_ = nullptr;
-        return backup_;
-    }
-};
-
-template <typename T>
-struct basic_vtable
-{
-    template <typename>
-    friend struct vtable;
-
-    using instance_pointer = T *;
-    using table_pointer    = void **;
-
-  private:
-    union
-    {
-        instance_pointer instance_;
-        table_pointer *vtable_;
-    };
-
-    size_t vtable_offset_;
-
-  public:
-    basic_vtable(instance_pointer instance = nullptr, size_t vtable_offset = 0)
-        : instance_(instance)
-        , vtable_offset_(vtable_offset)
-    {
-    }
-
-    instance_pointer operator->() const
-    {
-        return instance_;
-    }
-
-    instance_pointer instance() const
-    {
-        return instance_;
-    }
-
-    operator instance_pointer() const
-    {
-        return instance_;
-    }
-
-    /*instance_pointer operator->() const
-    {
-        return instance_;
-    }*/
-
-    /*operator table_pointer() const
-    {
-        return vtable_[vtable_offset_];
-    }*/
-
-    table_pointer get() const
-    {
-        return vtable_[vtable_offset_];
-    }
-
-    void set(table_pointer pointer)
-    {
-        vtable_[vtable_offset_] = pointer;
-    }
-
-    vtable_backup replace(table_pointer pointer)
-    {
-        auto backup             = vtable_backup(vtable_ + vtable_offset_);
-        vtable_[vtable_offset_] = pointer;
-        return std::move(backup);
-    }
-
-    template <typename Q>
-    vtable_backup replace(basic_vtable<Q> other)
-    {
-        return replace(other.get());
-    }
-
-    vtable_backup replace(auto) && = delete;
-
-    unknown_vfunc_args<vtable_call<T>, T> operator[](size_t index) const
-    {
-        return {index, instance_, vtable_offset_};
-    }
-};
-
-template <typename T>
-struct vtable : basic_vtable<T>
-{
-    using basic_vtable<T>::basic_vtable;
-    using basic_vtable<T>::operator[];
-
-#define VFUNC_ACCESS(call__, __call, _call_)                                        \
-    template <typename Ret, typename... Args>                                       \
-    vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
-    {                                                                               \
-        return {func, basic_vtable<T>::instance_, basic_vtable<T>::vtable_offset_}; \
-    }
-
-    X86_CALL_MEMBER(VFUNC_ACCESS);
-#undef VFUNC_ACCESS
-};
-
-template <>
-struct vtable<void> : basic_vtable<void>
-{
-    using basic_vtable::basic_vtable;
-    using basic_vtable::operator[];
-
-#define VFUNC_ACCESS(call__, __call, _call_)                                        \
-    template <typename Ret, typename T, typename... Args>                           \
-    vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
-    {                                                                               \
-        return {func, instance_, vtable_offset_};                                   \
-    }
-
-    X86_CALL_MEMBER(VFUNC_ACCESS);
-#undef VFUNC_ACCESS
-};
-
-template <typename T>
-vtable(T *, size_t = 0) -> vtable<T>;
 } // namespace fd

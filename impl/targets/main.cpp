@@ -9,7 +9,8 @@
 #include <fd/players/cache.h>
 #include <fd/render/context.h>
 #include <fd/valve/entity_handle.h>
-#include <fd/vfunc.h>
+#include <fd/vtable.h>
+#include <fd/valve_interface.h>
 
 #include <windows.h>
 #include <d3d9.h>
@@ -235,10 +236,10 @@ static bool context(HINSTANCE self_handle)
             //
             orig(args...);
         });
+    using entity_list_callback = void(__thiscall *)(void *, void *, valve::entity_handle);
     hooks.create(
         "CClientEntityList::OnAddEntity",
-        reinterpret_cast<void(__thiscall *)(void *, void *, valve::entity_handle)>(
-            client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
+        reinterpret_cast<entity_list_callback>(client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
         [&](auto orig, auto handle_interface, auto handle) {
             orig(handle_interface, handle);
             // todo: work with this_ptr
@@ -246,7 +247,7 @@ static bool context(HINSTANCE self_handle)
         });
     hooks.create(
         "CClientEntityList::OnRemoveEntity",
-        reinterpret_cast<void(__thiscall *)(void *, void *, valve::entity_handle)>(
+        reinterpret_cast<entity_list_callback>(
             client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
         [&](auto orig, auto handle_interface, auto handle) {
             // todo: work with this_ptr

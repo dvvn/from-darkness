@@ -2,12 +2,13 @@
 
 #include "core.h"
 
-#include <string_view>
+#include <fd/tool/string_view.h>
 
 namespace fd
 {
-std::wstring_view library_path(LDR_DATA_TABLE_ENTRY *entry);
-[[deprecated]]
-std::wstring_view library_name(LDR_DATA_TABLE_ENTRY *entry);
-std::wstring_view library_name(std::wstring_view path);
+system_string_view library_path(LDR_DATA_TABLE_ENTRY *entry);
+system_string_view library_name(LDR_DATA_TABLE_ENTRY *entry);
+bool valid_library_name(LDR_DATA_TABLE_ENTRY *entry, system_string_view name);
+// system_string_view library_name(system_string_view path);
+// bool valid_library_name(system_string_view path,system_string_view name);
 }

@@ -1,6 +1,6 @@
 #include "client.h"
 
-#include <fd/vfunc.h>
+#include <fd/vtable.h>
 
 namespace fd::valve
 {

@@ -2,18 +2,17 @@
 
 #include "core.h"
 
-#include <boost/core/noncopyable.h>
-
 #include <cassert>
+#include <utility>
 
 namespace fd
 {
 template <typename T>
-struct mem_backup : boost::noncopyable
+struct mem_backup : noncopyable
 {
     using value_type = T;
     using pointer    = T *;
-    using reference  = _const<T> &;
+    using reference  = T const &;
 
   private:
     value_type value_;
@@ -33,7 +32,7 @@ struct mem_backup : boost::noncopyable
 
     mem_backup(mem_backup &&other) noexcept
         : value_(std::move(other.value_))
-        , owner_(std::exchange(other_.owner_, nullptr))
+        , owner_(std::exchange(other.owner_, nullptr))
     {
     }
 
@@ -48,8 +47,9 @@ struct mem_backup : boost::noncopyable
     mem_backup() = default;
 
     mem_backup(T &from)
+        : value_(from)
+        , owner_(&from)
     {
-        backup_.emplace(from, &from);
     }
 
     /* template <typename T1>
@@ -84,4 +84,22 @@ struct mem_backup : boost::noncopyable
         return owner_ != nullptr;
     }
 };
+
+template <typename T>
+mem_backup(T &) -> mem_backup<T>;
+
+template <typename T>
+auto make_mem_backup(T &value) -> mem_backup<T>
+{
+    return value;
+}
+
+template <typename T, typename Q>
+auto make_mem_backup(T &value, Q &&replace) -> mem_backup<T>
+{
+    auto backup = mem_backup<T>(value);
+
+    value = (std::forward<Q>(replace));
+    return std::move(backup);
+}
 } // namespace fd

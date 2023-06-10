@@ -11,3 +11,8 @@ using IMAGE_NT_HEADERS = struct _IMAGE_NT_HEADERS64;
 #else
 using IMAGE_NT_HEADERS = struct _IMAGE_NT_HEADERS;
 #endif
+namespace fd
+{
+using system_cstring      = wchar_t const *;
+using system_string_view = struct wstring_view;
+}

@@ -1,5 +1,7 @@
 ﻿#include "game_interface.h"
 
+#include <fd/tool/string_view.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -7,63 +9,6 @@
 
 namespace fd
 {
-class game_interface_iterator
-{
-    game_interface *current_;
-
-  public:
-    // using iterator_concept  = std::contiguous_iterator_tag;
-    using iterator_category = std::forward_iterator_tag;
-    using value_type        = game_interface;
-    using difference_type   = ptrdiff_t;
-    using pointer           = game_interface *;
-    using reference         = game_interface &;
-
-    game_interface_iterator()
-    {
-    }
-
-    constexpr game_interface_iterator(game_interface *current)
-        : current_(current)
-    {
-    }
-
-    game_interface_iterator &operator++()
-    {
-        current_ = current_->next;
-        return *this;
-    }
-
-    game_interface_iterator operator++(int)
-    {
-        auto tmp = current_;
-        current_ = current_->next;
-        return tmp;
-    }
-
-    game_interface &operator*() const
-    {
-        return *this->current_;
-    }
-
-    game_interface *operator->() const
-    {
-        return current_;
-    }
-
-    operator game_interface *() const
-    {
-        return current_;
-    }
-
-    bool operator==(game_interface_iterator other) const
-    {
-        return current_ == other.current_;
-    }
-
-    bool operator==(game_interface *) const = delete;
-};
-
 void *game_interface::get() const
 {
     return create_fn();
@@ -80,62 +25,73 @@ game_interface *find_root_game_interface(void *create_func)
     return **reinterpret_cast<game_interface ***>(jmp + 0x6);
 }
 
-static bool _all_digits(char const *ptr)
-{
-    for (; *ptr != '\0'; ++ptr)
-    {
-        if (!std::isdigit(*ptr))
-            return false;
-    }
-    return true;
-}
-
-game_interface *find_game_interface(game_interface *root_interface, const char *name, size_t length, bool exact)
+template <bool Exact>
+static game_interface *find_game_interface(
+    game_interface *begin,
+    game_interface *end,
+    char const *name,
+    size_t length,
+    std::bool_constant<Exact> = {})
 {
     // unsafe comparison, but ok
 
-    using iterator = game_interface_iterator;
-
-    iterator target;
-
-    auto compare_partial = [&](game_interface &ifc) {
-        return (ifc.name[length] == '\0' || isdigit(ifc.name[length])) && std::memcmp(name, ifc.name, length) == 0;
-    };
-    auto compare_exact = [&](game_interface &ifc) {
-        return ifc.name[length] == '\0' && std::memcmp(name, ifc.name, length) == 0;
-    };
-
-    if (exact)
+    for (; begin != end; begin = begin->next)
     {
-        target = std::find_if<iterator>(root_interface, nullptr, compare_exact);
+        if constexpr (Exact)
+        {
+            if (begin->name[length] != '\0')
+                continue;
+        }
+        else
+        {
+            if (begin->name[length] != '\0' && !isdigit(begin->name[length]))
+                continue;
+        }
+
+        if (memcmp(begin->name, name, length) == 0)
+            break;
     }
-    else
-    {
-        target = std::find_if<iterator>(root_interface, (nullptr), compare_partial);
 
 #ifdef _DEBUG
-        if (target && target->name[length] != '\0')
-        {
-            assert(_all_digits(target->name + length + 1));
-            assert(!std::find_if<iterator>(std::next(target), nullptr, compare_partial));
-        }
-#endif
-    }
-
-    return target;
-
-#if 0
-    switch (target.status())
+    if constexpr (!Exact)
     {
-    case cmp_result::full:
-        return {target.get(), true};
-    case cmp_result::partial:
-        assert(_all_digits(target->name + length));
-        assert(!std::find<const_iterator>(target + 1, nullptr, target_name));
-        return {target.get(), false};
-    default:
-        return {nullptr};
+        if (begin != end && begin->name[length] != '\0')
+        {
+            for (auto c = begin->name + length + 1; *c != '\0'; ++c)
+            {
+                if (!isdigit(*c))
+                {
+                    assert(0 && "provided incorrect name");
+                    return end;
+                }
+            }
+
+            for (auto it = begin->next; it != end; it = it->next)
+            {
+                if (it->name[length] == '\0' || isdigit(it->name[length]))
+                {
+                    assert(0 && "provided duplicate name");
+                    return end;
+                }
+            }
+        }
     }
 #endif
+
+    return begin;
+}
+
+#define FIND_GAME_INTERFACE(_X_) find_game_interface<_X_>(root_interface, nullptr, name, length)
+
+game_interface *find_game_interface(game_interface *root_interface, char const *name, size_t length, bool exact)
+{
+    return exact ? FIND_GAME_INTERFACE(true) : FIND_GAME_INTERFACE(false);
+}
+
+#undef FIND_GAME_INTERFACE
+
+game_interface *find_game_interface(game_interface *root_interface, string_view name, bool exact)
+{
+    return find_game_interface(root_interface, name.data(), name.length(), exact);
 }
 } // namespace fd

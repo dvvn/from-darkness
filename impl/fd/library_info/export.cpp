@@ -1,61 +1,91 @@
 #include "export.h"
 
+#include <fd/tool/string_view.h>
+
+#include <boost/lambda2.hpp>
+
 #include <windows.h>
 #include <winternl.h>
 
 #include <algorithm>
 #include <cassert>
 
-template <typename To, typename From>
-static FORCEINLINE void ptr_cast(To *&to, From *from)
-{
-    to = reinterpret_cast<To *>(from);
-}
+using boost::lambda2::_1;
 
 namespace fd
 {
-class dll_exports
+class cast_helper
 {
-    uint8_t *dos_;
+    void *from_;
 
-    uint32_t *names_;
-    uint32_t *funcs_;
-    uint16_t *ords_;
+  public:
+    cast_helper(void *from)
+        : from_(from)
+    {
+    }
+
+    template <typename Q>
+    operator Q() const
+    {
+        return static_cast<Q>(from_);
+    }
+};
+
+struct export_data
+{
+    union
+    {
+        IMAGE_DOS_HEADER *dos_header;
+        uint8_t *dos;
+    };
 
     union
     {
-        IMAGE_EXPORT_DIRECTORY *export_dir_;
-        uint8_t *virtual_addr_start_;
+        IMAGE_EXPORT_DIRECTORY *export_dir;
+        uint8_t *virtual_addr_start;
     };
 
-    uint8_t *virtual_addr_end_;
+    uint8_t *virtual_addr_end;
 
-    using src_ptr = dll_exports const *;
+    uint32_t *names;
+    uint32_t *funcs;
+    uint16_t *ords;
+
+    export_data(IMAGE_DOS_HEADER *dos_header, IMAGE_NT_HEADERS *nt_header)
+        : dos_header(dos_header)
+    {
+        auto &data_dir = nt_header->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+
+        virtual_addr_start = cast_helper(dos + data_dir.VirtualAddress);
+        virtual_addr_end   = cast_helper(virtual_addr_start + data_dir.Size);
+
+        names = cast_helper(dos + export_dir->AddressOfNames);
+        funcs = cast_helper(dos + export_dir->AddressOfFunctions);
+        ords  = cast_helper(dos + export_dir->AddressOfNameOrdinals);
+    }
+};
+
+class export_view
+{
+    size_t offset_;
+    export_data *data_;
 
   public:
-    dll_exports(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt)
+    export_view(size_t offset, export_data *data)
+        : offset_(offset)
+        , data_(data)
     {
-        ptr_cast(dos_, dos);
-        auto const &data_dir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
-
-        // get export export_dir.
-        ptr_cast(export_dir_, dos_ + data_dir.VirtualAddress);
-        ptr_cast(virtual_addr_end_, virtual_addr_start_ + data_dir.Size);
-
-        ptr_cast(names_, dos_ + export_dir_->AddressOfNames);
-        ptr_cast(funcs_, dos_ + export_dir_->AddressOfFunctions);
-        ptr_cast(ords_, dos_ + export_dir_->AddressOfNameOrdinals);
     }
 
-    char const *name(DWORD offset) const
+    char const *name() const
     {
-        return reinterpret_cast<char const *>(dos_ + names_[offset]);
+        return reinterpret_cast<char const *>(data_->dos + data_->names[offset_]);
     }
 
-    void *function(DWORD offset) const
+    void *function() const
     {
-        void *tmp = dos_ + funcs_[ords_[offset]];
-        if (tmp < virtual_addr_start_ || tmp >= virtual_addr_end_)
+        void *tmp = data_->dos + data_->funcs[data_->ords[offset_]];
+        if (tmp < data_->virtual_addr_start || tmp >= data_->virtual_addr_end)
             return tmp;
 
         // todo:resolve fwd export
@@ -98,88 +128,30 @@ class dll_exports
 		}
 #endif
     }
-
-    class wrapper
-    {
-        src_ptr src_;
-        DWORD offset_;
-
-      public:
-        wrapper(src_ptr src, DWORD offset)
-            : src_(src)
-            , offset_(offset)
-        {
-        }
-
-        char const *name() const
-        {
-            return src_->name(offset_);
-        }
-
-        void *function() const
-        {
-            return src_->function(offset_);
-        }
-    };
-
-    class iterator
-    {
-        src_ptr src_;
-        DWORD offset_;
-
-      public:
-        iterator(src_ptr src, DWORD offset)
-            : src_(src)
-            , offset_(offset)
-        {
-        }
-
-        iterator &operator++()
-        {
-            ++offset_;
-            return *this;
-        }
-
-        iterator &operator--()
-        {
-            --offset_;
-            return *this;
-        }
-
-        wrapper operator*() const
-        {
-            return {src_, offset_};
-        }
-
-        bool operator==(iterator const &other) const
-        {
-            if (offset_ == other.offset_)
-            {
-                assert(this->src_ == other.src_);
-                return true;
-            }
-            return false;
-        }
-    };
-
-    iterator begin() const
-    {
-        return {this, 0};
-    }
-
-    iterator end() const
-    {
-        return {this, std::min(export_dir_->NumberOfNames, export_dir_->NumberOfFunctions)};
-    }
 };
+
+template <std::invocable<char const *> Filter>
+static void *find_export(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt, Filter filter)
+{
+    auto edata = export_data(dos, nt);
+
+    auto last_offset = std::min(edata.export_dir->NumberOfNames, edata.export_dir->NumberOfFunctions);
+    for (size_t offset = 0; offset != last_offset; ++offset)
+    {
+        auto view = export_view(offset, &edata);
+        if (filter(view.name()))
+            return view.function();
+    }
+    return nullptr;
+}
 
 void *find_export(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt, char const *name, size_t length)
 {
-    for (auto val : dll_exports(dos, nt))
-    {
-        if (memcmp(val.name(), name, length) == 0)
-            return val.function();
-    }
-    return nullptr;
+    return find_export(dos, nt, std::bind(memcmp, _1, name, length) == 0);
+}
+
+void *find_export(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt, string_view name)
+{
+    return find_export(dos, nt, _1 == name);
 }
 }
