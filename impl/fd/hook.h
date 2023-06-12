@@ -3,11 +3,12 @@
 #include "basic_hook.h"
 #include "call_type.h"
 #include "core.h"
-
-#include <functional>
-#include <memory>
-#include <string>
-#include <vector>
+#include "tool/vector.h"
+#ifdef _DEBUG
+#include "tool/string.h"
+#else
+#include "tool/string_view.h"
+#endif
 
 namespace fd
 {
@@ -62,36 +63,43 @@ class hook_proxy_member_holder
     }
 };
 
-#define HOOK_PROXY_MEMBER(call__, __call, _call_)                                               \
-    template <class Callback, typename Ret, class C, typename... Args>                          \
-    struct hook_proxy_member<Callback, call__, Ret, C, Args...> : noncopyable                   \
-    {                                                                                           \
-        Ret operator()(Args... args)                                                            \
-        {                                                                                       \
-            return member_func_builder<call__, Ret, void, Args...>::invoke(                     \
-                unique_hook_trampoline<Callback>, this, args...);                               \
-        }                                                                                       \
-        operator C *()                                                                          \
-        {                                                                                       \
-            return reinterpret_cast<C *>(this);                                                 \
-        }                                                                                       \
-        C *operator->()                                                                         \
-        {                                                                                       \
-            return reinterpret_cast<C *>(this);                                                 \
-        }                                                                                       \
-        Ret __call proxy(Args... args) noexcept                                                 \
-        {                                                                                       \
-            using proxy_holder = hook_proxy_member_holder<call__, Ret, C, Args...>;             \
-            auto &callback     = *unique_hook_callback<Callback>;                               \
-            if constexpr (std::invocable<Callback, hook_proxy_member &, Args...>)               \
-                return callback(*this, args...);                                                \
-            else                                                                                \
-                return callback(proxy_holder(unique_hook_trampoline<Callback>, this), args...); \
-        }                                                                                       \
-        static void *get_proxy()                                                                \
-        {                                                                                       \
-            return get_function_pointer(&hook_proxy_member::proxy);                             \
-        }                                                                                       \
+template <class Callback, call_type_t Call, typename Ret, class Hooked, typename... Args>
+Ret invoke_hook_proxy(hook_proxy_member<Callback, Call, Ret, Hooked, Args...> *proxy, Args... args)
+{
+    using proxy_holder = hook_proxy_member_holder<Call, Ret, Hooked, Args...>;
+    auto &callback     = *unique_hook_callback<Callback>;
+    if constexpr (std::invocable<Callback, hook_proxy_member<Callback, Call, Ret, Hooked, Args...> &, Args...>)
+        return callback(*proxy, args...);
+    else
+        return callback(proxy_holder(unique_hook_trampoline<Callback>, proxy), args...);
+}
+
+template <class Callback, call_type_t Call, typename Ret, class Hooked, typename... Args>
+Ret invoke_hook_original(hook_proxy_member<Callback, Call, Ret, Hooked, Args...> *proxy, Args... args)
+{
+    return member_func_builder<Call, Ret, void, Args...>::invoke(unique_hook_trampoline<Callback>, proxy, args...);
+}
+
+#define HOOK_PROXY_MEMBER(call__, __call, _call_)                             \
+    template <class Callback, typename Ret, class C, typename... Args>        \
+    struct hook_proxy_member<Callback, call__, Ret, C, Args...> : noncopyable \
+    {                                                                         \
+        Ret operator()(Args... args)                                          \
+        {                                                                     \
+            return invoke_hook_original(this, args...);                       \
+        }                                                                     \
+        operator C *()                                                        \
+        {                                                                     \
+            return reinterpret_cast<C *>(this);                               \
+        }                                                                     \
+        C *operator->()                                                       \
+        {                                                                     \
+            return reinterpret_cast<C *>(this);                               \
+        }                                                                     \
+        Ret __call proxy(Args... args) noexcept                               \
+        {                                                                     \
+            return invoke_hook_proxy(this, args...);                          \
+        }                                                                     \
     };
 
 X86_CALL_MEMBER(HOOK_PROXY_MEMBER);
@@ -112,21 +120,23 @@ struct hook_proxy<Callback, call_type_t::thiscall__, Ret, C, Args...>
 {
 };*/
 
-#define HOOK_PROXY_STATIC(call__, __call, call)                                                 \
-    template <class Callback, typename Ret, typename... Args>                                   \
-    struct hook_proxy<Callback, call__, Ret, Args...>                                           \
-    {                                                                                           \
-        static Ret __call proxy(Args... args) noexcept                                          \
-        {                                                                                       \
-            using function_type = Ret(__call *)(Args...);                                       \
-            auto &callback      = *unique_hook_callback<Callback>;                              \
-            auto original       = static_cast<function_type>(unique_hook_trampoline<Callback>); \
-            return callback(original, std::forward<Args>(args)...);                             \
-        }                                                                                       \
-        static void *get_proxy()                                                                \
-        {                                                                                       \
-            return get_function_pointer(&hook_proxy::proxy);                                    \
-        }                                                                                       \
+template <class Callback, call_type_t Call, typename Ret, typename... Args>
+Ret invoke_hook_proxy(Args... args) noexcept
+{
+    // WIP
+}
+
+#define HOOK_PROXY_STATIC(call__, __call, call)                                                  \
+    template <class Callback, typename Ret, typename... Args>                                    \
+    struct hook_proxy<Callback, call__, Ret, Args...>                                            \
+    {                                                                                            \
+        static Ret __call proxy(Args... args) noexcept                                           \
+        {                                                                                        \
+            using function_type = Ret(__call *)(Args...);                                        \
+            auto &callback      = *unique_hook_callback<Callback>;                               \
+            auto original       = void_to_func<function_type>(unique_hook_trampoline<Callback>); \
+            return callback(original, std::forward<Args>(args)...);                              \
+        }                                                                                        \
     };
 
 X86_CALL(HOOK_PROXY_STATIC);
@@ -151,9 +161,9 @@ using hook_name = char const *;
 class basic_hook_data : public basic_hook_proxy, public basic_hook_lazy_proxy
 {
 #ifdef _DEBUG
-    std::string name_;
+    string name_;
 #else
-    static constexpr std::string_view name_ = "Unknown";
+    static constexpr string_view name_ = "Unknown";
 #endif
 #if __has_include(<minhook.h>)
     void *target_;
@@ -193,8 +203,8 @@ class vfunc;
 
 class hook_context : public noncopyable
 {
-    using storage_type  = std::vector<basic_hook *>;
-    //using error_handler = std::function<void(void *)>;
+    using storage_type = vector<basic_hook *>;
+    // using error_handler = std::function<void(void *)>;
 
     storage_type storage_;
 
@@ -213,11 +223,8 @@ class hook_context : public noncopyable
     template <class Proxy, typename Callback>
     basic_hook *do_create(hook_name name, void *target, Callback &callback) noexcept
     {
-        basic_hook *h   = nullptr;
-        auto trampoline = create_trampoline(name, target, Proxy::get_proxy());
-        if (trampoline)
-            h = store(name, target, trampoline, callback);
-        return h;
+        auto trampoline = create_trampoline(name, target, get_function_pointer(&Proxy::proxy));
+        return trampoline ? store(name, target, trampoline, callback) : nullptr;
     }
 
   public:

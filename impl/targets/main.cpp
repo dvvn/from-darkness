@@ -185,28 +185,29 @@ bool context(HINSTANCE self_handle) noexcept
         }
     });
 #ifndef USE_OWN_RENDER_BACKEND
-    hooks.create("IDirect3DDevice9::Release", render_vtable[&IDirect3DDevice9::Release], [&](auto orig) {
+    hooks.create("IDirect3DDevice9::Release", render_vtable[&IDirect3DDevice9::Release], [&](auto &&orig) {
         auto refs = orig();
         if (refs == 0)
             render_ctx.detach();
         return refs;
     });
 #endif
-    hooks.create("IDirect3DDevice9::Reset", render_vtable[&IDirect3DDevice9::Reset], [&](auto orig, auto... args) {
+    hooks.create("IDirect3DDevice9::Reset", render_vtable[&IDirect3DDevice9::Reset], [&](auto &&orig, auto... args) {
         render_ctx.reset();
         return orig(args...);
     });
-    hooks.create("IDirect3DDevice9::Present", render_vtable[&IDirect3DDevice9::Present], [&](auto orig, auto... args) {
-        if (auto frame = render_ctx.render_frame())
-        {
-            // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
-            ImGui::ShowDemoWindow();
-            // #endif
-        }
-        return orig(args...);
-    });
+    hooks.create(
+        "IDirect3DDevice9::Present", render_vtable[&IDirect3DDevice9::Present], [&](auto &&orig, auto... args) {
+            if (auto frame = render_ctx.render_frame())
+            {
+                // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
+                ImGui::ShowDemoWindow();
+                // #endif
+            }
+            return orig(args...);
+        });
 #ifdef FD_SHARED_LIB
-    hooks.create("VGUI.ISurface::LockCursor", vgui_interface[67].get<void>(), [&](auto orig) {
+    hooks.create("VGUI.ISurface::LockCursor", vgui_interface[67].get<void>(), [&](auto &&orig) {
         // if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
         //{
         //     this_ptr->UnlockCursor();
@@ -215,7 +216,7 @@ bool context(HINSTANCE self_handle) noexcept
         orig();
     });
     hooks.create(
-        "CHLClient::CreateMove", client_interface[22].get<void, int, int, int>(), [&](auto orig, auto... args) {
+        "CHLClient::CreateMove", client_interface[22].get<void, int, int, int>(), [&](auto &&orig, auto... args) {
             //
             orig(args...);
         });
@@ -223,7 +224,7 @@ bool context(HINSTANCE self_handle) noexcept
     hooks.create(
         "CClientEntityList::OnAddEntity",
         reinterpret_cast<entity_list_callback>(client_dll.pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
-        [&](auto orig, auto handle_interface, auto handle) {
+        [&](auto &&orig, auto handle_interface, auto handle) {
             orig(handle_interface, handle);
             // todo: work with this_ptr
             on_add_entity(handle.index());
@@ -232,7 +233,7 @@ bool context(HINSTANCE self_handle) noexcept
         "CClientEntityList::OnRemoveEntity",
         reinterpret_cast<entity_list_callback>(
             client_dll.pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
-        [&](auto orig, auto handle_interface, auto handle) {
+        [&](auto &&orig, auto handle_interface, auto handle) {
             // todo: work with this_ptr
             on_remove_entity(handle.index());
             orig(handle_interface, handle);
