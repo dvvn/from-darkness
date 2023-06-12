@@ -19,10 +19,9 @@ namespace fd
 {
 class render_context : public noncopyable
 {
-    ImFontAtlas font_atlas;
-    ImGuiContext context;
+    ImFontAtlas font_atlas_;
+    ImGuiContext context_;
     HWND window_;
-
     std::variant<std::monostate, IDirect3DDevice9 * /*d3d11*/> backend_;
 
   public:
@@ -45,18 +44,18 @@ class render_context : public noncopyable
     bool begin_frame();
     void end_frame();
 
-    class render_frame_holder : public noncopyable
+    class frame_holder : public noncopyable
     {
         render_context *ctx_;
 
       public:
-        render_frame_holder(render_context *ctx);
-        ~render_frame_holder();
+        frame_holder(render_context *ctx);
+        ~frame_holder();
 
         explicit operator bool() const;
     };
 
-    render_frame_holder render_frame();
+    frame_holder new_frame();
 };
 
 }

@@ -198,7 +198,7 @@ bool context(HINSTANCE self_handle) noexcept
     });
     hooks.create(
         "IDirect3DDevice9::Present", render_vtable[&IDirect3DDevice9::Present], [&](auto &&orig, auto... args) {
-            if (auto frame = render_ctx.render_frame())
+            if (auto frame = render_ctx.new_frame())
             {
                 // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
                 ImGui::ShowDemoWindow();

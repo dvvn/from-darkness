@@ -14,29 +14,15 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 
 namespace fd
 {
-//[[maybe_unused]] //
-// constexpr imgui_alloc_data empty_allocator(nullptr, nullptr);
-//[[maybe_unused]] //
-// static imgui_alloc_data default_allocator;
-//[[maybe_unused]] //
-// constexpr imgui_alloc_data(
-//    [](size_t size, void *) { return operator new(size, std::nothrow); },
-//    [](void *buff, void *) { operator delete(buff, std::nothrow); });
-//
-// #ifdef _DEBUG
-//[[maybe_unused]] //
-// static uint8_t alloc_gap = (ImGui::SetAllocatorFunctions(empty_allocator), 1);
-// #endif
-
 template <class>
-struct d3d_backend
+struct select_backend
 {
     static auto unreachable(...)
     {
         std::unreachable();
     }
 
-    static auto empty()
+    static auto empty(...)
     {
     }
 
@@ -48,7 +34,7 @@ struct d3d_backend
 };
 
 template <>
-struct d3d_backend<IDirect3DDevice9 *>
+struct select_backend<IDirect3DDevice9 *>
 {
     static constexpr auto init      = ImGui_ImplDX9_Init;
     static constexpr auto shutdown  = ImGui_ImplDX9_Shutdown;
@@ -63,7 +49,7 @@ struct d3d_backend<IDirect3DDevice9 *>
     }
 };
 
-#define VISIT_BACKEND(...) std::visit([]<class T>(T obj) { d3d_backend<T>::__VA_ARGS__; }, backend_);
+#define VISIT_BACKEND(...) std::visit([]<class T>(T obj) { select_backend<T>::__VA_ARGS__; }, backend_);
 
 render_context::~render_context()
 {
@@ -78,12 +64,13 @@ render_context::~render_context()
 }
 
 render_context::render_context()
-    : context(&font_atlas)
+    : context_(&font_atlas_)
+    , window_(nullptr)
 {
     IMGUI_CHECKVERSION();
-    ImGui::SetCurrentContext(&context);
+    ImGui::SetCurrentContext(&context_);
 
-#ifdef IMGUI_DISABLE_DEFAULT_ALLOCATORS
+#if defined(_DEBUG) || defined(IMGUI_DISABLE_DEFAULT_ALLOCATORS)
     ImGui::SetAllocatorFunctions(
         [](size_t size, void *) { return operator new(size, std::nothrow); },
         [](void *buff, void *) { operator delete(buff, std::nothrow); });
@@ -93,8 +80,8 @@ render_context::render_context()
 
     /*assert(ImGui::FindSettingsHandler("Window"));
    ImGui::RemoveSettingsHandler("Window");*/
-    context.SettingsHandlers.clear();
-    context.IO.IniFilename = nullptr;
+    context_.SettingsHandlers.clear();
+    context_.IO.IniFilename = nullptr;
 
     ImGui::StyleColorsDark();
 }
@@ -140,7 +127,7 @@ void render_context::process_message(HWND window, UINT message, WPARAM wParam, L
         return;
     }
 
-    auto &events       = context.InputEventsQueue;
+    auto &events       = context_.InputEventsQueue;
     auto events_stored = events.size();
 
     if (ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0)
@@ -158,7 +145,7 @@ bool render_context::begin_frame()
 
 #ifndef IMGUI_HAS_VIEWPORT
     // sets in win32 impl
-    auto &display_size = context.IO.DisplaySize;
+    auto &display_size = context_.IO.DisplaySize;
     if (display_size.x <= 0 || display_size.y <= 0)
         return false;
 #endif
@@ -183,24 +170,24 @@ void render_context::end_frame()
     VISIT_BACKEND(render(obj));
 }
 
-render_context::render_frame_holder::render_frame_holder(render_context *ctx)
+render_context::frame_holder::frame_holder(render_context *ctx)
 {
     if (ctx->begin_frame())
         ctx_ = ctx;
 }
 
-render_context::render_frame_holder::~render_frame_holder()
+render_context::frame_holder::~frame_holder()
 {
     if (ctx_)
         ctx_->end_frame();
 }
 
-render_context::render_frame_holder::operator bool() const
+render_context::frame_holder::operator bool() const
 {
     return ctx_ != nullptr;
 }
 
-auto render_context::render_frame() -> render_frame_holder
+auto render_context::new_frame() -> frame_holder
 {
     return this;
 }
