@@ -1,9 +1,8 @@
 ﻿#include "library.h"
 #include "library_name.h"
 
-#include <fd/tool/vector.h>
-
-#include <boost/lambda2.hpp>
+#include <fd/tool/functional.h>
+#include <fd/tool/string_view.h>
 
 #include <windows.h>
 #include <winternl.h>
@@ -14,12 +13,12 @@
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #endif
 
-using boost::lambda2::_1;
-
 namespace fd
 {
-template <std::invocable<LDR_DATA_TABLE_ENTRY *> Filter>
-static LDR_DATA_TABLE_ENTRY *find_library(Filter filter) noexcept
+using placeholders::_1;
+
+template <std::invocable<system_library_entry> Filter>
+static system_library_entry find_library(Filter filter) noexcept
 {
 #ifdef _WIN64
     auto mem = NtCurrentTeb();
@@ -39,22 +38,35 @@ static LDR_DATA_TABLE_ENTRY *find_library(Filter filter) noexcept
     return nullptr;
 }
 
-LDR_DATA_TABLE_ENTRY *find_library(void *base_address, library_cache *cache)
+#if 0
+static system_library_data find_library(auto value, auto filter, basic_library_cache *cache)
+{
+    if (!cache)
+        return find_library(filter);
+
+    auto found = cache->find(value);
+    if (!found)
+    {
+        found = find_library(filter);
+        if (found)
+            cache->store(found);
+    }
+    return found;
+}
+#endif
+
+system_library_entry find_library(void *base_address)
 {
     return find_library(_1->*&LDR_DATA_TABLE_ENTRY::DllBase == base_address);
 }
 
-LDR_DATA_TABLE_ENTRY *find_library(system_string_view name, library_cache *cache)
+system_library_entry find_library(system_string_view name)
 {
-    return find_library(bind(valid_library_name, _1, name));
+    return find_library(bind(library_has_name, _1, name));
 }
 
-LDR_DATA_TABLE_ENTRY *find_library(system_cstring name, size_t length, library_cache *cache)
-{
-    return find_library({name, length});
-}
-
-LDR_DATA_TABLE_ENTRY *const this_library = find_library(
+#if 0
+system_library_data const this_library = find_library(
 #if _MSC_VER >= 1300
     &__ImageBase
 #else
@@ -66,4 +78,5 @@ LDR_DATA_TABLE_ENTRY *const this_library = find_library(
     }()
 #endif
 );
+#endif
 }

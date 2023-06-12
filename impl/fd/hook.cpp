@@ -685,7 +685,7 @@ class simple_action_name
     std::string_view fixed_;
 
   public:
-    consteval simple_action_name(char const * raw, char const * fixed)
+    consteval simple_action_name(char const *raw, char const *fixed)
         : raw_(raw)
         , fixed_(fixed)
     {
@@ -793,9 +793,6 @@ static auto handle_callback(auto &callback, Fn fn)
     };
 }
 
-#define HANDLE_ERROR(_ALG_, _STORAGE_, _FN_) \
-    (error_handler_ ? _ALG_(_STORAGE_, handle_callback(error_handler_, _FN_)) : _ALG_(_STORAGE_, _FN_))
-
 hook_context::~hook_context()
 {
     for_each(storage_ | reverse, std::default_delete<basic_hook>());
@@ -857,39 +854,46 @@ void *hook_context::create_trampoline(hook_name name, void *target, void *replac
     auto info        = hook_info(name, target);
     void *trampoline = nullptr;
     auto created     = mh_action(act_names::create, MH_CreateHook, info, replace, &trampoline);
-    if (!created && error_handler_)
+    /*if (!created && error_handler_)
     {
         error_handler_(nullptr);
-    }
+    }*/
     return trampoline;
 }
 
-void hook_context::set_error_handler(error_handler handler)
-{
-    error_handler_ = std::move(handler);
-}
+// void hook_context::set_error_handler(error_handler handler)
+//{
+//     error_handler_ = std::move(handler);
+// }
+
+#if 0
+#define RUN_ALL(_ALG_, _STORAGE_, _FN_) \
+    (error_handler_ ? _ALG_(_STORAGE_, handle_callback(error_handler_, _FN_)) : _ALG_(_STORAGE_, _FN_))
+#else
+#define RUN_ALL(_ALG_, _STORAGE_, _FN_) _ALG_(_STORAGE_, _FN_)
+#endif
 
 bool hook_context::enable()
 {
-    return HANDLE_ERROR(all_of, storage_, &basic_hook::enable);
+    return RUN_ALL(all_of, storage_, &basic_hook::enable);
 }
 
 bool hook_context::disable()
 {
-    return HANDLE_ERROR(all_of, storage_ | reverse, &basic_hook::disable);
+    return RUN_ALL(all_of, storage_ | reverse, &basic_hook::disable);
 }
 
 bool hook_context::enable_lazy()
 {
     assert(!storage_.empty());
-    return HANDLE_ERROR(all_of, storage_ | transform(&basic_hook::lazy), &basic_hook_lazy::enable) &&
+    return RUN_ALL(all_of, storage_ | transform(&basic_hook::lazy), &basic_hook_lazy::enable) &&
            mh_action(act_names::sync, MH_ApplyQueued);
 }
 
 bool hook_context::disable_lazy()
 {
     assert(!storage_.empty());
-    return HANDLE_ERROR(all_of, storage_ | transform(&basic_hook::lazy) | reverse, &basic_hook_lazy::disable) &&
+    return RUN_ALL(all_of, storage_ | transform(&basic_hook::lazy) | reverse, &basic_hook_lazy::disable) &&
            mh_action(act_names::sync, MH_ApplyQueued);
 }
 

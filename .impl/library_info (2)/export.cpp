@@ -1,8 +1,7 @@
 #include "export.h"
 
+#include <fd/tool/functional.h>
 #include <fd/tool/string_view.h>
-
-#include <boost/lambda2.hpp>
 
 #include <windows.h>
 #include <winternl.h>
@@ -10,10 +9,10 @@
 #include <algorithm>
 #include <cassert>
 
-using boost::lambda2::_1;
-
 namespace fd
 {
+using placeholders::_1;
+
 class cast_helper
 {
     void *from_;
@@ -135,7 +134,7 @@ static void *find_export(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt, Filter fil
 {
     auto edata = export_data(dos, nt);
 
-    auto last_offset = std::min(edata.export_dir->NumberOfNames, edata.export_dir->NumberOfFunctions);
+    size_t last_offset = std::min(edata.export_dir->NumberOfNames, edata.export_dir->NumberOfFunctions);
     for (size_t offset = 0; offset != last_offset; ++offset)
     {
         auto view = export_view(offset, &edata);
@@ -147,7 +146,7 @@ static void *find_export(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt, Filter fil
 
 void *find_export(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt, char const *name, size_t length)
 {
-    return find_export(dos, nt, std::bind(memcmp, _1, name, length) == 0);
+    return find_export(dos, nt, bind(memcmp, _1, name, length) == 0);
 }
 
 void *find_export(IMAGE_DOS_HEADER *dos, IMAGE_NT_HEADERS *nt, string_view name)

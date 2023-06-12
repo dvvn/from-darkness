@@ -1,5 +1,7 @@
 #include "header.h"
 
+#include <fd/tool/span.h>
+
 #include <windows.h>
 #include <winternl.h>
 
@@ -23,4 +25,12 @@ IMAGE_NT_HEADERS *get_nt(IMAGE_DOS_HEADER *dos)
     assert(nt->Signature == IMAGE_NT_SIGNATURE /* 'PE\0\0' */);
     return nt;
 }
+
+span<uint8_t> get_memory_range(IMAGE_NT_HEADERS *nt)
+{
+    auto begin = reinterpret_cast<uint8_t *>(nt->OptionalHeader.ImageBase);
+    auto end   = begin + nt->OptionalHeader.SizeOfImage;
+    return {begin, end};
+}
+
 } // namespace fd

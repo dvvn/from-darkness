@@ -3,6 +3,8 @@
 #include "core.h"
 #include "tag.h"
 
+#include <fd/tool/string_view.h>
+
 #include <mutex>
 #ifndef _DEBUG
 #include <variant>

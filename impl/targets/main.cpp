@@ -3,29 +3,23 @@
 #include <fd/console.h>
 #include <fd/hook.h>
 #include <fd/lazy_invoke.h>
-#include <fd/library_info/wrapper.h>
+#include <fd/library_info.h>
 #include <fd/log.h>
 #include <fd/netvars/core.h>
 #include <fd/players/cache.h>
 #include <fd/render/context.h>
+#include <fd/tool/string_view.h>
 #include <fd/valve/entity_handle.h>
-#include <fd/vtable.h>
 #include <fd/valve_interface.h>
+#include <fd/valve_library_info.h>
+#include <fd/vtable.h>
 
 #include <windows.h>
 #include <d3d9.h>
 
 #include <algorithm>
-#include <functional>
 
-// ReSharper disable once CppInconsistentNaming
-namespace ImGui
-{
-// ReSharper disable once CppInconsistentNaming
-extern void ShowDemoWindow(bool *open = nullptr);
-} // namespace ImGui
-
-static bool context(HINSTANCE self_handle);
+static bool context(HINSTANCE self_handle) noexcept;
 
 #ifdef FD_SHARED_LIB
 static HANDLE thread;
@@ -33,15 +27,7 @@ static DWORD thread_id;
 
 static DWORD WINAPI context_proxy(LPVOID ptr)
 {
-    bool result;
-    try
-    {
-        result = context(static_cast<HINSTANCE>(ptr));
-    }
-    catch (...)
-    {
-        result = false;
-    }
+    auto result = context(static_cast<HINSTANCE>(ptr));
     FreeLibraryAndExitThread(static_cast<HMODULE>(ptr), result ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
@@ -112,7 +98,7 @@ int main(int argc, char *argv[])
     [[maybe_unused]]               \
     invoke_on_destruct SECOND_ARG(unused, ##__VA_ARGS__, const DUMMY_VAR) = _FN_;
 
-static bool context(HINSTANCE self_handle)
+bool context(HINSTANCE self_handle) noexcept
 {
     (void)self_handle;
 
@@ -144,9 +130,9 @@ static bool context(HINSTANCE self_handle)
     window        = own_render.hwnd;
     window_proc   = own_render.info.lpfnWndProc;
 #else
-    library_info shader_api_dll = L"shaderapidx9.dll";
-    render_vtable               = [&] {
-        auto val = shader_api_dll.find_pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
+    auto shader_api_dll = system_library(L"shaderapidx9.dll");
+    render_vtable       = [&] {
+        auto val = shader_api_dll.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
         return **reinterpret_cast<IDirect3DDevice9 ***>(static_cast<uint8_t *>(val) + 1);
     }();
     D3DDEVICE_CREATION_PARAMETERS creation_parameters;
@@ -157,22 +143,23 @@ static bool context(HINSTANCE self_handle)
 
 #endif
 
-    if (!create_render_context(window, render_vtable.instance()))
+    render_context render_ctx;
+
+    if (!render_ctx.init(window, render_vtable.instance()))
         return false;
-    MAKE_DESTRUCTOR(destroy_render_context);
 
 #ifdef FD_SHARED_LIB
-    game_library_info_ex client_dll = L"client.dll";
-    game_library_info_ex engine_dll = L"engine.dll";
-    game_library_info_ex vgui_dll   = L"vguimatsurface.dll";
+    auto client_dll = valve_library(L"client.dll");
+    auto engine_dll = valve_library(L"engine.dll");
+    auto vgui_dll   = valve_library(L"vguimatsurface.dll");
 
-    vtable client_interface      = client_dll.find_interface("VClient");
-    // vtable engine_interface    = engine_dll.find_interface("VEngineClient");
-    vtable vgui_interface        = vgui_dll.find_interface("VGUI_Surface");
-    valve::entity_list_interface = client_dll.find_interface("VClientEntityList");
+    vtable client_interface      = client_dll.interface("VClient");
+    // vtable engine_interface    = engine_dll.interface("VEngineClient");
+    vtable vgui_interface        = vgui_dll.interface("VGUI_Surface");
+    valve::entity_list_interface = client_dll.interface("VClientEntityList");
 
     // todo: check if ingame and use exisiting player
-    auto player_vtable = client_dll.find_vtable("C_CSPlayer");
+    auto player_vtable = client_dll.vtable("C_CSPlayer");
 
     store_netvars(client_interface);
     store_extra_netvars(player_vtable);
@@ -181,40 +168,36 @@ static bool context(HINSTANCE self_handle)
 
     hook_context hooks;
 
-    hooks.set_error_handler([](void *source) {
-        //
-        throw;
-    });
-
-    hooks.create("WinAPI.WndProc", window_proc, [](auto orig, auto... args) -> LRESULT {
-        render_message_result pmr;
-        process_render_message(args..., &pmr);
+    hooks.create("WinAPI.WndProc", window_proc, [&](auto orig, auto... args) -> LRESULT {
+        using result_t = render_context::process_result;
+        result_t pmr;
+        render_ctx.process_message(args..., &pmr);
         switch (pmr)
         {
-        case render_message_result::idle:
+        case result_t::idle:
             return orig(args...);
-        case render_message_result::updated:
+        case result_t::updated:
             return DefWindowProc(args...);
-        case render_message_result::locked:
+        case result_t::locked:
             return TRUE;
         default:
             std::unreachable();
         }
     });
 #ifndef USE_OWN_RENDER_BACKEND
-    hooks.create("IDirect3DDevice9::Release", render_vtable[&IDirect3DDevice9::Release], [](auto orig) {
+    hooks.create("IDirect3DDevice9::Release", render_vtable[&IDirect3DDevice9::Release], [&](auto orig) {
         auto refs = orig();
         if (refs == 0)
-            render_backend_detach();
+            render_ctx.detach();
         return refs;
     });
 #endif
-    hooks.create("IDirect3DDevice9::Reset", render_vtable[&IDirect3DDevice9::Reset], [](auto orig, auto... args) {
-        reset_render_context();
+    hooks.create("IDirect3DDevice9::Reset", render_vtable[&IDirect3DDevice9::Reset], [&](auto orig, auto... args) {
+        render_ctx.reset();
         return orig(args...);
     });
-    hooks.create("IDirect3DDevice9::Present", render_vtable[&IDirect3DDevice9::Present], [](auto orig, auto... args) {
-        if (auto frame = render_frame())
+    hooks.create("IDirect3DDevice9::Present", render_vtable[&IDirect3DDevice9::Present], [&](auto orig, auto... args) {
+        if (auto frame = render_ctx.render_frame())
         {
             // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
             ImGui::ShowDemoWindow();
@@ -239,7 +222,7 @@ static bool context(HINSTANCE self_handle)
     using entity_list_callback = void(__thiscall *)(void *, void *, valve::entity_handle);
     hooks.create(
         "CClientEntityList::OnAddEntity",
-        reinterpret_cast<entity_list_callback>(client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
+        reinterpret_cast<entity_list_callback>(client_dll.pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
         [&](auto orig, auto handle_interface, auto handle) {
             orig(handle_interface, handle);
             // todo: work with this_ptr
@@ -248,7 +231,7 @@ static bool context(HINSTANCE self_handle)
     hooks.create(
         "CClientEntityList::OnRemoveEntity",
         reinterpret_cast<entity_list_callback>(
-            client_dll.find_pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
+            client_dll.pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
         [&](auto orig, auto handle_interface, auto handle) {
             // todo: work with this_ptr
             on_remove_entity(handle.index());

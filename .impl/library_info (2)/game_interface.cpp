@@ -1,11 +1,13 @@
-﻿#include "game_interface.h"
+﻿#include "export.h"
+#include "game_interface.h"
+#include "header.h"
+#include "library.h"
 
 #include <fd/tool/string_view.h>
 
 #include <algorithm>
 #include <cassert>
 #include <cctype>
-#include <type_traits>
 
 namespace fd
 {
@@ -23,6 +25,14 @@ game_interface *find_root_game_interface(void *create_func)
     auto jmp          = relative_fn + sizeof(int32_t) + displacement;
 
     return **reinterpret_cast<game_interface ***>(jmp + 0x6);
+}
+
+game_interface *find_root_game_interface(system_string_view source)
+{
+    auto lib = find_library(source);
+    auto dos = get_dos(lib);
+    auto nt  = get_nt(dos);
+    return find_root_game_interface(find_export(dos, nt, "CreateInterface"));
 }
 
 template <bool Exact>

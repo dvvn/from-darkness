@@ -1,6 +1,5 @@
 #pragma once
 
-#include "library_info/core.h"
 #include "vtable.h"
 
 namespace fd
@@ -13,6 +12,6 @@ class valve_interface
 
   public:
     valve_interface(string_view name);
-    valve_interface(string_view name, system_string_view library);
+    //valve_interface(string_view name, system_string_view library);
 };
 }

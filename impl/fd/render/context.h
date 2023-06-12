@@ -1,42 +1,62 @@
 #pragma once
 
-#include <boost/core/noncopyable.hpp>
+#include <fd/core.h>
 
-#include <cstdint>
+#include <imgui_internal.h>
+
+#include <Windows.h>
+
+#include <variant>
+
+// ReSharper disable CppInconsistentNaming
+struct IDirect3DDevice9;
+
+// reserved
+
+//  ReSharper restore CppInconsistentNaming
 
 namespace fd
 {
-void *create_render_context(void *window, void *backend) noexcept;
-void destroy_render_context() noexcept;
-void render_backend_detach();
-
-enum class render_message_result : uint8_t
+class render_context : public noncopyable
 {
-    idle,
-    updated,
-    locked
-};
+    ImFontAtlas font_atlas;
+    ImGuiContext context;
+    HWND window_;
 
-void process_render_message(
-    void *window,
-    size_t message,
-    size_t wParam,
-    size_t lParam,
-    render_message_result *result = nullptr);
-
-void reset_render_context();
-
-bool begin_render_frame();
-void end_render_frame();
-
-class render_frame : public boost::noncopyable
-{
-    bool valid_;
+    std::variant<std::monostate, IDirect3DDevice9 * /*d3d11*/> backend_;
 
   public:
-    render_frame();
-    ~render_frame();
+    ~render_context();
+    render_context();
 
-    explicit operator bool() const;
+    bool init(HWND window, IDirect3DDevice9 *backend) noexcept;
+
+    void detach();
+    void reset();
+
+    enum class process_result : uint8_t
+    {
+        idle,
+        updated,
+        locked
+    };
+
+    void process_message(HWND window, UINT message, WPARAM wParam, LPARAM lParam, process_result *result = nullptr);
+    bool begin_frame();
+    void end_frame();
+
+    class render_frame_holder : public noncopyable
+    {
+        render_context *ctx_;
+
+      public:
+        render_frame_holder(render_context *ctx);
+        ~render_frame_holder();
+
+        explicit operator bool() const;
+    };
+
+    render_frame_holder render_frame();
 };
+
 }

@@ -144,6 +144,14 @@ class callback_function_proxy
 {
     Fn fn_;
 
+    static Arg do_cast(void *result)
+    {
+        if constexpr (std::convertible_to<void *, Arg>)
+            return static_cast<Arg>(result);
+        else
+            return reinterpret_cast<Arg>(result);
+    }
+
   public:
     callback_function_proxy(Fn &&fn)
         : fn_(std::move(fn))
@@ -163,11 +171,11 @@ class callback_function_proxy
 #ifdef _DEBUG
             if constexpr (!std::is_const_v<Arg> && std::copyable<Arg>)
             {
-                auto clone = callback_arg_protector(reinterpret_cast<Arg>(result));
+                auto clone = callback_arg_protector(do_cast(result));
                 return std::invoke(fn_, clone.get(), args...);
             }
 #endif
-            return std::invoke(fn_, reinterpret_cast<Arg>(result), args...);
+            return std::invoke(fn_, do_cast(result), args...);
         }
 
         std::unreachable();

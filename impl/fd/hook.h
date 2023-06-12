@@ -194,10 +194,9 @@ class vfunc;
 class hook_context : public noncopyable
 {
     using storage_type  = std::vector<basic_hook *>;
-    using error_handler = std::function<void(void *)>;
+    //using error_handler = std::function<void(void *)>;
 
     storage_type storage_;
-    error_handler error_handler_;
 
     void *create_trampoline(hook_name name, void *target, void *replace);
 
@@ -224,8 +223,6 @@ class hook_context : public noncopyable
   public:
     ~hook_context();
     hook_context();
-
-    void set_error_handler(error_handler handler);
 
     bool enable();
     bool disable();

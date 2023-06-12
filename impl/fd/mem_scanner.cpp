@@ -3,6 +3,7 @@
 #endif
 
 #include "mem_scanner.h"
+#include "tool/span.h"
 
 #include <boost/container/static_vector.hpp>
 
@@ -10,6 +11,10 @@
 #include <cassert>
 #include <numeric>
 #include <ranges>
+
+using std::ranges::for_each;
+using std::views::lazy_split;
+using std::views::transform;
 
 namespace fd
 {
@@ -125,37 +130,6 @@ static byte to_num(char chr)
     }
 }
 
-#ifdef _DEBUG
-template <typename T>
-class simple_range
-{
-    T begin_, end_;
-
-  public:
-    simple_range(T begin, T end)
-        : begin_(std::move(begin))
-        , end_(std::move(end))
-    {
-    }
-
-    T begin() const
-    {
-        return begin_;
-    }
-
-    T end() const
-    {
-        return end_;
-    }
-};
-
-template <typename T>
-simple_range(T, T) -> simple_range<T>;
-#else
-template <typename T>
-using simple_range = std::span<T>;
-#endif
-
 struct unknown_bytes_range : static_buffer<bytes_range, 8>
 {
     size_t bytes_count() const
@@ -169,11 +143,6 @@ struct unknown_bytes_range : static_buffer<bytes_range, 8>
     struct unknown_bytes_range_unpacked unpack();
 
     unknown_bytes_range(raw_pattern begin, size_t length)
-        : unknown_bytes_range((pbyte)(begin), (pbyte)begin + length)
-    {
-    }
-
-    unknown_bytes_range(pbyte begin, pbyte end)
     {
         auto back = &this->emplace_back();
 
@@ -206,8 +175,8 @@ struct unknown_bytes_range : static_buffer<bytes_range, 8>
             }
         };
 
-        auto splitted = std::views::lazy_split(simple_range(begin, end), ' ');
-        std::ranges::for_each(splitted, [&](auto part) {
+        auto splitted = span<char const>(begin, length) | lazy_split(' ');
+        for_each(splitted, [&](auto part) {
             auto it = part.begin();
             switch (std::ranges::distance(part))
             {
@@ -218,6 +187,29 @@ struct unknown_bytes_range : static_buffer<bytes_range, 8>
             default:
                 std::unreachable();
             }
+        });
+    }
+
+    unknown_bytes_range(special_pattern begin, size_t length)
+    {
+        auto back = &this->emplace_back();
+
+        auto store = [&](byte num) {
+            if (back->skip > 0)
+                back = &this->emplace_back();
+            back->part.push_back(num);
+        };
+
+        auto skip_byte = [&] {
+            ++back->skip;
+        };
+
+        constexpr uint16_t limit = std::numeric_limits<uint8_t>::max();
+        for_each(begin, begin + length, [&](uint16_t c) -> void {
+            if (c <= limit)
+                store(c);
+            else
+                skip_byte();
         });
     }
 };
@@ -431,7 +423,8 @@ static pbyte do_search(pbyte rng_start, pbyte rng_end, unknown_bytes_range_unpac
 
 //-----
 
-void *find_pattern(void *begin, void *end, raw_pattern pattern, size_t pattern_length, find_filter *filter)
+template <typename T>
+static void *find_pattern_wrap_filter(void *begin, void *end, T pattern, size_t pattern_length, find_filter *filter)
 {
     auto proxy = [begin = static_cast<pbyte>(begin),
                   end   = static_cast<pbyte>(end)](auto &rng, auto filter_wrapped) -> void * {
@@ -447,6 +440,16 @@ void *find_pattern(void *begin, void *end, raw_pattern pattern, size_t pattern_l
 
     auto range = unknown_bytes_range(pattern, pattern_length);
     return range.size() == 1 ? invoker(range[0]) : invoker(range.unpack());
+}
+
+void *find_pattern(void *begin, void *end, raw_pattern pattern, size_t pattern_length, find_filter *filter)
+{
+    return find_pattern_wrap_filter(begin, end, pattern, pattern_length, filter);
+}
+
+void *find_pattern(void *begin, void *end, special_pattern pattern, size_t pattern_length, find_filter *filter)
+{
+    return find_pattern_wrap_filter(begin, end, pattern, pattern_length, filter);
 }
 
 static auto do_search_wrap_filter(void *begin, void *end, raw_bytes bytes, size_t length, find_filter *filter)

@@ -13,6 +13,7 @@ using IMAGE_NT_HEADERS = struct _IMAGE_NT_HEADERS;
 #endif
 namespace fd
 {
+using system_library_entry = LDR_DATA_TABLE_ENTRY const *;
 using system_cstring      = wchar_t const *;
-using system_string_view = struct wstring_view;
+using system_string_view  = struct wstring_view;
 }

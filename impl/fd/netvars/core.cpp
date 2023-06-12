@@ -4,11 +4,13 @@
 #include "impl/tables.h"
 
 #include <fd/lazy_invoke.h>
-#include <fd/library_info/wrapper.h>
 #include <fd/log.h>
+#include <fd/tool/string.h>
+#include <fd/tool/string_view.h>
 #include <fd/valve/client.h>
 #include <fd/valve/entity.h>
 #include <fd/valve/recv_table.h>
+#include <fd/valve_library_info.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -78,8 +80,19 @@ struct fmt::formatter<netvar_table> : formatter<string_view>
 
 // #define GENERATE_STRUCT_MEMBERS
 
+template <>
+struct std::hash<fd::string_view> : hash<string_view>
+{
+};
+
+template <>
+struct std::hash<fd::string> : hash<string>
+{
+};
+
 namespace fd
 {
+
 template <class Obj, typename T>
 concept can_find = requires(Obj container, T value) { container.find(value); };
 
@@ -135,10 +148,10 @@ static bool do_contains(Obj &container, T &value)
 }
 
 [[maybe_unused]]
-static auto _correct_class_name(std::string_view name)
+static auto _correct_class_name(string_view name)
 {
     // fmt::basic_memory_buffer<char, 32> buff;
-    std::string buff;
+    string buff;
     if (name[0] == 'C' && name[1] != '_')
     {
         assert(std::isalnum(name[1]));
@@ -168,14 +181,14 @@ static bool _can_skip_netvar(char const *name)
     }
 }
 
-static bool _can_skip_netvar(std::string_view name)
+static bool _can_skip_netvar(string_view name)
 {
     return name.contains('.');
 }
 
 static auto _is_base_class(valve::recv_prop *prop)
 {
-    constexpr std::string_view str = "baseclass";
+    constexpr string_view str = "baseclass";
     // return std::memcmp(prop->name, str.data(), str.size()) == 0 && prop->name[str.size()] == '\0';
     return prop->name == str;
 }
@@ -185,7 +198,7 @@ static auto _is_length_proxy(valve::recv_prop *prop)
     if (prop->array_length_proxy)
         return true;
 
-    constexpr std::string_view lp = "lengthproxy";
+    constexpr string_view lp = "lengthproxy";
 #if 1
     return prop->name == lp;
 #else
@@ -193,7 +206,7 @@ static auto _is_length_proxy(valve::recv_prop *prop)
     constexpr auto part1 = lp.substr(0, 6);
     constexpr auto part2 = lp.substr(6);
 
-    auto propName = std::string_view(prop->name);
+    auto propName = string_view(prop->name);
 
     auto propNameSize = propName.size();
     if (propNameSize < lp.size())
@@ -222,7 +235,7 @@ static auto _get_array_size(valve::recv_prop *arrayStart, valve::recv_prop *arra
     return arraySize;
 }
 
-static auto _get_array_size(valve::recv_prop *arrayStart, valve::recv_prop *arrayEnd, std::string_view propName)
+static auto _get_array_size(valve::recv_prop *arrayStart, valve::recv_prop *arrayEnd, string_view propName)
 {
     // todo: try extract size from length proxy
 
@@ -241,7 +254,7 @@ static auto _get_array_size(valve::recv_prop *arrayStart, valve::recv_prop *arra
 
 static size_t _store(
     valve::recv_prop *arrayStart,
-    std::string_view propName,
+    string_view propName,
     valve::recv_prop *arrayEnd,
     netvar_table *netvarTable,
     size_t extraOffset = 0)
@@ -381,7 +394,7 @@ void _parse(valve::recv_table *recvTable, netvar_table *netvarTable, netvar_tabl
 
     for (; prop != propsEnd; ++prop)
     {
-        std::string_view propName = prop->name;
+        string_view propName = prop->name;
         if (_can_skip_netvar(propName))
             continue;
         assert(!std::isdigit(propName[0]));
@@ -399,19 +412,19 @@ void _parse(valve::recv_table *recvTable, netvar_table *netvarTable, netvar_tabl
     }
 }
 
-static std::string_view _correct_recv_name(std::string_view name)
+static string_view _correct_recv_name(string_view name)
 {
     // reserved
     return name;
 }
 
-static std::string_view _correct_recv_name(char const *name)
+static string_view _correct_recv_name(char const *name)
 {
-    return _correct_recv_name(std::string_view(name));
+    return _correct_recv_name(string_view(name));
 }
 
 [[maybe_unused]]
-static void _correct_recv_name(std::string const &name)
+static void _correct_recv_name(string const &name)
 {
     (void)name;
 }
@@ -431,7 +444,7 @@ static void _parse(valve::recv_table * recvTable, netvar_tables_ordered& storage
     auto netvarTable = storage.add(tableName, recvTable->in_main_list);
     for (auto prop = propsBegin; prop != propsEnd; ++prop)
     {
-        std::string_view propName(prop->name);
+        string_view propName(prop->name);
         if (_can_skip_netvar(propName))
             continue;
         if (prop->type != valve::DPT_DataTable)
@@ -486,7 +499,7 @@ static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
         hashed_object class_name = _correct_class_name(map->name);
 #else
         auto nameBegin = static_cast<char const *>(memchr(map->name, '_', std::numeric_limits<size_t>::max()));
-        write_std::string(className, "DT_", nameBegin);
+        write_string(className, "DT_", nameBegin);
         _correct_recv_name(className);
 #endif
         auto table      = do_find(storage, class_name);
@@ -506,7 +519,7 @@ static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
             }
             else if (desc.name)
             {
-                std::string_view name0 = desc.name;
+                string_view name0 = desc.name;
                 if (_can_skip_netvar(name0))
                     continue;
                 hashed_object name = name0;
@@ -527,7 +540,7 @@ void store_extra_netvars(void *entity)
     log("[NETVARS] data map stored!");
 }
 
-void store_custom_netvars(library_info client_dll)
+void store_custom_netvars(valve_library client_dll)
 {
 #if 0
     auto baseent = this->find("C_BaseEntity");
@@ -543,11 +556,10 @@ void store_custom_netvars(library_info client_dll)
     baseanim->add<float>(SIG(client, "C7 87 ? ? ? ? ? ? ? ? 89 87 ? ? ? ? 8B 8F", plus(2), deref<1>()), "m_flLastBoneSetupTime");
     // ForceBone + 4
     baseanim->add<int>(SIG(client, "89 87 ? ? ? ? 8B 8F ? ? ? ? 85 C9 74 10", plus(2), deref<1>()), "m_iMostRecentModelBoneCounter");
-
 #endif
 }
 
-void create_netvar_classes(std::wstring_view dir)
+void create_netvar_classes(wstring_view dir)
 {
     data_.sort();
 
@@ -601,7 +613,7 @@ void create_netvar_classes(std::wstring_view dir)
 #endif
 }
 
-void dump_netvars(std::wstring_view dir)
+void dump_netvars(wstring_view dir)
 {
     data_.sort();
 
@@ -611,7 +623,7 @@ void dump_netvars(std::wstring_view dir)
 #endif
 }
 
-size_t get_netvar_offset(std::string_view class_name, std::string_view name)
+size_t get_netvar_offset(string_view class_name, string_view name)
 {
     auto table  = do_find(data_, class_name);
     auto netvar = do_find(*table, name);

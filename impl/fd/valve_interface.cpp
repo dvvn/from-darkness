@@ -1,3 +1,5 @@
+#if 0
+
 #include "library_info/export.h"
 #include "library_info/game_interface.h"
 #include "library_info/header.h"
@@ -23,3 +25,4 @@ valve_interface::valve_interface(string_view name, system_string_view library)
     ptr_     = find_game_interface(find_root_game_interface(fn), name, false)->get();
 }
 }
+#endif
