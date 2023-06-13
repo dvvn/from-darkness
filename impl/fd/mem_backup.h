@@ -86,6 +86,12 @@ struct mem_backup : noncopyable
 };
 
 template <typename T>
+struct mem_backup<T const>
+{
+    mem_backup(...) = delete;
+};
+
+template <typename T>
 mem_backup(T &) -> mem_backup<T>;
 
 template <typename T>
@@ -97,9 +103,9 @@ auto make_mem_backup(T &value) -> mem_backup<T>
 template <typename T, typename Q>
 auto make_mem_backup(T &value, Q &&replace) -> mem_backup<T>
 {
-    auto backup = mem_backup<T>(value);
+    mem_backup<T> backup(value);
 
-    value = (std::forward<Q>(replace));
+    value = std::forward<Q>(replace);
     return std::move(backup);
 }
 } // namespace fd

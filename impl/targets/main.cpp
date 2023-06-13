@@ -97,7 +97,7 @@ bool fd::context(HINSTANCE self_handle) noexcept
     WNDPROC window_proc;
 
 #ifdef USE_OWN_RENDER_BACKEND
-    auto own_render = own_render_backend(L"Unnamed", self_handle);
+    own_render_backend own_render(L"Unnamed", self_handle);
     if (!own_render.initialized())
         return false;
 

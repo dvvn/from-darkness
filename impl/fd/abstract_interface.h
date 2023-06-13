@@ -4,9 +4,12 @@
 
 namespace fd
 {
-using abstract_interface = vtable<void>;
+struct abstract_interface : vtable<void>, noncopyable
+{
+    using vtable::vtable;
+};
 
-class basic_abstract_function
+class basic_abstract_function : public noncopyable
 {
     vtable<void> table_;
 
@@ -29,6 +32,39 @@ class basic_abstract_function
     }*/
 };
 
+/**
+ * \brief for visualization only
+ */
+template <typename T, auto Name>
+class named
+{
+    T object_;
+
+  public:
+    named(T object)
+        : object_((object))
+    {
+        (void)Name;
+    }
+
+    operator T() const
+    {
+        return object_;
+    }
+};
+
+template <typename T>
+struct make_unnamed
+{
+    using type = T;
+};
+
+template <typename T, auto Name>
+struct make_unnamed<named<T, Name>>
+{
+    using type = T;
+};
+
 template <size_t Index, typename Ret, typename... Args>
 struct abstract_function : basic_abstract_function
 {
@@ -36,7 +72,7 @@ struct abstract_function : basic_abstract_function
 
     Ret operator()(Args... args) const
     {
-        return invoke(func(Index).get<Ret, Args...>(), args...);
+        return invoke(func(Index).get<Ret, typename make_unnamed<Args>::type...>(), args...);
     }
 };
 
@@ -47,7 +83,8 @@ struct abstract_function_ex : basic_abstract_function
 
     Ret operator()(Args... args) const
     {
-        return invoke(func<vfunc_index<Call>>(Index).template get<Ret, Args...>(), args...);
+        return invoke(
+            func<vfunc_index<Call>>(Index).template get<Ret, typename make_unnamed<Args>::type...>(), args...);
     }
 };
 }

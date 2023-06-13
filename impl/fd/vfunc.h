@@ -48,6 +48,7 @@ template <typename Fn>
 void *get_vfunc(Fn table_function, void *instance)
 {
     static_assert(member_function<Fn>);
+
     constexpr auto call = function_info<Fn>::call_type;
     auto function       = get_function_pointer(table_function);
     return get_vfunc<call>(function, instance);
@@ -129,12 +130,6 @@ class unknown_vfunc_args
 {
     VFUNC_BASE;
 
-    template <typename Ret, typename... Args>
-    vfunc<Call, Ret, T, Args...> get() const
-    {
-        return {function_, instance_};
-    }
-
     template <typename Fn>
     unknown_vfunc_args(Fn function, T *instance)
         : function_(get_vfunc(function, instance))
@@ -147,6 +142,12 @@ class unknown_vfunc_args
         : function_(get_vfunc(function_index, instance))
         , instance_(instance)
     {
+    }
+
+    template <typename Ret, typename... Args>
+    vfunc<Call, Ret, T, Args...> get() const
+    {
+        return {function_, instance_};
     }
 };
 
@@ -195,6 +196,14 @@ class unknown_vfunc
 {
     VFUNC_BASE;
 
+    template <typename Fn>
+    unknown_vfunc(Fn function, T *instance)
+        : function_(get_vfunc(function, instance))
+        , instance_(instance)
+    {
+        static_assert(std::same_as<typename function_info<Fn>::self_type, T>);
+    }
+
     template <call_type_t Call, typename Ret, typename... Args>
     vfunc<Call, Ret, T, Args...> get() const
     {
@@ -211,13 +220,6 @@ class unknown_vfunc
     unknown_vfunc_args<Call, T> get() const
     {
         return {function_, instance_};
-    }
-
-    template <typename Fn>
-    unknown_vfunc(T *instance, Fn function)
-        : function_(get_vfunc(instance, function))
-        , instance_(instance)
-    {
     }
 };
 
