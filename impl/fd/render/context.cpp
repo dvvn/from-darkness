@@ -171,9 +171,8 @@ void render_context::end_frame()
 }
 
 render_context::frame_holder::frame_holder(render_context *ctx)
+    : ctx_(ctx->begin_frame() ? ctx : nullptr)
 {
-    if (ctx->begin_frame())
-        ctx_ = ctx;
 }
 
 render_context::frame_holder::~frame_holder()

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/core/noncopyable.hpp>
+#include "core.h"
 
 #include <optional>
 
@@ -12,7 +12,7 @@ template <
 class invoke_on_destruct;
 
 template <typename Fn>
-class invoke_on_destruct<Fn, true> final : public boost::noncopyable
+class invoke_on_destruct<Fn, true> final : public noncopyable
 {
     Fn fn_;
 
@@ -40,15 +40,14 @@ class invoke_on_destruct<Fn, true> final : public boost::noncopyable
         return *this;
     }
 
-    invoke_on_destruct &operator=(nullptr_t) noexcept
+    void reset()
     {
         fn_ = nullptr;
-        return *this;
     }
 };
 
 template <typename Fn>
-class invoke_on_destruct<Fn, false> final : public boost::noncopyable
+class invoke_on_destruct<Fn, false> final : public noncopyable
 {
     std::optional<Fn> fn_;
 
@@ -76,10 +75,9 @@ class invoke_on_destruct<Fn, false> final : public boost::noncopyable
         return *this;
     }
 
-    invoke_on_destruct &operator=(nullptr_t)
+    void reset()
     {
         fn_.reset();
-        return *this;
     }
 };
 

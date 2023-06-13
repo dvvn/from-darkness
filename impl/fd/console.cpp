@@ -2,32 +2,40 @@
 
 #include <boost/nowide/iostream.hpp>
 
-#include <windows.h>
 #include <tchar.h>
 
-#include <cstdio>
 #include <iostream>
 
 namespace fd
 {
-static FILE *in;
-static FILE *out;
-static FILE *err;
+system_console::~system_console()
+{
+    SetStdHandle(STD_ERROR_HANDLE, old_err_w);
+    SetStdHandle(STD_INPUT_HANDLE, old_in_w);
+    SetStdHandle(STD_OUTPUT_HANDLE, old_out_w);
 
-static HANDLE in_w;
-static HANDLE out_w;
+    CloseHandle(in_w);
+    CloseHandle(out_w);
 
-static HANDLE old_out_w;
-static HANDLE old_in_w;
-static HANDLE old_err_w;
+    fclose(err);
+    fclose(in);
+    fclose(out);
 
-bool create_system_console()
+    FreeConsole();
+}
+
+// ReSharper disable once CppPossiblyUninitializedMember
+system_console::system_console()
+{
+}
+
+bool system_console::init()
 {
     if (!AllocConsole())
     {
         // Add some error handling here.
         // You can call GetLastError() to get more info about the error.
-        return false;
+        return 0;
     }
 
     // std::cout, std::clog, std::cerr, std::cin
@@ -57,11 +65,11 @@ bool create_system_console()
         FILE_ATTRIBUTE_NORMAL,
         nullptr);
     if (!SetStdHandle(STD_OUTPUT_HANDLE, out_w))
-        return false;
+        return 0;
     if (!SetStdHandle(STD_ERROR_HANDLE, out_w))
-        return false;
+        return 0;
     if (!SetStdHandle(STD_INPUT_HANDLE, in_w))
-        return false;
+        return 0;
 
     std::cout.clear();
     std::clog.clear();
@@ -92,22 +100,6 @@ bool create_system_console()
     boost::nowide::cerr.clear();
     boost::nowide::cin.clear();*/
 
-    return true;
-}
-
-void destroy_system_console()
-{
-    SetStdHandle(STD_ERROR_HANDLE, old_err_w);
-    SetStdHandle(STD_INPUT_HANDLE, old_in_w);
-    SetStdHandle(STD_OUTPUT_HANDLE, old_out_w);
-
-    CloseHandle(in_w);
-    CloseHandle(out_w);
-
-    fclose(err);
-    fclose(in);
-    fclose(out);
-
-    FreeConsole();
+    return 1;
 }
 } // namespace fd

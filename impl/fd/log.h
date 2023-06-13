@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "core.h"
+
 #include <fmt/format.h>
 #include <fmt/xchar.h>
 
@@ -45,9 +47,19 @@ FMT_END_NAMESPACE
 
 namespace fd
 {
-#ifdef _DEBUG
-bool init_logging();
+class logging_activator : public noncopyable
+{
+    int prev_mode_;
+    bool prev_sync_;
 
+  public:
+    ~logging_activator();
+    logging_activator();
+
+    explicit operator bool() const;
+};
+
+#ifdef _DEBUG
 void log(fmt::string_view fmt, fmt::format_args fmt_args = {}, std::ostream *out = nullptr);
 void log(fmt::wstring_view fmt, fmt::wformat_args fmt_args = {}, std::wostream *out = nullptr);
 

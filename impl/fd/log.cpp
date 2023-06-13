@@ -1,6 +1,6 @@
 ﻿#include "log.h"
+#include "tool/vector.h"
 
-#include <boost/container/small_vector.hpp>
 #include <boost/nowide/iostream.hpp>
 
 #include <fmt/chrono.h>
@@ -19,38 +19,33 @@ using fmt::string_view;
 using fmt::vformat_to;
 using fmt::wstring_view;
 
+constexpr auto sync_with_stdio = std::ios::sync_with_stdio;
+
 namespace fd
 {
-#ifdef _DEBUG
-static bool logging_initialized = false;
-#endif
-
-bool init_logging()
+template <typename T>
+static void do_log(basic_string_view<T> text, std::basic_ostream<T> *out)
 {
-    assert(!logging_initialized);
-#ifdef _WIN32
-    // constexpr char cp_utf16le[] = ".1200";
-    // setlocale(LC_ALL, cp_utf16le);
-    if (_setmode(_fileno(stdout), _O_WTEXT) == -1)
-        return false;
-#else
+    auto time = std::chrono::system_clock::now().time_since_epoch();
 
-#endif
-    std::ios::sync_with_stdio(false);
-#ifdef _DEBUG
-    logging_initialized = true;
-#endif
-    return true;
+    small_vector<T, 128> buff;
+    auto it = std::back_inserter(buff);
+
+    format_to(it, "[{:%H:%M:%S}]", time);
+    buff.push_back(' ');
+    std::copy(text.begin(), text.end(), it);
+    buff.push_back('\n');
+
+    out->write(buff.data(), buff.size());
+    out->flush();
 }
 
 template <typename T>
 static void do_log(basic_string_view<T> fmt, auto &fmt_args, std::basic_ostream<T> *out)
 {
-    assert(logging_initialized);
-
     auto time = std::chrono::system_clock::now().time_since_epoch();
 
-    boost::container::small_vector<T, 512> buff;
+    small_vector<T, 512> buff;
     auto it = std::back_inserter(buff);
 
     format_to(it, "[{:%H:%M:%S}]", time);
@@ -62,9 +57,30 @@ static void do_log(basic_string_view<T> fmt, auto &fmt_args, std::basic_ostream<
     out->flush();
 }
 
+logging_activator::~logging_activator()
+{
+    if (!operator bool())
+        return;
+    sync_with_stdio(prev_sync_);
+    auto mode_restored = _setmode(_fileno(stdout), prev_mode_) != -1;
+    do_log<char>("Stopped", mode_restored ? &std::cout : &boost::nowide::cout);
+}
+
+logging_activator::logging_activator()
+{
+    prev_sync_ = sync_with_stdio(false);
+    do_log<char>("Started", &std::cout);
+    prev_mode_ = _setmode(_fileno(stdout), _O_WTEXT);
+}
+
+logging_activator::operator bool() const
+{
+    return prev_mode_ != -1;
+}
+
 void log(string_view fmt, fmt::format_args fmt_args, std::ostream *out)
 {
-    assert(out != &std::cout);
+    //assert(out != &std::cout);
     do_log(fmt, fmt_args, out ? out : &boost::nowide::cout);
 }
 
