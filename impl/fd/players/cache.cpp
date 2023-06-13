@@ -50,20 +50,24 @@ static class
 static player_range range_;
 static player_array array_;
 
-void on_add_entity(entity_index<index_source::game> index)
+
+
+void entity_cache::add(game_entity_index index)
 {
+#if 0
     if (!validate_player_index(index))
         return;
-    auto ent = valve::get_client_entity(index);
+    auto ent = finder_->get(index);
     assert(!storage_.contains(ent));
     auto p = storage_.add(ent);
     range_.add(p);
     array_.update(index, p);
+#endif
 }
 
-template <bool Validate = true>
-static void remove_entity(void *entity, player_index<index_source::own> index)
+void entity_cache::remove(game_entity_index index)
 {
+#if 0
     if constexpr (Validate)
         assert(validate_player_index(index, true));
     assert(storage_.contains(entity));
@@ -73,29 +77,6 @@ static void remove_entity(void *entity, player_index<index_source::own> index)
     array_.update(index, nullptr);
 #endif
     p->destroy();
-}
-
-void on_remove_entity(entity_index<index_source::game> index)
-{
-    if (!validate_player_index(index))
-        return;
-    remove_entity<false>(valve::get_client_entity(index), (index));
-}
-
-void reset_player_cache()
-{
-    // todo: dont full cleanup if map changed
-    storage_.clear();
-    range_.clear();
-}
-
-basic_player_range *players_range()
-{
-    return &range_;
-}
-
-basic_player_array *players_array()
-{
-    return &array_;
+#endif
 }
 }

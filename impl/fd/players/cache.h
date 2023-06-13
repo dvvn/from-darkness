@@ -2,14 +2,22 @@
 
 #include "basic_array.h"
 #include "basic_range.h"
+#include "basic_valve_entity_finder.h"
 
 namespace fd
 {
-void on_add_entity(entity_index<index_source::game> index);
-void on_remove_entity(entity_index<index_source::game> index);
 
-void reset_player_cache();
+class entity_cache
+{
+    basic_valve_entity_finder *finder_;
 
-basic_player_range *players_range();
-basic_player_array *players_array();
+  public:
+    entity_cache(basic_valve_entity_finder *finder)
+        : finder_(finder)
+    {
+    }
+
+    void add(game_entity_index index);
+    void remove(game_entity_index index);
+};
 }

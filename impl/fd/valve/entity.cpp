@@ -1,6 +1,7 @@
 ﻿#include "entity.h"
 
 #include <fd/vtable.h>
+
 namespace fd::valve
 {
 data_map *get_desc_data_map(void *entity)

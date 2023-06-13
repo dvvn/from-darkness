@@ -132,4 +132,8 @@ constexpr bool validate_player_index(player_index<Source> index, bool force = fa
     return !force || validate_player_index(static_cast<entity_index<Source>>(index));
 }
 
+//---------
+
+using game_entity_index = entity_index<index_source::game>;
+
 } // namespace fd

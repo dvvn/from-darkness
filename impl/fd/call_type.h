@@ -1,8 +1,9 @@
 #pragma once
 
 #include "core.h"
+#include "tool/functional.h"
 
-#include <functional>
+#include <tuple>
 
 #undef thiscall
 #undef cdecl
@@ -57,6 +58,7 @@ decltype(auto) apply(call_type_t info, Args... args)
 #undef INFO_CASE
 }
 
+#if 0
 #define X86_CALL_TYPE(call__, __call, call)                                      \
     template <typename Ret, typename T, typename... Args>                        \
     constexpr call_type_t get_call_type(Ret (__call T::*)(Args...))              \
@@ -92,6 +94,7 @@ concept member_function = requires(T fn) { get_call_type_member(fn); };
 
 template <typename Fn, call_type_t Call>
 concept same_call_type = get_call_type(Fn()) == Call;
+#endif
 
 template <call_type_t C>
 struct call_type_holder
@@ -110,10 +113,6 @@ namespace call_type
 X86_CALL_MEMBER(X86_CALL_TYPE)
 #undef X86_CALL_TYPE
 } // namespace call_type
-
-struct member_func_gap
-{
-};
 
 template <typename Fn>
 Fn void_to_func(void *function)
@@ -135,66 +134,28 @@ Fn void_to_func(void *function)
     }
 }
 
-template <class Ret, typename Fn, class T, typename... Args>
-struct member_func_invoker
-{
-    Ret operator()(Fn function, T *instance, Args... args) const
-    {
-        return std::invoke(function, instance, args...);
-    }
-
-    Ret operator()(void *function, T *instance, Args... args) const
-    {
-        return std::invoke(void_to_func<Fn>(function), instance, args...);
-    }
-};
-
-template <class Ret, typename T, typename... Args>
-struct non_member_func_invoker_thiscall // WIP, temp solution
-{
-    using type = Ret(__thiscall *)(T *, Args...);
-
-    Ret operator()(type function, T *instance, Args... args) const
-    {
-        return std::invoke(function, instance, args...);
-    }
-
-    Ret operator()(void *function, T *instance, Args... args) const
-    {
-        return std::invoke(void_to_func<type>(function), instance, args...);
-    }
-};
-
-// template <class Ret, typename T, typename... Args>
-// struct member_func_invoker<Ret, Ret(__thiscall *)(T *, Args...), T, Args...>
-//     : non_member_func_invoker_thiscall<Ret, T, Args...>
-//{
-// };
-
-template <class Ret, typename Fn, typename... Args>
-struct member_func_invoker<Ret, Fn, void, Args...>
-{
-    static_assert(std::invocable<Fn, member_func_gap *, Args...>);
-
-    Ret operator()(Fn function, void *instance, Args... args) const
-    {
-        return std::invoke(function, static_cast<member_func_gap *>(instance), args...);
-    }
-
-    Ret operator()(void *function, void *instance, Args... args) const
-    {
-        return std::invoke(void_to_func<Fn>(function), static_cast<member_func_gap *>(instance), args...);
-    }
-};
-
-template <class Ret, typename Fn, typename... Args>
-struct member_func_invoker<Ret, Fn, member_func_gap, Args...> : member_func_invoker<Ret, Fn, void, Args...>
-{
-};
-
 template <call_type_t Call, typename Ret, typename T, typename... Args>
 requires(std::is_class_v<T>)
 struct member_func_type;
+
+template <call_type_t Call, typename Ret, typename... Args>
+struct non_member_func_type;
+
+template <call_type_t Call, class Ret, typename... Args>
+struct non_member_func_invoker
+{
+    using type = typename non_member_func_type<Call, Ret, Args...>::type;
+
+    Ret operator()(type function, Args... args) const
+    {
+        return std::invoke(function, args...);
+    }
+
+    Ret operator()(void *function, Args... args) const
+    {
+        return std::invoke(void_to_func<type>(function), args...);
+    }
+};
 
 #define MEMBER_FN_TYPE(call__, __call, _call_)            \
     template <typename Ret, typename T, typename... Args> \
@@ -206,82 +167,63 @@ struct member_func_type;
 X86_CALL_MEMBER(MEMBER_FN_TYPE)
 #undef MEMBER_FN_BUILDER
 
-template <call_type_t Call, typename Ret, typename T, typename... Args>
-struct member_func_builder : member_func_type<Call, Ret, T, Args...>
+template <call_type_t Call, class Ret, class T, typename... Args>
+struct member_func_invoker
 {
-    using type    = typename member_func_type<Call, Ret, T, Args...>::type;
-    using invoker = member_func_invoker<Ret, type, T, Args...>;
+    using type = member_func_type<Call, Ret, T, Args...>;
 
-    static constexpr auto call_type = Call;
-    static constexpr auto get       = void_to_func<type>;
-    static constexpr invoker invoke;
-};
-
-template <call_type_t Call, typename Ret, typename T, typename... Args>
-using build_member_func = typename member_func_builder<Call, Ret, T, Args...>::type;
-
-template <call_type_t Call, typename Ret, typename... Args>
-struct member_func_builder<Call, Ret, void, Args...> : member_func_builder<Call, Ret, member_func_gap, Args...>
-{
-};
-
-template <typename Ret, typename... Args>
-struct member_func_builder<call_type_t::thiscall_, Ret, void, Args...>
-{
-    using invoker = non_member_func_invoker_thiscall<Ret, void, Args...>;
-
-    static constexpr auto call_type = call_type_t::thiscall_;
-    using type                      = typename invoker::type;
-    static constexpr auto get       = void_to_func<type>;
-    static constexpr invoker invoke;
-};
-
-template <typename Ret, typename T, typename... Args>
-struct unknown_member_func_builder
-{
-    template <call_type_t Call>
-#if 0    
-    static auto get(void *function, call_type_holder<Call> = {})
+    Ret operator()(type function, T *instance, Args... args) const
     {
-        return member_func_builder<Call, Ret, T, Args...>::get(function);
-    }
-#else
-    static constexpr auto get = member_func_builder<Call, Ret, T, Args...>::get;
-#endif
-
-    template <call_type_t Call>
-    static Ret invoke(void *function, T *instance, Args... args)
-    {
-        return member_func_builder<Call, Ret, T, Args...>::invoke(function, instance, args...);
+        return std::invoke(function, instance, args...);
     }
 
-    template <call_type_t Call>
-    struct invoke_proxy
+    Ret operator()(void *function, T *instance, Args... args) const
     {
-        Ret operator()(void *function, T *instance, Args... args) const
-        {
-            return invoke<Call>(function, instance, args...);
-        }
+        return operator()(void_to_func<type>(function), instance, args...);
+    }
+};
+
+template <class Ret, typename... Args>
+struct member_func_invoker<call_type_t::thiscall_, Ret, void, Args...>
+    : non_member_func_invoker<call_type_t::thiscall_, Ret, void *, Args...>
+{
+};
+
+template <call_type_t Call, class Ret, typename... Args>
+struct member_func_invoker<Call, Ret, void, Args...>
+{
+    struct dummy_class
+    {
     };
 
-    static Ret invoke(void *function, T *instance, call_type_t info, Args... args)
+    using type = typename member_func_type<Call, Ret, dummy_class, Args...>::type;
+
+    Ret operator()(type function, void *instance, Args... args) const
     {
-        return apply<invoke_proxy>(info, function, instance, args...);
+        return std::invoke(function, static_cast<dummy_class *>(instance), args...);
     }
 
-    template <member_function Fn>
-    static Ret invoke(Fn function, T *instance, Args... args)
+    Ret operator()(void *function, void *instance, Args... args) const
     {
-        return invoke<get_call_type(function)>(get_function_pointer(function), instance, args...);
+        return operator()(void_to_func<type>(function), instance, args...);
     }
 };
+
+#define NON_MEMBER_FN_TYPE(call__, __call, _call_)    \
+    template <typename Ret, typename... Args>         \
+    struct non_member_func_type<call__, Ret, Args...> \
+    {                                                 \
+        using type = Ret(__call *)(Args...);          \
+    };
+
+X86_CALL_MEMBER(NON_MEMBER_FN_TYPE)
+#undef MEMBER_FN_BUILDER
 
 template <call_type_t Call, typename T, typename... Args>
 class member_func_return_type_resolver
 {
     template <typename Ret>
-    using builder = member_func_builder<Call, Ret, T, Args...>;
-
+    using invoker     = member_func_invoker<Call, Ret, T, Args...>;
     using args_packed = std::tuple<Args...>;
 
     void *function_;
@@ -300,7 +242,45 @@ class member_func_return_type_resolver
     template <typename Ret>
     operator Ret()
     {
-        return std::apply(std::bind_front(builder<Ret>::invoke, function_, instance_), args_);
+        return std::apply(bind_front(invoker<Ret>(), function_, instance_), args_);
     }
 };
+
+template <typename Fn>
+struct function_info;
+
+template <typename Ret, typename T, typename... Args>
+struct function_info<Ret(__thiscall *)(T *, Args...)>
+{
+    static constexpr auto call_type = call_type_t::thiscall_;
+    using return_type               = Ret;
+    using self_type                 = T;
+};
+
+#define FN_INFO(call__, __call, _call_)                   \
+    template <typename Ret, typename T, typename... Args> \
+    struct function_info<Ret (__call T::*)(Args...)>      \
+    {                                                     \
+        static constexpr auto call_type = call__;         \
+        using return_type               = Ret;            \
+        using self_type                 = T;              \
+    };                                                    \
+    template <typename Ret, typename... Args>             \
+    struct function_info<Ret(__call *)(Args...)>          \
+    {                                                     \
+        static constexpr auto call_type = call__;         \
+        using return_type               = Ret;            \
+    };
+
+X86_CALL_MEMBER(FN_INFO)
+#undef FN_INFO
+
+template <typename Fn>
+concept member_function = requires { typename function_info<Fn>::self_type; };
+
+template <typename Fn>
+concept unwrapped_member_function = std::is_void_v<typename function_info<Fn>::self_type>;
+
+template <typename Fn>
+concept non_member_function = !member_function<Fn> || unwrapped_member_function<Fn>;
 }

@@ -5,7 +5,27 @@
 
 namespace fd
 {
-template <typename T>
+template <class T>
+constexpr call_type_t vtable_call_type = call_type_t::thiscall_;
+
+template <call_type_t Call>
+class vfunc_index
+{
+    size_t index_;
+
+  public:
+    constexpr vfunc_index(size_t index, call_type_holder<Call> = {})
+        : index_(index)
+    {
+    }
+
+    operator size_t() const
+    {
+        return index_;
+    }
+};
+
+template <class T>
 struct basic_vtable
 {
     template <typename>
@@ -21,12 +41,10 @@ struct basic_vtable
         table_pointer *vtable_;
     };
 
-    size_t vtable_offset_;
-
   public:
-    basic_vtable(instance_pointer instance = nullptr, size_t vtable_offset = 0)
+    basic_vtable(instance_pointer instance = nullptr)
         : instance_(instance)
-        , vtable_offset_(vtable_offset)
+
     {
     }
 
@@ -52,37 +70,43 @@ struct basic_vtable
 
     /*operator table_pointer() const
     {
-        return vtable_[vtable_offset_];
+        return *vtable_;
     }*/
 
     table_pointer get() const
     {
-        return vtable_[vtable_offset_];
+        return *vtable_;
     }
 
     void set(table_pointer pointer)
     {
-        vtable_[vtable_offset_] = pointer;
+        *vtable_ = pointer;
     }
 
     mem_backup<table_pointer> replace(table_pointer pointer) &
     {
-        return make_mem_backup(vtable_[vtable_offset_], pointer);
+        return make_mem_backup(*vtable_, pointer);
     }
 
     template <typename Q>
     mem_backup<table_pointer> replace(basic_vtable<Q> other) &
     {
-        return make_mem_backup(vtable_[vtable_offset_], other.get());
+        return make_mem_backup(*vtable_, other.get());
     }
 
-    unknown_vfunc_args<vtable_call<T>, T> operator[](size_t index) const
+    template <call_type_t Call>
+    unknown_vfunc_args<Call, T> operator[](vfunc_index<Call> index) const
     {
-        return {index, instance_, vtable_offset_};
+        return {index, instance_};
+    }
+
+    unknown_vfunc_args<vtable_call_type<T>, T> operator[](size_t index) const
+    {
+        return {index, instance_};
     }
 };
 
-template <typename T>
+template <class T>
 struct vtable : basic_vtable<T>
 {
     using basic_vtable<T>::basic_vtable;
@@ -92,7 +116,7 @@ struct vtable : basic_vtable<T>
     template <typename Ret, typename... Args>                                       \
     vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
     {                                                                               \
-        return {func, basic_vtable<T>::instance_, basic_vtable<T>::vtable_offset_}; \
+        return {func, basic_vtable<T>::instance_};                                  \
     }
 
     X86_CALL_MEMBER(VFUNC_ACCESS);
@@ -109,7 +133,7 @@ struct vtable<void> : basic_vtable<void>
     template <typename Ret, typename T, typename... Args>                           \
     vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
     {                                                                               \
-        return {func, instance_, vtable_offset_};                                   \
+        return {func, instance_};                                                   \
     }
 
     X86_CALL_MEMBER(VFUNC_ACCESS);
@@ -118,4 +142,10 @@ struct vtable<void> : basic_vtable<void>
 
 template <typename T>
 vtable(T *, size_t = 0) -> vtable<T>;
+
+// template<call_type_t Call,typename Ret,class T,typename ...Args>
+// class vfunc_view
+//{
+//     vtable<T>
+// };
 }

@@ -6,17 +6,21 @@
 #include <fd/log.h>
 #include <fd/netvars/core.h>
 #include <fd/players/cache.h>
+#include <fd/players/valve_entity_finder.h>
 #include <fd/render/context.h>
 #include <fd/tool/string_view.h>
 #include <fd/valve/entity_handle.h>
-#include <fd/valve_interface.h>
+#include <fd/valve/entity_list.h>
 #include <fd/valve_library_info.h>
 #include <fd/vtable.h>
 
-#include <windows.h>
-#include <d3d9.h>
-
+namespace fd
+{
 static bool context(HINSTANCE self_handle) noexcept;
+}
+
+#define HOOK_KNOWN_VFUNC(_NAME_, _OBJ_) BOOST_STRINGIZE(_NAME_), _OBJ_[&_NAME_]
+#define RENDER_BACKEND                  IDirect3DDevice9
 
 #ifdef FD_SHARED_LIB
 static HANDLE thread;
@@ -24,7 +28,7 @@ static DWORD thread_id;
 
 static DWORD WINAPI context_proxy(LPVOID ptr)
 {
-    auto result = context(static_cast<HINSTANCE>(ptr));
+    auto result = fd::context(static_cast<HINSTANCE>(ptr));
     FreeLibraryAndExitThread(static_cast<HMODULE>(ptr), result ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
@@ -60,11 +64,6 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
     return TRUE;
 }
 
-namespace fd::valve
-{
-extern vtable<void> entity_list_interface;
-} // namespace fd::valve
-
 #else
 #define USE_OWN_RENDER_BACKEND
 
@@ -73,29 +72,14 @@ int main(int argc, char *argv[])
     (void)argc;
     (void)argv;
 
-    bool result;
-
-    try
-    {
-        result = context(GetModuleHandle(nullptr));
-    }
-    catch (...)
-    {
-        result = false;
-    }
-
+    auto result = fd::context(GetModuleHandle(nullptr));
     return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 #endif
 
-#define HOOK_KNWON_FVUNC(_NAME_, _OBJ_) BOOST_STRINGIZE(_NAME_), _OBJ_[&_NAME_]
-#define RENDER_BACKEND                  IDirect3DDevice9
-
-bool context(HINSTANCE self_handle) noexcept
+bool fd::context(HINSTANCE self_handle) noexcept
 {
     (void)self_handle;
-
-    using namespace fd;
 
 #ifdef _DEBUG
 #ifdef FD_SHARED_LIB
@@ -140,14 +124,17 @@ bool context(HINSTANCE self_handle) noexcept
         return false;
 
 #ifdef FD_SHARED_LIB
-    auto client_dll = valve_library(L"client.dll");
-    auto engine_dll = valve_library(L"engine.dll");
-    auto vgui_dll   = valve_library(L"vguimatsurface.dll");
+    valve_library client_dll(L"client.dll");
+    valve_library engine_dll(L"engine.dll");
+    valve_library vgui_dll(L"vguimatsurface.dll");
 
-    vtable client_interface      = client_dll.interface("VClient");
-    // vtable engine_interface    = engine_dll.interface("VEngineClient");
-    vtable vgui_interface        = vgui_dll.interface("VGUI_Surface");
-    valve::entity_list_interface = client_dll.interface("VClientEntityList");
+    vtable client_interface(client_dll.interface("VClient"));
+    // vtable engine_interface    ( engine_dll.interface("VEngineClient"));
+    vtable vgui_interface(vgui_dll.interface("VGUI_Surface"));
+    valve::entity_list entity_list(client_dll.interface("VClientEntityList"));
+
+    valve_entity_finder entity_finder(&entity_list);
+    entity_cache cached_entity(&entity_finder);
 
     // todo: check if ingame and use exisiting player
     auto player_vtable = client_dll.vtable("C_CSPlayer");
@@ -176,18 +163,18 @@ bool context(HINSTANCE self_handle) noexcept
         }
     });
 #ifndef USE_OWN_RENDER_BACKEND
-    hooks.create(HOOK_KNWON_FVUNC(RENDER_BACKEND::Release, render_vtable), [&](auto &&orig) {
+    hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Release, render_vtable), [&](auto &&orig) {
         auto refs = orig();
         if (refs == 0)
             render_ctx.detach();
         return refs;
     });
 #endif
-    hooks.create(HOOK_KNWON_FVUNC(RENDER_BACKEND::Reset, render_vtable), [&](auto &&orig, auto... args) {
+    hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Reset, render_vtable), [&](auto &&orig, auto... args) {
         render_ctx.reset();
         return orig(args...);
     });
-    hooks.create(HOOK_KNWON_FVUNC(RENDER_BACKEND::Present, render_vtable), [&](auto &&orig, auto... args) {
+    hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Present, render_vtable), [&](auto &&orig, auto... args) {
         if (auto frame = render_ctx.new_frame())
         {
             // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
@@ -213,19 +200,18 @@ bool context(HINSTANCE self_handle) noexcept
     using entity_list_callback = void(__thiscall *)(void *, void *, valve::entity_handle);
     hooks.create(
         "CClientEntityList::OnAddEntity",
-        reinterpret_cast<entity_list_callback>(client_dll.pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
+        void_to_func<entity_list_callback>(client_dll.pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
         [&](auto &&orig, auto handle_interface, auto handle) {
             orig(handle_interface, handle);
             // todo: work with this_ptr
-            on_add_entity(handle.index());
+            cached_entity.add(handle.index());
         });
     hooks.create(
         "CClientEntityList::OnRemoveEntity",
-        reinterpret_cast<entity_list_callback>(
-            client_dll.pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
+        void_to_func<entity_list_callback>(client_dll.pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
         [&](auto &&orig, auto handle_interface, auto handle) {
             // todo: work with this_ptr
-            on_remove_entity(handle.index());
+            cached_entity.remove(handle.index());
             orig(handle_interface, handle);
         });
 #endif
