@@ -349,6 +349,7 @@ static void _parse_lproxy(
     netvar_tables &internalStorage,
     size_t rootOffset)
 {
+#if 0
     if (prop->type != valve::DPT_DataTable)
     {
         _store(prop, recvTable, propsEnd, netvarTable, rootOffset);
@@ -366,11 +367,13 @@ static void _parse_lproxy(
         if (!tmp.empty())
             internalStorage.emplace_back(std::move(tmp));
     }
+#endif
 }
 
 // merge data tables
 void _parse(valve::recv_table *recvTable, netvar_table *netvarTable, netvar_tables &internalStorage, size_t rootOffset)
 {
+#if 0
     auto prop     = recvTable->props.data();
     auto propsEnd = prop + recvTable->props.size();
 
@@ -410,6 +413,7 @@ void _parse(valve::recv_table *recvTable, netvar_table *netvarTable, netvar_tabl
             _parse(dt, netvarTable, internalStorage, rootOffset + prop->offset);
         }
     }
+#endif
 }
 
 static string_view _correct_recv_name(string_view name)
@@ -492,6 +496,7 @@ void store_netvars(void *client_interface)
 
 static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
 {
+#if 0
     for (; map != nullptr; map = map->base)
     {
         if (map->data.empty())
@@ -532,6 +537,7 @@ static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
             }
         }
     }
+#endif
 }
 
 void store_extra_netvars(void *entity)

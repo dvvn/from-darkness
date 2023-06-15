@@ -1,6 +1,6 @@
 #pragma once
 
-#include <span>
+#include <cstdint>
 
 namespace fd::valve
 {
@@ -16,8 +16,6 @@ enum recv_prop_type
     DPT_Int64
 };
 
-struct recv_table;
-
 struct recv_prop
 {
     char const *name;
@@ -30,7 +28,7 @@ struct recv_prop
     void *array_length_proxy;
     void *proxy;
     void *data_table_proxy;
-    recv_table *data_table;
+    struct recv_table *data_table;
     int offset;
     int element_stride;
     int elements_count;
@@ -39,7 +37,8 @@ struct recv_prop
 
 struct recv_table
 {
-    std::span<recv_prop> props;
+    recv_prop *props;
+    uint32_t props_count;
     void *decoder;
     char const *name;
     bool initialized;

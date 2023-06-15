@@ -13,7 +13,7 @@ namespace valve
 struct client_class;
 struct recv_prop;
 struct recv_table;
-struct data_map_description;
+struct data_map_field;
 struct data_map;
 } // namespace valve
 
@@ -23,7 +23,7 @@ struct basic_netvar_type_cache
     virtual string_view store(void *key, string &&value) = 0;
 };
 
-using netvar_source = variant<valve::recv_prop *, valve::data_map_description *>;
+using netvar_source = variant<valve::recv_prop *, valve::data_map_field *>;
 
 using netvar_type_stored = variant<string, basic_netvar_type_cache *>;
 

@@ -145,7 +145,7 @@ static basic_netvar_type *array(std::string_view key, basic_netvar_type *inner, 
         return ptr;                                             \
     }
 
-using valve::data_map_description;
+using valve::data_map_field;
 using valve::recv_prop;
 
 class prefix_string
@@ -378,9 +378,9 @@ static basic_netvar_type *_extract_type(std::string_view name, recv_prop *prop)
     }
 }
 
-static basic_netvar_type *_extract_type(std::string_view name, data_map_description *field)
+static basic_netvar_type *_extract_type(std::string_view name, data_map_field *field)
 {
-    using ft = valve::data_map_description_type;
+    using ft = valve::data_map_field_type;
 
     switch (field->type)
     {
@@ -466,9 +466,9 @@ static basic_netvar_type *_extract_type_by_prefix(std::string_view name, recv_pr
     }
 }
 
-static basic_netvar_type *_extract_type_by_prefix(std::string_view name, data_map_description *field)
+static basic_netvar_type *_extract_type_by_prefix(std::string_view name, data_map_field *field)
 {
-    using ft = valve::data_map_description_type;
+    using ft = valve::data_map_field_type;
 
     switch (field->type)
     {
@@ -486,7 +486,7 @@ netvar_source1::netvar_source1(recv_prop *pointer)
 {
 }
 
-netvar_source1::netvar_source1(data_map_description *pointer)
+netvar_source1::netvar_source1(data_map_field *pointer)
     : netvar_source1(pointer, source::data_map)
 {
 }
@@ -516,7 +516,7 @@ char const *netvar_source1::name() const
     case source::recv_prop:
         return extract(pointer_, &recv_prop::name);
     case source::data_map:
-        return extract(pointer_, &data_map_description::name);
+        return extract(pointer_, &data_map_field::name);
     default:
         std::unreachable();
     }
@@ -529,7 +529,7 @@ size_t netvar_source1::offset() const
     case source::recv_prop:
         return extract(pointer_, &recv_prop::offset);
     case source::data_map:
-        return extract(pointer_, &data_map_description::offset);
+        return extract(pointer_, &data_map_field::offset);
     default:
         std::unreachable();
     }
@@ -560,7 +560,7 @@ basic_netvar_type *netvar_source1::type(std::string_view correct_name, size_t ar
     case source::recv_prop:
         return extract<recv_prop>(pointer_, do_extract);
     case source::data_map:
-        return extract<data_map_description>(pointer_, do_extract);
+        return extract<data_map_field>(pointer_, do_extract);
     default:
         std::unreachable();
     }

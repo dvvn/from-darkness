@@ -17,7 +17,7 @@ using netvar_source = std::variant< //
 namespace valve
 {
 struct recv_prop;
-struct data_map_description;
+struct data_map_field;
 } // namespace valve
 
 struct netvar_source1
@@ -34,7 +34,7 @@ struct netvar_source1
 
   public:
     netvar_source1(valve::recv_prop *pointer);
-    netvar_source1(valve::data_map_description *pointer);
+    netvar_source1(valve::data_map_field *pointer);
     netvar_source1(void *pointer, source src);
     char const * name() const;
     size_t offset() const;

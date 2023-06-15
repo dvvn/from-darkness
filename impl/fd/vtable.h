@@ -141,6 +141,12 @@ struct vtable<void> : basic_vtable<void>
 };
 
 template <typename T>
+auto get(vtable<T> table, auto index) -> decltype(table[index])
+{
+    return table[index];
+}
+
+template <typename T>
 vtable(T *, size_t = 0) -> vtable<T>;
 
 // template<call_type_t Call,typename Ret,class T,typename ...Args>

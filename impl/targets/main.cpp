@@ -10,9 +10,11 @@
 #include <fd/render/context.h>
 #include <fd/tool/string_view.h>
 #include <fd/valve/client.h>
+#include <fd/valve/engine.h>
 #include <fd/valve/entity.h>
 #include <fd/valve/entity_handle.h>
 #include <fd/valve/entity_list.h>
+#include <fd/valve/vgui.h>
 #include <fd/valve_library_info.h>
 #include <fd/vtable.h>
 
@@ -79,6 +81,15 @@ int main(int argc, char *argv[])
 }
 #endif
 
+using fd::abstract_function;
+using fd::abstract_interface;
+
+union abstract_render_vtable
+{
+    FD_ABSTRACT_INTERFACE(abstract_render_vtable);
+    abstract_function<10, void> dummy;
+};
+
 bool fd::context(HINSTANCE self_handle) noexcept
 {
     (void)self_handle;
@@ -120,9 +131,9 @@ bool fd::context(HINSTANCE self_handle) noexcept
 
 #endif
 
-    render_context render_ctx;
+    render_context render;
 
-    if (!render_ctx.init(window, render_vtable.instance()))
+    if (!render.init(window, render_vtable.instance()))
         return false;
 
 #ifdef FD_SHARED_LIB
@@ -130,23 +141,22 @@ bool fd::context(HINSTANCE self_handle) noexcept
     valve_library engine_dll(L"engine.dll");
     valve_library vgui_dll(L"vguimatsurface.dll");
 
-    valve::client client_interface(client_dll.interface("VClient"));
-    // vtable engine_interface    ( engine_dll.interface("VEngineClient"));
-    vtable vgui_interface(vgui_dll.interface("VGUI_Surface"));
-    valve::entity_list entity_list(client_dll.interface("VClientEntityList"));
+    valve::client v_client(client_dll.interface("VClient"));
+    valve::engine v_engine(engine_dll.interface("VEngineClient"));
+    valve::vgui_surface v_gui(vgui_dll.interface("VGUI_Surface"));
+    valve::entity_list v_ent_list(client_dll.interface("VClientEntityList"));
 
-    valve_entity_finder entity_finder(&entity_list);
+    valve_entity_finder entity_finder(&v_ent_list);
     entity_cache cached_entity(&entity_finder);
 
     // todo: check if ingame and use exisiting player
-    valve::entity player_vtable(client_dll.vtable("C_CSPlayer"));
+    valve::entity csplayer_vtable(client_dll.vtable("C_CSPlayer"));
 
     netvar_storage netvars;
 
-    netvars.store(client_interface.get_all_classes());
-    netvars.store(player_vtable.get_desc_data_map());
-    netvars.store(player_vtable.get_prediction_data_map());
-
+    netvars.store(v_client.get_all_classes());
+    netvars.store(csplayer_vtable.get_desc_data_map());
+    netvars.store(csplayer_vtable.get_prediction_data_map());
 #endif
 
     hook_context hooks;
@@ -154,7 +164,7 @@ bool fd::context(HINSTANCE self_handle) noexcept
     hooks.create("WinAPI.WndProc", window_proc, [&](auto orig, auto... args) -> LRESULT {
         using result_t = render_context::process_result;
         result_t pmr;
-        render_ctx.process_message(args..., &pmr);
+        render.process_message(args..., &pmr);
         switch (pmr)
         {
         case result_t::idle:
@@ -171,16 +181,16 @@ bool fd::context(HINSTANCE self_handle) noexcept
     hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Release, render_vtable), [&](auto &&orig) {
         auto refs = orig();
         if (refs == 0)
-            render_ctx.detach();
+            render.detach();
         return refs;
     });
 #endif
     hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Reset, render_vtable), [&](auto &&orig, auto... args) {
-        render_ctx.reset();
+        render.reset();
         return orig(args...);
     });
     hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Present, render_vtable), [&](auto &&orig, auto... args) {
-        if (auto frame = render_ctx.new_frame())
+        if (auto frame = render.new_frame())
         {
             // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
             ImGui::ShowDemoWindow();
@@ -189,7 +199,7 @@ bool fd::context(HINSTANCE self_handle) noexcept
         return orig(args...);
     });
 #ifdef FD_SHARED_LIB
-    hooks.create("VGUI.ISurface::LockCursor", vgui_interface[67].get<void>(), [&](auto &&orig) {
+    hooks.create("VGUI.ISurface::LockCursor", v_gui.lock_cursor, [&](auto &&orig) {
         // if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
         //{
         //     this_ptr->UnlockCursor();
@@ -197,11 +207,10 @@ bool fd::context(HINSTANCE self_handle) noexcept
         // }
         orig();
     });
-    hooks.create(
-        "CHLClient::CreateMove", client_interface[22].get<void, int, int, int>(), [&](auto &&orig, auto... args) {
-            //
-            orig(args...);
-        });
+    hooks.create("CHLClient::CreateMove", v_client[22].get<void, int, int, int>(), [&](auto &&orig, auto... args) {
+        //
+        orig(args...);
+    });
     using entity_list_callback = void(__thiscall *)(void *, void *, valve::entity_handle);
     hooks.create(
         "CClientEntityList::OnAddEntity",

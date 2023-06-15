@@ -212,6 +212,9 @@ FetchContent_MakeAvailable(sigmatch)
 #FetchContent_Load(JustasMasiulis lazy_importer)
 #FetchContent_Populate(lazy_importer)
 
+FetchContent_Load(danielkrupinski x86RetSpoof)
+FetchContent_Populate(x86RetSpoof)
+
 # -------------------
 
 add_subdirectory(${FD_IMPL_DIR}/imgui ${imgui_BINARY_DIR})

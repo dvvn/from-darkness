@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/core/ignore_unused.hpp>
 #include <boost/noncopyable.hpp>
 
 #include <utility>
@@ -44,8 +45,6 @@ constexpr T &remove_const(T &ref)
     return (ref);
 }
 
-using boost::noncopyable;
-
 template <typename Fn>
 void *get_function_pointer(Fn function)
 {
@@ -60,5 +59,8 @@ void *get_function_pointer(Fn function)
     fn = function;
     return ptr;
 }
+
+using boost::ignore_unused;
+using boost::noncopyable;
 
 } // namespace fd

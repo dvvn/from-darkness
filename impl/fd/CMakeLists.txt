@@ -43,6 +43,7 @@ target_include_directories(fd PUBLIC
     #${veque_SOURCE_DIR}/include
     #${atomic_queue_SOURCE_DIR}/include
     ${lazy_importer_SOURCE_DIR}/include
+    ${x86RetSpoof_SOURCE_DIR}
 )
 target_compile_definitions(fd PUBLIC
     FD_WORK_DIR=${FD_DIR}

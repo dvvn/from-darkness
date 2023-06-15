@@ -1,12 +1,12 @@
 #pragma once
 
-#include <span>
+#include <cstdint>
 
 namespace fd::valve
 {
 struct data_map;
 
-enum data_map_description_type : int32_t
+enum data_map_field_type : int32_t
 {
     FIELD_VOID = 0,   // No type or value
     FIELD_FLOAT,      // Any floating point value
@@ -50,9 +50,9 @@ enum data_map_description_type : int32_t
     FIELD_VECTOR2D, // 2 floats
 };
 
-struct data_map_description
+struct data_map_field
 {
-    data_map_description_type type;
+    data_map_field_type type;
     char const *name;
     int offset;
     int offset_packed;
@@ -65,7 +65,8 @@ struct data_map_description
 
 struct data_map
 {
-    std::span<data_map_description> data;
+    data_map_field *fields;
+    uint32_t fields_count;
     char const *name;
     data_map *base;
 

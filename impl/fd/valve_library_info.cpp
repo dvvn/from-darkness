@@ -48,8 +48,7 @@ class valve_interface_holder
 
     find_result find(string_view target_name) const
     {
-        auto i = this;
-        do
+        for (auto i = this; i != nullptr; i = i->next_)
         {
             auto name_back = i->name_ + target_name.length();
 
@@ -64,16 +63,15 @@ class valve_interface_holder
 
             if (*name_back == '\0')
             {
-                if (i->compare(name_) == 0)
+                if (i->compare(target_name) == 0)
                     return i;
             }
             else if (isdigit(*name_back))
             {
-                if (i->compare(name_) == 0 && all_digits_at_end())
+                if (i->compare(target_name) == 0 && all_digits_at_end())
                     return {i, false};
             }
         }
-        while ((i = i->next_) != nullptr);
 
         return nullptr;
     }

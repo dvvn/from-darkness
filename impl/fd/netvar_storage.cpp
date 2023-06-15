@@ -28,7 +28,7 @@ netvar_info::netvar_info(netvar_source source, basic_netvar_type_cache *type_cac
 
 string_view netvar_info::raw_name() const
 {
-    return visit(overload(&valve::recv_prop::name, &valve::data_map_description::name), source_);
+    return visit(overload(&valve::recv_prop::name, &valve::data_map_field::name), source_);
 }
 
 string_view netvar_info::name() const
@@ -45,7 +45,7 @@ string_view netvar_info::name() const
                 return {prop->name, traits::find(prop->name, -1, '[')};
 #endif
             },
-            &valve::data_map_description::name),
+            &valve::data_map_field::name),
         source_);
 }
 
@@ -356,9 +356,9 @@ static string_view netvar_type(valve::recv_prop *prop)
     }
 }
 
-static string_view netvar_type(valve::data_map_description *field)
+static string_view netvar_type(valve::data_map_field *field)
 {
-    using ft = valve::data_map_description_type;
+    using ft = valve::data_map_field_type;
 
     switch (field->type)
     {
@@ -457,7 +457,7 @@ static void write_netvar_type(valve::recv_prop *prop, string &cache)
     }
 }
 
-static void write_netvar_type(valve::data_map_description *prop, string &cache)
+static void write_netvar_type(valve::data_map_field *prop, string &cache)
 {
     assert(cache.empty());
     cache.assign(netvar_type(prop));
@@ -488,7 +488,7 @@ string_view netvar_info::type() const
 
 size_t netvar_info::offset() const
 {
-    return visit(overload(&valve::recv_prop::offset, &valve::data_map_description::offset), source_);
+    return visit(overload(&valve::recv_prop::offset, &valve::data_map_field::offset), source_);
 }
 
 netvar_table::netvar_table(netvar_table_source source, basic_netvar_type_cache *type_cache)

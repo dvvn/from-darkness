@@ -1,10 +1,10 @@
 #pragma once
 
-#include <boost/core/noncopyable.hpp>
+#include "core.h"
 
 namespace fd
 {
-class callback_stop_token : public boost::noncopyable
+class callback_stop_token : public noncopyable
 {
     bool value_ = false;
 

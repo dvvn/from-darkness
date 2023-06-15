@@ -116,7 +116,7 @@ class callback_function_proxy
 {
     Fn fn_;
 
-    static Arg do_cast(void *result)
+    static Arg do_cast(void *&result)
     {
         if constexpr (std::convertible_to<void *, Arg>)
             return static_cast<Arg>(result);

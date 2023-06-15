@@ -3,6 +3,9 @@
 #include "core.h"
 #include "tool/functional.h"
 
+#include <x86RetSpoof.h>
+
+#include <cassert>
 #include <tuple>
 
 #undef thiscall
@@ -135,16 +138,82 @@ Fn void_to_func(void *function)
 }
 
 template <call_type_t Call, typename Ret, typename T, typename... Args>
-requires(std::is_class_v<T>)
-struct member_func_type;
+requires(std::is_class_v<T> || std::is_union_v<T> /*std::is_fundamental_v<T>*/)
+struct member_func_type_impl;
+
+template <call_type_t Call, typename Ret, typename T, typename... Args>
+using member_func_type = typename member_func_type_impl<Call, Ret, T, Args...>::type;
+
+template <class Object>
+struct return_address_gadget;
+
+template <class Object>
+concept valid_return_address_gadget = requires { return_address_gadget<Object>::address; };
+
+template <call_type_t Call_T, typename Ret, typename... Args>
+struct return_address_spoofer;
+
+template <call_type_t Call_T, typename Ret, class Object, typename... Args>
+decltype(auto) try_spoof_member_return_address(void *function, Object *instance, Args... args)
+{
+    using spoofer = return_address_spoofer<Call_T, Ret, Object *, Args...>;
+    using gadget  = return_address_gadget<Object>;
+
+    constexpr auto spoof_allowed = valid_return_address_gadget<gadget> &&
+                                   std::invocable<spoofer, uintptr_t, void *, Object *, Args...>;
+
+    if constexpr (spoof_allowed)
+        return std::invoke(spoofer(), gadget::address, function, instance, args...);
+    else
+        return std::invoke(void_to_func<member_func_type<Call_T, Ret, Object, Args...>>(function), instance, args...);
+}
+
+template <typename Ret, typename... Args>
+struct return_address_spoofer<call_type_t::cdecl_, Ret, Args...>
+{
+    Ret operator()(uintptr_t gadget, void *function, Args... args) const
+    {
+        assert(gadget != 0);
+        return x86RetSpoof::invokeCdecl<Ret, Args...>(reinterpret_cast<uintptr_t>(function), gadget, args...);
+    }
+};
+
+template <typename Ret, typename... Args>
+struct return_address_spoofer<call_type_t::stdcall_, Ret, Args...>
+{
+    Ret operator()(uintptr_t gadget, void *function, Args... args) const
+    {
+        assert(gadget != 0);
+        return x86RetSpoof::invokeStdcall<Ret, Args...>(reinterpret_cast<uintptr_t>(function), gadget, args...);
+    }
+};
+
+template <typename Ret, class Object, typename... Args>
+struct return_address_spoofer<call_type_t::thiscall_, Ret, Object *, Args...>
+{
+    Ret operator()(uintptr_t gadget, void *function, Object *instance, Args... args) const
+    {
+        assert(gadget != 0);
+        return x86RetSpoof::invokeThiscall<Ret, Args...>(
+            reinterpret_cast<uintptr_t>(instance), reinterpret_cast<uintptr_t>(function), gadget, args...);
+    }
+
+    Ret operator()(void *function, Object *instance, Args... args) const requires(valid_return_address_gadget<Object>)
+    {
+        return operator()(return_address_gadget<Object>::address, function, instance, args...);
+    }
+};
 
 template <call_type_t Call, typename Ret, typename... Args>
-struct non_member_func_type;
+struct non_member_func_type_impl;
+
+template <call_type_t Call, typename Ret, typename... Args>
+using non_member_func_type = typename non_member_func_type_impl<Call, Ret, Args...>::type;
 
 template <call_type_t Call, class Ret, typename... Args>
 struct non_member_func_invoker
 {
-    using type = typename non_member_func_type<Call, Ret, Args...>::type;
+    using type = non_member_func_type<Call, Ret, Args...>;
 
     Ret operator()(type function, Args... args) const
     {
@@ -159,7 +228,7 @@ struct non_member_func_invoker
 
 #define MEMBER_FN_TYPE(call__, __call, _call_)            \
     template <typename Ret, typename T, typename... Args> \
-    struct member_func_type<call__, Ret, T, Args...>      \
+    struct member_func_type_impl<call__, Ret, T, Args...> \
     {                                                     \
         using type = Ret (__call T::*)(Args...);          \
     };
@@ -170,16 +239,14 @@ X86_CALL_MEMBER(MEMBER_FN_TYPE)
 template <call_type_t Call, class Ret, class T, typename... Args>
 struct member_func_invoker
 {
-    using type = member_func_type<Call, Ret, T, Args...>;
-
-    Ret operator()(type function, T *instance, Args... args) const
+    Ret operator()(member_func_type<Call, Ret, T, Args...> function, T *instance, Args... args) const
     {
         return std::invoke(function, instance, args...);
     }
 
     Ret operator()(void *function, T *instance, Args... args) const
     {
-        return operator()(void_to_func<type>(function), instance, args...);
+        return try_spoof_member_return_address<Call, Ret>(function, instance, args...);
     }
 };
 
@@ -196,7 +263,7 @@ struct member_func_invoker<Call, Ret, void, Args...>
     {
     };
 
-    using type = typename member_func_type<Call, Ret, dummy_class, Args...>::type;
+    using type = member_func_type<Call, Ret, dummy_class, Args...>;
 
     Ret operator()(type function, void *instance, Args... args) const
     {
@@ -209,15 +276,15 @@ struct member_func_invoker<Call, Ret, void, Args...>
     }
 };
 
-#define NON_MEMBER_FN_TYPE(call__, __call, _call_)    \
-    template <typename Ret, typename... Args>         \
-    struct non_member_func_type<call__, Ret, Args...> \
-    {                                                 \
-        using type = Ret(__call *)(Args...);          \
+#define NON_MEMBER_FN_TYPE(call__, __call, _call_)         \
+    template <typename Ret, typename... Args>              \
+    struct non_member_func_type_impl<call__, Ret, Args...> \
+    {                                                      \
+        using type = Ret(__call *)(Args...);               \
     };
 
 X86_CALL_MEMBER(NON_MEMBER_FN_TYPE)
-#undef MEMBER_FN_BUILDER
+#undef NON_MEMBER_FN_TYPE
 
 template <call_type_t Call, typename T, typename... Args>
 class member_func_return_type_resolver
@@ -283,4 +350,6 @@ concept unwrapped_member_function = std::is_void_v<typename function_info<Fn>::s
 
 template <typename Fn>
 concept non_member_function = !member_function<Fn> || unwrapped_member_function<Fn>;
-}
+
+//--
+} // namespace fd

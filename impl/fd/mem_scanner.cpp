@@ -4,8 +4,7 @@
 
 #include "mem_scanner.h"
 #include "tool/span.h"
-
-#include <boost/container/static_vector.hpp>
+#include "tool/vector.h"
 
 #include <algorithm>
 #include <cassert>
@@ -23,9 +22,9 @@ using byte  = uint8_t;
 
 #ifdef _DEBUG
 template <typename T, size_t S>
-struct static_buffer : std::vector<T>
+struct static_buffer : vector<T>
 {
-    using std::vector<T>::vector;
+    using vector<T>::vector;
 
     ~static_buffer()
     {
@@ -34,10 +33,10 @@ struct static_buffer : std::vector<T>
 };
 #else
 template <typename T, size_t S>
-using static_buffer = boost::container::static_vector<T, S>;
+using static_buffer = static_vector<T, S>;
 #endif
 
-struct bytes_range : boost::noncopyable
+struct bytes_range : noncopyable
 {
     static_buffer<byte, 32> part;
     byte skip = 0;

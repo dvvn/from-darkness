@@ -20,4 +20,8 @@
     }                    \
     ;
 
+#if 1
 #define FD_WRAP_TOOL(...) FD_WRAP_TOOL_BEGIN(__VA_ARGS__) FD_WRAP_TOOL_END
+#else
+#define FD_WRAP_TOOL(_WRAPPED_, ...) using _WRAPPED_ = __VA_ARGS__
+#endif

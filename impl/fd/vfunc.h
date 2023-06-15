@@ -80,8 +80,6 @@ inline void *get_vfunc(size_t function_index, void *instance)
 template <call_type_t Call, typename Ret, typename T, typename... Args>
 class vfunc
 {
-    using fn_type = typename member_func_type<Call, Ret, T, Args...>::type;
-
     VFUNC_BASE;
 
     vfunc(void *function, T *instance)
@@ -90,7 +88,7 @@ class vfunc
     {
     }
 
-    vfunc(fn_type function, T *instance)
+    vfunc(member_func_type<Call, Ret, T, Args...> function, T *instance)
         : function_(get_vfunc(function, instance))
         , instance_(instance)
     {

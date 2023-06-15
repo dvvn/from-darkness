@@ -15,7 +15,7 @@ struct client_class
 
 union client
 {
-    FD_ABSTACT_INTERFACE;
+    FD_ABSTRACT_INTERFACE(client);
     abstract_function<8, client_class *> get_all_classes;
 };
 }
