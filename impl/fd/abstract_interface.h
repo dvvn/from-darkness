@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tool/string.h"
 #include "vtable.h"
 
 namespace fd
@@ -9,13 +10,20 @@ struct abstract_interface : vtable<void>, noncopyable
     using vtable::vtable;
 };
 
+#define FD_ABSTACT_INTERFACE                                   \
+    abstract_interface vtable;                                 \
+    auto operator[](auto value) const->decltype(vtable[value]) \
+    {                                                          \
+        return vtable[value];                                  \
+    }
+
 class basic_abstract_function : public noncopyable
 {
     vtable<void> table_;
 
   protected:
     template <typename T>
-    auto func(T index) const
+    auto func(T index) const -> decltype(table_[index])
     {
         return table_[index];
     }
@@ -32,23 +40,51 @@ class basic_abstract_function : public noncopyable
     }*/
 };
 
+template <size_t N>
+struct __name
+{
+    [[no_unique_address]] std::false_type dummy;
+
+    constexpr __name(const char (&str)[N])
+    {
+    }
+};
+
 /**
  * \brief for visualization only
  */
-template <typename T, auto Name>
+template <typename T, __name Name>
 class named
 {
     T object_;
 
   public:
-    named(T object)
+    named(std::convertible_to<T> auto object)
         : object_((object))
     {
-        (void)Name;
     }
 
     operator T() const
     {
+        (void)Name;
+        return object_;
+    }
+};
+
+template <typename T, __name Name>
+class named<T &, Name>
+{
+    T &object_;
+
+  public:
+    named(T &object)
+        : object_((object))
+    {
+    }
+
+    operator T &() const
+    {
+        (void)Name;
         return object_;
     }
 };
@@ -87,4 +123,4 @@ struct abstract_function_ex : basic_abstract_function
             func<vfunc_index<Call>>(Index).template get<Ret, typename make_unnamed<Args>::type...>(), args...);
     }
 };
-}
+} // namespace fd

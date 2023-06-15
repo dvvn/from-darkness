@@ -119,7 +119,7 @@ class vfunc<Call, Ret, void, Args...>
 };
 
 template <call_type_t Call, typename Ret, typename T, typename... Args>
-Ret invoke(vfunc<Call, Ret, T, Args...> func, Args... args)
+Ret invoke(vfunc<Call, Ret, T, Args...> func, std::type_identity_t<Args>... args)
 {
     member_func_invoker<Call, Ret, T, Args...> invoker;
     return invoker(func.get(), func.instance(), args...);
@@ -185,7 +185,7 @@ class unknown_vfunc_call
 };
 
 template <call_type_t Call, typename Ret, typename T, typename... Args>
-Ret invoke(unknown_vfunc_call<Ret, T, Args...> func, Args... args)
+Ret invoke(unknown_vfunc_call<Ret, T, Args...> func, std::type_identity_t<Args>... args)
 {
     member_func_invoker<Call, Ret, T, Args...> invoker;
     return invoker(func.get(), func.instance(), args...);

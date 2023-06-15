@@ -6,7 +6,7 @@ namespace fd::valve
 {
 union entity_list
 {
-    abstract_interface vtable;
+    FD_ABSTACT_INTERFACE;
     abstract_function<3, void *, named<uint32_t, "index">> get_client_entity;
 };
 }

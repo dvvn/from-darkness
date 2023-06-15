@@ -467,6 +467,7 @@ static netvar_tables_ordered data_;
 
 void store_netvars(void *client_interface)
 {
+#if 0
     assert(data_.empty()); // Iterate recv tables first!
     for (auto &cclass : valve::client_class_range(client_interface))
     {
@@ -486,6 +487,7 @@ void store_netvars(void *client_interface)
 #endif
     }
     log("[NETVARS] {} data tables stored", data_.size());
+#endif
 }
 
 static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
@@ -535,8 +537,8 @@ static void _parse(valve::data_map *map, netvar_tables_ordered &storage)
 void store_extra_netvars(void *entity)
 {
     assert(!data_.empty()); // Iterate datamap after recv tables!
-    _parse(valve::get_desc_data_map(entity), data_);
-    _parse(valve::get_prediction_data_map(entity), data_);
+    //_parse(valve::get_desc_data_map(entity), data_);
+    //_parse(valve::get_prediction_data_map(entity), data_);
     log("[NETVARS] data map stored!");
 }
 

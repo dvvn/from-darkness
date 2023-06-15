@@ -4,11 +4,13 @@
 #include <fd/hook.h>
 #include <fd/library_info.h>
 #include <fd/log.h>
-#include <fd/netvars/core.h>
+#include <fd/netvar_storage.h>
 #include <fd/players/cache.h>
 #include <fd/players/valve_entity_finder.h>
 #include <fd/render/context.h>
 #include <fd/tool/string_view.h>
+#include <fd/valve/client.h>
+#include <fd/valve/entity.h>
 #include <fd/valve/entity_handle.h>
 #include <fd/valve/entity_list.h>
 #include <fd/valve_library_info.h>
@@ -128,7 +130,7 @@ bool fd::context(HINSTANCE self_handle) noexcept
     valve_library engine_dll(L"engine.dll");
     valve_library vgui_dll(L"vguimatsurface.dll");
 
-    vtable client_interface(client_dll.interface("VClient"));
+    valve::client client_interface(client_dll.interface("VClient"));
     // vtable engine_interface    ( engine_dll.interface("VEngineClient"));
     vtable vgui_interface(vgui_dll.interface("VGUI_Surface"));
     valve::entity_list entity_list(client_dll.interface("VClientEntityList"));
@@ -137,11 +139,14 @@ bool fd::context(HINSTANCE self_handle) noexcept
     entity_cache cached_entity(&entity_finder);
 
     // todo: check if ingame and use exisiting player
-    auto player_vtable = client_dll.vtable("C_CSPlayer");
+    valve::entity player_vtable(client_dll.vtable("C_CSPlayer"));
 
-    store_netvars(client_interface);
-    store_extra_netvars(player_vtable);
-    store_custom_netvars(client_dll);
+    netvar_storage netvars;
+
+    netvars.store(client_interface.get_all_classes());
+    netvars.store(player_vtable.get_desc_data_map());
+    netvars.store(player_vtable.get_prediction_data_map());
+
 #endif
 
     hook_context hooks;

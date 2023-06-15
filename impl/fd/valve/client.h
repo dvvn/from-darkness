@@ -1,5 +1,5 @@
 #pragma once
-#include <cstdint>
+#include <fd/abstract_interface.h>
 
 namespace fd::valve
 {
@@ -8,55 +8,14 @@ struct client_class
     void *create;
     void *create_event;
     char const *name;
-    void *recv_table;
+    struct recv_table *table;
     client_class *next;
     uint32_t id;
 };
 
-class client_class_range
+union client
 {
-    void *interface_;
-
-  public:
-    class iterator
-    {
-        client_class *class_;
-
-      public:
-        iterator(client_class *class_)
-            : class_(class_)
-        {
-        }
-
-        iterator &operator++()
-        {
-            class_ = class_->next;
-            return *this;
-        }
-
-        bool operator==(iterator other) const
-        {
-            return class_ == other.class_;
-        }
-
-        client_class &operator*() const
-        {
-            return *class_;
-        }
-
-        client_class *operator->() const
-        {
-            return class_;
-        }
-    };
-
-    client_class_range(void *client_interface)
-        : interface_(client_interface)
-    {
-    }
-
-    iterator begin() const;
-    iterator end() const;
+    FD_ABSTACT_INTERFACE;
+    abstract_function<8, client_class *> get_all_classes;
 };
-
 }

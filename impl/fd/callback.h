@@ -45,34 +45,6 @@ struct function_argument<I, std::function<Ret(Args...)>>
     using type = select_argument<I, Args...>;
 };
 
-#if 0
-template <typename Fn>
-concept std_function_constructible = requires(Fn fn) { std::function(fn); };
-
-
-template <typename Fn, bool = std_function_constructible<Fn>>
-struct function_return_impl;
-
-template <typename Fn>
-struct function_return_impl<Fn, true> : function_return_impl<decltype(std::function(std::declval<Fn>()))>
-{
-};
-
-template <typename Fn>
-struct function_return_impl<std::reference_wrapper<Fn>> : function_return_impl<Fn>
-{
-};
-
-template <typename Ret, typename... Args>
-struct function_return_impl<std::function<Ret(Args...)>>
-{
-    using type = Ret;
-};
-
-template <typename Fn>
-using function_return = typename function_return_impl<Fn>::type;
-#endif
-
 template <typename Arg>
 class callback_arg_protector final : public noncopyable
 {

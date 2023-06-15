@@ -481,17 +481,17 @@ static basic_netvar_type *_extract_type_by_prefix(std::string_view name, data_ma
     }
 }
 
-netvar_source::netvar_source(recv_prop *pointer)
-    : netvar_source(pointer, source::recv_prop)
+netvar_source1::netvar_source1(recv_prop *pointer)
+    : netvar_source1(pointer, source::recv_prop)
 {
 }
 
-netvar_source::netvar_source(data_map_description *pointer)
-    : netvar_source(pointer, source::data_map)
+netvar_source1::netvar_source1(data_map_description *pointer)
+    : netvar_source1(pointer, source::data_map)
 {
 }
 
-netvar_source::netvar_source(void *pointer, source src)
+netvar_source1::netvar_source1(void *pointer, source src)
     : pointer_(pointer)
     , src_(src)
 {
@@ -509,7 +509,7 @@ static auto extract(void *pointer, Fn fn)
     return std::invoke(fn, static_cast<T *>(pointer));
 }
 
-char const *netvar_source::name() const
+char const *netvar_source1::name() const
 {
     switch (src_)
     {
@@ -522,7 +522,7 @@ char const *netvar_source::name() const
     }
 }
 
-size_t netvar_source::offset() const
+size_t netvar_source1::offset() const
 {
     switch (src_)
     {
@@ -535,7 +535,7 @@ size_t netvar_source::offset() const
     }
 }
 
-basic_netvar_type *netvar_source::type(std::string_view correct_name, size_t array_size) const
+basic_netvar_type *netvar_source1::type(std::string_view correct_name, size_t array_size) const
 {
     auto do_extract = [&]<class T>(T *p) {
         if (correct_name.empty())
@@ -566,7 +566,7 @@ basic_netvar_type *netvar_source::type(std::string_view correct_name, size_t arr
     }
 }
 
-bool netvar_source::operator==(netvar_source const &other) const
+bool netvar_source1::operator==(netvar_source1 const &other) const
 {
     return pointer_ == other.pointer_;
 }

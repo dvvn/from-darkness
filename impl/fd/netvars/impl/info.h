@@ -16,12 +16,12 @@ class netvar_info final
 
     size_t offset_;
     size_t array_size_;
-    netvar_source source_;
+    netvar_source1 source_;
     hashed_name name_;
 
   public:
-    netvar_info(size_t offset, uint16_t array_size, netvar_source source, hashed_name const &name);
-    netvar_info(size_t offset, netvar_source source, hashed_name const &name);
+    netvar_info(size_t offset, uint16_t array_size, netvar_source1 source, hashed_name const &name);
+    netvar_info(size_t offset, netvar_source1 source, hashed_name const &name);
 
     size_t offset() const;
     std::string_view name() const;

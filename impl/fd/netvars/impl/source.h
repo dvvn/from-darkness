@@ -20,7 +20,7 @@ struct recv_prop;
 struct data_map_description;
 } // namespace valve
 
-struct netvar_source
+struct netvar_source1
 {
     enum class source : uint8_t
     {
@@ -33,14 +33,14 @@ struct netvar_source
     source src_;
 
   public:
-    netvar_source(valve::recv_prop *pointer);
-    netvar_source(valve::data_map_description *pointer);
-    netvar_source(void *pointer, source src);
+    netvar_source1(valve::recv_prop *pointer);
+    netvar_source1(valve::data_map_description *pointer);
+    netvar_source1(void *pointer, source src);
     char const * name() const;
     size_t offset() const;
     basic_netvar_type *type(std::string_view correct_name, size_t array_size) const;
 
-    bool operator==(netvar_source const & other) const;
+    bool operator==(netvar_source1 const & other) const;
 };
 
 #endif

@@ -2,7 +2,7 @@
 
 namespace fd
 {
-netvar_info::netvar_info(size_t offset, uint16_t array_size, netvar_source source, hashed_name const& name)
+netvar_info::netvar_info(size_t offset, uint16_t array_size, netvar_source1 source, hashed_name const& name)
     : offset_(offset)
     , array_size_(array_size)
     , source_(source)
@@ -11,7 +11,7 @@ netvar_info::netvar_info(size_t offset, uint16_t array_size, netvar_source sourc
 {
 }
 
-netvar_info::netvar_info(size_t offset, netvar_source source, hashed_name const& name)
+netvar_info::netvar_info(size_t offset, netvar_source1 source, hashed_name const& name)
     : offset_(offset)
     , array_size_(0)
     , source_(source)
