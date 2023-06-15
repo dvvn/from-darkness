@@ -8,13 +8,13 @@ namespace fd
 template <class T>
 constexpr call_type_t vtable_call_type = call_type_t::thiscall_;
 
-template <call_type_t Call>
+template <call_type_t Call_T>
 class vfunc_index
 {
     size_t index_;
 
   public:
-    constexpr vfunc_index(size_t index, call_type_holder<Call> = {})
+    constexpr vfunc_index(size_t index, call_type_holder<Call_T> = {})
         : index_(index)
     {
     }
@@ -94,8 +94,8 @@ struct basic_vtable
         return make_mem_backup(*vtable_, other.get());
     }
 
-    template <call_type_t Call>
-    unknown_vfunc_args<Call, T> operator[](vfunc_index<Call> index) const
+    template <call_type_t Call_T>
+    unknown_vfunc_args<Call_T, T> operator[](vfunc_index<Call_T> index) const
     {
         return {index, instance_};
     }
@@ -149,7 +149,7 @@ auto get(vtable<T> table, auto index) -> decltype(table[index])
 template <typename T>
 vtable(T *, size_t = 0) -> vtable<T>;
 
-// template<call_type_t Call,typename Ret,class T,typename ...Args>
+// template<call_type_t Call_T,typename Ret,class T,typename ...Args>
 // class vfunc_view
 //{
 //     vtable<T>

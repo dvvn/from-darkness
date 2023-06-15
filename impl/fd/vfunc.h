@@ -37,10 +37,10 @@ inline void *get_vfunc(call_type_t call, void *table_function, void *instance)
     return get_vtable(instance)[function_index];
 }
 
-template <call_type_t Call>
+template <call_type_t Call_T>
 void *get_vfunc(void *table_function, void *instance)
 {
-    auto function_index = get_vfunc_index(call_type_holder<Call>(), table_function, instance);
+    auto function_index = get_vfunc_index(call_type_holder<Call_T>(), table_function, instance);
     return get_vtable(instance)[function_index];
 }
 
@@ -77,7 +77,7 @@ inline void *get_vfunc(size_t function_index, void *instance)
         return instance_;   \
     }
 
-template <call_type_t Call, typename Ret, typename T, typename... Args>
+template <call_type_t Call_T, typename Ret, typename T, typename... Args>
 class vfunc
 {
     VFUNC_BASE;
@@ -88,7 +88,7 @@ class vfunc
     {
     }
 
-    vfunc(member_func_type<Call, Ret, T, Args...> function, T *instance)
+    vfunc(member_func_type<Call_T, Ret, T, Args...> function, T *instance)
         : function_(get_vfunc(function, instance))
         , instance_(instance)
     {
@@ -96,13 +96,13 @@ class vfunc
 
     /*Ret operator()(Args... args) const
     {
-        member_func_invoker<Call, Ret, T, Args...> invoker;
+        member_func_invoker<Call_T, Ret, T, Args...> invoker;
         return invoker(function_, instance_, args...);
     }*/
 };
 
-template <call_type_t Call, typename Ret, typename... Args>
-class vfunc<Call, Ret, void, Args...>
+template <call_type_t Call_T, typename Ret, typename... Args>
+class vfunc<Call_T, Ret, void, Args...>
 {
     // ReSharper disable once CppInconsistentNaming
     using T = void;
@@ -116,14 +116,14 @@ class vfunc<Call, Ret, void, Args...>
     }
 };
 
-template <call_type_t Call, typename Ret, typename T, typename... Args>
-Ret invoke(vfunc<Call, Ret, T, Args...> func, std::type_identity_t<Args>... args)
+template <call_type_t Call_T, typename Ret, typename T, typename... Args>
+Ret invoke(vfunc<Call_T, Ret, T, Args...> func, std::type_identity_t<Args>... args)
 {
-    member_func_invoker<Call, Ret, T, Args...> invoker;
+    member_func_invoker<Call_T, Ret, T, Args...> invoker;
     return invoker(func.get(), func.instance(), args...);
 }
 
-template <call_type_t Call, typename T>
+template <call_type_t Call_T, typename T>
 class unknown_vfunc_args
 {
     VFUNC_BASE;
@@ -133,7 +133,7 @@ class unknown_vfunc_args
         : function_(get_vfunc(function, instance))
         , instance_(instance)
     {
-        static_assert(function_info<Fn>::call_type == Call);
+        static_assert(function_info<Fn>::call_type == Call_T);
     }
 
     unknown_vfunc_args(size_t function_index, T *instance)
@@ -143,22 +143,22 @@ class unknown_vfunc_args
     }
 
     template <typename Ret, typename... Args>
-    vfunc<Call, Ret, T, Args...> get() const
+    vfunc<Call_T, Ret, T, Args...> get() const
     {
         return {function_, instance_};
     }
 };
 
-template <call_type_t Call, typename T, typename... Args>
-auto invoke(unknown_vfunc_args<Call, T> func, Args... args) -> member_func_return_type_resolver<Call, T, Args...>
+template <call_type_t Call_T, typename T, typename... Args>
+auto invoke(unknown_vfunc_args<Call_T, T> func, Args... args) -> member_func_return_type_resolver<Call_T, T, Args...>
 {
     return {func.get(), func.instance(), args...};
 }
 
-template <typename Ret, call_type_t Call, typename T, typename... Args>
-Ret invoke(unknown_vfunc_args<Call, T> func, Args... args)
+template <typename Ret, call_type_t Call_T, typename T, typename... Args>
+Ret invoke(unknown_vfunc_args<Call_T, T> func, Args... args)
 {
-    member_func_invoker<Call, Ret, T, Args...> invoker;
+    member_func_invoker<Call_T, Ret, T, Args...> invoker;
     return invoker(func.get(), func.instance(), args...);
 }
 
@@ -175,17 +175,17 @@ class unknown_vfunc_call
         static_assert(std::invocable<Fn, T *, Args...>);
     }
 
-    template <call_type_t Call>
-    vfunc<Call, Ret, T, Args...> get(call_type_holder<Call> = {}) const
+    template <call_type_t Call_T>
+    vfunc<Call_T, Ret, T, Args...> get(call_type_holder<Call_T> = {}) const
     {
         return {instance_, function_};
     }
 };
 
-template <call_type_t Call, typename Ret, typename T, typename... Args>
+template <call_type_t Call_T, typename Ret, typename T, typename... Args>
 Ret invoke(unknown_vfunc_call<Ret, T, Args...> func, std::type_identity_t<Args>... args)
 {
-    member_func_invoker<Call, Ret, T, Args...> invoker;
+    member_func_invoker<Call_T, Ret, T, Args...> invoker;
     return invoker(func.get(), func.instance(), args...);
 }
 
@@ -202,8 +202,8 @@ class unknown_vfunc
         static_assert(std::same_as<typename function_info<Fn>::self_type, T>);
     }
 
-    template <call_type_t Call, typename Ret, typename... Args>
-    vfunc<Call, Ret, T, Args...> get() const
+    template <call_type_t Call_T, typename Ret, typename... Args>
+    vfunc<Call_T, Ret, T, Args...> get() const
     {
         return {function_, instance_};
     }
@@ -214,8 +214,8 @@ class unknown_vfunc
         return {function_, instance_};
     }
 
-    template <call_type_t Call>
-    unknown_vfunc_args<Call, T> get() const
+    template <call_type_t Call_T>
+    unknown_vfunc_args<Call_T, T> get() const
     {
         return {function_, instance_};
     }
@@ -223,15 +223,15 @@ class unknown_vfunc
 
 #undef VFUNC_BASE
 
-template <call_type_t Call, typename Ret, typename T, typename... Args>
+template <call_type_t Call_T, typename Ret, typename T, typename... Args>
 Ret invoke(unknown_vfunc<T> func, Args... args)
 {
-    member_func_invoker<Call, Ret, T, Args...> invoker;
+    member_func_invoker<Call_T, Ret, T, Args...> invoker;
     return invoker(func.get(), func.instance(), args...);
 }
 
-template <call_type_t Call, typename T, typename... Args>
-auto invoke(unknown_vfunc<T> func, Args... args) -> member_func_return_type_resolver<Call, T, Args...>
+template <call_type_t Call_T, typename T, typename... Args>
+auto invoke(unknown_vfunc<T> func, Args... args) -> member_func_return_type_resolver<Call_T, T, Args...>
 {
     return {func.get(), func.instance(), args...};
 }
