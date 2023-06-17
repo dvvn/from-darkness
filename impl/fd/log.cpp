@@ -13,23 +13,26 @@
 #include <iostream>
 #include <mutex>
 
-using fmt::basic_string_view;
-using fmt::format_to;
-using fmt::string_view;
-using fmt::vformat_to;
-using fmt::wstring_view;
-
-constexpr auto sync_with_stdio = std::ios::sync_with_stdio;
-
 namespace fd
 {
+static thread_local small_vector<uint32_t, 512> tmp_buff;
+
 template <typename T>
-static void do_log(basic_string_view<T> text, std::basic_ostream<T> *out)
+static auto &get_buff()
+{
+    static_assert(sizeof(T) <= sizeof(uint32_t));
+    static_assert(std::is_trivial_v<T>);
+    tmp_buff.clear();
+    return reinterpret_cast<small_vector<T, 512 * (sizeof(uint32_t) / sizeof(T))> &>(tmp_buff);
+}
+
+template <typename T>
+static void do_log(fmt::basic_string_view<T> text, std::basic_ostream<T> *out)
 {
     auto time = std::chrono::system_clock::now().time_since_epoch();
 
-    small_vector<T, 128> buff;
-    auto it = std::back_inserter(buff);
+    auto &buff = get_buff<T>();
+    auto it    = std::back_inserter(buff);
 
     format_to(it, "[{:%H:%M:%S}]", time);
     buff.push_back(' ');
@@ -41,12 +44,12 @@ static void do_log(basic_string_view<T> text, std::basic_ostream<T> *out)
 }
 
 template <typename T>
-static void do_log(basic_string_view<T> fmt, auto &fmt_args, std::basic_ostream<T> *out)
+static void do_log(fmt::basic_string_view<T> fmt, auto &fmt_args, std::basic_ostream<T> *out)
 {
     auto time = std::chrono::system_clock::now().time_since_epoch();
 
-    small_vector<T, 512> buff;
-    auto it = std::back_inserter(buff);
+    auto &buff = get_buff<T>();
+    auto it    = std::back_inserter(buff);
 
     format_to(it, "[{:%H:%M:%S}]", time);
     buff.push_back(' ');
@@ -61,14 +64,14 @@ logging_activator::~logging_activator()
 {
     if (!operator bool())
         return;
-    sync_with_stdio(prev_sync_);
+    std::ios::sync_with_stdio(prev_sync_);
     auto mode_restored = _setmode(_fileno(stdout), prev_mode_) != -1;
     do_log<char>("Stopped", mode_restored ? &std::cout : &boost::nowide::cout);
 }
 
 logging_activator::logging_activator()
 {
-    prev_sync_ = sync_with_stdio(false);
+    prev_sync_ = std::ios::sync_with_stdio(false);
     do_log<char>("Started", &std::cout);
     prev_mode_ = _setmode(_fileno(stdout), _O_WTEXT);
 }
@@ -78,13 +81,13 @@ logging_activator::operator bool() const
     return prev_mode_ != -1;
 }
 
-void log(string_view fmt, fmt::format_args fmt_args, std::ostream *out)
+void log(fmt::string_view fmt, fmt::format_args fmt_args, std::ostream *out)
 {
-    //assert(out != &std::cout);
+    // assert(out != &std::cout);
     do_log(fmt, fmt_args, out ? out : &boost::nowide::cout);
 }
 
-void log(wstring_view fmt, fmt::wformat_args fmt_args, std::wostream *out)
+void log(fmt::wstring_view fmt, fmt::wformat_args fmt_args, std::wostream *out)
 {
     do_log(fmt, fmt_args, out ? out : &std::wcout);
 }

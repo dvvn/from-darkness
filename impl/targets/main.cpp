@@ -20,8 +20,10 @@
 
 namespace fd
 {
-static bool context(HINSTANCE self_handle) noexcept;
+static bool context() noexcept;
 }
+
+static HINSTANCE self_handle;
 
 #define HOOK_KNOWN_VFUNC(_NAME_, _OBJ_) BOOST_STRINGIZE(_NAME_), _OBJ_[&_NAME_]
 #define RENDER_BACKEND                  IDirect3DDevice9
@@ -30,10 +32,24 @@ static bool context(HINSTANCE self_handle) noexcept;
 static HANDLE thread;
 static DWORD thread_id;
 
+[[noreturn]]
+static void exit_context(bool success)
+{
+    FreeLibraryAndExitThread(self_handle, success ? EXIT_SUCCESS : EXIT_FAILURE);
+}
+
+static void lock_context()
+{
+    if (SuspendThread(thread) == -1)
+        exit_context(false);
+}
+
+[[noreturn]]
 static DWORD WINAPI context_proxy(LPVOID ptr)
 {
-    auto result = fd::context(static_cast<HINSTANCE>(ptr));
-    FreeLibraryAndExitThread(static_cast<HMODULE>(ptr), result ? EXIT_SUCCESS : EXIT_FAILURE);
+    self_handle  = static_cast<HINSTANCE>(ptr);
+    auto success = fd::context();
+    exit_context(success);
 }
 
 // ReSharper disable once CppInconsistentNaming
@@ -81,19 +97,8 @@ int main(int argc, char *argv[])
 }
 #endif
 
-using fd::abstract_function;
-using fd::abstract_interface;
-
-union abstract_render_vtable
+bool fd::context() noexcept
 {
-    FD_ABSTRACT_INTERFACE(abstract_render_vtable);
-    abstract_function<10, void> dummy;
-};
-
-bool fd::context(HINSTANCE self_handle) noexcept
-{
-    (void)self_handle;
-
 #ifdef _DEBUG
 #ifdef FD_SHARED_LIB
     system_console console;

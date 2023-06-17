@@ -1,6 +1,10 @@
 ﻿#include "hook.h"
 #include "log.h"
 
+#ifdef _DEBUG
+#include "tool/string_view.h"
+#endif
+
 #include <algorithm>
 #include <cassert>
 #include <ranges>
@@ -601,6 +605,11 @@ struct fmt::formatter<MH_STATUS> : formatter<string_view>
 };
 #endif
 
+using std::ranges::all_of;
+using std::ranges::for_each;
+using std::views::reverse;
+using std::views::transform;
+
 namespace fd
 {
 #if 0
@@ -777,11 +786,6 @@ static bool mh_action(auto &name, mh_function<> action)
     return status == MH_OK;
 }
 
-using std::ranges::all_of;
-using std::ranges::for_each;
-using std::views::reverse;
-using std::views::transform;
-
 template <typename Fn>
 static auto handle_callback(auto &callback, Fn fn)
 {
@@ -832,7 +836,7 @@ hook_info basic_hook_data::info() const
 basic_hook_data::basic_hook_data(hook_name name, void *target)
     :
 #ifdef _DEBUG
-    name_((name))
+    name_(name)
     ,
 #endif
     target_(target)
@@ -858,6 +862,9 @@ void *hook_context::create_trampoline(hook_name name, void *target, void *replac
     {
         error_handler_(nullptr);
     }*/
+
+    ignore_unused<hook_context *>(this, created);
+
     return trampoline;
 }
 
@@ -901,5 +908,4 @@ size_t hook_context::size() const
 {
     return storage_.size();
 }
-
 } // namespace fd

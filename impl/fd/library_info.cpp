@@ -1,4 +1,5 @@
 ﻿#include "library_info.h"
+#include "log.h"
 #include "mem_scanner.h"
 #include "tool/functional.h"
 #include "tool/span.h"
@@ -11,6 +12,17 @@
 #include <winternl.h>
 
 #include <cassert>
+
+namespace fd
+{
+class rtti_descriptor_finder;
+}
+
+template <>
+struct fmt::formatter<fd::rtti_descriptor_finder> : formatter<string_view>
+{
+    auto format(fd::rtti_descriptor_finder const &finder, format_context &ctx) const -> format_context::iterator;
+};
 
 namespace fd
 {
@@ -280,7 +292,7 @@ void *system_library::function(string_view name) const
     for (size_t offset = 0; offset != last_offset; ++offset)
     {
         auto view = export_view(offset, &edata);
-        if ((view.name() == name))
+        if (view.name() == name)
             return view.function();
     }
     return nullptr;
@@ -295,7 +307,7 @@ void *system_library::pattern(string_view pattern) const
 static system_section_header find_section(IMAGE_NT_HEADERS *nt, string_view name)
 {
     auto begin = IMAGE_FIRST_SECTION(nt);
-    auto end   = begin + (nt->FileHeader.NumberOfSections);
+    auto end   = begin + nt->FileHeader.NumberOfSections;
 
     for (; begin != end; ++begin)
     {
@@ -318,57 +330,87 @@ static auto memory_range(IMAGE_DOS_HEADER *dos, system_section_header header)
     return std::pair{begin, begin + length};
 }
 
-static void *find_rtti_descriptor(IMAGE_NT_HEADERS *nt, string_view class_name)
+class rtti_descriptor_finder
 {
-    auto make_sample = []<typename T, typename... Args>(T arg1, Args... args) {
-        using std::ranges::range;
-        using std::ranges::range_value_t;
+    string_view class_name_;
+    void *found_;
 
-        auto prepare_buffer = [] {
-            if constexpr (range<T>)
-                return static_vector<range_value_t<T>, 64>();
-            else
-                return static_vector<std::decay_t<T>, 64>();
-        };
-
-        auto buffer = prepare_buffer();
-        auto writer = [&]<typename A>(A const &arg) {
-            if constexpr (range<A>)
-                std::copy(std::begin(arg), std::end(arg) - std::is_bounded_array_v<A>, std::back_inserter(buffer));
-            else
-                buffer.push_back(arg);
-        };
-        writer(".?A");
-        writer(arg1);
-        (writer(args), ...);
-        writer("@@");
-        return buffer;
-    };
-
-    auto [begin, end] = memory_range(nt);
-
-    auto space = class_name.find(' ');
-    if (space != class_name.npos)
+  public:
+    rtti_descriptor_finder(IMAGE_NT_HEADERS *nt, string_view class_name)
+        : class_name_(class_name)
     {
-        char type_info;
-        auto type_name = class_name.substr(0, space - 1);
-        if (type_name == "struct")
-            type_info = 'U';
-        else if (type_name == "class")
-            type_info = 'V';
+        auto do_find = [this, nt]<typename P>(P symbol) {
+            static_vector<P, 64> full_descriptor;
+
+            auto writer = [&]<typename A>(A const &arg) {
+                if constexpr (std::convertible_to<A, P>)
+                    full_descriptor.push_back(arg);
+                else
+                    std::copy(
+                        std::begin(arg),
+                        std::end(arg) - std::is_bounded_array_v<A>, //
+                        std::back_inserter(full_descriptor));
+            };
+
+            writer(".?A");
+            writer(symbol);
+            writer(class_name_);
+            writer("@@");
+
+            auto [begin, end] = memory_range(nt);
+            if constexpr (std::same_as<P, special_pattern_tag>)
+                found_ = find_pattern(begin, end, full_descriptor.data(), full_descriptor.size());
+            else
+                found_ = find_bytes(begin, end, full_descriptor.data(), full_descriptor.size());
+        };
+
+        if (auto space = class_name.find(' '); space == class_name.npos)
+            do_find(special_pattern_gap);
         else
-            std::unreachable();
-        auto sample = make_sample(type_info, class_name.substr(space));
-        return find_bytes(begin, end, sample.data(), sample.size());
+        {
+            auto info   = class_name.substr(0, space - 1);
+            class_name_ = class_name.substr(space);
+
+            if (info == "struct")
+                do_find('U');
+            else if (info == "class")
+                do_find('V');
+            else
+                std::unreachable();
+        }
     }
 
-    auto sample = make_sample(special_pattern_gap, class_name);
-    return find_pattern(begin, end, sample.data(), sample.size());
-}
+    operator void *() const
+    {
+        return found_;
+    }
+
+    void *get() const
+    {
+        return found_;
+    }
+
+    string_view name() const
+    {
+        return class_name_;
+    }
+
+    string_view raw_name() const
+    {
+        return {static_cast<char *>(found_), 3 /*.?A*/ + 1 /*U\V*/ + class_name_.length() + 2 /*@@*/};
+    }
+};
 
 void *system_library::rtti_descriptor(string_view class_name) const
 {
-    return find_rtti_descriptor(get_nt(entry_), class_name);
+    rtti_descriptor_finder finder(get_nt(entry_), class_name);
+
+    if (finder)
+        log("rtti descriptor {} found", finder);
+    else
+        log("rtti descriptor {} not found", finder);
+
+    return finder;
 }
 
 void *system_library::vtable(string_view name) const
@@ -376,8 +418,10 @@ void *system_library::vtable(string_view name) const
     auto dos = get_dos(entry_);
     auto nt  = get_nt(dos);
 
+    rtti_descriptor_finder rtti_finder(nt, name);
+
     // get rtti type descriptor
-    auto type_descriptor = reinterpret_cast<uintptr_t>(find_rtti_descriptor(nt, name));
+    auto type_descriptor = reinterpret_cast<uintptr_t>(rtti_finder.get());
     // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string
     type_descriptor -= sizeof(uintptr_t) * 2;
 
@@ -398,6 +442,56 @@ void *system_library::vtable(string_view name) const
     auto addr2          = find_xref(rdata_begin, rdata_end, object_locator) + 0x4;
     // check is valid offset
     assert(addr2 != 0x4);
-    return reinterpret_cast<void *>(find_xref(text_begin, text_end, addr2));
+    auto found = reinterpret_cast<void *>(find_xref(text_begin, text_end, addr2));
+
+    if (found)
+        log("vtable {} found", rtti_finder);
+    else
+        log("vtable {} NOT found", rtti_finder);
+
+    return found;
 }
+
+} // namespace fd
+
+auto fmt::formatter<fd::rtti_descriptor_finder>::format(
+    fd::rtti_descriptor_finder const &finder,
+    format_context &ctx) const -> format_context::iterator
+{
+    if (!finder)
+        return formatter<string_view>::format(unwrap(finder.name()), ctx);
+
+    fd::small_vector<char, 64> buff;
+    format_to(std::back_inserter(buff), "{} ({})", finder.name(), finder.raw_name());
+    return formatter<string_view>::format({buff.data(), buff.size()}, ctx);
 }
+
+#ifdef _DEBUG
+
+static thread_local fd::small_vector<char, 128> fmt_args_buff;
+
+fmt::string_view fd::system_library::merge_fmt_args(fmt::string_view fmt) const
+{
+    auto n = name();
+
+    fmt_args_buff.resize(n.length() + 2 + fmt.size());
+    auto begin = fmt_args_buff.data();
+    auto it    = begin;
+
+    it    = std::copy(n.begin(), n.end(), it);
+    *it++ = ':';
+    *it++ = ' ';
+    it    = std::copy(fmt.begin(), fmt.end(), it);
+    return {begin, static_cast<size_t>(std::distance(begin, it))};
+}
+
+auto fmt::formatter<fd::system_library::bound_name>::format(
+    fd::system_library::bound_name binder,
+    format_context &ctx) const -> format_context::iterator
+{
+    auto name = binder();
+    fd::small_vector<char, 32> buff;
+    buff.assign(name.begin(), name.end());
+    return formatter<string_view>::format({buff.data(), buff.size()}, ctx);
+}
+#endif

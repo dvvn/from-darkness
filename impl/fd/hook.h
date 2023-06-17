@@ -184,6 +184,7 @@ struct basic_hook_lazy_proxy : basic_hook_lazy
 
 using hook_name = char const *;
 
+
 class basic_hook_data : public basic_hook_proxy, public basic_hook_lazy_proxy
 {
 #ifdef _DEBUG

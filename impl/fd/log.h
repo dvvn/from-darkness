@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "core.h"
+#include "tool/core.h"
 
 #include <fmt/format.h>
 #include <fmt/xchar.h>
@@ -8,8 +9,13 @@
 #include <iosfwd>
 
 #ifdef _DEBUG
-FMT_BEGIN_NAMESPACE
+namespace std
+{
+template <class T>
+struct is_bind_expression;
+}
 
+FMT_BEGIN_NAMESPACE
 using u8string_view = basic_string_view<char8_t>;
 
 template <typename... Args>
@@ -40,6 +46,26 @@ struct formatter<T, char8_t> : private formatter<string_view>
         formatter<string_view>::format(str, reinterpret_cast<format_context &>(ctx));
         return ctx.out();
     }
+};
+
+template <typename Fn, typename C>
+requires(std::is_bind_expression<Fn>::value && is_formattable<std::invoke_result_t<Fn>, C>::value)
+struct formatter<Fn, C> : formatter<std::decay_t<std::invoke_result_t<Fn>>, C>
+{
+    auto format(auto &binder, auto &ctx) const -> decltype(ctx.out())
+    {
+        return formatter<std::decay_t<decltype(binder())>, C>::format(binder(), ctx);
+    }
+};
+
+template <fd::wrapped T, typename C>
+struct formatter<T, C, enable_if_t<is_formattable<typename T::__fd_wrapped, C>::value>>
+    : formatter<typename T::__fd_wrapped, C>
+{
+    /*auto format(typename T::__fd_wrapped const &unwrapped, auto &ctx) const -> decltype(ctx.out())
+    {
+        return formatter<typename T::__fd_wrapped, C>::format(unwrapped, ctx);
+    }*/
 };
 
 FMT_END_NAMESPACE
@@ -82,7 +108,7 @@ void log(fmt::wformat_string<Args...> fmt, Args &&...args)
     log(fmt.get(), fmt::wformat_args(fmt::make_wformat_args(args...)));
 }
 #else
-void log(...)
+void log(auto &&...)
 {
 }
 #endif

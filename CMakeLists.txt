@@ -29,10 +29,6 @@ set(FD_IMPL_DIR ${FD_ROOT_DIR}/impl)
 set(FD_DIR ${FD_IMPL_DIR}/fd)
 set(FD_OUT_DIR ${FD_ROOT_DIR}/.out/${CMAKE_BUILD_TYPE})
 
-#set(CMAKE_CXX_LINK_OPTIONS_IPO "")
-#set(CMAKE_CXX_COMPILE_OPTIONS_IPO "")
-#set(CMAKE_CXX_CREATE_STATIC_LIBRARY_IPO "")
-
 include(ProcessorCount)
 ProcessorCount(_CPUS)
 message(DEBUG "Cpu's count: ${_CPUS}")

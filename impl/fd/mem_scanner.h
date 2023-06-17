@@ -8,6 +8,10 @@ using find_filter = basic_callback<bool>;
 template <typename Arg, typename Fn>
 using find_callback = callback<bool, callback_function_proxy<Arg, std::reference_wrapper<Fn>>>;
 
+using raw_pattern_tag     = char;
+using raw_bytes_tag       = void;
+using special_pattern_tag = char16_t;
+
 using raw_pattern     = char const *;
 using raw_bytes       = void const *;
 using special_pattern = char16_t const *;

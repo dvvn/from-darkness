@@ -12,7 +12,7 @@ struct valve_library : system_library
 
     void *interface(string_view name) const;
 
-    template <class T>
+    /*template <class T>
     T interface(string_view name) const
     {
         auto found = interface(name);
@@ -20,6 +20,6 @@ struct valve_library : system_library
             return static_cast<T>(found);
         else
             return found;
-    }
+    }*/
 };
 } // namespace fd
