@@ -24,4 +24,7 @@ using std::bind_back;
 using std::bind_front;
 
 using boost::hana::overload;
+
+//template <typename Fn>
+//FD_WRAP_TOOL(function, std::function<Fn>);
 }

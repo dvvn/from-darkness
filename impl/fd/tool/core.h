@@ -5,6 +5,8 @@
 #define FD_WRAP_TOOL_SIMPLE(_WRAPPED_, ...) \
     struct _WRAPPED_ : __VA_ARGS__          \
     {                                       \
+        using __fd_wrapped = __VA_ARGS__;   \
+        using __fd_wrapped::__fd_wrapped;   \
     };
 
 #define FD_WRAP_TOOL_BEGIN(_WRAPPED_, ...)                     \

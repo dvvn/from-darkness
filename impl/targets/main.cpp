@@ -1,12 +1,11 @@
 ﻿#include "own_backend.h"
 
 #include <fd/console.h>
+#include <fd/entity_cache.h>
 #include <fd/hook.h>
 #include <fd/library_info.h>
 #include <fd/log.h>
 #include <fd/netvar_storage.h>
-#include <fd/players/cache.h>
-#include <fd/players/valve_entity_finder.h>
 #include <fd/render/context.h>
 #include <fd/tool/string_view.h>
 #include <fd/valve/client.h>
@@ -38,10 +37,14 @@ static void exit_context(bool success)
     FreeLibraryAndExitThread(self_handle, success ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
-static void lock_context()
+static bool lock_context()
 {
-    if (SuspendThread(thread) == -1)
-        exit_context(false);
+    return SuspendThread(thread) != -1;
+}
+
+static bool unlock_context()
+{
+    return ResumeThread(thread) != -1;
 }
 
 [[noreturn]]
@@ -89,10 +92,9 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
 
 int main(int argc, char *argv[])
 {
-    (void)argc;
-    (void)argv;
-
-    auto result = fd::context(GetModuleHandle(nullptr));
+    ignoer_unised(argc, argv);
+    self_handle = GetModuleHandle(nullptr);
+    auto result = fd::context();
     return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 #endif
@@ -151,14 +153,13 @@ bool fd::context() noexcept
     valve::vgui_surface v_gui(vgui_dll.interface("VGUI_Surface"));
     valve::entity_list v_ent_list(client_dll.interface("VClientEntityList"));
 
-    valve_entity_finder entity_finder(&v_ent_list);
+    native_entity_finder entity_finder(bind(v_ent_list.get_client_entity, placeholders::_1));
     entity_cache cached_entity(&entity_finder);
 
     // todo: check if ingame and use exisiting player
     valve::entity csplayer_vtable(client_dll.vtable("C_CSPlayer"));
 
     netvar_storage netvars;
-
     netvars.store(v_client.get_all_classes());
     netvars.store(csplayer_vtable.get_desc_data_map());
     netvars.store(csplayer_vtable.get_prediction_data_map());
@@ -245,6 +246,11 @@ bool fd::context() noexcept
 
 #ifdef USE_OWN_RENDER_BACKEND
     if (!own_render.run())
+        return false;
+#endif
+
+#ifdef FD_SHARED_LIB
+    if (!lock_context())
         return false;
 #endif
 

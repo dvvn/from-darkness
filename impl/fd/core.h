@@ -1,9 +1,25 @@
 #pragma once
 
 #include <boost/core/ignore_unused.hpp>
-#include <boost/noncopyable.hpp>
+#include <boost/core/noncopyable.hpp>
+#include <boost/move/detail/iterator_to_raw_pointer.hpp>
 
 #include <utility>
+
+#ifdef _MSC_VER
+namespace boost::movelib::detail
+{
+template <class It>
+requires(std::_Unwrappable_v<It>)
+// ReSharper disable once CppRedundantInlineSpecifier
+BOOST_MOVE_FORCEINLINE auto iterator_to_pointer(It const &it)
+{
+    return iterator_to_pointer(std::_Get_unwrapped(it));
+}
+} // namespace boost::movelib::detail
+#else
+
+#endif
 
 namespace fd
 {
@@ -63,4 +79,5 @@ void *get_function_pointer(Fn function)
 using boost::ignore_unused;
 using boost::noncopyable;
 
+using boost::movelib::iterator_to_raw_pointer;
 } // namespace fd
