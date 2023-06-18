@@ -187,4 +187,10 @@ bool own_render_backend::run()
             device.reset();
     }
 }
+
+bool own_render_backend::stop()
+{
+    ignore_unused(this);
+    return PostMessage(hwnd, WM_QUIT, 0, 0);
+}
 } // namespace fd

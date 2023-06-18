@@ -6,6 +6,12 @@
 
 #include <cctype>
 
+static bool isdigit(char c)
+{
+    // locale's anywway unused
+    return c >= '0' && c <= '9';
+}
+
 namespace fd
 {
 class basic_found_valve_interface;
@@ -28,7 +34,7 @@ struct fmt::formatter<T, C> : formatter<basic_string_view<C>, C>
             if constexpr (std::same_as<C, char>)
                 return base::format({name.data(), name.size()}, ctx);
             else
-                std::copy(name.begin(), name.end(), std::back_inserter(buff));
+                buff.assign(name.begin(), name.end());
         }
         return base::format({buff.data(), buff.size()}, ctx);
     }

@@ -57,13 +57,13 @@ void cached_players_range::clear()
     range_.clear();
 }
 
-entity_cache::entity_cache(basic_native_entity_finder *valve_entity_finder, bool already_synced)
+entity_cache::entity_cache(basic_native_entity_finder *valve_entity_finder, bool sync_wanted)
     : find_native_entity_(valve_entity_finder)
 {
-    if (already_synced)
-        synced_ = true;
+    if (sync_wanted)
+        request_sync();
     else
-        sync_request();
+        synced_ = true;
 }
 
 void entity_cache::add(game_entity_index index)
@@ -99,11 +99,19 @@ void entity_cache::remove(game_entity_index index)
     }
 }
 
+bool entity_cache::synced() const
+{
+    return synced_;
+}
+
+void entity_cache::mark_synced()
+{
+    synced_ = true;
+}
+
 void entity_cache::sync(game_entity_index last_entity)
 {
-    if (synced_)
-        return;
-
+    assert(last_entity != 0);
     for (game_entity_index::size_type idx = 0;;)
     {
         add(idx);
@@ -111,10 +119,9 @@ void entity_cache::sync(game_entity_index last_entity)
             break;
         ++idx;
     }
-    synced_ = true;
 }
 
-void entity_cache::sync_request()
+void entity_cache::request_sync()
 {
     synced_ = false;
 
@@ -125,6 +132,6 @@ void entity_cache::sync_request()
 void entity_cache::clear()
 {
     players_.clear();
-    sync_request();
+    request_sync();
 }
 }

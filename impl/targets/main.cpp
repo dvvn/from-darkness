@@ -13,6 +13,7 @@
 #include <fd/valve/entity.h>
 #include <fd/valve/entity_handle.h>
 #include <fd/valve/entity_list.h>
+#include <fd/valve/global_vars.h>
 #include <fd/valve/vgui.h>
 #include <fd/valve_library_info.h>
 #include <fd/vtable.h>
@@ -42,7 +43,7 @@ static bool lock_context()
     return SuspendThread(thread) != -1;
 }
 
-static bool unlock_context()
+static bool resume_context()
 {
     return ResumeThread(thread) != -1;
 }
@@ -88,11 +89,10 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
 }
 
 #else
-#define USE_OWN_RENDER_BACKEND
-
 int main(int argc, char *argv[])
 {
-    ignoer_unised(argc, argv);
+    (void)argc;
+    (void)argv;
     self_handle = GetModuleHandle(nullptr);
     auto result = fd::context();
     return result ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -116,15 +116,7 @@ bool fd::context() noexcept
     HWND window;
     WNDPROC window_proc;
 
-#ifdef USE_OWN_RENDER_BACKEND
-    own_render_backend own_render(L"Unnamed", self_handle);
-    if (!own_render.initialized())
-        return false;
-
-    render_vtable = own_render.device.get();
-    window        = own_render.hwnd;
-    window_proc   = own_render.info.lpfnWndProc;
-#else
+#ifdef FD_SHARED_LIB
     auto shader_api_dll = system_library(L"shaderapidx9.dll");
     render_vtable       = [&] {
         auto val = shader_api_dll.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
@@ -136,10 +128,17 @@ bool fd::context() noexcept
     window      = creation_parameters.hFocusWindow;
     window_proc = reinterpret_cast<WNDPROC>(GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC));
 
+#else
+    own_render_backend own_render(L"Unnamed", self_handle);
+    if (!own_render.initialized())
+        return false;
+
+    render_vtable = own_render.device.get();
+    window        = own_render.hwnd;
+    window_proc   = own_render.info.lpfnWndProc;
 #endif
 
     render_context render;
-
     if (!render.init(window, render_vtable.instance()))
         return false;
 
@@ -148,18 +147,17 @@ bool fd::context() noexcept
     valve_library engine_dll(L"engine.dll");
     valve_library vgui_dll(L"vguimatsurface.dll");
 
-    valve::client v_client(client_dll.interface("VClient"));
-    valve::engine v_engine(engine_dll.interface("VEngineClient"));
-    valve::vgui_surface v_gui(vgui_dll.interface("VGUI_Surface"));
-    valve::entity_list v_ent_list(client_dll.interface("VClientEntityList"));
+    auto v_client   = client_dll.interface<valve::client>("VClient");
+    auto v_engine   = engine_dll.interface<valve::engine>("VEngineClient");
+    auto v_gui      = vgui_dll.interface<valve::vgui_surface>("VGUI_Surface");
+    auto v_ent_list = client_dll.interface<valve::entity_list>("VClientEntityList");
+    auto v_globals  = **static_cast<valve::IGlobalVarsBase ***>(v_client[11] + 0xA);
 
     native_entity_finder entity_finder(bind(v_ent_list.get_client_entity, placeholders::_1));
-    entity_cache cached_entity(&entity_finder, !v_engine.in_game());
+    entity_cache cached_entity(&entity_finder, v_engine.in_game());
 
-    // todo: check if ingame and use exisiting player
     valve::entity csplayer_vtable(
-        v_engine.in_game() ? v_ent_list.get_client_entity(v_engine.local_player_index())
-                           : client_dll.vtable("C_CSPlayer"));
+        v_engine.in_game() ? entity_finder.get(v_engine.local_player_index()) : client_dll.vtable("C_CSPlayer"));
 
     netvar_storage netvars;
     netvars.store(v_client.get_all_classes());
@@ -168,30 +166,25 @@ bool fd::context() noexcept
 #endif
 
     hook_context hooks;
-    hooks.create("WinAPI.WndProc", window_proc, [&](auto orig, auto... args) -> LRESULT {
-        using result_t = render_context::process_result;
-        result_t pmr;
-        render.process_message(args..., &pmr);
-        switch (pmr)
-        {
-        case result_t::idle:
-            return orig(args...);
-        case result_t::updated:
-            return DefWindowProc(args...);
-        case result_t::locked:
-            return TRUE;
-        default:
-            std::unreachable();
-        }
-    });
-#ifndef USE_OWN_RENDER_BACKEND
-    hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Release, render_vtable), [&](auto &&orig) {
-        auto refs = orig();
-        if (refs == 0)
-            render.detach();
-        return refs;
-    });
-#endif
+    hooks.create(
+        "WinAPI.WndProc",
+        window_proc,
+        [&render, def = IsWindowUnicode(window) ? DefWindowProcW : DefWindowProcA](auto orig, auto... args) -> LRESULT {
+            using result_t = render_context::process_result;
+            result_t pmr;
+            render.process_message(args..., &pmr);
+            switch (pmr)
+            {
+            case result_t::idle:
+                return orig(args...);
+            case result_t::updated:
+                return def(args...);
+            case result_t::locked:
+                return TRUE;
+            default:
+                std::unreachable();
+            }
+        });
     hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Reset, render_vtable), [&](auto &&orig, auto... args) {
         render.reset();
         return orig(args...);
@@ -199,15 +192,45 @@ bool fd::context() noexcept
     hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Present, render_vtable), [&](auto &&orig, auto... args) {
         if (auto frame = render.new_frame())
         {
-            // #ifndef IMGUI_DISABLE_DEMO_WINDOWS
+#ifndef IMGUI_DISABLE_DEMO_WINDOWS
             ImGui::ShowDemoWindow();
-            // #endif
+#endif
+            if (ImGui::Button("Close"))
+            {
+#ifdef FD_SHARED_LIB
+                resume_context();
+#else
+                own_render.stop();
+#endif
+            }
         }
         return orig(args...);
     });
 #ifdef FD_SHARED_LIB
-    // todo: hook FSN
-    // cached_entity.sync()
+    hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Release, render_vtable), [&](auto &&orig) {
+        auto refs = orig();
+        if (refs == 0)
+            render.detach();
+        return refs;
+    });
+    hooks.create(
+        "CHLClient::FrameStageNotify",
+        v_client[37].get<void, valve::frame_stage>(),
+        [&](auto &&orig, valve::frame_stage stage) {
+            if (v_engine.in_game())
+            {
+                using valve::frame_stage;
+                if (stage == frame_stage::render_start)
+                {
+                    if (!cached_entity.synced())
+                    {
+                        cached_entity.sync(v_ent_list.max_entities());
+                        cached_entity.mark_synced();
+                    }
+                }
+            }
+            orig(stage);
+        });
     hooks.create("VGUI.ISurface::LockCursor", v_gui.lock_cursor, [&](auto &&orig) {
         // if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
         //{
@@ -217,7 +240,6 @@ bool fd::context() noexcept
         orig();
     });
     hooks.create("CHLClient::CreateMove", v_client[22].get<void, int, int, int>(), [&](auto &&orig, auto... args) {
-        //
         orig(args...);
     });
     using entity_list_callback = void(__thiscall *)(void *, void *, valve::entity_handle);
@@ -247,13 +269,11 @@ bool fd::context() noexcept
         return false;
 #endif
 
-#ifdef USE_OWN_RENDER_BACKEND
-    if (!own_render.run())
-        return false;
-#endif
-
 #ifdef FD_SHARED_LIB
     if (!lock_context())
+        return false;
+#else
+    if (!own_render.run())
         return false;
 #endif
 

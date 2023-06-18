@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fd/comptr.h>
+#include <fd/core.h>
 
 #include <Windows.h>
 #include <d3d9.h>
@@ -31,7 +32,7 @@ struct own_render_wnd_class : WNDCLASSEX
     own_render_wnd_class(LPCTSTR name, HMODULE handle);
 };
 
-struct own_render_backend
+struct own_render_backend : noncopyable
 {
     using device_type = d3d_device9;
 
@@ -46,5 +47,6 @@ struct own_render_backend
 
     bool initialized() const;
     bool run();
+    bool stop();
 };
 } // namespace fd

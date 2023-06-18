@@ -65,10 +65,13 @@ class entity_cache
     bool synced_;
 
   public:
-    entity_cache(basic_native_entity_finder *valve_entity_finder, bool already_synced);
+    entity_cache(basic_native_entity_finder *valve_entity_finder, bool sync_wanted);
 
     void add(game_entity_index index);
     void remove(game_entity_index index);
+
+    bool synced() const;
+    void mark_synced();
 
     /**
      * \brief sync with game's entity list
@@ -77,7 +80,7 @@ class entity_cache
     /**
      * \brief clear everything except root list (fo example on map change)
      */
-    void sync_request();
+    void request_sync();
     /**
      * \brief clear EVERYTHING and wait for sync
      */

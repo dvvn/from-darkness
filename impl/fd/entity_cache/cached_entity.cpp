@@ -27,6 +27,8 @@ void cached_entity::detach()
 
 game_entity_index cached_entity::index() const
 {
+    // not implemented
+    std::unreachable();
 }
 
 } // namespace fd

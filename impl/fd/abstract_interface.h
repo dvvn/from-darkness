@@ -5,7 +5,6 @@
 
 namespace fd
 {
-
 template <class T>
 struct abstract_interface : vtable<void>, noncopyable
 {
@@ -66,7 +65,7 @@ struct make_unnamed<named<T, Name>>
     using type = T;
 };
 
-struct abstract_function_tag : noncopyable
+struct abstract_function_tag /*: noncopyable*/
 {
 };
 
@@ -106,19 +105,20 @@ class abstract_function : public abstract_function_tag
     }
 };
 
-#if 0
-template <typename T>
-concept has_abstract_interface = requires(T object) {
-    []<typename Q>(abstract_interface<Q> const &) {
-    }(object.vtable);
-};
-
-template <has_abstract_interface T>
-auto get(T const &object, auto index) -> decltype(object.vtable[index])
-{
-    return object.vtable[index];
-}
-#endif
+//template <typename T>
+//concept is_abstract_interface = std::is_union_v<T> && requires(T object) {
+//    []<typename Q>(abstract_interface<Q> const &) {
+//    }(object.vtable);
+//};
+//
+//template <typename T>
+//constexpr bool is_abstract_interface_v = is_abstract_interface<T>;
+//
+//template <is_abstract_interface T>
+//auto get(T const &object, auto index) -> decltype(object.vtable[index])
+//{
+//    return object.vtable[index];
+//}
 
 #define FD_ABSTRACT_INTERFACE(_NAME_)                                         \
     template <size_t Index, typename Ret, typename... Args>                   \

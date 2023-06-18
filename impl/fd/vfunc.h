@@ -2,6 +2,7 @@
 
 #include "call_type.h"
 #include "core.h"
+#include "valve/global_vars.h"
 
 #include <concepts>
 
@@ -146,6 +147,11 @@ class unknown_vfunc_args
     vfunc<Call_T, Ret, T, Args...> get() const
     {
         return {function_, instance_};
+    }
+
+    void* operator+(size_t offset) const
+    {
+        return static_cast<uint8_t *>(function_)+offset;
     }
 };
 

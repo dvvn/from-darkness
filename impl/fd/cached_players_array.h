@@ -9,6 +9,7 @@ namespace fd
 struct basic_cached_players_array
 {
     using pointer = cached_player const *;
-    virtual pointer operator[](own_player_index index) const;
+
+    virtual pointer operator[](own_player_index index) const = 0;
 };
 } // namespace fd
