@@ -154,10 +154,12 @@ bool fd::context() noexcept
     valve::entity_list v_ent_list(client_dll.interface("VClientEntityList"));
 
     native_entity_finder entity_finder(bind(v_ent_list.get_client_entity, placeholders::_1));
-    entity_cache cached_entity(&entity_finder);
+    entity_cache cached_entity(&entity_finder, !v_engine.in_game());
 
     // todo: check if ingame and use exisiting player
-    valve::entity csplayer_vtable(client_dll.vtable("C_CSPlayer"));
+    valve::entity csplayer_vtable(
+        v_engine.in_game() ? v_ent_list.get_client_entity(v_engine.local_player_index())
+                           : client_dll.vtable("C_CSPlayer"));
 
     netvar_storage netvars;
     netvars.store(v_client.get_all_classes());
@@ -166,7 +168,6 @@ bool fd::context() noexcept
 #endif
 
     hook_context hooks;
-
     hooks.create("WinAPI.WndProc", window_proc, [&](auto orig, auto... args) -> LRESULT {
         using result_t = render_context::process_result;
         result_t pmr;
@@ -205,6 +206,8 @@ bool fd::context() noexcept
         return orig(args...);
     });
 #ifdef FD_SHARED_LIB
+    // todo: hook FSN
+    // cached_entity.sync()
     hooks.create("VGUI.ISurface::LockCursor", v_gui.lock_cursor, [&](auto &&orig) {
         // if (hack_menu.visible() && !this_ptr->IsCursorVisible() /*&& ifc.engine->IsInGame()*/)
         //{
