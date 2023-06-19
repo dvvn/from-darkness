@@ -2,6 +2,6 @@
 
 namespace fd::valve
 {
-static_assert(sizeof(IGlobalVarsBase) == 0x40);
-static_assert(sizeof(IGlobalVars) == 0x64);
+static_assert(sizeof(global_vars_base) == 0x40);
+static_assert(sizeof(global_vars) == 0x64);
 } // namespace fd::valve

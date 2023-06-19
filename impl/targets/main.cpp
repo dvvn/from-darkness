@@ -18,6 +18,8 @@
 #include <fd/valve_library_info.h>
 #include <fd/vtable.h>
 
+//#define FD_SHARED_LIB
+
 namespace fd
 {
 static bool context() noexcept;
@@ -117,11 +119,10 @@ bool fd::context() noexcept
     WNDPROC window_proc;
 
 #ifdef FD_SHARED_LIB
-    auto shader_api_dll = system_library(L"shaderapidx9.dll");
-    render_vtable       = [&] {
-        auto val = shader_api_dll.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C");
-        return **reinterpret_cast<IDirect3DDevice9 ***>(static_cast<uint8_t *>(val) + 1);
-    }();
+    system_library shader_api_dll(L"shaderapidx9.dll");
+    render_vtable = **reinterpret_cast<IDirect3DDevice9 ***>(
+        shader_api_dll.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
+
     D3DDEVICE_CREATION_PARAMETERS creation_parameters;
     if (FAILED(render_vtable->GetCreationParameters(&creation_parameters)))
         return false;
@@ -147,11 +148,11 @@ bool fd::context() noexcept
     valve_library engine_dll(L"engine.dll");
     valve_library vgui_dll(L"vguimatsurface.dll");
 
-    auto v_client   = client_dll.interface<valve::client>("VClient");
-    auto v_engine   = engine_dll.interface<valve::engine>("VEngineClient");
-    auto v_gui      = vgui_dll.interface<valve::vgui_surface>("VGUI_Surface");
-    auto v_ent_list = client_dll.interface<valve::entity_list>("VClientEntityList");
-    auto v_globals  = **static_cast<valve::IGlobalVarsBase ***>(v_client[11] + 0xA);
+    valve::client v_client(client_dll.interface("VClient"));
+    valve::engine v_engine(engine_dll.interface("VEngineClient"));
+    valve::vgui_surface v_gui(vgui_dll.interface("VGUI_Surface"));
+    valve::entity_list v_ent_list(client_dll.interface("VClientEntityList"));
+    auto v_globals = **static_cast<valve::global_vars_base ***>(v_client[11] + 0xA);
 
     native_entity_finder entity_finder(bind(v_ent_list.get_client_entity, placeholders::_1));
     entity_cache cached_entity(&entity_finder, v_engine.in_game());

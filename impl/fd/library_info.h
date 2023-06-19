@@ -47,7 +47,7 @@ class system_library
     system_string_view path() const;
     span<uint8_t> memory() const;
     void *function(string_view name) const;
-    void *pattern(string_view pattern) const;
+    uint8_t *pattern(string_view pattern) const;
     system_section_header section(string_view name) const;
     void *rtti_descriptor(string_view class_name) const;
     void *vtable(string_view name) const;

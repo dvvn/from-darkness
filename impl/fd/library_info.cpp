@@ -291,36 +291,42 @@ void *system_library::function(string_view name) const
     size_t last_offset = std::min(edata->NumberOfNames, edata->NumberOfFunctions);
     for (size_t offset = 0; offset != last_offset; ++offset)
     {
-        auto view = export_view(offset, &edata);
+        export_view view(offset, &edata);
         if (view.name() == name)
             return view.function();
     }
     return nullptr;
 }
 
-void *system_library::pattern(string_view pattern) const
+uint8_t *system_library::pattern(string_view pattern) const
 {
     auto [begin, end] = memory_range(entry_);
-    return find_pattern(begin, end, pattern.data(), pattern.length());
+    return static_cast<uint8_t *>(find_pattern(begin, end, pattern.data(), pattern.length()));
 }
 
-static system_section_header find_section(IMAGE_NT_HEADERS *nt, string_view name)
+static system_section_header find_section(IMAGE_NT_HEADERS *nt, char const *name, size_t name_length)
 {
     auto begin = IMAGE_FIRST_SECTION(nt);
     auto end   = begin + nt->FileHeader.NumberOfSections;
 
     for (; begin != end; ++begin)
     {
-        if (reinterpret_cast<char *>(begin->Name) == name)
+        if (begin->Name[name_length] == '\0' && memcmp(begin->Name, name, name_length) == 0)
             return begin;
     }
 
     return nullptr;
 }
 
+template <size_t S>
+static system_section_header find_section(IMAGE_NT_HEADERS *nt, char const (&name)[S])
+{
+    return find_section(nt, name, S - 1);
+}
+
 system_section_header system_library::section(string_view name) const
 {
-    return find_section(get_nt(entry_), name);
+    return find_section(get_nt(entry_), name.data(), name.length());
 }
 
 static auto memory_range(IMAGE_DOS_HEADER *dos, system_section_header header)
@@ -467,24 +473,6 @@ auto fmt::formatter<fd::rtti_descriptor_finder>::format(
 }
 
 #ifdef _DEBUG
-
-static thread_local fd::small_vector<char, 128> fmt_args_buff;
-
-fmt::string_view fd::system_library::merge_fmt_args(fmt::string_view fmt) const
-{
-    auto n = name();
-
-    fmt_args_buff.resize(n.length() + 2 + fmt.size());
-    auto begin = fmt_args_buff.data();
-    auto it    = begin;
-
-    it    = std::copy(n.begin(), n.end(), it);
-    *it++ = ':';
-    *it++ = ' ';
-    it    = std::copy(fmt.begin(), fmt.end(), it);
-    return {begin, static_cast<size_t>(std::distance(begin, it))};
-}
-
 auto fmt::formatter<fd::system_library::bound_name>::format(
     fd::system_library::bound_name binder,
     format_context &ctx) const -> format_context::iterator
@@ -494,4 +482,24 @@ auto fmt::formatter<fd::system_library::bound_name>::format(
     buff.assign(name.begin(), name.end());
     return formatter<string_view>::format({buff.data(), buff.size()}, ctx);
 }
+
+namespace fd
+{
+static thread_local small_vector<char, 128> fmt_args_buff;
+
+fmt::string_view system_library::merge_fmt_args(fmt::string_view fmt) const
+{
+    auto n = name();
+
+    fmt_args_buff.resize(n.length() + 2 + fmt.size());
+
+    auto begin = fmt_args_buff.data();
+    auto it    = std::copy(n.begin(), n.end(), begin);
+    *it++      = ':';
+    *it++      = ' ';
+    it         = std::copy(fmt.begin(), fmt.end(), it);
+    return {begin, static_cast<size_t>(std::distance(begin, it))};
+}
+} // namespace fd
+
 #endif

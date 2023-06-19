@@ -4,16 +4,16 @@
 
 namespace fd::valve
 {
-enum recv_prop_type
+enum class recv_prop_type
 {
-    DPT_Int = 0,
-    DPT_Float,
-    DPT_Vector,
-    DPT_VectorXY,
-    DPT_String,
-    DPT_Array,
-    DPT_DataTable,
-    DPT_Int64
+    int32 = 0,
+    floating,
+    vector3d,
+    vector2d,
+    string,
+    array,
+    data_table,
+    int64
 };
 
 struct recv_prop
