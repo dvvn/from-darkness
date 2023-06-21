@@ -24,7 +24,6 @@ struct hook_proxy_member;
 template <call_type_t Call_T, typename Ret, class Object, typename... Args>
 class hook_proxy_member_holder
 {
-    // original stored to avoid 'Callback' template
     void *original_;
 
     union
@@ -107,7 +106,7 @@ Ret invoke_hook_proxy(hook_proxy_member<Callback, Call_T, Ret, Object, Args...> 
 
 #define HOOK_PROXY_MEMBER(call__, __call, _call_)                      \
     template <class Callback, typename Ret, class C, typename... Args> \
-    struct hook_proxy_member<Callback, call__, Ret, C, Args...>        \
+    struct hook_proxy_member<Callback, call__, Ret, C, Args...> final  \
         : basic_hook_proxy_member<Callback, call__, Ret, C, Args...>   \
     {                                                                  \
         Ret __call proxy(Args... args) noexcept                        \
@@ -141,7 +140,7 @@ class hook_proxy_holder
 };
 
 template <class Callback, call_type_t Call_T, typename Ret, typename... Args>
-Ret invoke_hook_proxy(Args... args) noexcept
+Ret invoke_hook_proxy(Args... args)
 {
     auto &callback = *unique_hook_callback<Callback>;
 #if 1
@@ -157,9 +156,9 @@ Ret invoke_hook_proxy(Args... args) noexcept
 
 #define HOOK_PROXY_STATIC(call__, __call, call)                       \
     template <class Callback, typename Ret, typename... Args>         \
-    struct hook_proxy<Callback, call__, Ret, Args...>                 \
+    struct hook_proxy<Callback, call__, Ret, Args...> final           \
     {                                                                 \
-        static Ret __call proxy(Args... args)                         \
+        static Ret __call proxy(Args... args) noexcept                \
         {                                                             \
             return invoke_hook_proxy<Callback, call__, Ret>(args...); \
         }                                                             \
@@ -183,7 +182,6 @@ struct basic_hook_lazy_proxy : basic_hook_lazy
 };
 
 using hook_name = char const *;
-
 
 class basic_hook_data : public basic_hook_proxy, public basic_hook_lazy_proxy
 {
@@ -225,6 +223,15 @@ class hook_data final : public basic_hook_data
     }
 };
 
+template <class P>
+struct hook_proxy_getter
+{
+    static void *get()
+    {
+        return get_function_pointer(&P::proxy);
+    }
+};
+
 template <call_type_t Call_T, typename Ret, typename T, typename... Args>
 class vfunc;
 struct abstract_function_tag;
@@ -251,7 +258,7 @@ class hook_context : public noncopyable
     template <class Proxy, typename Callback>
     basic_hook *do_create(hook_name name, void *target, Callback &callback) noexcept
     {
-        auto trampoline = create_trampoline(name, target, get_function_pointer(&Proxy::proxy));
+        auto trampoline = create_trampoline(name, target, hook_proxy_getter<Proxy>::get());
         return trampoline ? store(name, target, trampoline, callback) : nullptr;
     }
 
@@ -267,46 +274,69 @@ class hook_context : public noncopyable
 
     size_t size() const;
 
+#define HOOK_PROXY_SAMPLE template <typename, call_type_t, typename...>
+
 #define MAKE_HOOK_CALLBACK_MEMBER(call__, __call, call)                                     \
-    template <typename Callback, typename Ret, class C, typename... Args>                   \
+    template <                                                                              \
+        HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member,                                  \
+        typename Callback,                                                                  \
+        typename Ret,                                                                       \
+        class C,                                                                            \
+        typename... Args>                                                                   \
     basic_hook *create(hook_name name, Ret (__call C::*target)(Args...), Callback callback) \
     {                                                                                       \
-        using proxy_type = hook_proxy_member<Callback, call__, Ret, C, Args...>;            \
+        using proxy_type = Proxy<Callback, call__, Ret, C, Args...>;                        \
         return do_create<proxy_type>(name, get_function_pointer(target), callback);         \
     }
 
-    X86_CALL_MEMBER(MAKE_HOOK_CALLBACK_MEMBER);
-#undef MAKE_HOOK_CALLBACK
+    _X86_CALL_PROXY(MAKE_HOOK_CALLBACK_MEMBER, thiscall) X86_CALL(MAKE_HOOK_CALLBACK_MEMBER);
+#undef MAKE_HOOK_CALLBACK_MEMBER
 
-#define MAKE_HOOK_CALLBACK_STAITC(call__, __call, call)                                 \
-    template <typename Callback, typename Ret, typename... Args>                        \
-    basic_hook *create(hook_name name, Ret(__call *target)(Args...), Callback callback) \
-    {                                                                                   \
-        using proxy_type = hook_proxy<Callback, call__, Ret, Args...>;                  \
-        return do_create<proxy_type>(name, get_function_pointer(target), callback);     \
+#define MAKE_HOOK_CALLBACK_STAITC(call__, __call, call)                                                      \
+    template <HOOK_PROXY_SAMPLE class Proxy = hook_proxy, typename Callback, typename Ret, typename... Args> \
+    basic_hook *create(hook_name name, Ret(__call *target)(Args...), Callback callback)                      \
+    {                                                                                                        \
+        using proxy_type = Proxy<Callback, call__, Ret, Args...>;                                            \
+        return do_create<proxy_type>(name, get_function_pointer(target), callback);                          \
     }
 
     X86_CALL(MAKE_HOOK_CALLBACK_STAITC);
-#undef MAKE_HOOK_CALLBACK
+#undef MAKE_HOOK_CALLBACK_STAITC
 
-    template <typename Callback, typename Ret, typename C, typename... Args>
+    template <
+        HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member,
+        typename Callback,
+        typename Ret,
+        typename C,
+        typename... Args>
     basic_hook *create(hook_name name, Ret(__thiscall *target)(C *, Args...), Callback callback)
     {
-        using proxy_type = hook_proxy_member<Callback, call_type_t::thiscall_, Ret, C, Args...>;
+        using proxy_type = Proxy<Callback, call_type_t::thiscall_, Ret, C, Args...>;
         return do_create<proxy_type>(name, get_function_pointer(target), callback);
     }
 
-    template <typename Callback, call_type_t Call_T, typename Ret, typename T, typename... Args>
+    template <
+        HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member,
+        typename Callback,
+        call_type_t Call_T,
+        typename Ret,
+        typename T,
+        typename... Args>
     basic_hook *create(hook_name name, vfunc<Call_T, Ret, T, Args...> target, Callback &&callback)
     {
-        using proxy_type = hook_proxy_member<std::remove_reference_t<Callback>, Call_T, Ret, T, Args...>;
+        using proxy_type = Proxy<std::remove_reference_t<Callback>, Call_T, Ret, T, Args...>;
         return do_create<proxy_type>(name, target.get(), callback);
     }
 
-    template <typename Callback, std::derived_from<abstract_function_tag> Fn>
-    basic_hook *create(hook_name name, Fn &abstract_fn, Callback callback)
+    template <
+        HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member,
+        typename Callback,
+        std::derived_from<abstract_function_tag> Fn>
+    basic_hook *create(hook_name name, Fn abstract_fn, Callback callback)
     {
-        return create(name, abstract_fn.get(), (callback));
+        return create<Proxy>(name, abstract_fn.get(), (callback));
     }
+
+#undef HOOK_PROXY_SAMPLE
 };
 } // namespace fd

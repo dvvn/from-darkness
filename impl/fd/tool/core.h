@@ -38,18 +38,18 @@ namespace fd
 template <typename T>
 concept wrapped = requires { typename T::__fd_wrapped; };
 
-template <wrapped T>
+template </*wrapped*/ class T>
 constexpr decltype(auto) unwrap(T &&object)
 {
     using raw_t = typename T::__fd_wrapped;
     if constexpr (std::is_rvalue_reference_v<T &&>)
         return raw_t(static_cast<raw_t &&>(object));
+    else if constexpr (std::is_const_v<T>)
+        return static_cast<raw_t const &>(object);
     else
-    {
-        if constexpr (std::is_const_v<T>)
-            return static_cast<raw_t const &>(object);
-        else
-            return static_cast<raw_t &>(object);
-    }
+        return static_cast<raw_t &>(object);
 }
+
+template </*wrapped*/ class T>
+using unwrap_t = typename T::__fd_wrapped;
 }

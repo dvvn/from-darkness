@@ -91,7 +91,10 @@ void entity_cache::remove(game_entity_index index)
         players_array_.update(nullptr, index);
 #endif
         players_range_.remove(iterator_to_raw_pointer(player));
-        player->detach();
+        if (player->keep())
+            player->detach();
+        else
+            players_.erase(player);
     }
     else
     {

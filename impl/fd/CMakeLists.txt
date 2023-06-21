@@ -3,6 +3,7 @@ project(fd CXX)
 file(GLOB_RECURSE _FILES ${FD_DIR}/*.cpp)
 add_library(fd ${_FILES})
 
+list(TRANSFORM BOOST_INCLUDE_LIBRARIES PREPEND Boost::)
 target_link_libraries(fd PUBLIC 
     #function2
     #robin_hood::robin_hood
@@ -15,27 +16,11 @@ target_link_libraries(fd PUBLIC
     #xxHash::xxhash
     #spdlog::spdlog
     #sigmatch::sigmatch
-    #Boost::thread
-    Boost::algorithm
-    Boost::container
-    Boost::container_hash
-    Boost::filesystem
-    Boost::json
-    Boost::sort
-    Boost::io
-    #Boost::dll
-    #Boost::process
-    Boost::geometry
-    Boost::qvm
-    #Boost::gil
-    #Boost::uuid
-    #Boost::fusion
-    Boost::hana
-    Boost::static_string
     #Boost::lexical_cast
     Boost::unordered
     Boost::nowide
     Boost::lambda2
+    ${BOOST_INCLUDE_LIBRARIES}
 )
 target_include_directories(fd PUBLIC
     ${FD_IMPL_DIR}

@@ -120,7 +120,23 @@ function(FetchContent_Load _owner _name)
     set(${_proj}_SUBBUILD_DIR ${_SUBBUILD_DIR} PARENT_SCOPE)
     set(${_proj}_BINARY_DIR ${_BINARY_DIR} PARENT_SCOPE)
 endfunction()
-
+set(BOOST_INCLUDE_LIBRARIES
+    #thread
+    algorithm
+    container
+    container_hash
+    filesystem
+    #json
+    sort
+    io
+    geometry
+    qvm
+    fusion
+    hana
+    static_string
+    unordered
+    nowide
+    lambda2)
 set(BOOST_RUNTIME_LINK static)
 #set(BOOST_ENABLE_MPI ON)
 FetchContent_Load(boostorg boost)

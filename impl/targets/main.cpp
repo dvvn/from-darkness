@@ -7,6 +7,7 @@
 #include <fd/log.h>
 #include <fd/netvar_storage.h>
 #include <fd/render/context.h>
+#include <fd/tool/span.h>
 #include <fd/tool/string_view.h>
 #include <fd/valve/client.h>
 #include <fd/valve/engine.h>
@@ -18,7 +19,7 @@
 #include <fd/valve_library_info.h>
 #include <fd/vtable.h>
 
-//#define FD_SHARED_LIB
+#define FD_SHARED_LIB
 
 namespace fd
 {
@@ -89,6 +90,71 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
 
     return TRUE;
 }
+
+#define DECLSPEC_NAKED __declspec(naked)
+
+// todo: get sendpacked from cl_move
+namespace fd
+{
+template <typename Callback>
+void __fastcall createmove_proxy(
+    void *thisptr,
+    uintptr_t edx,
+    int sequence_number,
+    float input_sample_frametime,
+    bool is_active,
+    bool *send_packed)
+{
+    using proxy_holder = hook_proxy_member_holder<call_type_t::thiscall_, void, void, int, float, bool>;
+    (*unique_hook_callback<Callback>) //
+        (proxy_holder(unique_hook_trampoline<Callback>, thisptr),
+         sequence_number,
+         input_sample_frametime,
+         is_active,
+         send_packed);
+}
+
+template <typename Callback>
+static DECLSPEC_NAKED void __fastcall createmove_proxy_naked(
+    void *thisptr,
+    uintptr_t edx,
+    int sequence_number,
+    float input_sample_frametime,
+    bool is_active)
+{
+    static constexpr auto proxy = createmove_proxy<Callback>;
+
+    __asm
+    {
+		push ebp // save register
+		mov ebp, esp; // store stack to register
+		push ebx; // save register
+		push esp; // 'send_packet' from caller stack
+		push [ebp+10h]; // 'is_active'
+		push [ebp+0Ch]; // 'input_sample_frametime'
+		push [ebp+8]; // 'sequence_number'
+		call proxy
+		pop ebx // restore register
+		pop ebp // restore register
+		retn 0Ch
+    }
+}
+
+template <typename Callback, call_type_t, typename...>
+struct hook_proxy_createmove
+{
+};
+
+template <typename Callback, call_type_t Call_T, typename... Args>
+struct hook_proxy_getter<hook_proxy_createmove<Callback, Call_T, Args...>>
+{
+    static void *get()
+    {
+        return createmove_proxy_naked<Callback>;
+    }
+};
+
+} // namespace fd
 
 #else
 int main(int argc, char *argv[])
@@ -170,7 +236,13 @@ bool fd::context() noexcept
     hooks.create(
         "WinAPI.WndProc",
         window_proc,
-        [&render, def = IsWindowUnicode(window) ? DefWindowProcW : DefWindowProcA](auto orig, auto... args) -> LRESULT {
+        [&render,
+#ifdef FD_SHARED_LIB
+         def = IsWindowUnicode(window) ? DefWindowProcW : DefWindowProcA
+#else
+         def = DefWindowProc
+#endif
+    ](auto orig, auto... args) -> LRESULT {
             using result_t = render_context::process_result;
             result_t pmr;
             render.process_message(args..., &pmr);
@@ -179,7 +251,7 @@ bool fd::context() noexcept
             case result_t::idle:
                 return orig(args...);
             case result_t::updated:
-                return def(args...);
+                return /*def*/ orig(args...); // TEMP USE orig
             case result_t::locked:
                 return TRUE;
             default:
@@ -240,9 +312,13 @@ bool fd::context() noexcept
         // }
         orig();
     });
-    hooks.create("CHLClient::CreateMove", v_client[22].get<void, int, int, int>(), [&](auto &&orig, auto... args) {
-        orig(args...);
-    });
+    hooks.create<hook_proxy_createmove>(
+        "CHLClient::CreateMove",
+        v_client[22].get<std::false_type>(),
+        [&](auto &&orig, int sequence_number, float input_sample_frametime, bool is_active, bool *send_packed) {
+            //
+            orig(sequence_number, input_sample_frametime, is_active);
+        });
     using entity_list_callback = void(__thiscall *)(void *, void *, valve::entity_handle);
     hooks.create(
         "CClientEntityList::OnAddEntity",

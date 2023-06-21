@@ -25,6 +25,12 @@ void cached_entity::detach()
     entity_ = nullptr;
 }
 
+bool cached_entity::keep() const
+{
+    // RESERVED
+    return true;
+}
+
 game_entity_index cached_entity::index() const
 {
     // not implemented

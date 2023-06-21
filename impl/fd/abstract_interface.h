@@ -89,6 +89,8 @@ class abstract_function : public abstract_function_tag
     {
     }
 
+    
+
     auto get() const
     {
         return table_[Index].template get<Ret, typename make_unnamed<Args>::type...>();
