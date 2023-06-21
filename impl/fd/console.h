@@ -23,6 +23,7 @@ class system_console
     ~system_console();
     system_console();
 
+    bool exists() const;
     bool init();
 };
 }

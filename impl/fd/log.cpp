@@ -62,7 +62,7 @@ static void do_log(fmt::basic_string_view<T> fmt, auto &fmt_args, std::basic_ost
 
 logging_activator::~logging_activator()
 {
-    if (!operator bool())
+    if (prev_mode_ == -1)
         return;
     std::ios::sync_with_stdio(prev_sync_);
     auto mode_restored = _setmode(_fileno(stdout), prev_mode_) != -1;
@@ -70,14 +70,15 @@ logging_activator::~logging_activator()
 }
 
 logging_activator::logging_activator()
+    : prev_mode_(-1)
+{
+}
+
+bool logging_activator::init()
 {
     prev_sync_ = std::ios::sync_with_stdio(false);
     do_log<char>("Started", &std::cout);
     prev_mode_ = _setmode(_fileno(stdout), _O_WTEXT);
-}
-
-logging_activator::operator bool() const
-{
     return prev_mode_ != -1;
 }
 

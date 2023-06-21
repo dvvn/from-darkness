@@ -1,7 +1,7 @@
 #pragma once
 
-#include <fd/comptr.h>
-#include <fd/core.h>
+#include "fd/comptr.h"
+#include "fd/core.h"
 
 #include <Windows.h>
 #include <d3d9.h>
@@ -26,26 +26,18 @@ class d3d_device9
     IDirect3DDevice9 *operator->() const;
 };
 
-struct own_render_wnd_class : WNDCLASSEX
-{
-    ~own_render_wnd_class();
-    own_render_wnd_class(LPCTSTR name, HMODULE handle);
-};
-
 struct own_render_backend : noncopyable
 {
     using device_type = d3d_device9;
 
-    own_render_wnd_class info;
+    WNDCLASSEX info;
     HWND hwnd;
     device_type device;
 
     ~own_render_backend();
-    own_render_backend(LPCTSTR name, HMODULE handle, HWND parent = nullptr);
+    own_render_backend();
 
-    own_render_backend(own_render_backend const &) = delete;
-
-    bool initialized() const;
+    bool init(LPCTSTR name, HMODULE handle, HWND parent = 0);
     bool run();
     bool stop();
 };

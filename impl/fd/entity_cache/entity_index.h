@@ -1,5 +1,7 @@
 #pragma once
 
+#include "cached_entity.h"
+
 #include <cstdint>
 #include <utility>
 
@@ -80,6 +82,12 @@ struct entity_index
     constexpr operator size_type() const
     {
         return index_;
+    }
+
+    entity_index &operator++()
+    {
+        ++index_;
+        return this;
     }
 };
 

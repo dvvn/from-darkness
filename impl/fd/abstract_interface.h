@@ -5,14 +5,27 @@
 
 namespace fd
 {
+struct abstract_function_tag /*: noncopyable*/
+{
+};
+
 template <class T>
-struct abstract_interface : vtable<void>, noncopyable
+struct abstract_vtable : basic_vtable<T>, noncopyable
 {
 #if !defined(_DEBUG)
     static_assert(valid_return_address_gadget<T>);
 #endif
-    using vtable::vtable;
+    using basic_vtable<T>::basic_vtable;
+    using basic_vtable<T>::operator[];
+
+    abstract_vtable(void *instance)
+        : basic_vtable<T>(static_cast<T *>(instance))
+    {
+    }
 };
+
+template <typename T>
+concept abstract_interface = requires { typename T::__abstract_interface; };
 
 /**
  * \brief for visualization only
@@ -65,10 +78,6 @@ struct make_unnamed<named<T, Name>>
     using type = T;
 };
 
-struct abstract_function_tag /*: noncopyable*/
-{
-};
-
 template <auto Index>
 concept valid_abstract_function_index = requires() { static_cast<size_t>(Index); };
 
@@ -89,8 +98,6 @@ class abstract_function : public abstract_function_tag
     {
     }
 
-    
-
     auto get() const
     {
         return table_[Index].template get<Ret, typename make_unnamed<Args>::type...>();
@@ -107,30 +114,26 @@ class abstract_function : public abstract_function_tag
     }
 };
 
-//template <typename T>
-//concept is_abstract_interface = std::is_union_v<T> && requires(T object) {
-//    []<typename Q>(abstract_interface<Q> const &) {
-//    }(object.vtable);
-//};
 //
-//template <typename T>
-//constexpr bool is_abstract_interface_v = is_abstract_interface<T>;
+// template <typename T>
+// constexpr bool is_abstract_interface_v = is_abstract_interface<T>;
 //
-//template <is_abstract_interface T>
-//auto get(T const &object, auto index) -> decltype(object.vtable[index])
+// template <is_abstract_interface T>
+// auto get(T const &object, auto index) -> decltype(object.vtable[index])
 //{
-//    return object.vtable[index];
-//}
+//     return object.vtable[index];
+// }
 
-#define FD_ABSTRACT_INTERFACE(_NAME_)                                         \
-    template <size_t Index, typename Ret, typename... Args>                   \
-    using abstract_function = abstract_function<_NAME_, Index, Ret, Args...>; \
-                                                                              \
-    abstract_interface<_NAME_> vtable;                                        \
-                                                                              \
-    auto operator[](auto index) const->decltype(_NAME_::vtable[index])        \
-    {                                                                         \
-        return _NAME_::vtable[index];                                         \
+#define FD_ABSTRACT_INTERFACE(_NAME_)                                            \
+    template <size_t Index, typename Ret, typename... Args>                      \
+    using abstract_function    = abstract_function<_NAME_, Index, Ret, Args...>; \
+    using __abstract_interface = _NAME_;                                         \
+                                                                                 \
+    abstract_vtable<_NAME_> vtable;                                              \
+                                                                                 \
+    auto operator[](auto index) const->decltype(vtable[index])                   \
+    {                                                                            \
+        return vtable[index];                                                    \
     }
 
 // ReSharper disable once CppInconsistentNaming

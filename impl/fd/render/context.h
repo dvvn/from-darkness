@@ -6,10 +6,9 @@
 
 #include <Windows.h>
 
-#include <variant>
-
 // ReSharper disable CppInconsistentNaming
 struct IDirect3DDevice9;
+#define FD_RENDER_BACKEND IDirect3DDevice9
 
 // reserved
 
@@ -22,13 +21,13 @@ class render_context : public noncopyable
     ImFontAtlas font_atlas_;
     ImGuiContext context_;
     HWND window_;
-    std::variant<std::monostate, IDirect3DDevice9 * /*d3d11*/> backend_;
+    FD_RENDER_BACKEND *backend_;
 
   public:
     ~render_context();
     render_context();
 
-    bool init(HWND window, IDirect3DDevice9 *backend) noexcept;
+    bool init(HWND window, FD_RENDER_BACKEND *backend) noexcept;
 
     void detach();
     void reset();
@@ -55,6 +54,7 @@ class render_context : public noncopyable
         explicit operator bool() const;
     };
 
+    [[nodiscard]]
     frame_holder new_frame();
 };
 

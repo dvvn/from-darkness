@@ -32,9 +32,12 @@ enum class frame_stage : int32_t
     /*net_full_frame_update_on_remove*/
 };
 
+// ReSharper disable once CppInconsistentNaming
+class CHLClient;
+
 union client
 {
-    FD_ABSTRACT_INTERFACE(client);
+    FD_ABSTRACT_INTERFACE(CHLClient);
     abstract_function<8, client_class *> get_all_classes;
 };
 }

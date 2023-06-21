@@ -40,6 +40,7 @@ class cached_players_range : public basic_cached_players_range
     void add(cached_player *player);
     void remove(cached_player *player);
     void clear();
+    bool empty() const;
 
     template <typename It>
     void assign(It begin, It end)
@@ -64,19 +65,22 @@ class entity_cache
 
     bool synced_;
 
+    /**
+     * \brief clear everything except root list
+     */
+    void reset();
+
+    bool add_player(game_entity_index index, bool can_by_null);
+
   public:
     entity_cache(basic_native_entity_finder *valve_entity_finder, bool sync_wanted);
 
     void add(game_entity_index index);
     void remove(game_entity_index index);
+    void clear();
 
     bool synced() const;
-    void mark_synced();
 
-    /**
-     * \brief sync with game's entity list
-     */
-    void sync(game_entity_index last_entity);
     /**
      * \brief clear everything except root list (fo example on map change)
      */
@@ -84,6 +88,10 @@ class entity_cache
     /**
      * \brief clear EVERYTHING and wait for sync
      */
-    void clear();
+    /**
+     * \brief sync with game's entity list
+     */
+    void sync(game_entity_index last_entity);
+    void mark_synced();
 };
 }

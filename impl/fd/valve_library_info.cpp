@@ -215,6 +215,11 @@ static valve_interface_holder *root_interface(void *create_fn)
     return **reinterpret_cast<valve_interface_holder ***>(jmp + 0x6);
 }
 
+valve_library::valve_library(system_library other)
+    : system_library(other)
+{
+}
+
 void *valve_library::interface(string_view name) const
 {
     auto do_find =

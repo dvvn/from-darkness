@@ -57,6 +57,34 @@ void cached_players_range::clear()
     range_.clear();
 }
 
+bool cached_players_range::empty() const
+{
+    return range_.empty();
+}
+
+void entity_cache::reset()
+{
+    players_array_.clear();
+    players_range_.clear();
+}
+
+bool entity_cache::add_player(game_entity_index index, bool can_by_null)
+{
+    if (!validate_player_index(index))
+        return false;
+
+    auto ent = find_native_entity_->get(index);
+    if (!can_by_null)
+        assert(ent != nullptr);
+    else if (!ent)
+        return false;
+
+    auto player = &players_.emplace_back(ent);
+    players_array_.update(player, index);
+    players_range_.add(player);
+    return true;
+}
+
 entity_cache::entity_cache(basic_native_entity_finder *valve_entity_finder, bool sync_wanted)
     : find_native_entity_(valve_entity_finder)
 {
@@ -68,16 +96,11 @@ entity_cache::entity_cache(basic_native_entity_finder *valve_entity_finder, bool
 
 void entity_cache::add(game_entity_index index)
 {
-    if (validate_player_index(index))
-    {
-        auto player = &players_.emplace_back(find_native_entity_->get(index));
-        players_array_.update(player, index);
-        players_range_.add(player);
-    }
-    else
-    {
-        // WIP
-    }
+    if (add_player(index, false))
+        return;
+
+    (void)0;
+    // WIP
 }
 
 void entity_cache::remove(game_entity_index index)
@@ -115,26 +138,38 @@ void entity_cache::mark_synced()
 void entity_cache::sync(game_entity_index last_entity)
 {
     assert(last_entity != 0);
-    for (game_entity_index::size_type idx = 0;;)
+    reset();
+    game_entity_index idx = 1;
+    for (;;)
     {
-        add(idx);
-        if (idx == last_entity)
+        add_player(idx, true);
+
+        if (idx == max_player_count)
             break;
+        if (idx == last_entity)
+            return;
         ++idx;
     }
+
+#if 0
+    for(;;)
+    {
+        //WIP
+        if (idx == last_entity)
+            return;
+    }
+#endif
 }
 
 void entity_cache::request_sync()
 {
     synced_ = false;
-
-    players_array_.clear();
-    players_range_.clear();
 }
 
 void entity_cache::clear()
 {
     players_.clear();
     request_sync();
+    reset();
 }
 }

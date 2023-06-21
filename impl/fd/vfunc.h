@@ -55,7 +55,7 @@ void *get_vfunc(Fn table_function, void *instance)
     return get_vfunc<call>(function, instance);
 }
 
-inline void *get_vfunc(size_t function_index, void *instance)
+inline void *get_vfunc(ptrdiff_t function_index, void *instance)
 {
     return get_vtable(instance)[function_index];
 }
@@ -137,7 +137,7 @@ class unknown_vfunc_args
         static_assert(function_info<Fn>::call_type == Call_T);
     }
 
-    unknown_vfunc_args(size_t function_index, T *instance)
+    unknown_vfunc_args(ptrdiff_t function_index, T *instance)
         : function_(get_vfunc(function_index, instance))
         , instance_(instance)
     {
@@ -149,9 +149,9 @@ class unknown_vfunc_args
         return {function_, instance_};
     }
 
-    void* operator+(size_t offset) const
+    void *operator+(size_t offset) const
     {
-        return static_cast<uint8_t *>(function_)+offset;
+        return static_cast<uint8_t *>(function_) + offset;
     }
 };
 

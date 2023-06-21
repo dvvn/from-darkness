@@ -1,12 +1,11 @@
-﻿#include "own_backend.h"
-
-#include <fd/console.h>
+﻿#include <fd/console.h>
 #include <fd/entity_cache.h>
 #include <fd/hook.h>
 #include <fd/library_info.h>
 #include <fd/log.h>
 #include <fd/netvar_storage.h>
 #include <fd/render/context.h>
+#include <fd/render/own_backend.h>
 #include <fd/tool/span.h>
 #include <fd/tool/string_view.h>
 #include <fd/valve/client.h>
@@ -19,18 +18,11 @@
 #include <fd/valve_library_info.h>
 #include <fd/vtable.h>
 
-#define FD_SHARED_LIB
+// #define FD_SHARED_LIB
 
-namespace fd
-{
-static bool context() noexcept;
-}
+#define DECLSPEC_NAKED __declspec(naked)
 
 static HINSTANCE self_handle;
-
-#define HOOK_KNOWN_VFUNC(_NAME_, _OBJ_) BOOST_STRINGIZE(_NAME_), _OBJ_[&_NAME_]
-#define RENDER_BACKEND                  IDirect3DDevice9
-
 #ifdef FD_SHARED_LIB
 static HANDLE thread;
 static DWORD thread_id;
@@ -38,6 +30,7 @@ static DWORD thread_id;
 [[noreturn]]
 static void exit_context(bool success)
 {
+    assert(GetCurrentThread() == thread);
     FreeLibraryAndExitThread(self_handle, success ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
@@ -50,62 +43,62 @@ static bool resume_context()
 {
     return ResumeThread(thread) != -1;
 }
-
-[[noreturn]]
-static DWORD WINAPI context_proxy(LPVOID ptr)
-{
-    self_handle  = static_cast<HINSTANCE>(ptr);
-    auto success = fd::context();
-    exit_context(success);
-}
-
-// ReSharper disable once CppInconsistentNaming
-BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
-{
-    switch (reason)
-    {
-    case DLL_PROCESS_ATTACH: {
-        // Initialize once for each new process.
-        // Return FALSE to fail DLL load.
-        thread = CreateThread(nullptr, 0, context_proxy, handle, 0, &thread_id);
-        if (!thread)
-            return FALSE;
-        break;
-    }
-#if 0
-    case DLL_THREAD_ATTACH: // Do thread-specific initialization.
-        break;
-    case DLL_THREAD_DETACH: // Do thread-specific cleanup.
-        break;
 #endif
-    case DLL_PROCESS_DETACH:
-        if (reserved != nullptr) // do not do cleanup if process termination scenario
-        {
-            break;
-        }
 
-        // Perform any necessary cleanup.
-        break;
-    }
-
-    return TRUE;
-}
-
-#define DECLSPEC_NAKED __declspec(naked)
-
-// todo: get sendpacked from cl_move
 namespace fd
 {
-template <typename Callback>
-void __fastcall createmove_proxy(
-    void *thisptr,
+#ifdef FD_SHARED_LIB
+template <named_arg Name>
+struct named_return_address_gadget
+{
+    inline static uintptr_t address;
+};
+
+#define RETURN_ADDRESS_GADGET(_CLASS_, _LIB_)                                   \
+    template <>                                                                 \
+    struct return_address_gadget<_CLASS_> : named_return_address_gadget<#_LIB_> \
+    {                                                                           \
+    };
+
+RETURN_ADDRESS_GADGET(valve::IClientEntityList, client);
+RETURN_ADDRESS_GADGET(valve::CClientEntityList, client);
+RETURN_ADDRESS_GADGET(valve::CHLClient, client);
+RETURN_ADDRESS_GADGET(valve::C_BaseEntity, client);
+RETURN_ADDRESS_GADGET(valve::ISurface, vguimatsurface);
+RETURN_ADDRESS_GADGET(valve::IEngineClient, engine);
+RETURN_ADDRESS_GADGET(FD_RENDER_BACKEND, shaderapidx9);
+
+#undef RETURN_ADDRESS_GADGET
+
+template <named_arg Name>
+static system_library find_library()
+{
+    wchar_t buff[Name.length() + 1 + 3];
+    auto it = std::copy(Name.begin(), Name.end(), buff);
+    *it++   = '.';
+    *it++   = 'd';
+    *it++   = 'l';
+    *it     = 'l';
+    system_library lib(std::begin(buff), std::size(buff));
+    using gadget = named_return_address_gadget<Name>;
+#if defined(_DEBUG)
+    if constexpr (std::default_initializable<gadget>)
+#endif
+        named_return_address_gadget<Name>::address = reinterpret_cast<uintptr_t>(lib.pattern("FF 23"));
+    return lib;
+}
+
+// todo: get sendpacked from cl_move
+template <typename Callback, typename C>
+static void __fastcall createmove_proxy(
+    C *thisptr,
     uintptr_t edx,
     int sequence_number,
     float input_sample_frametime,
     bool is_active,
     bool *send_packed)
 {
-    using proxy_holder = hook_proxy_member_holder<call_type_t::thiscall_, void, void, int, float, bool>;
+    using proxy_holder = hook_proxy_member_holder<call_type_t::thiscall_, void, C, int, float, bool>;
     (*unique_hook_callback<Callback>) //
         (proxy_holder(unique_hook_trampoline<Callback>, thisptr),
          sequence_number,
@@ -114,15 +107,15 @@ void __fastcall createmove_proxy(
          send_packed);
 }
 
-template <typename Callback>
+template <typename Callback, typename C>
 static DECLSPEC_NAKED void __fastcall createmove_proxy_naked(
-    void *thisptr,
+    C *thisptr,
     uintptr_t edx,
     int sequence_number,
     float input_sample_frametime,
     bool is_active)
 {
-    static constexpr auto proxy = createmove_proxy<Callback>;
+    static constexpr auto proxy = createmove_proxy<Callback, C>;
 
     __asm
     {
@@ -140,34 +133,25 @@ static DECLSPEC_NAKED void __fastcall createmove_proxy_naked(
     }
 }
 
-template <typename Callback, call_type_t, typename...>
+template <typename Callback, call_type_t Call_T, typename Ret, typename C, typename... Args>
 struct hook_proxy_createmove
 {
+    static_assert(Call_T == call_type_t::thiscall_);
 };
 
-template <typename Callback, call_type_t Call_T, typename... Args>
-struct hook_proxy_getter<hook_proxy_createmove<Callback, Call_T, Args...>>
+template <typename Callback, call_type_t Call_T, typename C, typename... Args>
+struct hook_proxy_getter<hook_proxy_createmove<Callback, Call_T, C, Args...>>
 {
     static void *get()
     {
-        return createmove_proxy_naked<Callback>;
+        return createmove_proxy_naked<Callback, C>;
     }
 };
-
-} // namespace fd
-
-#else
-int main(int argc, char *argv[])
-{
-    (void)argc;
-    (void)argv;
-    self_handle = GetModuleHandle(nullptr);
-    auto result = fd::context();
-    return result ? EXIT_SUCCESS : EXIT_FAILURE;
-}
 #endif
 
-bool fd::context() noexcept
+#define NAMED_VFUNC(_NAME_, _OBJ_) BOOST_STRINGIZE(_NAME_), _OBJ_[&_NAME_]
+
+static bool context() noexcept
 {
 #ifdef _DEBUG
 #ifdef FD_SHARED_LIB
@@ -176,17 +160,16 @@ bool fd::context() noexcept
         return false;
 #endif
     logging_activator log_activator;
-    if (!log_activator)
+    if (!log_activator.init())
         return false;
 #endif
-
-    vtable<RENDER_BACKEND> render_vtable;
+    vtable<FD_RENDER_BACKEND> render_vtable;
     HWND window;
     WNDPROC window_proc;
 
 #ifdef FD_SHARED_LIB
-    system_library shader_api_dll(L"shaderapidx9.dll");
-    render_vtable = **reinterpret_cast<IDirect3DDevice9 ***>(
+    auto shader_api_dll = find_library<"shaderapidx9">();
+    render_vtable       = **reinterpret_cast<IDirect3DDevice9 ***>(
         shader_api_dll.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
 
     D3DDEVICE_CREATION_PARAMETERS creation_parameters;
@@ -196,8 +179,8 @@ bool fd::context() noexcept
     window_proc = reinterpret_cast<WNDPROC>(GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC));
 
 #else
-    own_render_backend own_render(L"Unnamed", self_handle);
-    if (!own_render.initialized())
+    own_render_backend own_render;
+    if (!own_render.init(L"Unnamed", self_handle))
         return false;
 
     render_vtable = own_render.device.get();
@@ -210,9 +193,9 @@ bool fd::context() noexcept
         return false;
 
 #ifdef FD_SHARED_LIB
-    valve_library client_dll(L"client.dll");
-    valve_library engine_dll(L"engine.dll");
-    valve_library vgui_dll(L"vguimatsurface.dll");
+    valve_library client_dll(find_library<"client">());
+    valve_library engine_dll(find_library<"engine">());
+    valve_library vgui_dll(find_library<"vguimatsurface">());
 
     valve::client v_client(client_dll.interface("VClient"));
     valve::engine v_engine(engine_dll.interface("VEngineClient"));
@@ -220,7 +203,7 @@ bool fd::context() noexcept
     valve::entity_list v_ent_list(client_dll.interface("VClientEntityList"));
     auto v_globals = **static_cast<valve::global_vars_base ***>(v_client[11] + 0xA);
 
-    native_entity_finder entity_finder(bind(v_ent_list.get_client_entity, placeholders::_1));
+    native_entity_finder entity_finder(v_ent_list.get_client_entity);
     entity_cache cached_entity(&entity_finder, v_engine.in_game());
 
     valve::entity csplayer_vtable(
@@ -258,17 +241,15 @@ bool fd::context() noexcept
                 std::unreachable();
             }
         });
-    hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Reset, render_vtable), [&](auto &&orig, auto... args) {
+    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Reset, render_vtable), [&](auto &&orig, auto... args) {
         render.reset();
         return orig(args...);
     });
-    hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Present, render_vtable), [&](auto &&orig, auto... args) {
+    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Present, render_vtable), [&](auto &&orig, auto... args) {
         if (auto frame = render.new_frame())
         {
-#ifndef IMGUI_DISABLE_DEMO_WINDOWS
             ImGui::ShowDemoWindow();
-#endif
-            if (ImGui::Button("Close"))
+            if (ImGui::Button("Exit"))
             {
 #ifdef FD_SHARED_LIB
                 resume_context();
@@ -280,9 +261,9 @@ bool fd::context() noexcept
         return orig(args...);
     });
 #ifdef FD_SHARED_LIB
-    hooks.create(HOOK_KNOWN_VFUNC(RENDER_BACKEND::Release, render_vtable), [&](auto &&orig) {
+    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Release, render_vtable), [&](auto &&orig) {
         auto refs = orig();
-        if (refs == 0)
+        if (refs == 0 && orig == render_vtable)
             render.detach();
         return refs;
     });
@@ -363,4 +344,56 @@ bool fd::context() noexcept
 #endif
 
     return true;
+}
+} // namespace fd
+
+// ReSharper disable once CppInconsistentNaming
+BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
+{
+    switch (reason)
+    {
+    case DLL_PROCESS_ATTACH: {
+        // Initialize once for each new process.
+        // Return FALSE to fail DLL load.
+        thread = CreateThread(
+            nullptr,
+            0,
+            [](LPVOID ptr) -> DWORD {
+                self_handle  = static_cast<HINSTANCE>(ptr);
+                auto success = fd::context();
+                exit_context(success);
+            },
+            handle,
+            0,
+            &thread_id);
+        if (!thread)
+            return FALSE;
+        break;
+    }
+#if 0
+    case DLL_THREAD_ATTACH: // Do thread-specific initialization.
+        break;
+    case DLL_THREAD_DETACH: // Do thread-specific cleanup.
+        break;
+#endif
+    case DLL_PROCESS_DETACH:
+        if (reserved != nullptr) // do not do cleanup if process termination scenario
+        {
+            break;
+        }
+
+        // Perform any necessary cleanup.
+        break;
+    }
+
+    return TRUE;
+}
+
+int main(int argc, char *argv[])
+{
+    (void)argc;
+    (void)argv;
+    self_handle = GetModuleHandle(nullptr);
+    auto result = fd::context();
+    return result ? EXIT_SUCCESS : EXIT_FAILURE;
 }

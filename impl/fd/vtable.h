@@ -14,7 +14,7 @@ class vfunc_index
     size_t index_;
 
   public:
-    constexpr vfunc_index(size_t index, call_type_holder<Call_T> = {})
+    constexpr vfunc_index(size_t index /*, call_type_holder<Call_T> = {}*/)
         : index_(index)
     {
     }
@@ -44,8 +44,8 @@ struct basic_vtable
   public:
     basic_vtable(instance_pointer instance = nullptr)
         : instance_(instance)
-
     {
+        static_assert(std::is_class_v<T>);
     }
 
     instance_pointer operator->() const
@@ -100,7 +100,7 @@ struct basic_vtable
         return {index, instance_};
     }
 
-    unknown_vfunc_args<vtable_call_type<T>, T> operator[](size_t index) const
+    unknown_vfunc_args<vtable_call_type<T>, T> operator[](ptrdiff_t index) const
     {
         return {index, instance_};
     }

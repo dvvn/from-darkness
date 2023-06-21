@@ -82,7 +82,7 @@ class logging_activator : public noncopyable
     ~logging_activator();
     logging_activator();
 
-    explicit operator bool() const;
+    bool init();
 };
 
 #ifdef _DEBUG

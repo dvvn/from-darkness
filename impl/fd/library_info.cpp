@@ -126,6 +126,11 @@ system_library::system_library(system_string_view name)
 {
 }
 
+system_library::system_library(const wchar_t *name, size_t length)
+    : entry_(find_library({name, length}))
+{
+}
+
 system_string_view system_library::name() const
 {
     return library_name(entry_);

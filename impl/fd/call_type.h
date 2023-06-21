@@ -28,6 +28,10 @@ enum class call_type_t : uint8_t
     // unknown,
 };
 
+struct dummy_class
+{
+};
+
 #if 0
 #define X86_CALL_PROXY(call__, __call, call)
 #define X86_CALL_PROXY_MEMBER(call__, __call, call)
@@ -117,6 +121,15 @@ X86_CALL_MEMBER(X86_CALL_TYPE)
 #undef X86_CALL_TYPE
 } // namespace call_type
 
+namespace impl
+{
+template <size_t A, size_t B>
+constexpr void validate_size()
+{
+    static_assert(A == B);
+}
+} // namespace impl
+
 template <typename Fn>
 Fn void_to_func(void *function)
 {
@@ -124,7 +137,8 @@ Fn void_to_func(void *function)
         return static_cast<Fn>(function);
     else
     {
-        static_assert(sizeof(Fn) == sizeof(void *));
+        // static_assert(sizeof(Fn) == sizeof(void *));
+        impl::validate_size<sizeof(Fn), sizeof(void *)>();
 
         union
         {
@@ -153,19 +167,28 @@ concept valid_return_address_gadget = requires { return_address_gadget<Object>::
 template <call_type_t Call_T, typename Ret, typename... Args>
 struct return_address_spoofer;
 
+template <class T>
+concept forwarded = !requires { sizeof(T); };
+
 template <call_type_t Call_T, typename Ret, class Object, typename... Args>
 decltype(auto) try_spoof_member_return_address(void *function, Object *instance, Args... args)
 {
     using spoofer = return_address_spoofer<Call_T, Ret, Object *, Args...>;
-    using gadget  = return_address_gadget<Object>;
 
-    constexpr auto can_spoof = valid_return_address_gadget<gadget> &&
-                               std::invocable<spoofer, uintptr_t, void *, Object *, Args...>;
+    constexpr auto can_spoof  = valid_return_address_gadget<Object>;
+    constexpr auto can_invoke = std::invocable<spoofer, uintptr_t, void *, Object *, Args...>;
 
-    if constexpr (can_spoof)
+    if constexpr (can_spoof && can_invoke)
+    {
+        using gadget = return_address_gadget<Object>;
         return std::invoke(spoofer(), gadget::address, function, instance, args...);
+    }
     else
-        return std::invoke(void_to_func<member_func_type<Call_T, Ret, Object, Args...>>(function), instance, args...);
+    {
+        using obj_t = std::conditional_t<forwarded<Object>, dummy_class, Object>;
+        using fn_t  = member_func_type<Call_T, Ret, obj_t, Args...>;
+        return std::invoke(void_to_func<fn_t>(function), (obj_t *)instance, args...);
+    }
 }
 
 template <typename Ret, typename... Args>
@@ -259,10 +282,6 @@ struct member_func_invoker<call_type_t::thiscall_, Ret, void, Args...>
 template <call_type_t Call_T, class Ret, typename... Args>
 struct member_func_invoker<Call_T, Ret, void, Args...>
 {
-    struct dummy_class
-    {
-    };
-
     using type = member_func_type<Call_T, Ret, dummy_class, Args...>;
 
     Ret operator()(type function, void *instance, Args... args) const

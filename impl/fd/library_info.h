@@ -1,10 +1,13 @@
 ﻿#pragma once
 
+#include "named_arg.h"
+
 #ifdef _DEBUG
 #include <fmt/core.h>
 
 #include <functional>
 #endif
+
 #include <cstdint>
 
 // ReSharper disable CppInconsistentNaming
@@ -40,8 +43,12 @@ class system_library
 {
     system_library_entry entry_;
 
+  protected:
+    system_library() = default;
+
   public:
     system_library(system_string_view name);
+    system_library(const wchar_t *name, size_t length);
 
     system_string_view name() const;
     system_string_view path() const;
@@ -66,6 +73,17 @@ class system_library
     }
 #endif
 };
+//
+//template <named_arg Name>
+//struct named_system_library : system_library
+//{
+//    named_system_library()
+//    {
+//        wchar_t buff[Name.length()];
+//        std::copy(Name.begin(), Name.end(), buff);
+//        std::construct_at<system_library>(this, buff, Name.length());
+//    }
+//};
 } // namespace fd
 
 #ifdef _DEBUG

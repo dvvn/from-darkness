@@ -11,7 +11,7 @@
 
 namespace fd
 {
-static DECLSPEC_NOINLINE LRESULT WINAPI wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
     switch (msg) // NOLINT(hicpp-multiway-paths-covered)
     {
@@ -51,7 +51,9 @@ static DECLSPEC_NOINLINE LRESULT WINAPI wnd_proc(HWND hwnd, UINT msg, WPARAM wpa
     return ::DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-d3d_device9::d3d_device9() = default;
+d3d_device9::d3d_device9()
+{
+}
 
 bool d3d_device9::attach(HWND hwnd)
 {
@@ -125,44 +127,36 @@ IDirect3DDevice9 *d3d_device9::operator->() const
     return device_;
 }
 
-own_render_wnd_class::~own_render_wnd_class()
-{
-    UnregisterClass(lpszClassName, hInstance);
-}
-
-own_render_wnd_class::own_render_wnd_class(LPCTSTR name, HMODULE handle)
-{
-    // ReSharper disable once CppRedundantCastExpression
-    memset(static_cast<WNDCLASSEX *>(this), 0, sizeof(WNDCLASSEX));
-
-    cbSize        = sizeof(WNDCLASSEX);
-    style         = CS_CLASSDC;
-    lpfnWndProc   = wnd_proc;
-    hInstance     = handle;
-    lpszClassName = name;
-
-    RegisterClassEx(this);
-}
-
 own_render_backend::~own_render_backend()
 {
+    UnregisterClass(info.lpszClassName, info.hInstance);
     DestroyWindow(hwnd);
 }
 
-own_render_backend::own_render_backend(LPCTSTR name, HMODULE handle, HWND parent)
-    : info(name, handle)
-    , hwnd(CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, parent, nullptr, handle, &device))
+own_render_backend::own_render_backend()
 {
-    if (!device.attach(hwnd))
-        return;
-
-    ShowWindow(hwnd, SW_SHOWDEFAULT);
-    UpdateWindow(hwnd);
 }
 
-bool own_render_backend::initialized() const
+bool own_render_backend::init(LPCTSTR name, HMODULE handle, HWND parent)
 {
-    return device != nullptr;
+    memset(&info, 0, sizeof(WNDCLASSEX));
+    info = {
+        .cbSize        = sizeof(WNDCLASSEX),
+        .style         = CS_CLASSDC,
+        .lpfnWndProc   = wnd_proc,
+        .hInstance     = handle,
+        .lpszClassName = name};
+    RegisterClassEx(&info);
+
+    hwnd = (CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, parent, nullptr, handle, &device));
+    if (device.attach(hwnd))
+    {
+        ShowWindow(hwnd, SW_SHOWDEFAULT);
+        UpdateWindow(hwnd);
+        return device != nullptr;
+    }
+    
+    return false;
 }
 
 bool own_render_backend::run()

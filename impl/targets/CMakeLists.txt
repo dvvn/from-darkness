@@ -9,5 +9,5 @@ add_library(cheat SHARED main.cpp)
 target_link_libraries(cheat PUBLIC fd)
 target_compile_definitions(cheat PUBLIC FD_SHARED_LIB)
 
-add_executable(gui main.cpp own_backend.cpp)
+add_executable(gui main.cpp)
 target_link_libraries(gui PUBLIC fd)

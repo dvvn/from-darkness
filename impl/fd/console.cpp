@@ -1,4 +1,5 @@
 ﻿#include "console.h"
+#include "core.h"
 
 #include <boost/nowide/iostream.hpp>
 
@@ -27,6 +28,12 @@ system_console::~system_console()
 // ReSharper disable once CppPossiblyUninitializedMember
 system_console::system_console()
 {
+}
+
+bool system_console::exists() const
+{
+    ignore_unused(this);
+    return GetConsoleWindow();
 }
 
 bool system_console::init()

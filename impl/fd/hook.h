@@ -71,11 +71,6 @@ struct basic_hook_proxy_member : noncopyable
         return reinterpret_cast<Object *>(self());
     }
 
-    /*basic_hook_proxy_member *base()
-    {
-        return this;
-    }*/
-
     Ret operator()(Args... args)
     {
         member_func_invoker<Call_T, Ret, Object, Args...> invoker;

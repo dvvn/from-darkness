@@ -15,9 +15,16 @@ class native_entity_finder : public basic_native_entity_finder
     Fn fn_;
 
   public:
+    native_entity_finder() = default;
+
     native_entity_finder(Fn fn)
         : fn_(std::move(fn))
     {
+    }
+
+    void set(Fn fn)
+    {
+        fn_ = std::move(fn);
     }
 
     void *get(game_entity_index index) override

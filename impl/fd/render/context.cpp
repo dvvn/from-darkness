@@ -15,26 +15,10 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 namespace fd
 {
 template <class>
-struct select_backend
-{
-    static auto unreachable(...)
-    {
-        std::unreachable();
-    }
-
-    static auto empty(...)
-    {
-    }
-
-    static constexpr auto init      = unreachable;
-    static constexpr auto shutdown  = empty;
-    static constexpr auto reset     = unreachable;
-    static constexpr auto new_frame = unreachable;
-    static constexpr auto render    = unreachable;
-};
+struct render_backend;
 
 template <>
-struct select_backend<IDirect3DDevice9 *>
+struct render_backend<IDirect3DDevice9>
 {
     static constexpr auto init      = ImGui_ImplDX9_Init;
     static constexpr auto shutdown  = ImGui_ImplDX9_Shutdown;
@@ -49,11 +33,9 @@ struct select_backend<IDirect3DDevice9 *>
     }
 };
 
-#define VISIT_BACKEND(...) std::visit([]<class T>(T obj) { select_backend<T>::__VA_ARGS__; }, backend_);
-
 render_context::~render_context()
 {
-    VISIT_BACKEND(shutdown());
+    render_backend<FD_RENDER_BACKEND>::shutdown();
     if (window_)
         ImGui_ImplWin32_Shutdown();
 
@@ -99,12 +81,12 @@ bool render_context::init(HWND window, IDirect3DDevice9 *backend) noexcept
 
 void render_context::detach()
 {
-    backend_.emplace<std::monostate>();
+    backend_ = 0;
 }
 
 void render_context::reset()
 {
-    VISIT_BACKEND(reset());
+    render_backend<FD_RENDER_BACKEND>::reset();
 }
 
 void render_context::process_message(HWND window, UINT message, WPARAM wParam, LPARAM lParam, process_result *result)
@@ -140,7 +122,7 @@ void render_context::process_message(HWND window, UINT message, WPARAM wParam, L
 
 bool render_context::begin_frame()
 {
-    VISIT_BACKEND(new_frame());
+    render_backend<FD_RENDER_BACKEND>::new_frame();
     ImGui_ImplWin32_NewFrame();
 
 #ifndef IMGUI_HAS_VIEWPORT
@@ -167,7 +149,7 @@ bool render_context::begin_frame()
 void render_context::end_frame()
 {
     ImGui::Render();
-    VISIT_BACKEND(render(obj));
+    render_backend<FD_RENDER_BACKEND>::render(backend_);
 }
 
 render_context::frame_holder::frame_holder(render_context *ctx)
