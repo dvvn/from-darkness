@@ -3,48 +3,13 @@
 #include "basic_callback.h"
 #include "core.h"
 
-#include <functional>
+#include "tool/functional/argument.h"
 
 namespace fd
 {
-template <size_t I, typename Fn>
-struct function_argument;
 
-// template <typename Fn>
-// struct function_argument : function_argument<decltype(std::function(std::declval<Fn>()))>
-//{
-// };
-
-template <bool, size_t I, typename T, typename... Ts>
-struct select_argument_impl;
-
-template <size_t I, typename T, typename... Ts>
-struct select_argument_impl<true, I, T, Ts...> : select_argument_impl<true, I - 1, Ts...>
+namespace impl
 {
-    using type = T;
-};
-
-template <typename T, typename... Ts>
-struct select_argument_impl<true, 0, T, Ts...>
-{
-    using type = T;
-};
-
-template <size_t I, typename T, typename... Ts>
-struct select_argument_impl<false, I, T, Ts...>
-{
-    using type = void;
-};
-
-template <size_t I, typename... Ts>
-using select_argument = typename select_argument_impl<(I < sizeof...(Ts)), I, Ts...>::type;
-
-template <size_t I, typename Ret, typename... Args>
-struct function_argument<I, std::function<Ret(Args...)>>
-{
-    using type = select_argument<I, Args...>;
-};
-
 template <typename Arg>
 class callback_arg_protector final : public noncopyable
 {
@@ -111,6 +76,17 @@ callback_arg_protector(Arg &) -> callback_arg_protector<Arg &>;
 template <typename Arg>
 callback_arg_protector(Arg *) -> callback_arg_protector<Arg *>;
 
+template <typename Fn>
+struct callback_argument : function_argument<0, decltype(std::function(std::declval<Fn>()))>
+{
+};
+
+template <typename Fn>
+struct callback_argument<std::reference_wrapper<Fn>> : callback_argument<Fn>
+{
+};
+} // namespace impl
+
 template <typename Arg, typename Fn>
 class callback_function_proxy
 {
@@ -154,22 +130,12 @@ class callback_function_proxy
     }
 };
 
-template <typename Fn>
-struct callback_argument : function_argument<0, decltype(std::function(std::declval<Fn>()))>
-{
-};
-
-template <typename Fn>
-struct callback_argument<std::reference_wrapper<Fn>> : callback_argument<Fn>
-{
-};
-
 template <typename Ret, typename Fn>
 struct callback final : basic_callback<Ret>
 {
     using basic_callback<Ret>::return_type;
     using function_type = Fn;
-    using argument_type = typename callback_argument<Fn>::type;
+    using argument_type = typename impl::callback_argument<Fn>::type;
 
   private:
     callback_function_proxy<argument_type, function_type> proxy_;
@@ -240,4 +206,4 @@ struct callback<Ret, Fn &>;
 // template <typename Arg, typename Fn>
 // callback(std::in_place_type_t<Arg>, Fn) -> callback<callback_function_proxy<Arg, std::decay_t<Fn>>>;
 
-}
+} // namespace fd

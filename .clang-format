@@ -39,9 +39,9 @@ KeepEmptyLinesAtTheStartOfBlocks: false
 UseTab: Never
 IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex: '".*"'
+  - Regex: '"[^\/\\]*\.h.*"'
     Priority: 0
-  - Regex: '<fd/.*>'
+  - Regex: '".*[\/\\].*"'
     Priority: 1
   - Regex: '<boost/.*>'
     Priority: 2

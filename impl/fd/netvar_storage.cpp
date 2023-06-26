@@ -1,5 +1,6 @@
 ﻿#include "core.h"
 #include "netvar_storage.h"
+
 #include "tool/functional.h"
 #include "tool/span.h"
 #include "valve/client.h"
@@ -12,22 +13,6 @@
 
 namespace fd
 {
-template <size_t S>
-static constexpr size_t strlen(char const (&)[S])
-{
-    return S - 1;
-}
-
-static bool islower(char c)
-{
-    return c >= 'a' && c <= 'z';
-}
-
-static bool isupper(char c)
-{
-    return c >= 'A' && c <= 'Z';
-}
-
 template <bool InFront>
 static bool one_demension_array(string_view str)
 {
@@ -53,8 +38,8 @@ static bool one_demension_array(string_view str)
 
 static_assert(std::same_as<std::variant_alternative_t<1, netvar_type_stored>, basic_netvar_type_cache *>);
 
-using v_prop_type  = valve::recv_prop_type;
-using v_field_type = valve::data_map_field_type;
+using v_prop_type  = native_recv_table::prop_type;
+using v_field_type = native_data_map::field_type;
 
 using placeholders::_1;
 
@@ -88,15 +73,15 @@ netvar_info::netvar_info(netvar_source source)
 
 char const *netvar_info::raw_name() const
 {
-    return visit(overload(&valve::recv_prop::name, &valve::data_map_field::name), source_);
+    return visit(overload(&native_recv_table::prop::name, &native_data_map::field::name), source_);
 }
 
 size_t netvar_info::raw_offset() const
 {
-    return visit(overload(&valve::recv_prop::offset, &valve::data_map_field::offset), source_);
+    return visit(overload(&native_recv_table::prop::offset, &native_data_map::field::offset), source_);
 }
 
-static char const *recv_prop_name(valve::recv_prop *prop)
+static char const *recv_prop_name(native_recv_table::prop *prop)
 {
     if (isdigit(prop->name[0]))
         return prop->parent_array_name;
@@ -105,12 +90,12 @@ static char const *recv_prop_name(valve::recv_prop *prop)
     return prop->name;
 }
 
-static string_view recv_prop_name_pretty(valve::recv_prop *prop)
+static string_view recv_prop_name_pretty(native_recv_table::prop *prop)
 {
     if (isdigit(prop->name[0]))
         return prop->parent_array_name;
     if (prop->type == v_prop_type::array)
-        return (prop)->name;
+        return prop->name;
 
     string_view name(prop->name);
     if (one_demension_array<false>(name))
@@ -118,14 +103,14 @@ static string_view recv_prop_name_pretty(valve::recv_prop *prop)
     return name;
 }
 
-static string_view data_map_field_name_pretty(valve::data_map_field *field)
+static string_view data_map_field_name_pretty(native_data_map::field *field)
 {
     return field->name;
 }
 
 char const *netvar_info::name() const
 {
-    return visit(overload(recv_prop_name, &valve::data_map_field::name), source_);
+    return visit(overload(recv_prop_name, &native_data_map::field::name), source_);
 }
 
 string_view netvar_info::pretty_name() const
@@ -306,7 +291,7 @@ static string_view netvar_type_vec3(netvar_prefix name)
         auto prefix = name.extract_exact(3);
         if (prefix == "ang")
             return "valve::qangle";
-        if (prefix.empty() && (name->contains("ngles")))
+        if (prefix.empty() && name->contains("ngles"))
             return "valve::qangle";
 #ifdef _DEBUG
         if (name.contains("rgfl"))
@@ -317,9 +302,9 @@ static string_view netvar_type_vec3(netvar_prefix name)
     return "valve::vector3d";
 }
 
-static string_view prop_type_vec2(valve::recv_prop *prop)
+static string_view prop_type_vec2(native_recv_table::prop *prop)
 {
-    if (netvar_prefix name = (prop->name))
+    if (netvar_prefix name = prop->name)
     {
         auto prefix = name.extract_exact(3);
         if (prefix == "vec")
@@ -334,7 +319,7 @@ static string_view prop_type_vec2(valve::recv_prop *prop)
     return "valve::vector2d";
 }
 
-static string_view netvar_type(valve::recv_prop *prop)
+static string_view netvar_type(native_recv_table::prop *prop)
 {
     switch (prop->type)
     {
@@ -369,7 +354,7 @@ static string_view netvar_type(valve::recv_prop *prop)
     }
 }
 
-static string_view netvar_type(valve::data_map_field *field)
+static string_view netvar_type(native_data_map::field *field)
 {
     switch (field->type)
     {
@@ -446,7 +431,7 @@ static void netvar_type_array(It out, string_view type, size_t length)
     fmt::format_to(out, "array<{}, {}>", type, length);
 }
 
-static string_view wrap_prop_in(valve::recv_prop *prop)
+static string_view wrap_prop_in(native_recv_table::prop *prop)
 {
     if (prop->type != v_prop_type::floating)
         return {};
@@ -501,7 +486,7 @@ static string_view wrap_prop_in(valve::recv_prop *prop)
     return {};
 }
 
-static void write_netvar_type(valve::recv_prop *prop, string &cache)
+static void write_netvar_type(native_recv_table::prop *prop, string &cache)
 {
     assert(cache.empty());
     if (prop->type == v_prop_type::array)
@@ -537,18 +522,18 @@ static void write_netvar_type(valve::recv_prop *prop, string &cache)
     }
 }
 
-static void write_netvar_type(valve::data_map_field *prop, string &cache)
+static void write_netvar_type(native_data_map::field *prop, string &cache)
 {
     assert(cache.empty());
     cache.assign(netvar_type(prop));
 }
 
-static basic_netvar_type_cache::key_type key_for_cache(valve::recv_prop *prop)
+static basic_netvar_type_cache::key_type key_for_cache(native_recv_table::prop *prop)
 {
     return recv_prop_name(prop);
 }
 
-static basic_netvar_type_cache::key_type key_for_cache(valve::data_map_field *dmap)
+static basic_netvar_type_cache::key_type key_for_cache(native_data_map::field *dmap)
 {
     return dmap->name;
 }
@@ -588,7 +573,7 @@ static bool strcmp_unsafe(char const *buff, char const (&cmp)[S])
 }
 
 void netvar_table::parse_recv_table(
-    valve::recv_table *recv,
+    native_recv_table *recv,
     size_t offset,
     basic_netvar_type_cache *type_cache,
     bool filter_duplicates)
@@ -681,7 +666,7 @@ void netvar_table::parse_recv_table(
 }
 
 void netvar_table::parse_data_map(
-    valve::data_map *dmap,
+    native_data_map *dmap,
     size_t offset,
     basic_netvar_type_cache *type_cache,
     bool filter_duplicates)
@@ -780,18 +765,18 @@ basic_netvar_info *netvar_table::get_raw(char const *name)
 
 char const *netvar_table::raw_name() const
 {
-    return visit(overload(&valve::recv_table::name, &valve::data_map::name), source_);
+    return visit(overload(&native_recv_table::name, &native_data_map::name), source_);
 }
 
 char const *netvar_table::name() const
 {
     return visit(
         overload(
-            [](valve::recv_table *table) {
+            [](native_recv_table *table) {
                 auto table_name = table->name;
                 return table_name[0] == 'D' ? table_name + strlen("DT_") : table_name;
             },
-            _1->*&valve::data_map::name + strlen("C_")),
+            _1->*&native_data_map::name + strlen("C_")),
         source_);
 }
 
@@ -854,13 +839,13 @@ basic_netvar_table *netvar_storage::get(string_view name)
     return find_netvar_table<false>(name, data_maps_, recv_tables_);
 }
 
-void netvar_storage::store(valve::client_class *root)
+void netvar_storage::store(native_client_class *root)
 {
     for (; root != nullptr; root = root->next)
         try_write_netvar_table(recv_tables_, root->table, &recv_tables_.types);
 }
 
-void netvar_storage::store(valve::data_map *root)
+void netvar_storage::store(native_data_map *root)
 {
     if (data_maps_.empty())
     {
@@ -876,7 +861,7 @@ void netvar_storage::store(valve::data_map *root)
             auto existing = std::find_if(data_maps_.begin(), end, _1->*&netvar_table::raw_name == root->name);
 #else // skip inner visit
             auto existing = std::find_if(data_maps_.begin(), end, [root_name = root->name](netvar_table &table) {
-                return std::get<valve::data_map *>(table.source_)->name == root_name;
+                return std::get<native_data_map *>(table.source_)->name == root_name;
             });
 #endif
             if (existing == end)

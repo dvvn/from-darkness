@@ -1,10 +1,12 @@
 ﻿#pragma once
-#include <fd/abstract_interface.h>
+#include "interface.h"
 
-namespace fd::valve
+namespace fd
 {
-union player
+FD_BIND_NATIVE_INTERFACE(C_CSPlayer, client);
+
+union native_player
 {
-    FD_ABSTRACT_INTERFACE(player);
+    FD_NATIVE_INTERFACE(C_CSPlayer);
 };
 }

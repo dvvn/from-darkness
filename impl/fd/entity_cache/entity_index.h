@@ -87,7 +87,7 @@ struct entity_index
     entity_index &operator++()
     {
         ++index_;
-        return this;
+        return *this;
     }
 };
 

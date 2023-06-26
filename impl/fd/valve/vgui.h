@@ -1,15 +1,14 @@
 #pragma once
-#include <fd/abstract_interface.h>
+#include "interface.h"
 
-namespace fd::valve
+namespace fd
 {
-// ReSharper disable once CppInconsistentNaming
-class ISurface;
+FD_BIND_NATIVE_INTERFACE(ISurface,vguimatsurface);
 
-union vgui_surface
+union native_gui_surface
 {
-    FD_ABSTRACT_INTERFACE(ISurface);
-    abstract_function<66, void> unlock_cursor;
-    abstract_function<67, void> lock_cursor;
+    FD_NATIVE_INTERFACE(ISurface);
+    function<66, void> unlock_cursor;
+    function<67, void> lock_cursor;
 };
 }

@@ -1,18 +1,16 @@
 ﻿#pragma once
 
-#include <fd/abstract_interface.h>
+#include "interface.h"
 
-namespace fd::valve
+namespace fd
 {
-// ReSharper disable CppInconsistentNaming
-class CClientEntityList;
-class IClientEntityList;
-// ReSharper restore CppInconsistentNaming
+FD_BIND_NATIVE_INTERFACE(CClientEntityList, client);
+FD_BIND_NATIVE_INTERFACE(IClientEntityList, client);
 
-union entity_list
+union native_entity_list
 {
-    FD_ABSTRACT_INTERFACE(IClientEntityList);
-    abstract_function<3, void *, named<uint32_t, "index">> get_client_entity;
-    abstract_function<8, int32_t> max_entities;
+    FD_NATIVE_INTERFACE(IClientEntityList);
+    function<3, void *, uint32_t /*index*/> get_client_entity;
+    function<8, int32_t> max_entities;
 };
 }

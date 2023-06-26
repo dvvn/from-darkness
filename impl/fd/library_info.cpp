@@ -1,14 +1,13 @@
-﻿#include "library_info.h"
+﻿#if 0
+#include "library_info.h"
 #include "log.h"
 #include "mem_scanner.h"
 #include "tool/functional.h"
 #include "tool/span.h"
 #include "tool/string.h"
-#include "tool/string_view.h"
 #include "tool/vector.h"
 
 #include <windows.h>
-#include <intrin.h>
 #include <winternl.h>
 
 #include <cassert>
@@ -507,4 +506,5 @@ fmt::string_view system_library::merge_fmt_args(fmt::string_view fmt) const
 }
 } // namespace fd
 
+#endif
 #endif

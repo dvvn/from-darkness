@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core.h"
+
 #include "tool/functional.h"
 
 #include <x86RetSpoof.h>
@@ -258,6 +259,8 @@ struct non_member_func_invoker
 
 X86_CALL_MEMBER(MEMBER_FN_TYPE)
 #undef MEMBER_FN_BUILDER
+
+
 
 template <call_type_t Call_T, class Ret, class T, typename... Args>
 struct member_func_invoker

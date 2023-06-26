@@ -1,26 +1,21 @@
 ﻿#pragma once
 
 #include "basic_netvar_storage.h"
+
 #include "tool/string.h"
-#include "tool/string_view.h"
 #include "tool/variant.h"
 #include "tool/vector.h"
+#include "valve/data_map.h"
+#include "valve/recv_table.h"
 
 #define FD_MERGE_NETVAR_TABLES
 
 namespace fd
 {
+struct native_client_class;
+
 template <class>
 struct span;
-
-namespace valve
-{
-struct client_class;
-struct recv_prop;
-struct recv_table;
-struct data_map_field;
-struct data_map;
-} // namespace valve
 
 struct basic_netvar_type_cache
 {
@@ -30,12 +25,12 @@ struct basic_netvar_type_cache
     virtual string_view store(key_type key, string &&value) = 0;
 };
 
-using netvar_source      = variant<valve::recv_prop *, valve::data_map_field *>;
+using netvar_source      = variant<native_recv_table::prop *, native_data_map::field *>;
 using netvar_type_stored = variant<string, basic_netvar_type_cache *>;
 
 class netvar_info : public basic_netvar_info
 {
-    //friend class netvar_table;
+    // friend class netvar_table;
 
     netvar_source source_;
     netvar_type_stored type_;
@@ -64,7 +59,7 @@ class netvar_info : public basic_netvar_info
     string_view type() const;
 };
 
-using netvar_table_source = variant<valve::recv_table *, valve::data_map *>;
+using netvar_table_source = variant<native_recv_table *, native_data_map *>;
 
 class netvar_table : public basic_netvar_table
 {
@@ -79,12 +74,12 @@ class netvar_table : public basic_netvar_table
 #endif
 
     void parse_recv_table(
-        valve::recv_table *recv,
+        native_recv_table *recv,
         size_t offset,
         basic_netvar_type_cache *type_cache,
         bool filter_duplicates);
     void parse_data_map(
-        valve::data_map *dmap,
+        native_data_map *dmap,
         size_t offset,
         basic_netvar_type_cache *type_cache,
         bool filter_duplicates);
@@ -142,7 +137,7 @@ class netvar_storage : public basic_netvar_storage
   public:
     basic_netvar_table *get(string_view name) override;
 
-    void store(valve::client_class *root);
-    void store(valve::data_map *root);
+    void store(native_client_class *root);
+    void store(native_data_map *root);
 };
 }

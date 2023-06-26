@@ -1,4 +1,6 @@
-﻿#include <fd/console.h>
+﻿#include "fd/tool/algorithm/pattern.h"
+
+#include <fd/console.h>
 #include <fd/entity_cache.h>
 #include <fd/hook.h>
 #include <fd/library_info.h>
@@ -7,7 +9,6 @@
 #include <fd/render/context.h>
 #include <fd/render/own_backend.h>
 #include <fd/tool/span.h>
-#include <fd/tool/string_view.h>
 #include <fd/valve/client.h>
 #include <fd/valve/engine.h>
 #include <fd/valve/entity.h>
@@ -15,10 +16,11 @@
 #include <fd/valve/entity_list.h>
 #include <fd/valve/global_vars.h>
 #include <fd/valve/vgui.h>
-#include <fd/valve_library_info.h>
 #include <fd/vtable.h>
 
-// #define FD_SHARED_LIB
+#undef interface
+
+#define FD_SHARED_LIB
 
 #define DECLSPEC_NAKED __declspec(naked)
 
@@ -48,45 +50,14 @@ static bool resume_context()
 namespace fd
 {
 #ifdef FD_SHARED_LIB
-template <named_arg Name>
-struct named_return_address_gadget
-{
-    inline static uintptr_t address;
-};
 
-#define RETURN_ADDRESS_GADGET(_CLASS_, _LIB_)                                   \
-    template <>                                                                 \
-    struct return_address_gadget<_CLASS_> : named_return_address_gadget<#_LIB_> \
-    {                                                                           \
-    };
-
-RETURN_ADDRESS_GADGET(valve::IClientEntityList, client);
-RETURN_ADDRESS_GADGET(valve::CClientEntityList, client);
-RETURN_ADDRESS_GADGET(valve::CHLClient, client);
-RETURN_ADDRESS_GADGET(valve::C_BaseEntity, client);
-RETURN_ADDRESS_GADGET(valve::ISurface, vguimatsurface);
-RETURN_ADDRESS_GADGET(valve::IEngineClient, engine);
-RETURN_ADDRESS_GADGET(FD_RENDER_BACKEND, shaderapidx9);
-
-#undef RETURN_ADDRESS_GADGET
-
-template <named_arg Name>
-static system_library find_library()
-{
-    wchar_t buff[Name.length() + 1 + 3];
-    auto it = std::copy(Name.begin(), Name.end(), buff);
-    *it++   = '.';
-    *it++   = 'd';
-    *it++   = 'l';
-    *it     = 'l';
-    system_library lib(std::begin(buff), std::size(buff));
-    using gadget = named_return_address_gadget<Name>;
-#if defined(_DEBUG)
-    if constexpr (std::default_initializable<gadget>)
-#endif
-        named_return_address_gadget<Name>::address = reinterpret_cast<uintptr_t>(lib.pattern("FF 23"));
-    return lib;
-}
+// RETURN_ADDRESS_GADGET(valve::IClientEntityList, client);
+// RETURN_ADDRESS_GADGET(valve::CClientEntityList, client);
+// RETURN_ADDRESS_GADGET(valve::CHLClient, client);
+// RETURN_ADDRESS_GADGET(valve::C_BaseEntity, client);
+// RETURN_ADDRESS_GADGET(valve::ISurface, vguimatsurface);
+// RETURN_ADDRESS_GADGET(valve::IEngineClient, engine);
+// RETURN_ADDRESS_GADGET(FD_RENDER_BACKEND, shaderapidx9);
 
 // todo: get sendpacked from cl_move
 template <typename Callback, typename C>
@@ -150,6 +121,7 @@ struct hook_proxy_getter<hook_proxy_createmove<Callback, Call_T, C, Args...>>
 #endif
 
 #define NAMED_VFUNC(_NAME_, _OBJ_) BOOST_STRINGIZE(_NAME_), _OBJ_[&_NAME_]
+#define NATIVE_LIB(_L_)            native_library<#_L_> _L_##_dll
 
 static bool context() noexcept
 {
@@ -168,9 +140,13 @@ static bool context() noexcept
     WNDPROC window_proc;
 
 #ifdef FD_SHARED_LIB
-    auto shader_api_dll = find_library<"shaderapidx9">();
-    render_vtable       = **reinterpret_cast<IDirect3DDevice9 ***>(
-        shader_api_dll.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
+    NATIVE_LIB(client);
+    NATIVE_LIB(engine);
+    NATIVE_LIB(vguimatsurface);
+    NATIVE_LIB(shaderapidx9);
+
+    render_vtable = **reinterpret_cast<IDirect3DDevice9 ***>(
+        (uint8_t *)shaderapidx9_dll.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
 
     D3DDEVICE_CREATION_PARAMETERS creation_parameters;
     if (FAILED(render_vtable->GetCreationParameters(&creation_parameters)))
@@ -193,20 +169,17 @@ static bool context() noexcept
         return false;
 
 #ifdef FD_SHARED_LIB
-    valve_library client_dll(find_library<"client">());
-    valve_library engine_dll(find_library<"engine">());
-    valve_library vgui_dll(find_library<"vguimatsurface">());
 
-    valve::client v_client(client_dll.interface("VClient"));
-    valve::engine v_engine(engine_dll.interface("VEngineClient"));
-    valve::vgui_surface v_gui(vgui_dll.interface("VGUI_Surface"));
-    valve::entity_list v_ent_list(client_dll.interface("VClientEntityList"));
+    native_client v_client(client_dll.interface("VClient"));
+    native_engine v_engine(engine_dll.interface("VEngineClient"));
+    native_gui_surface v_gui(vguimatsurface_dll.interface("VGUI_Surface"));
+    native_entity_list v_ent_list(client_dll.interface("VClientEntityList"));
     auto v_globals = **static_cast<valve::global_vars_base ***>(v_client[11] + 0xA);
 
     native_entity_finder entity_finder(v_ent_list.get_client_entity);
     entity_cache cached_entity(&entity_finder, v_engine.in_game());
 
-    valve::entity csplayer_vtable(
+    native_entity csplayer_vtable(
         v_engine.in_game() ? entity_finder.get(v_engine.local_player_index()) : client_dll.vtable("C_CSPlayer"));
 
     netvar_storage netvars;
@@ -269,12 +242,11 @@ static bool context() noexcept
     });
     hooks.create(
         "CHLClient::FrameStageNotify",
-        v_client[37].get<void, valve::frame_stage>(),
-        [&](auto &&orig, valve::frame_stage stage) {
+        v_client[37].get<void, native_frame_stage>(),
+        [&](auto &&orig, native_frame_stage stage) {
             if (v_engine.in_game())
             {
-                using valve::frame_stage;
-                if (stage == frame_stage::render_start)
+                if (stage == native_frame_stage::render_start)
                 {
                     if (!cached_entity.synced())
                     {
@@ -300,7 +272,7 @@ static bool context() noexcept
             //
             orig(sequence_number, input_sample_frametime, is_active);
         });
-    using entity_list_callback = void(__thiscall *)(void *, void *, valve::entity_handle);
+    using entity_list_callback = void(__thiscall *)(CClientEntityList *, void *, valve::entity_handle);
     hooks.create(
         "CClientEntityList::OnAddEntity",
         void_to_func<entity_list_callback>(client_dll.pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),

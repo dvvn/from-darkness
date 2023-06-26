@@ -9,19 +9,22 @@
         using __fd_wrapped::__fd_wrapped;   \
     };
 
-#define FD_WRAP_TOOL_BEGIN(_WRAPPED_, ...)                     \
-    struct _WRAPPED_ : __VA_ARGS__                             \
-    {                                                          \
-        using __fd_wrapped = __VA_ARGS__;                      \
-        using __fd_wrapped::__fd_wrapped;                      \
-        constexpr _WRAPPED_(__fd_wrapped const &self)          \
-            : __fd_wrapped(self)                               \
-        {                                                      \
-        }                                                      \
-        constexpr _WRAPPED_(__fd_wrapped &&self)               \
-            : __fd_wrapped(static_cast<__fd_wrapped &&>(self)) \
-        {                                                      \
-        }
+#define FD_WRAP_TOOL_BEGIN_SIMPLE(_WRAPPED_, ...) \
+    struct _WRAPPED_ : __VA_ARGS__                \
+    {                                             \
+        using __fd_wrapped = __VA_ARGS__;         \
+        using __fd_wrapped::__fd_wrapped;
+
+#define FD_WRAP_TOOL_BEGIN(_WRAPPED_, ...)                 \
+    FD_WRAP_TOOL_BEGIN_SIMPLE(_WRAPPED_, __VA_ARGS__)      \
+    constexpr _WRAPPED_(__fd_wrapped const &self)          \
+        : __fd_wrapped(self)                               \
+    {                                                      \
+    }                                                      \
+    constexpr _WRAPPED_(__fd_wrapped &&self)               \
+        : __fd_wrapped(static_cast<__fd_wrapped &&>(self)) \
+    {                                                      \
+    }
 
 #define FD_WRAP_TOOL_END \
     }                    \

@@ -1,17 +1,15 @@
 ﻿#pragma once
 #include "data_map.h"
+#include "interface.h"
 
-#include <fd/abstract_interface.h>
-
-namespace fd::valve
+namespace fd
 {
-// ReSharper disable once CppInconsistentNaming
-class C_BaseEntity;
+FD_BIND_NATIVE_INTERFACE(C_BaseEntity, client);
 
-union entity
+union native_entity
 {
-    FD_ABSTRACT_INTERFACE(C_BaseEntity);
-    abstract_function<15, data_map *> get_desc_data_map;
-    abstract_function<17, data_map *> get_prediction_data_map;
+    FD_NATIVE_INTERFACE(C_BaseEntity);
+    function<15, native_data_map *> get_desc_data_map;
+    function<17, native_data_map *> get_prediction_data_map;
 };
 }

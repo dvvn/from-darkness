@@ -3,6 +3,7 @@
 #include "basic_hook.h"
 #include "call_type.h"
 #include "core.h"
+
 #include "tool/vector.h"
 #ifdef _DEBUG
 #include "tool/string.h"
@@ -229,7 +230,7 @@ struct hook_proxy_getter
 
 template <call_type_t Call_T, typename Ret, typename T, typename... Args>
 class vfunc;
-struct abstract_function_tag;
+struct native_function_tag;
 
 class hook_context : public noncopyable
 {
@@ -326,7 +327,7 @@ class hook_context : public noncopyable
     template <
         HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member,
         typename Callback,
-        std::derived_from<abstract_function_tag> Fn>
+        std::derived_from<native_function_tag> Fn>
     basic_hook *create(hook_name name, Fn abstract_fn, Callback callback)
     {
         return create<Proxy>(name, abstract_fn.get(), (callback));

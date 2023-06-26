@@ -1,60 +1,21 @@
-﻿#include "log.h"
-#include "tool/functional.h"
-#include "tool/string_view.h"
-#include "tool/vector.h"
-#include "valve_library_info.h"
+﻿#include "native.h"
 
-#include <cctype>
-
-static bool isdigit(char c)
-{
-    // locale's anywway unused
-    return c >= '0' && c <= '9';
-}
-
-namespace fd
-{
-class basic_found_valve_interface;
-}
-
-template <std::derived_from<fd::basic_found_valve_interface> T, typename C>
-struct fmt::formatter<T, C> : formatter<basic_string_view<C>, C>
-{
-    using base = formatter<basic_string_view<C>, C>;
-
-    auto format(T const &valve_interface, auto &ctx) const -> decltype(ctx.out())
-    {
-        fd::small_vector<C, 64> buff;
-        auto name = valve_interface.name();
-
-        if (!valve_interface.exact())
-            format_to(std::back_inserter(buff), "{} ({})", name, valve_interface.full_name());
-        else
-        {
-            if constexpr (std::same_as<C, char>)
-                return base::format({name.data(), name.size()}, ctx);
-            else
-                buff.assign(name.begin(), name.end());
-        }
-        return base::format({buff.data(), buff.size()}, ctx);
-    }
-};
+#include "fd/core.h"
+#include "fd/tool/string.h"
 
 namespace fd
 {
 template <bool Partial>
-class found_valve_interface;
+class found_native_interface;
 
-class valve_interface_holder
+class native_interface_holder
 {
-    using pointer = valve_interface_holder const *;
-
     void *(*create_)();
     char const *name_;
-    pointer next_;
+    native_interface_holder *next_;
 
   public:
-    valve_interface_holder() = delete;
+    native_interface_holder() = delete;
 
     bool compare(string_view other_name) const
     {
@@ -72,9 +33,9 @@ class valve_interface_holder
     }
 
     template <bool Partial>
-    found_valve_interface<Partial> find(string_view target_name) const
+    found_native_interface<Partial> find(string_view target_name) const
     {
-        for (auto i = this; i != nullptr; i = i->next_)
+        for (auto i = remove_const(this); i != nullptr; i = i->next_)
         {
             if constexpr (!Partial)
             {
@@ -105,30 +66,28 @@ class valve_interface_holder
         return nullptr;
     }
 
-    pointer next() const
+    native_interface_holder *next() const
     {
         return next_;
     }
 };
 
-class basic_found_valve_interface
+class basic_found_native_interface
 {
-    using pointer = valve_interface_holder const *;
-
-    pointer holder_;
+    native_interface_holder *holder_;
     size_t input_string_length_;
 
     template <bool>
-    friend class found_valve_interface;
+    friend class found_native_interface;
 
   public:
     // ReSharper disable once CppPossiblyUninitializedMember
-    basic_found_valve_interface(pointer holder)
+    basic_found_native_interface(native_interface_holder *holder)
         : holder_(holder)
     {
     }
 
-    pointer operator->() const
+    native_interface_holder *operator->() const
     {
         return holder_;
     }
@@ -143,7 +102,7 @@ class basic_found_valve_interface
         return input_string_length_;
     }
 
-    basic_found_valve_interface &set_input_string_length(size_t input_string_length)
+    basic_found_native_interface &set_input_string_length(size_t input_string_length)
     {
         input_string_length_ = input_string_length;
         return *this;
@@ -157,15 +116,15 @@ class basic_found_valve_interface
 };
 
 template <>
-class found_valve_interface<true> : public basic_found_valve_interface
+class found_native_interface<true> : public basic_found_native_interface
 {
     bool exact_;
 
   public:
-    using basic_found_valve_interface::basic_found_valve_interface;
+    using basic_found_native_interface::basic_found_native_interface;
 
-    found_valve_interface(pointer holder, bool exact)
-        : basic_found_valve_interface(holder)
+    found_native_interface(native_interface_holder *holder, bool exact)
+        : basic_found_native_interface(holder)
         , exact_(exact)
     {
     }
@@ -186,11 +145,11 @@ class found_valve_interface<true> : public basic_found_valve_interface
 };
 
 template <>
-class found_valve_interface<false> : public basic_found_valve_interface
+class found_native_interface<false> : public basic_found_native_interface
 {
   public:
-    found_valve_interface(pointer holder, bool /*exact*/ = true)
-        : basic_found_valve_interface(holder)
+    found_native_interface(native_interface_holder *holder, bool /*exact*/ = true)
+        : basic_found_native_interface(holder)
     {
     }
 
@@ -206,34 +165,29 @@ class found_valve_interface<false> : public basic_found_valve_interface
     }
 };
 
-static valve_interface_holder *root_interface(void *create_fn)
+static native_interface_holder *root_interface(void *create_fn)
 {
     auto relative_fn  = reinterpret_cast<uintptr_t>(create_fn) + 0x5;
     auto displacement = *reinterpret_cast<int32_t *>(relative_fn);
     auto jmp          = relative_fn + sizeof(int32_t) + displacement;
 
-    return **reinterpret_cast<valve_interface_holder ***>(jmp + 0x6);
+    return **reinterpret_cast<native_interface_holder ***>(jmp + 0x6);
 }
 
-valve_library::valve_library(system_library other)
-    : system_library(other)
+void *native_library_info::interface(string_view name) const
 {
-}
-
-void *valve_library::interface(string_view name) const
-{
-    auto do_find =
-        [=, root = root_interface(function("CreateInterface"))]<bool Partial>(std::bool_constant<Partial>) -> void * {
-        found_valve_interface<Partial> found = root->find<Partial>(name);
+    auto do_find = [root = root_interface(function("CreateInterface")),
+                    name]<bool Partial>(std::bool_constant<Partial>) -> void * {
+        found_native_interface<Partial> found = root->find<Partial>(name);
         found.set_input_string_length(name.length());
 
         if (!found)
         {
-            log("valve interface {} NOT found", name);
+            // log("valve interface {} NOT found", name);
             return nullptr;
         }
 
-        log("valve interface {} found", found);
+        // log("valve interface {} found", found);
         if (!found.exact())
         {
             auto next_interface = found->next();
@@ -242,7 +196,7 @@ void *valve_library::interface(string_view name) const
                 auto duplicate = next_interface->template find<true>(name);
                 if (duplicate)
                 {
-                    log("DUPLICATE valve interface {} found", duplicate);
+                    // log("DUPLICATE valve interface {} found", duplicate);
                     return nullptr;
                 }
             }
@@ -253,4 +207,4 @@ void *valve_library::interface(string_view name) const
 
     return isdigit(name.back()) ? do_find(std::false_type()) : do_find(std::true_type());
 }
-} // namespace fd
+}

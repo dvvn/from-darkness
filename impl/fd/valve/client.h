@@ -1,19 +1,10 @@
 #pragma once
-#include <fd/abstract_interface.h>
+#include "client_class.h"
+#include "interface.h"
 
-namespace fd::valve
+namespace fd
 {
-struct client_class
-{
-    void *create;
-    void *create_event;
-    char const *name;
-    struct recv_table *table;
-    client_class *next;
-    uint32_t id;
-};
-
-enum class frame_stage : int32_t
+enum class native_frame_stage : int32_t
 {
     undefined = -1,
     start,
@@ -32,12 +23,11 @@ enum class frame_stage : int32_t
     /*net_full_frame_update_on_remove*/
 };
 
-// ReSharper disable once CppInconsistentNaming
-class CHLClient;
+FD_BIND_NATIVE_INTERFACE(CHLClient, client);
 
-union client
+union native_client
 {
-    FD_ABSTRACT_INTERFACE(CHLClient);
-    abstract_function<8, client_class *> get_all_classes;
+    FD_NATIVE_INTERFACE(CHLClient);
+    function<8, native_client_class *> get_all_classes;
 };
 }

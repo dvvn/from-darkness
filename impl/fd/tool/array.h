@@ -6,6 +6,10 @@
 
 namespace fd
 {
-template <typename T, size_t Length>
-FD_WRAP_TOOL_SIMPLE(array, std::array<T, Length>);
+using std::array;
+
+//template <typename T, size_t Length>
+//FD_WRAP_TOOL_BEGIN_SIMPLE(array, std::array<T, Length>)
+//
+//FD_WRAP_TOOL_END;
 }

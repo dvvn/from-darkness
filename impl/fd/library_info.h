@@ -1,105 +1,44 @@
 ﻿#pragma once
 
-#include "named_arg.h"
+#include "call_type.h"
+#include "core.h"
 
-#ifdef _DEBUG
-#include <fmt/core.h>
-
-#include <functional>
-#endif
-
-#include <cstdint>
-
-// ReSharper disable CppInconsistentNaming
-
-using LDR_DATA_TABLE_ENTRY = struct _LDR_DATA_TABLE_ENTRY;
-using IMAGE_DOS_HEADER     = struct _IMAGE_DOS_HEADER;
-using IMAGE_SECTION_HEADER = struct _IMAGE_SECTION_HEADER;
-
-#ifdef _WIN64
-using IMAGE_NT_HEADERS = struct _IMAGE_NT_HEADERS64;
-#else
-using IMAGE_NT_HEADERS = struct _IMAGE_NT_HEADERS;
-#endif
+#include "library_info/native.h"
+#include "library_info/system.h"
+#include "library_info/tag.h"
+#include "tool/string.h"
 
 namespace fd
 {
-using system_library_entry  = LDR_DATA_TABLE_ENTRY const *;
-using system_section_header = IMAGE_SECTION_HEADER const *;
-
-using system_cstring     = wchar_t const *;
-using system_string_view = struct wstring_view;
-
-struct string_view;
-
-template <typename T>
-struct span;
-
-#ifdef _DEBUG
-void log(fmt::string_view fmt, fmt::format_args fmt_args, std::ostream *out);
-#endif
-
-class system_library
+template <library_tag Tag>
+struct system_library : system_library_info
 {
-    system_library_entry entry_;
-
-  protected:
-    system_library() = default;
-
-  public:
-    system_library(system_string_view name);
-    system_library(const wchar_t *name, size_t length);
-
-    system_string_view name() const;
-    system_string_view path() const;
-    span<uint8_t> memory() const;
-    void *function(string_view name) const;
-    uint8_t *pattern(string_view pattern) const;
-    system_section_header section(string_view name) const;
-    void *rtti_descriptor(string_view class_name) const;
-    void *vtable(string_view name) const;
-
-#ifdef _DEBUG
-    using bound_name = decltype(std::bind(&system_library::name, std::declval<system_library const *>()));
-
-  private:
-    fmt::string_view merge_fmt_args(fmt::string_view fmt) const;
-
-  protected:
-    template <typename... Args>
-    void log(fmt::format_string<Args...> fmt, Args &&...args) const
+    system_library()
+        : system_library_info(Tag)
     {
-        fd::log(merge_fmt_args(fmt.get()), fmt::format_args(fmt::make_format_args(args...)), (std::ostream *)nullptr);
     }
-#endif
-};
-//
-//template <named_arg Name>
-//struct named_system_library : system_library
-//{
-//    named_system_library()
-//    {
-//        wchar_t buff[Name.length()];
-//        std::copy(Name.begin(), Name.end(), buff);
-//        std::construct_at<system_library>(this, buff, Name.length());
-//    }
-//};
-} // namespace fd
 
-#ifdef _DEBUG
-namespace std
+    system_library(system_library_info info)
+        : system_library_info(info)
+    {
+    }
+};
+
+template <library_tag Tag>
+struct native_return_address_gadget;
+
+template <library_tag Tag>
+struct native_library : native_library_info
 {
-template <typename Fn, typename T>
-auto bind(Fn &&fn, T &&ptr) requires(
-    convertible_to<Fn, decltype(&fd::system_library::name)> && !same_as<decay_t<T>, fd::system_library const *>)
-{
-    return bind(forward<Fn>(fn), forward_like<T &&>(static_cast<fd::system_library const *>(ptr)));
+    native_library()
+        : native_library_info(Tag)
+    {
+        native_return_address_gadget<Tag>::address = reinterpret_cast<uintptr_t>(this->pattern("FF 23"));
+    }
+
+    operator system_library<Tag>() const
+    {
+        return static_cast<system_library_info>(*this);
+    }
+};
 }
-} // namespace std
-
-template <>
-struct fmt::formatter<fd::system_library::bound_name> : formatter<string_view>
-{
-    auto format(fd::system_library::bound_name binder, format_context &ctx) const -> format_context::iterator;
-};
-#endif

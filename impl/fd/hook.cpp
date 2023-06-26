@@ -2,7 +2,7 @@
 #include "log.h"
 
 #ifdef _DEBUG
-#include "tool/string_view.h"
+#include "tool/string.h"
 #endif
 
 #include <algorithm>

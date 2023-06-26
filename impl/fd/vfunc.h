@@ -2,7 +2,6 @@
 
 #include "call_type.h"
 #include "core.h"
-#include "valve/global_vars.h"
 
 #include <concepts>
 
