@@ -1,9 +1,12 @@
 #include "own_backend.h"
 
+#include "fd/tool/exception.h"
+
 #include <d3d9.h>
 #include <tchar.h>
 
 #include <cassert>
+#include <system_error>
 
 #pragma comment(lib, "d3d9.lib")
 
@@ -112,56 +115,52 @@ void d3d_device9::reset()
     assert(hr != D3DERR_INVALIDCALL);
 }
 
-d3d_device9::operator IDirect3DDevice9 *() const
+d3d_device9::operator pointer() const
 {
     return device_;
 }
 
-IDirect3DDevice9 *d3d_device9::get() const
+auto d3d_device9::get() const -> pointer
 {
     return device_;
 }
 
-IDirect3DDevice9 *d3d_device9::operator->() const
+auto d3d_device9::operator->() const -> pointer
 {
     return device_;
 }
 
 own_render_backend::~own_render_backend()
 {
-    UnregisterClass(info.lpszClassName, info.hInstance);
-    DestroyWindow(hwnd);
+    UnregisterClass(info_.lpszClassName, info_.hInstance);
+    DestroyWindow(hwnd_);
 }
 
-own_render_backend::own_render_backend()
+own_render_backend::own_render_backend(LPCTSTR name, HMODULE handle, HWND parent)
 {
-}
-
-bool own_render_backend::init(LPCTSTR name, HMODULE handle, HWND parent)
-{
-    memset(&info, 0, sizeof(WNDCLASSEX));
-    info = {
+    memset(&info_, 0, sizeof(WNDCLASSEX));
+    info_ = {
         .cbSize        = sizeof(WNDCLASSEX),
         .style         = CS_CLASSDC,
         .lpfnWndProc   = wnd_proc,
         .hInstance     = handle,
         .lpszClassName = name};
-    RegisterClassEx(&info);
+    RegisterClassEx(&info_);
 
-    hwnd = (CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, parent, nullptr, handle, &device));
-    if (device.attach(hwnd))
-    {
-        ShowWindow(hwnd, SW_SHOWDEFAULT);
-        UpdateWindow(hwnd);
-        return device != nullptr;
-    }
-    
-    return false;
+    hwnd_ = CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, parent, nullptr, handle, &device_);
+
+    if (!hwnd_)
+        throw runtime_error("Window not created!");
+    if (!device_.attach(hwnd_))
+        throw runtime_error("D3D device not created!");
+
+    ShowWindow(hwnd_, SW_SHOWDEFAULT);
+    UpdateWindow(hwnd_);
 }
 
 bool own_render_backend::run()
 {
-    assert(device != nullptr);
+    assert(device_ != nullptr);
 
     for (;;)
     {
@@ -174,17 +173,38 @@ bool own_render_backend::run()
                 return true;
         }
 
-        device->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
-        auto result = device->Present(nullptr, nullptr, nullptr, nullptr);
+        (void)device_->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+        auto result = device_->Present(nullptr, nullptr, nullptr, nullptr);
         // Handle loss of D3D9 device
-        if (result == D3DERR_DEVICELOST && device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
-            device.reset();
+        if (result == D3DERR_DEVICELOST && device_->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
+            device_.reset();
     }
 }
 
 bool own_render_backend::stop()
 {
     ignore_unused(this);
-    return PostMessage(hwnd, WM_QUIT, 0, 0);
+    return PostMessage(hwnd_, WM_QUIT, 0, 0);
+}
+
+auto own_render_backend::backend() const -> device_type::pointer
+{
+    return device_.get();
+}
+
+HWND own_render_backend::window() const
+{
+    return hwnd_;
+}
+
+WNDPROC own_render_backend::window_proc() const
+{
+    return info_.lpfnWndProc;
+}
+
+WNDPROC own_render_backend::default_window_proc() const
+{
+    ignore_unused(this);
+    return DefWindowProc;
 }
 } // namespace fd

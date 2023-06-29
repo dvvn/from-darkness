@@ -8,7 +8,6 @@
 #include <fd/netvar_storage.h>
 #include <fd/render/context.h>
 #include <fd/render/own_backend.h>
-#include <fd/tool/span.h>
 #include <fd/valve/client.h>
 #include <fd/valve/engine.h>
 #include <fd/valve/entity.h>
@@ -124,7 +123,6 @@ struct hook_proxy_getter<hook_proxy_createmove<Callback, Call_T, C, Args...>>
 
 static bool context() noexcept
 {
-   
 #ifdef _DEBUG
 #ifdef FD_SHARED_LIB
     system_console console;
@@ -135,38 +133,19 @@ static bool context() noexcept
     if (!log_activator.init())
         return false;
 #endif
-    vtable<FD_RENDER_BACKEND> render_vtable;
-    HWND window;
-    WNDPROC window_proc;
 
 #ifdef FD_SHARED_LIB
     NATIVE_LIB(client);
     NATIVE_LIB(engine);
     NATIVE_LIB(vguimatsurface);
     NATIVE_LIB(shaderapidx9);
-
-    render_vtable = **reinterpret_cast<IDirect3DDevice9 ***>(
-        static_cast<uint8_t *>(shaderapidx9_dll.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C"_pat)) + 1);
-
-    D3DDEVICE_CREATION_PARAMETERS creation_parameters;
-    if (FAILED(render_vtable->GetCreationParameters(&creation_parameters)))
-        return false;
-    window      = creation_parameters.hFocusWindow;
-    window_proc = reinterpret_cast<WNDPROC>(GetWindowLongPtr(creation_parameters.hFocusWindow, GWLP_WNDPROC));
-
-#else
-    own_render_backend own_render;
-    if (!own_render.init(L"Unnamed", self_handle))
-        return false;
-
-    render_vtable = own_render.device.get();
-    window        = own_render.hwnd;
-    window_proc   = own_render.info.lpfnWndProc;
 #endif
 
-    render_context render;
-    if (!render.init(window, render_vtable.instance()))
-        return false;
+#ifdef FD_SHARED_LIB
+    render_context<false> render(shaderapidx9_dll);
+#else
+    render_context<true> render;
+#endif
 
 #ifdef FD_SHARED_LIB
     native_client v_client(client_dll.interface("VClient"));
@@ -190,15 +169,9 @@ static bool context() noexcept
     hook_context hooks;
     hooks.create(
         "WinAPI.WndProc",
-        window_proc,
-        [&render,
-#ifdef FD_SHARED_LIB
-         def = IsWindowUnicode(window) ? DefWindowProcW : DefWindowProcA
-#else
-         def = DefWindowProc
-#endif
-    ](auto orig, auto... args) -> LRESULT {
-            using result_t = render_context::process_result;
+        render.window_proc(),
+        [&render, def = render.default_window_proc()](auto orig, auto... args) -> LRESULT {
+            using result_t = basic_render_context::process_result;
             result_t pmr;
             render.process_message(args..., &pmr);
             switch (pmr)
@@ -213,12 +186,12 @@ static bool context() noexcept
                 std::unreachable();
             }
         });
-    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Reset, render_vtable), [&](auto &&orig, auto... args) {
+    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Reset, render), [&](auto &&orig, auto... args) {
         render.reset();
         return orig(args...);
     });
-    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Present, render_vtable), [&](auto &&orig, auto... args) {
-        if (auto frame = render.new_frame())
+    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Present, render), [&](auto &&orig, auto... args) {
+        if (auto frame = render.new_frame(orig))
         {
             ImGui::ShowDemoWindow();
             if (ImGui::Button("Exit"))
@@ -226,19 +199,21 @@ static bool context() noexcept
 #ifdef FD_SHARED_LIB
                 resume_context();
 #else
-                own_render.stop();
+                render.stop();
 #endif
             }
         }
         return orig(args...);
     });
 #ifdef FD_SHARED_LIB
-    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Release, render_vtable), [&](auto &&orig) {
+#if 0 // not it detach automatically
+    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Release, render), [&](auto &&orig) {
         auto refs = orig();
-        if (refs == 0 && orig == render_vtable)
+        if (refs == 0 && orig == render.backend())
             render.detach();
         return refs;
     });
+#endif
     hooks.create(
         "CHLClient::FrameStageNotify",
         v_client[37].get<void, native_frame_stage>(),
@@ -303,7 +278,7 @@ static bool context() noexcept
     if (!lock_context())
         return false;
 #else
-    if (!own_render.run())
+    if (!render.run())
         return false;
 #endif
 

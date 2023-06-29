@@ -1,175 +1,71 @@
-#include "context.h"
+﻿#include "context.h"
 
-#include <imgui_impl_dx9.h>
-#include <imgui_impl_win32.h>
-#include <imgui_internal.h>
-
-#include <Windows.h>
-#include <d3d9.h>
-
-#include <utility>
-
-// ReSharper disable once CppInconsistentNaming
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
+#include "fd/library_info/system.h"
+#include "fd/tool/algorithm/pattern.h"
+#ifdef _DEBUG
+#include "fd/tool/string.h"
+#endif
 
 namespace fd
 {
-template <class>
-struct render_backend;
-
-template <>
-struct render_backend<IDirect3DDevice9>
+template <typename T>
+static auto get_creation_params(T *ptr)
 {
-    static constexpr auto init      = ImGui_ImplDX9_Init;
-    static constexpr auto shutdown  = ImGui_ImplDX9_Shutdown;
-    static constexpr auto reset     = ImGui_ImplDX9_InvalidateDeviceObjects;
-    static constexpr auto new_frame = ImGui_ImplDX9_NewFrame;
-
-    static void render(IDirect3DDevice9 *backend)
-    {
-        (void)backend->BeginScene();
-        ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-        (void)backend->EndScene();
-    }
-};
-
-render_context::~render_context()
-{
-    render_backend<FD_RENDER_BACKEND>::shutdown();
-    if (window_)
-        ImGui_ImplWin32_Shutdown();
-
-    ImGui::Shutdown();
-#ifdef _DEBUG
-    ImGui::SetCurrentContext(nullptr);
-#endif
+    D3DDEVICE_CREATION_PARAMETERS creation_parameters;
+    if (FAILED(ptr->GetCreationParameters(&creation_parameters)))
+        std::unreachable();
+    return creation_parameters;
 }
 
-render_context::render_context()
-    : context_(&font_atlas_)
-    , window_(nullptr)
+namespace detail
 {
-    IMGUI_CHECKVERSION();
-    ImGui::SetCurrentContext(&context_);
-
-#if defined(_DEBUG) || defined(IMGUI_DISABLE_DEFAULT_ALLOCATORS)
-    ImGui::SetAllocatorFunctions(
-        [](size_t size, void *) { return operator new(size, std::nothrow); },
-        [](void *buff, void *) { operator delete(buff, std::nothrow); });
-#endif
-
-    ImGui::Initialize();
-
-    /*assert(ImGui::FindSettingsHandler("Window"));
-   ImGui::RemoveSettingsHandler("Window");*/
-    context_.SettingsHandlers.clear();
-    context_.IO.IniFilename = nullptr;
-
-    ImGui::StyleColorsDark();
+internal_render_backend<IDirect3DDevice9>::internal_render_backend(system_library_info info)
+    : device_(*reinterpret_cast<IDirect3DDevice9 ***>(
+          static_cast<uint8_t *>(info.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C"_pat)) + 1))
+{
+    assert(info.name() == _T("shaderapidx9.dll"));
 }
 
-bool render_context::init(HWND window, IDirect3DDevice9 *backend) noexcept
+IDirect3DDevice9 *internal_render_backend<IDirect3DDevice9>::backend() const
 {
-    if (!ImGui_ImplDX9_Init(backend))
-        return false;
-    backend_ = backend;
-    if (!ImGui_ImplWin32_Init(window))
-        return false;
-    window_ = window;
-    return true;
+    return *device_;
 }
 
-void render_context::detach()
+HWND internal_render_backend<IDirect3DDevice9>::window() const
 {
-    backend_ = 0;
+    return get_creation_params(*device_).hFocusWindow;
 }
 
-void render_context::reset()
+WNDPROC internal_render_backend<IDirect3DDevice9>::window_proc() const
 {
-    render_backend<FD_RENDER_BACKEND>::reset();
+    auto w = get_creation_params(*device_).hFocusWindow;
+    return reinterpret_cast<WNDPROC>(
+        std::invoke(IsWindowUnicode(w) ? GetWindowLongPtrW : GetWindowLongPtrA, w, GWLP_WNDPROC));
 }
 
-void render_context::process_message(HWND window, UINT message, WPARAM wParam, LPARAM lParam, process_result *result)
+WNDPROC internal_render_backend<IDirect3DDevice9>::default_window_proc() const
 {
-    assert(window_ == window);
-
-    // reserved, WIP
-    auto process = true;
-
-    if (!process)
-    {
-        if (result)
-            *result = process_result::idle;
-        return;
-    }
-
-    if (!result)
-    {
-        ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam);
-        return;
-    }
-
-    auto &events       = context_.InputEventsQueue;
-    auto events_stored = events.size();
-
-    if (ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0)
-        *result = process_result::locked;
-    else if (events_stored != events.size())
-        *result = process_result::updated;
-    else
-        *result = process_result::idle;
+    auto w = get_creation_params(*device_).hFocusWindow;
+    return IsWindowUnicode(w) ? DefWindowProcW : DefWindowProcA;
 }
+} // namespace detail
 
-bool render_context::begin_frame()
-{
-    render_backend<FD_RENDER_BACKEND>::new_frame();
-    ImGui_ImplWin32_NewFrame();
-
-#ifndef IMGUI_HAS_VIEWPORT
-    // sets in win32 impl
-    auto &display_size = context_.IO.DisplaySize;
-    if (display_size.x <= 0 || display_size.y <= 0)
-        return false;
-#endif
-
-    /*for (auto w : context.WindowsFocusOrder)
-  {
-      if (!w->Hidden)
-          return true;
-      if (w->Active)
-          return true;
-      if (w->Collapsed)
-          return true;
-  }*/
-
-    ImGui::NewFrame();
-    return true;
-}
-
-void render_context::end_frame()
-{
-    ImGui::Render();
-    render_backend<FD_RENDER_BACKEND>::render(backend_);
-}
-
-render_context::frame_holder::frame_holder(render_context *ctx)
-    : ctx_(ctx->begin_frame() ? ctx : nullptr)
+render_context<true>::render_context()
+    : own_render_backend(_T("Unnamed"))
+    , basic_render_context(window(), backend())
 {
 }
 
-render_context::frame_holder::~frame_holder()
+render_context<false>::~render_context()
 {
-    if (ctx_)
-        ctx_->end_frame();
+    if (!backend())
+        detach();
 }
 
-render_context::frame_holder::operator bool() const
+render_context<false>::render_context(system_library_info info)
+    : detail::internal_render_backend<FD_RENDER_BACKEND>(info)
+    , basic_render_context(window(), backend())
 {
-    return ctx_ != nullptr;
 }
 
-auto render_context::new_frame() -> frame_holder
-{
-    return this;
 }
-} // namespace fd

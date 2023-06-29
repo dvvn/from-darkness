@@ -13,7 +13,7 @@ class system_library_info : public basic_library_info
     void *function(string_view name) const;
     [[deprecated]]
     void *pattern(string_view pattern) const;
-    void *pattern(basic_pattern const&pattern)const;
+    void *pattern(basic_pattern const &pattern) const;
     void *vtable(string_view name) const;
 };
 

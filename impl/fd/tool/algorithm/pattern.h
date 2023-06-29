@@ -326,6 +326,7 @@ template <detail::pattern_string Pattern>
 constexpr auto operator""_pat()
 {
     return detail::cached_pattern<Pattern>;
+    // return detail::make_pattern<Pattern>();
 }
 
 using detail::make_pattern;

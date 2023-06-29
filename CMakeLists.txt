@@ -24,10 +24,10 @@ else()
     set(CMAKE_MESSAGE_LOG_LEVEL WARNING)
 endif()
 
-set(FD_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
-set(FD_IMPL_DIR ${FD_ROOT_DIR}/impl)
-set(FD_DIR ${FD_IMPL_DIR}/fd)
-set(FD_OUT_DIR ${FD_ROOT_DIR}/.out/${CMAKE_BUILD_TYPE})
+set(_FD_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(_FD_IMPL_DIR ${_FD_ROOT_DIR}/impl)
+set(_FD_DIR ${_FD_IMPL_DIR}/fd)
+set(_FD_OUT_DIR ${_FD_ROOT_DIR}/.out/${CMAKE_BUILD_TYPE})
 
 include(ProcessorCount)
 ProcessorCount(_CPUS)
@@ -85,19 +85,22 @@ endif()
 include(FetchContent)
 set(GIT_SHALLOW true)
 set(FETCHCONTENT_QUIET off)
-set(FETCHCONTENT_BASE_DIR ${FD_ROOT_DIR}/.deps1)
+set(FETCHCONTENT_BASE_DIR ${_FD_ROOT_DIR}/.deps1)
 #set(FETCHCONTENT_FULLY_DISCONNECTED on)
 
 set(_GIT_DIR "C:/git" CACHE STRING "The repos storage")
 
-function(FetchContent_Load _owner _name)
+set(_FD_DEPS)
+set(_FD_DEPS_INCLUDE)
+
+function(Dependency_Load _owner _name)
     set(_path ${_owner}/${_name})
-    set(_deps ${FD_ROOT_DIR}/.deps/${_path}/)
+    set(_deps ${_FD_ROOT_DIR}/.deps/${_path})
     set(_proj ${_name})
 
-    set(_SOURCE_DIR "${_GIT_DIR}/${_path}/")
-    set(_SUBBUILD_DIR "${_deps}/subbuild/")
-    set(_BINARY_DIR "${_deps}/bin/")
+    set(_SOURCE_DIR "${_GIT_DIR}/${_path}")
+    set(_SUBBUILD_DIR "${_deps}/subbuild")
+    set(_BINARY_DIR "${_deps}/bin")
 
     FetchContent_Declare(${_proj}        
         SOURCE_DIR ${_SOURCE_DIR}
@@ -106,20 +109,99 @@ function(FetchContent_Load _owner _name)
         GIT_REPOSITORY https://github.com/${_path}.git
         GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
         ${ARGN}
-    )    
-
-    #[[
-    if(EXISTS ${_SOURCE_DIR}/CMakeLists.txt)
-        FetchContent_MakeAvailable(${_proj})
-    else()
-        FetchContent_Populate(${_proj})
-    endif()
-    ]]
+    )
 
     set(${_proj}_SOURCE_DIR ${_SOURCE_DIR} PARENT_SCOPE)
     set(${_proj}_SUBBUILD_DIR ${_SUBBUILD_DIR} PARENT_SCOPE)
     set(${_proj}_BINARY_DIR ${_BINARY_DIR} PARENT_SCOPE)
 endfunction()
+
+macro(Dependency_Use _name)
+    FetchContent_MakeAvailable(${_name})
+    unset(_target)
+
+    if(TARGET ${_name}::${_name})
+        set(_target ${_name}::${_name})
+    elseif(TARGET ${_name})
+        set(_target ${_name})
+    endif()
+
+    if(_target)
+        list(APPEND _FD_DEPS ${_target})
+        message(DEBUG "target ${_target} added")
+    else()
+        message(DEBUG "${_name} isn't a target name")
+    endif()
+
+    list(APPEND _FD_DEPS ${_target})
+endmacro()
+
+macro(Dependency_Use_Boost)
+    FetchContent_MakeAvailable(boost)
+    set(_boost_libs ${BOOST_INCLUDE_LIBRARIES})
+    list(TRANSFORM _boost_libs PREPEND Boost::)
+
+    foreach(_lib ${_boost_libs})
+         message(DEBUG "target ${_lib} added")
+    endforeach()
+
+    list(APPEND _FD_DEPS ${_boost_libs})
+endmacro()
+
+macro(Dependency_Use_Imgui)
+    if(EXISTS "${imgui_SOURCE_DIR}/CMakeLists.txt")
+        Dependency_Use(imgui)
+    else()
+        FetchContent_Populate(imgui)
+        file(GLOB _IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
+        if(TARGET freetype)
+            list(APPEND _IMGUI_FILES
+                ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp
+            )
+        endif()
+        
+        list(APPEND _IMGUI_FILES
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp
+        )
+        add_library(imgui ${_IMGUI_FILES})
+        add_library(imgui::imgui ALIAS imgui)             
+
+        target_compile_definitions(imgui PRIVATE 
+            IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
+            IMGUI_USE_BGRA_PACKED_COLOR #d3d9 only
+        )
+        
+        if(TARGET freetype)
+            target_link_libraries(imgui PRIVATE freetype)
+            target_compile_definitions(imgui PRIVATE IMGUI_ENABLE_FREETYPE)
+        endif()
+        target_include_directories(imgui PUBLIC
+            ${imgui_SOURCE_DIR}
+            ${imgui_SOURCE_DIR}/backends
+        )
+
+        list(APPEND _FD_DEPS "imgui::imgui")
+        message(DEBUG "target imgui::imgui added")
+    endif()
+endmacro()
+
+macro(Dependency_Populate _name)
+    FetchContent_Populate(${_name})
+    set(_src_dir ${${_name}_SOURCE_DIR})
+
+    if(EXISTS ${_src_dir}/include)
+        set(_include ${_src_dir}/include)
+        set(_info ${_name}/include)
+    else()
+        set(_include ${_src_dir})
+        set(_info ${_name}/)
+    endif()
+
+    message(DEBUG "${_info} directory included")
+    list(APPEND _FD_DEPS_INCLUDE ${_include})
+endmacro()
+
 set(BOOST_INCLUDE_LIBRARIES
     #thread
     algorithm
@@ -139,63 +221,55 @@ set(BOOST_INCLUDE_LIBRARIES
     lambda2)
 set(BOOST_RUNTIME_LINK static)
 #set(BOOST_ENABLE_MPI ON)
-FetchContent_Load(boostorg boost)
-FetchContent_MakeAvailable(boost)
-
-set(FT_DISABLE_ZLIB on)
-set(FT_DISABLE_BZIP2 on)
-set(FT_DISABLE_PNG on)
-set(FT_DISABLE_HARFBUZZ on)
-set(FT_DISABLE_BROTLI on)
-fetchContent_Load(freetype freetype)
-fetchContent_MakeAvailable(freetype)
-
-fetchContent_Load(ocornut imgui GIT_TAG features/string_view)
-fetchContent_Populate(imgui)
+Dependency_Load(boostorg boost)
+Dependency_Use_Boost()
 
 #[[
 set(XXHASH_BUILD_XXHSUM off)
-FetchContent_Load(Cyan4973 xxHash GIT_TAG dev)
-FetchContent_Populate(xxHash)
+Dependency_Load(Cyan4973 xxHash GIT_TAG dev)
+Dependency_Populate(xxHash)
 add_subdirectory(${xxHash_SOURCE_DIR}/cmake_unofficial ${xxHash_BINARY_DIR})
 target_compile_definitions(xxhash PUBLIC XXH_NO_LONG_LONG=1)
 
-FetchContent_Load(ekpyron xxhashct)
-FetchContent_Populate(xxhashct)
+Dependency_Load(ekpyron xxhashct)
+Dependency_Populate(xxhashct)
 ]]
 
 #[[
 set(JSON_MultipleHeaders on)
 set(JSON_DisableEnumSerialization on)
-FetchContent_Load(nlohmann json)
-FetchContent_MakeAvailable(json)
+Dependency_Load(nlohmann json)
+Dependency_Use(json)
 ]]
 
 #unable to use it now, because it change compiler flags and break the project
-#FetchContent_Load(stephenberry glaze GIT_TAG main)
-#FetchContent_MakeAvailable(glaze)
+#Dependency_Load(stephenberry glaze GIT_TAG main)
+#Dependency_Use(glaze)
 
-#FetchContent_Load(martinus robin-hood-hashing)
-#FetchContent_MakeAvailable(robin-hood-hashing)
+#Dependency_Load(martinus robin-hood-hashing)
+#Dependency_Use(robin-hood-hashing)
 
-#FetchContent_Load(max0x7ba atomic_queue)
-#FetchContent_Populate(atomic_queue)
+#Dependency_Load(max0x7ba atomic_queue)
+#Dependency_Populate(atomic_queue)
 
-FetchContent_Load(fmtlib fmt)
-FetchContent_MakeAvailable(fmt)
+Dependency_Load(fmtlib fmt)
+Dependency_Use(fmt)
 target_compile_definitions(fmt PUBLIC FMT_USE_FULL_CACHE_DRAGONBOX=1)
 
 #[[
 set(SUBHOOK_STATIC on)
 set(SUBHOOK_INSTALL off)
 set(SUBHOOK_TESTS off)
-FetchContent_Load(Zeex subhook)
-FetchContent_MakeAvailable(subhook)
+Dependency_Load(Zeex subhook)
+Dependency_Use(subhook)
 ]]
 
-#FetchContent_Load(m417z minhook GIT_TAG multihook)
-FetchContent_Load(TsudaKageyu minhook)
-FetchContent_MakeAvailable(minhook)
+#Dependency_Load(m417z minhook GIT_TAG multihook)
+Dependency_Load(TsudaKageyu minhook)
+Dependency_Use(minhook)
+
+Dependency_Load(Neargye magic_enum)
+Dependency_Use(magic_enum)
 
 #[[
 set(SPDLOG_BUILD_EXAMPLE off)
@@ -207,8 +281,8 @@ set(SPDLOG_WCHAR_FILENAMES on)
 set(SPDLOG_NO_ATOMIC_LEVELS on)
 set(SPDLOG_NO_TLS on)
 set(SPDLOG_NO_THREAD_ID on)
-FetchContent_Load(gabime spdlog GIT_TAG v1.x)
-FetchContent_MakeAvailable(spdlog)
+Dependency_Load(gabime spdlog GIT_TAG v1.x)
+Dependency_Use(spdlog)
 target_compile_definitions(spdlog PUBLIC basic_runtime=runtime_format_string)
 ]]
 
@@ -217,20 +291,60 @@ set(SIGMATCH_DEV_MODE off)
 set(SIGMATCH_BUILD_EXAMPLES off)
 set(SIGMATCH_BUILD_BENCHMARKS off)
 set(SIGMATCH_BUILD_TESTS off)
-FetchContent_Load(SpriteOvO sigmatch GIT_TAG dev)
-FetchContent_MakeAvailable(sigmatch)
+Dependency_Load(SpriteOvO sigmatch GIT_TAG dev)
+Dependency_Use(sigmatch)
 ]]
 
-#FetchContent_Load(JustasMasiulis lazy_importer)
-#FetchContent_Populate(lazy_importer)
+#Dependency_Load(JustasMasiulis lazy_importer)
+#Dependency_Populate(lazy_importer)
 
-FetchContent_Load(danielkrupinski x86RetSpoof)
-FetchContent_Populate(x86RetSpoof)
+Dependency_Load(danielkrupinski x86RetSpoof)
+Dependency_Populate(x86RetSpoof)
+
+set(FT_DISABLE_ZLIB on)
+set(FT_DISABLE_BZIP2 on)
+set(FT_DISABLE_PNG on)
+set(FT_DISABLE_HARFBUZZ on)
+set(FT_DISABLE_BROTLI on)
+Dependency_Load(freetype freetype)
+Dependency_Use(freetype)
+
+Dependency_Load(ocornut imgui GIT_TAG features/string_view)
+Dependency_Use_Imgui()
+target_compile_definitions(imgui PUBLIC
+    IMGUI_USER_CONFIG="${_FD_DIR}/render/config.h"
+)
 
 # -------------------
 
-add_subdirectory(${FD_IMPL_DIR}/imgui ${imgui_BINARY_DIR})
-add_subdirectory(${FD_IMPL_DIR}/fd ${FD_OUT_DIR}/shared)
-add_subdirectory(${FD_IMPL_DIR}/targets ${FD_OUT_DIR}/core)
-#add_subdirectory(${FD_IMPL_DIR}/gui_test ${FD_OUT_DIR}/gui_test)
-#add_subdirectory(${FD_IMPL_DIR}/dll ${FD_OUT_DIR}/dll)
+file(GLOB_RECURSE _FD_FILES ${_FD_DIR}/*.cpp)
+add_library(fd ${_FD_FILES})
+
+target_link_libraries(fd PUBLIC
+    ${_FD_DEPS}
+)
+target_include_directories(fd PUBLIC
+    ${_FD_IMPL_DIR}
+    ${_FD_DEPS_INCLUDE})
+target_compile_definitions(fd PUBLIC
+    FD_WORK_DIR=${_FD_DIR}
+    FD_ROOT_DIR=${_FD_ROOT_DIR}
+    FD_IMPL_DIR=${_FD_IMPL_DIR}
+)
+
+# -------------------
+
+set(_FD_ENTRY_DIR ${_FD_IMPL_DIR}/entry)
+
+add_library(cheat SHARED ${_FD_ENTRY_DIR}/main.cpp)
+target_link_libraries(cheat PUBLIC fd)
+target_compile_definitions(cheat PUBLIC FD_SHARED_LIB)
+
+add_executable(gui ${_FD_ENTRY_DIR}/main.cpp)
+target_link_libraries(gui PUBLIC fd)
+
+#add_subdirectory(${_FD_IMPL_DIR}/imgui ${imgui_BINARY_DIR})
+#add_subdirectory(${_FD_IMPL_DIR}/fd ${FD_OUT_DIR}/shared)
+#add_subdirectory(${_FD_IMPL_DIR}/targets ${FD_OUT_DIR}/core)
+#add_subdirectory(${_FD_IMPL_DIR}/gui_test ${FD_OUT_DIR}/gui_test)
+#add_subdirectory(${_FD_IMPL_DIR}/dll ${FD_OUT_DIR}/dll)

@@ -5,11 +5,16 @@
 
 #include <Windows.h>
 #include <d3d9.h>
+#include <tchar.h>
 
 namespace fd
 {
-class d3d_device9
+struct d3d_device9
 {
+    using pointer = IDirect3DDevice9 *;
+    using value_type=IDirect3DDevice9;
+
+  private:
     comptr<IDirect3D9> d3d_;
     comptr<IDirect3DDevice9> device_;
     D3DPRESENT_PARAMETERS params_;
@@ -21,24 +26,29 @@ class d3d_device9
     bool resize(UINT w, UINT h);
     void reset();
 
-    operator IDirect3DDevice9 *() const;
-    IDirect3DDevice9 *get() const;
-    IDirect3DDevice9 *operator->() const;
+    operator pointer() const;
+    pointer get() const;
+    pointer operator->() const;
 };
 
 struct own_render_backend : noncopyable
 {
     using device_type = d3d_device9;
 
-    WNDCLASSEX info;
-    HWND hwnd;
-    device_type device;
+  private:
+    WNDCLASSEX info_;
+    HWND hwnd_;
+    device_type device_;
 
+  public:
     ~own_render_backend();
-    own_render_backend();
-
-    bool init(LPCTSTR name, HMODULE handle, HWND parent = 0);
+    own_render_backend(LPCTSTR name, HMODULE handle = GetModuleHandle(nullptr), HWND parent = nullptr);
     bool run();
     bool stop();
+
+    device_type::pointer backend() const;
+    HWND window() const;
+    WNDPROC window_proc() const;
+    WNDPROC default_window_proc() const;
 };
 } // namespace fd

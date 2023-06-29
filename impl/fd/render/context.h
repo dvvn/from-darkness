@@ -1,61 +1,67 @@
-#pragma once
+﻿#pragma once
 
-#include <fd/core.h>
+#include "basic_context.h"
+#include "own_backend.h"
 
-#include <imgui_internal.h>
-
-#include <Windows.h>
-
-// ReSharper disable CppInconsistentNaming
-struct IDirect3DDevice9;
-#define FD_RENDER_BACKEND IDirect3DDevice9
-
-// reserved
-
-//  ReSharper restore CppInconsistentNaming
+#include "fd/vfunc.h"
 
 namespace fd
 {
-class render_context : public noncopyable
+class system_library_info;
+
+namespace detail
 {
-    ImFontAtlas font_atlas_;
-    ImGuiContext context_;
-    HWND window_;
-    FD_RENDER_BACKEND *backend_;
+template <typename T>
+class internal_render_backend;
+
+template <>
+class internal_render_backend<IDirect3DDevice9>
+{
+    IDirect3DDevice9 **device_;
 
   public:
-    ~render_context();
-    render_context();
+    internal_render_backend(system_library_info info);
 
-    bool init(HWND window, FD_RENDER_BACKEND *backend) noexcept;
-
-    void detach();
-    void reset();
-
-    enum class process_result : uint8_t
-    {
-        idle,
-        updated,
-        locked
-    };
-
-    void process_message(HWND window, UINT message, WPARAM wParam, LPARAM lParam, process_result *result = nullptr);
-    bool begin_frame();
-    void end_frame();
-
-    class frame_holder : public noncopyable
-    {
-        render_context *ctx_;
-
-      public:
-        frame_holder(render_context *ctx);
-        ~frame_holder();
-
-        explicit operator bool() const;
-    };
-
-    [[nodiscard]]
-    frame_holder new_frame();
+    IDirect3DDevice9 *backend() const;
+    HWND window() const;
+    WNDPROC window_proc() const;
+    WNDPROC default_window_proc() const;
 };
 
-}
+template <typename T>
+struct render_vfunc_accesser
+{
+    using device_type = FD_RENDER_BACKEND;//std::remove_pointer_t<decltype(std::declval<T>().backend())>;
+
+    template <typename Ret, typename... Args>
+    using vfunc_t = vfunc<call_type_t::stdcall_, Ret, device_type, Args...>;
+
+    template <typename Ret, typename... Args>
+    vfunc_t<Ret, Args...> operator[](Ret (__stdcall device_type::*func)(Args...)) const
+    {
+        return {func, static_cast<T const *>(this)->backend()};
+    }
+};
+
+} // namespace detail
+
+template <bool /*external*/>
+struct render_context;
+
+template <>
+struct render_context<true> : own_render_backend, //
+                              basic_render_context,
+                              detail::render_vfunc_accesser<render_context<true>>
+{
+    render_context();
+};
+
+template <>
+struct render_context<false> : detail::internal_render_backend<FD_RENDER_BACKEND>,
+                               basic_render_context,
+                               detail::render_vfunc_accesser<render_context<false>>
+{
+    ~render_context();
+    render_context(system_library_info info);
+};
+} // namespace fd
