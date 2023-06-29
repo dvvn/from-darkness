@@ -2,6 +2,7 @@
 
 #include "basic_pattern.h"
 
+#include "fd/tool/array.h"
 #include "fd/tool/span.h"
 #include "fd/tool/vector.h"
 
@@ -13,7 +14,7 @@
 
 namespace fd
 {
-namespace impl
+namespace detail
 {
 template <size_t S>
 struct pattern_string
@@ -37,41 +38,40 @@ using dynamic_pattern_buffer = vector<C>;
 #else
 #error custom constexpr vector not implemented
 #endif
+} // namespace detail
 
 class dynamic_pattern_segment final : public basic_pattern_segment
 {
-    using buffer_type = dynamic_pattern_buffer<value_type>;
+    using buffer_type = detail::dynamic_pattern_buffer<value_type>;
 
     buffer_type buffer_;
-    size_type gap_;
+    size_type tail_;
 
   public:
-    constexpr dynamic_pattern_segment(char const *pattern, char const *pattern_end)
-        : gap_(0)
+    constexpr dynamic_pattern_segment()
+        : tail_(0)
     {
-        /*auto end = pattern + length;
-        for (; pattern != end; ++pattern)
-        {
-            auto c = *pattern;
+    }
 
-        }*/
-
+    constexpr char const *fill(char const *pattern, char const *pattern_end)
+    {
         for (auto part : span(pattern, pattern_end) | std::views::lazy_split(' '))
         {
             auto it = part.begin();
 
             if (*it == '?')
             {
-                ++gap_;
+                ++tail_;
                 continue;
             }
 
-            // next part detected
-            if (gap_ != 0)
-                break;
-
             auto part_begin = &*it;
-            auto part_end   = part_begin + std::ranges::distance(part);
+
+            // next part detected
+            if (tail_ != 0)
+                return part_begin;
+
+            auto part_end = part_begin + std::ranges::distance(part);
 
             value_type value = 0;
 
@@ -81,21 +81,18 @@ class dynamic_pattern_segment final : public basic_pattern_segment
 
             buffer_.emplace_back(value);
         }
-    }
 
-    constexpr size_type length() const
-    {
-        return buffer_.size();
-    }
-
-    constexpr size_type abs_length() const
-    {
-        return length() + gap_;
+        return pattern_end;
     }
 
     constexpr std::pair<pointer, size_type> extract() const
     {
-        return {buffer_.data(), gap_};
+        return {buffer_.data(), tail_};
+    }
+
+    constexpr pointer data() const
+    {
+        return buffer_.data();
     }
 
     pointer begin() const override
@@ -108,13 +105,23 @@ class dynamic_pattern_segment final : public basic_pattern_segment
         return buffer_.data() + buffer_.size();
     }
 
-    size_type gap() const override
+    size_type tail() const override
     {
-        return gap_;
+        return tail_;
+    }
+
+    constexpr size_type length() const
+    {
+        return buffer_.size();
+    }
+
+    constexpr size_type abs_length() const
+    {
+        return length() + tail_;
     }
 
   protected:
-    size_t size() const override
+    size_type self_size() const override
     {
         return sizeof(dynamic_pattern_segment);
     }
@@ -122,40 +129,41 @@ class dynamic_pattern_segment final : public basic_pattern_segment
 
 class dynamic_pattern : public basic_pattern
 {
-    using buffer_type = dynamic_pattern_buffer<dynamic_pattern_segment>;
+    friend constexpr size_t size(dynamic_pattern const &p);
+
+    using segment_type = dynamic_pattern_segment;
+    using buffer_type  = detail::dynamic_pattern_buffer<segment_type>;
 
     buffer_type buffer_;
 
   public:
-    constexpr dynamic_pattern(char const *pat, size_t length)
+    constexpr dynamic_pattern(char const *pat, size_t pattern_length)
     {
-        for (auto end = pat + length;;)
+        for (auto end = pat + pattern_length; pat != end;)
         {
-            auto &segment = buffer_.emplace_back(pat, end);
-            //"1 2 ?? 4 A ?": abs_length == 6, spaces count == 5. 6*2-1 == 6+5
-            pat += segment.abs_length() * 2 - 1;
-
-            for (;;)
-            {
-                if (pat == end)
-                    return;
-                if (*pat == '?' || *pat == ' ')
-                    ++pat;
-                else
-                    break;
-            }
+            auto &segment = buffer_.emplace_back();
+            pat           = segment.fill(pat, end);
         }
     }
 
-    constexpr size_t length() const
+    size_t size() const override
     {
         return buffer_.size();
     }
 
-    constexpr dynamic_pattern_segment const &operator[](ptrdiff_t index) const
+    constexpr size_t length() const
     {
-        return buffer_[index];
+        size_t ret = 0;
+        for (auto &s : buffer_)
+            ret += s.length();
+        return ret;
     }
+
+    /*size_t abs_length() const override
+    {
+        auto rng = buffer_ | std::views::transform(&segment_type::abs_length);
+        return std::accumulate(rng.begin(), rng.end(), 0);
+    }*/
 
     iterator begin() const override
     {
@@ -166,31 +174,44 @@ class dynamic_pattern : public basic_pattern
     {
         return buffer_.data() + buffer_.size();
     }
-};
-} // namespace impl
 
+    constexpr dynamic_pattern_segment const &operator[](ptrdiff_t index) const
+    {
+        return buffer_[index];
+    }
+};
+
+constexpr size_t size(dynamic_pattern const &p)
+{
+    return p.buffer_.size();
+}
+
+namespace detail
+{
 template <size_t S>
-constexpr impl::dynamic_pattern make_pattern(char const (&pat)[S])
+constexpr dynamic_pattern make_pattern(char const (&pat)[S])
 {
     return {pat, S - 1};
 }
+} // namespace detail
 
 template <size_t Length>
+requires(Length != 0)
 class pattern_segment final : public basic_pattern_segment
 {
-    value_type bytes_[Length];
-    size_type gap_;
+    array<value_type, Length> bytes_;
+    size_type tail_;
 
     template <size_t... I>
-    constexpr pattern_segment(pointer bytes, size_type gap, std::index_sequence<I...>)
+    constexpr pattern_segment(pointer bytes, size_type tail, std::index_sequence<I...>)
         : bytes_{bytes[I]...}
-        , gap_(gap)
+        , tail_(tail)
     {
     }
 
   public:
-    constexpr pattern_segment(pointer bytes, size_type gap = 0)
-        : pattern_segment(bytes, gap, std::make_index_sequence<Length>())
+    constexpr pattern_segment(pointer bytes, size_type tail = 0)
+        : pattern_segment(bytes, tail, std::make_index_sequence<Length>())
     {
     }
 
@@ -201,41 +222,44 @@ class pattern_segment final : public basic_pattern_segment
 
     pointer begin() const override
     {
-        return bytes_;
+        return bytes_.data();
     }
 
     pointer end() const override
     {
-        return bytes_ + Length;
+        return begin() + Length;
     }
 
-    size_type gap() const override
+    size_type tail() const override
     {
-        return gap_;
+        return tail_;
+    }
+
+    constexpr size_type length() const
+    {
+        return Length;
+    }
+
+    constexpr size_type abs_length() const
+    {
+        return length() + tail_;
     }
 
   protected:
-    size_t size() const override
+    size_type self_size() const override
     {
         return sizeof(pattern_segment);
     }
 };
 
 template <size_t... SegmentLength>
+requires(sizeof...(SegmentLength) != 0)
 class pattern : public basic_pattern
 {
     static constexpr bool tuple_store_elements_as_is()
     {
         boost::hana::tuple<char, char> tpl(10, 8);
-        return &boost::hana::at_c<0>(tpl) + 1 == &boost::hana::at_c<1>(tpl);
-    }
-
-    static constexpr bool tuple_directly_iterable()
-    {
-        // sizeof(buffer_type) == (sizeof(pattern_segment<SegmentLength>) + ...)
-        auto dist = sizeof(char) + sizeof(int) + sizeof(double);
-        boost::hana::tuple<char, int, double> tpl(3, 9006, 1.23456);
-        return std::distance(&boost::hana::at_c<0>(tpl), &boost::hana::at_c<3>(tpl)) == dist;
+        return &at_c<0>(tpl) + 1 == &at_c<1>(tpl);
     }
 
     // non-std tuple because std's one store elements back-to-front
@@ -247,48 +271,63 @@ class pattern : public basic_pattern
         : buffer_(info...)
     {
         static_assert(tuple_store_elements_as_is());
-        static_assert(tuple_directly_iterable());
     }
 
     iterator begin() const override
     {
-        return &boost::hana::at_c<0>(buffer_);
+        return &at_c<0>(buffer_);
     }
 
     iterator end() const override
     {
-        return ++&boost::hana::at_c<sizeof...(SegmentLength) - 1>(buffer_);
+        return &at_c<sizeof...(SegmentLength) - 1>(buffer_) + 1;
         // return reinterpret_cast<segment>(std::next(&buffer_));
     }
+
+    size_t size() const override
+    {
+        return sizeof...(SegmentLength);
+    }
+
+    // size_t length() const override
+    //{
+    //     return (SegmentLength + ...);
+    // }
+
+    // size_t abs_length() const override
+    //{
+    //     return sum(transform(buffer_, []<size_t L>(pattern_segment<L> const &s) { return L /*+ s.tail()*/; }));
+    // }
 };
 
-template <impl::pattern_string Pattern>
+namespace detail
+{
+template <pattern_string Pattern>
 constexpr auto make_pattern()
 {
     // ReSharper disable once CppInconsistentNaming
-#define make_hint() impl::dynamic_pattern(Pattern.buff, std::size(Pattern.buff))
+#define make_hint() dynamic_pattern(Pattern.buff, std::size(Pattern.buff))
 
     constexpr auto convert_segments = []<size_t... I>(std::index_sequence<I...>) {
         auto hint = make_hint();
         return pattern<make_hint()[I].length()...>(hint[I].extract()...);
     };
 
-    return convert_segments(std::make_index_sequence<make_hint().length()>());
+    return convert_segments(std::make_index_sequence<size(make_hint())>());
 
 #undef make_hint
 }
 
-template <impl::pattern_string Pattern>
+template <pattern_string Pattern>
+constexpr auto cached_pattern = make_pattern<Pattern>();
+} // namespace detail
+
+template <detail::pattern_string Pattern>
 constexpr auto operator""_pat()
 {
-    return make_pattern<Pattern>();
+    return detail::cached_pattern<Pattern>;
 }
-} // namespace fd
 
-namespace std
-{
-inline size_t size(fd::basic_pattern_segment const &i)
-{
-    return std::distance(i.begin(), i.end());
-}
-}
+using detail::make_pattern;
+
+} // namespace fd

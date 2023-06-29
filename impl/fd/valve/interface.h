@@ -14,11 +14,11 @@ struct native_return_address_gadget
 
 #define FD_NATIVE_INTERFACE(_NAME_)                                      \
                                                                          \
-    impl::native_vtable<_NAME_> __vtable;                                \
+    detail::native_vtable<_NAME_> __vtable;                              \
                                                                          \
   private:                                                               \
     template <size_t Index, typename Ret, typename... Args>              \
-    using function = impl::native_function<_NAME_, Index, Ret, Args...>; \
+    using function = detail::native_function<_NAME_, Index, Ret, Args...>; \
                                                                          \
   public:                                                                \
     auto operator[](auto index) const->decltype(__vtable[index])         \
@@ -40,7 +40,7 @@ struct native_function_tag
 {
 };
 
-namespace impl
+namespace detail
 {
 template <class T>
 struct native_vtable : basic_vtable<T>, noncopyable
@@ -61,7 +61,7 @@ struct native_vtable : basic_vtable<T>, noncopyable
  * \tparam Index number or \code vfunc_index<X>
  */
 template <class T, auto Index, typename Ret, typename... Args>
-class native_function :public native_function_tag
+class native_function : public native_function_tag
 {
     vtable<T> table_;
 
@@ -98,22 +98,5 @@ auto native_interface_cast(A address)
     else
         return reinterpret_cast<I *>(address);
 }
-} // namespace impl
-
-// ReSharper disable once CppInconsistentNaming
-#define __EXAMPLE                                                     \
-    union example                                                     \
-    {                                                                 \
-        FD_ABSTRACT_INTERFACE(example);                               \
-        native_function<1, void, int> func;                           \
-        native_function<10, int, named_arg<char, "something">> func1; \
-    };                                                                \
-    void init()                                                       \
-    {                                                                 \
-        void **instance;                                              \
-        example test(*instance);                                      \
-        example *test2 = reinterpret_cast<example *>(instance);       \
-    }
-#undef __EXAMPLE
-
+} // namespace detail
 } // namespace fd

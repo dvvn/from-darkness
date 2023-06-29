@@ -20,12 +20,12 @@
 
 #undef interface
 
-#define FD_SHARED_LIB
+// #define FD_SHARED_LIB
 
 #define DECLSPEC_NAKED __declspec(naked)
 
 static HINSTANCE self_handle;
-#ifdef FD_SHARED_LIB
+
 static HANDLE thread;
 static DWORD thread_id;
 
@@ -45,7 +45,6 @@ static bool resume_context()
 {
     return ResumeThread(thread) != -1;
 }
-#endif
 
 namespace fd
 {
@@ -125,6 +124,7 @@ struct hook_proxy_getter<hook_proxy_createmove<Callback, Call_T, C, Args...>>
 
 static bool context() noexcept
 {
+   
 #ifdef _DEBUG
 #ifdef FD_SHARED_LIB
     system_console console;
@@ -146,7 +146,7 @@ static bool context() noexcept
     NATIVE_LIB(shaderapidx9);
 
     render_vtable = **reinterpret_cast<IDirect3DDevice9 ***>(
-        (uint8_t *)shaderapidx9_dll.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C") + 1);
+        static_cast<uint8_t *>(shaderapidx9_dll.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C"_pat)) + 1);
 
     D3DDEVICE_CREATION_PARAMETERS creation_parameters;
     if (FAILED(render_vtable->GetCreationParameters(&creation_parameters)))
@@ -169,7 +169,6 @@ static bool context() noexcept
         return false;
 
 #ifdef FD_SHARED_LIB
-
     native_client v_client(client_dll.interface("VClient"));
     native_engine v_engine(engine_dll.interface("VEngineClient"));
     native_gui_surface v_gui(vguimatsurface_dll.interface("VGUI_Surface"));
@@ -275,7 +274,7 @@ static bool context() noexcept
     using entity_list_callback = void(__thiscall *)(CClientEntityList *, void *, valve::entity_handle);
     hooks.create(
         "CClientEntityList::OnAddEntity",
-        void_to_func<entity_list_callback>(client_dll.pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57")),
+        void_to_func<entity_list_callback>(client_dll.pattern("55 8B EC 51 8B 45 0C 53 56 8B F1 57"_pat)),
         [&](auto &&orig, auto handle_interface, auto handle) {
             orig(handle_interface, handle);
             // todo: work with this_ptr
@@ -283,7 +282,8 @@ static bool context() noexcept
         });
     hooks.create(
         "CClientEntityList::OnRemoveEntity",
-        void_to_func<entity_list_callback>(client_dll.pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07")),
+        void_to_func<entity_list_callback>(
+            client_dll.pattern("55 8B EC 51 8B 45 0C 53 8B D9 56 57 83 F8 FF 75 07"_pat)),
         [&](auto &&orig, auto handle_interface, auto handle) {
             // todo: work with this_ptr
             cached_entity.remove(handle.index());

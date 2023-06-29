@@ -122,7 +122,7 @@ X86_CALL_MEMBER(X86_CALL_TYPE)
 #undef X86_CALL_TYPE
 } // namespace call_type
 
-namespace impl
+namespace detail
 {
 template <size_t A, size_t B>
 constexpr void validate_size()
@@ -139,7 +139,7 @@ Fn void_to_func(void *function)
     else
     {
         // static_assert(sizeof(Fn) == sizeof(void *));
-        impl::validate_size<sizeof(Fn), sizeof(void *)>();
+        detail::validate_size<sizeof(Fn), sizeof(void *)>();
 
         union
         {

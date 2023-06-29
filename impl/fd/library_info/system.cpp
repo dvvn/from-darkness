@@ -1,6 +1,7 @@
 ﻿#include "system.h"
 
 #include "fd/mem_scanner.h"
+#include "fd/tool/algorithm/find.h"
 #include "fd/tool/string.h"
 #include "fd/tool/vector.h"
 
@@ -26,9 +27,9 @@ void *system_library_info::function(string_view name) const
         uint8_t *virtual_addr_start;
     };
 
-    auto entry_export     = this->directory(IMAGE_DIRECTORY_ENTRY_EXPORT);
-    virtual_addr_start    = base_address + entry_export->VirtualAddress;
-    auto virtual_addr_end = virtual_addr_start + entry_export->Size;
+    auto entry_export  = this->directory(IMAGE_DIRECTORY_ENTRY_EXPORT);
+    virtual_addr_start = base_address + entry_export->VirtualAddress;
+    // auto virtual_addr_end = virtual_addr_start + entry_export->Size;
 
     auto names = reinterpret_cast<uint32_t *>(base_address + export_dir->AddressOfNames);
     auto funcs = reinterpret_cast<uint32_t *>(base_address + export_dir->AddressOfFunctions);
@@ -42,11 +43,11 @@ void *system_library_info::function(string_view name) const
         auto fn_name = reinterpret_cast<char const *>(base_address + names[offset]);
         if (fn_name[name.length()] != '\0')
             continue;
-        if (string_view::traits_type::compare(fn_name, name.data(), name.length()) != 0)
+        if (memcmp(fn_name, name.data(), name.length()) != 0)
             continue;
 
         void *fn = base_address + funcs[ords[offset]];
-        assert(fn > virtual_addr_start && fn < virtual_addr_end); // fwd export not implemented
+        // assert(fn > virtual_addr_start && fn < virtual_addr_end); // fwd export not implemented
         return fn;
     }
 
@@ -57,6 +58,12 @@ void *system_library_info::pattern(string_view pattern) const
 {
     auto base = static_cast<uint8_t *>(this->image_base());
     return find_pattern(base, base + this->length(), pattern.data(), pattern.length());
+}
+
+void *system_library_info::pattern(basic_pattern const &pattern) const
+{
+    auto base = static_cast<uint8_t *>(this->image_base());
+    return find(base, base + this->length(), pattern);
 }
 
 void *system_library_info::vtable(string_view name) const
@@ -73,7 +80,7 @@ void *system_library_info::vtable(string_view name) const
     auto image_base = static_cast<uint8_t *>(this->image_base());
     auto image_end  = image_base + this->length();
 
-    auto find_rtti = [=,&rtti_descriptor=rtti_descriptor]<typename P>(P symbol) {
+    auto find_rtti = [=, &rtti_descriptor = rtti_descriptor]<typename P>(P symbol) {
         static_vector<P, 64> full_descriptor;
 
         auto writer = [&]<typename A>(A const &arg) {
@@ -128,7 +135,7 @@ void *system_library_info::vtable(string_view name) const
 
     auto text       = this->section(".text");
     auto text_begin = image_base + text->VirtualAddress;
-    auto text_end   = rdata_begin + text->SizeOfRawData;
+    auto text_end   = text_begin + text->SizeOfRawData;
 
     auto addr1          = find_xref(rdata_begin, rdata_end, type_descriptor, [&](uintptr_t &xref, auto *stop_token) {
         // get offset of vtable in complete class, 0 means it's the class we need, and not

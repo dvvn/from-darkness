@@ -2,8 +2,6 @@
 
 #include "callback.h"
 
-#include "fd/tool/algorithm/pattern.h"
-
 namespace fd
 {
 using find_filter = basic_callback<bool>;

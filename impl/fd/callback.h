@@ -7,8 +7,7 @@
 
 namespace fd
 {
-
-namespace impl
+namespace detail
 {
 template <typename Arg>
 class callback_arg_protector final : public noncopyable
@@ -85,7 +84,7 @@ template <typename Fn>
 struct callback_argument<std::reference_wrapper<Fn>> : callback_argument<Fn>
 {
 };
-} // namespace impl
+} // namespace detail
 
 template <typename Arg, typename Fn>
 class callback_function_proxy
@@ -135,7 +134,7 @@ struct callback final : basic_callback<Ret>
 {
     using basic_callback<Ret>::return_type;
     using function_type = Fn;
-    using argument_type = typename impl::callback_argument<Fn>::type;
+    using argument_type = typename detail::callback_argument<Fn>::type;
 
   private:
     callback_function_proxy<argument_type, function_type> proxy_;
