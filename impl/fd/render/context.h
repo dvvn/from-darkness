@@ -9,13 +9,7 @@ namespace fd
 {
 class system_library_info;
 
-namespace detail
-{
-template <typename T>
-class internal_render_backend;
-
-template <>
-class internal_render_backend<IDirect3DDevice9>
+class internal_render_backend
 {
     IDirect3DDevice9 **device_;
 
@@ -28,38 +22,35 @@ class internal_render_backend<IDirect3DDevice9>
     WNDPROC default_window_proc() const;
 };
 
-template <typename T>
-struct render_vfunc_accesser
-{
-    using device_type = FD_RENDER_BACKEND;//std::remove_pointer_t<decltype(std::declval<T>().backend())>;
-
-    template <typename Ret, typename... Args>
-    using vfunc_t = vfunc<call_type_t::stdcall_, Ret, device_type, Args...>;
-
-    template <typename Ret, typename... Args>
-    vfunc_t<Ret, Args...> operator[](Ret (__stdcall device_type::*func)(Args...)) const
-    {
-        return {func, static_cast<T const *>(this)->backend()};
-    }
-};
-
-} // namespace detail
-
-template <bool /*external*/>
+template <bool External>
 struct render_context;
 
+namespace detail
+{
+template <bool External>
+struct render_vfunc_accesser
+{
+    using base = render_context<External>;
+
+    template <typename Ret, typename... Args>
+    using vfunc_t = vfunc<call_type_t::stdcall_, Ret, IDirect3DDevice9, Args...>;
+
+    template <typename Ret, typename... Args>
+    vfunc_t<Ret, Args...> operator[](Ret (__stdcall IDirect3DDevice9::*func)(Args...)) const
+    {
+        return {func, static_cast<base const *>(this)->backend()};
+    }
+};
+} // namespace detail
+
 template <>
-struct render_context<true> : own_render_backend, //
-                              basic_render_context,
-                              detail::render_vfunc_accesser<render_context<true>>
+struct render_context<true> : own_render_backend, detail::render_vfunc_accesser<true>, basic_render_context
 {
     render_context();
 };
 
 template <>
-struct render_context<false> : detail::internal_render_backend<FD_RENDER_BACKEND>,
-                               basic_render_context,
-                               detail::render_vfunc_accesser<render_context<false>>
+struct render_context<false> : internal_render_backend, detail::render_vfunc_accesser<false>, basic_render_context
 {
     ~render_context();
     render_context(system_library_info info);

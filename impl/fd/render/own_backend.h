@@ -9,10 +9,29 @@
 
 namespace fd
 {
-struct d3d_device9
+struct native_render_backend;
+struct own_d3d_device;
+
+class own_window_info : public noncopyable
 {
-    using pointer = IDirect3DDevice9 *;
-    using value_type=IDirect3DDevice9;
+    WNDCLASSEX info_;
+    HWND hwnd_;
+
+  public:
+    ~own_window_info();
+    own_window_info(LPCTSTR name, HMODULE handle, HWND parent);
+
+    void bind(own_d3d_device *device);
+    void show();
+
+    HWND get() const;
+    WNDPROC proc() const;
+};
+
+struct own_d3d_device
+{
+    using value_type = IDirect3DDevice9;
+    using pointer    = value_type *;
 
   private:
     comptr<IDirect3D9> d3d_;
@@ -20,9 +39,8 @@ struct d3d_device9
     D3DPRESENT_PARAMETERS params_;
 
   public:
-    d3d_device9();
+    own_d3d_device(HWND hwnd);
 
-    bool attach(HWND hwnd);
     bool resize(UINT w, UINT h);
     void reset();
 
@@ -31,22 +49,18 @@ struct d3d_device9
     pointer operator->() const;
 };
 
-struct own_render_backend : noncopyable
+class own_render_backend : public noncopyable
 {
-    using device_type = d3d_device9;
-
-  private:
-    WNDCLASSEX info_;
-    HWND hwnd_;
-    device_type device_;
+    own_window_info window_;
+    own_d3d_device device_;
 
   public:
-    ~own_render_backend();
     own_render_backend(LPCTSTR name, HMODULE handle = GetModuleHandle(nullptr), HWND parent = nullptr);
+
     bool run();
     bool stop();
 
-    device_type::pointer backend() const;
+    native_render_backend backend() const;
     HWND window() const;
     WNDPROC window_proc() const;
     WNDPROC default_window_proc() const;

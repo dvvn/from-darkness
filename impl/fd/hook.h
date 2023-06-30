@@ -177,8 +177,11 @@ struct basic_hook_lazy_proxy : basic_hook_lazy
     bool disable() final;
 };
 
+#ifdef _DEBUG
+using hook_name = string_view;
+#else
 using hook_name = char const *;
-
+#endif
 class basic_hook_data : public basic_hook_proxy, public basic_hook_lazy_proxy
 {
 #ifdef _DEBUG

@@ -16,11 +16,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 
 namespace fd
 {
-template <class>
-struct select_backend;
-
-template <>
-struct select_backend<IDirect3DDevice9>
+struct render_backend
 {
     static constexpr auto init      = ImGui_ImplDX9_Init;
     static constexpr auto shutdown  = ImGui_ImplDX9_Shutdown;
@@ -35,25 +31,35 @@ struct select_backend<IDirect3DDevice9>
     }
 };
 
-static auto operator&(basic_render_context::state l, basic_render_context::state r)
+struct system_backend
 {
-    using u_t = std::underlying_type_t<basic_render_context::state>;
+    static constexpr auto init      = ImGui_ImplWin32_Init;
+    static constexpr auto shutdown  = ImGui_ImplWin32_Shutdown;
+    static constexpr auto new_frame = ImGui_ImplWin32_NewFrame;
+    static constexpr auto update    = ImGui_ImplWin32_WndProcHandler;
+};
+
+static auto operator&(basic_render_context::init_state l, basic_render_context::init_state r)
+{
+    using u_t = std::underlying_type_t<basic_render_context::init_state>;
     return static_cast<u_t>(l) & static_cast<u_t>(r);
 }
 
-static basic_render_context::state &operator|=(basic_render_context::state &l, basic_render_context::state r)
+static basic_render_context::init_state &operator|=(
+    basic_render_context::init_state &l,
+    basic_render_context::init_state r)
 {
-    using u_t                  = std::underlying_type_t<basic_render_context::state>;
+    using u_t                  = std::underlying_type_t<basic_render_context::init_state>;
     reinterpret_cast<u_t &>(l) = static_cast<u_t>(l) | static_cast<u_t>(r);
     return l;
 }
 
 basic_render_context::~basic_render_context()
 {
-    if (state_ & state::render)
-        select_backend<FD_RENDER_BACKEND>::shutdown();
-    if (state_ & state::window)
-        ImGui_ImplWin32_Shutdown();
+    if (state_ & init_state::render)
+        render_backend::shutdown();
+    if (state_ & init_state::system)
+        system_backend::shutdown();
 
     ImGui::Shutdown();
 #ifdef _DEBUG
@@ -61,7 +67,7 @@ basic_render_context::~basic_render_context()
 #endif
 }
 
-basic_render_context::basic_render_context(HWND window, FD_RENDER_BACKEND *backend)
+basic_render_context::basic_render_context(HWND window, native_render_backend backend)
     : context_(&font_atlas_)
 {
     IMGUI_CHECKVERSION();
@@ -82,22 +88,22 @@ basic_render_context::basic_render_context(HWND window, FD_RENDER_BACKEND *backe
 
     ImGui::StyleColorsDark();
 
-    if (!select_backend<FD_RENDER_BACKEND>::init(backend))
+    if (!render_backend::init(backend))
         throw runtime_error("Unable to init render backend!");
-    state_ |= state::render;
-    if (!ImGui_ImplWin32_Init(window))
+    state_ |= init_state::render;
+    if (!system_backend::init(window))
         throw runtime_error("Unable to init Win32 backend!");
 }
 
 void basic_render_context::detach()
 {
-    state_ = state::nothing;
+    state_ = init_state::nothing;
 }
 
 void basic_render_context::reset()
 {
     ignore_unused(this);
-    select_backend<FD_RENDER_BACKEND>::reset();
+    render_backend::reset();
 }
 
 void basic_render_context::process_message(
@@ -105,7 +111,7 @@ void basic_render_context::process_message(
     UINT message,
     WPARAM wParam,
     LPARAM lParam,
-    process_result *result)
+    processed_message *result)
 {
     // reserved, WIP
     auto process = true;
@@ -113,31 +119,31 @@ void basic_render_context::process_message(
     if (!process)
     {
         if (result)
-            *result = process_result::idle;
+            *result = processed_message::idle;
         return;
     }
 
     if (!result)
     {
-        ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam);
+        system_backend::update(window, message, wParam, lParam);
         return;
     }
 
     auto &events       = context_.InputEventsQueue;
     auto events_stored = events.size();
 
-    if (ImGui_ImplWin32_WndProcHandler(window, message, wParam, lParam) != 0)
-        *result = process_result::locked;
+    if (system_backend::update(window, message, wParam, lParam) != 0)
+        *result = processed_message::locked;
     else if (events_stored != events.size())
-        *result = process_result::updated;
+        *result = processed_message::updated;
     else
-        *result = process_result::idle;
+        *result = processed_message::idle;
 }
 
 bool basic_render_context::begin_frame()
 {
-    select_backend<FD_RENDER_BACKEND>::new_frame();
-    ImGui_ImplWin32_NewFrame();
+    render_backend::new_frame();
+    system_backend::new_frame();
 
 #ifndef IMGUI_HAS_VIEWPORT
     // sets in win32 impl
@@ -160,14 +166,16 @@ bool basic_render_context::begin_frame()
     return true;
 }
 
-void basic_render_context::end_frame(FD_RENDER_BACKEND *backend)
+void basic_render_context::end_frame(native_render_backend backend)
 {
     ignore_unused(this);
     ImGui::Render();
-    select_backend<FD_RENDER_BACKEND>::render(backend, ImGui::GetDrawData());
+    render_backend::render(backend, ImGui::GetDrawData());
 }
 
-basic_render_context::frame_holder::frame_holder(basic_render_context *ctx, FD_RENDER_BACKEND *backend)
+using frame_holder = basic_render_context::frame_holder;
+
+frame_holder::frame_holder(basic_render_context *ctx, native_render_backend backend)
 {
     if (!ctx->begin_frame())
     {
@@ -180,18 +188,18 @@ basic_render_context::frame_holder::frame_holder(basic_render_context *ctx, FD_R
     }
 }
 
-basic_render_context::frame_holder::~frame_holder()
+frame_holder::~frame_holder()
 {
     if (ctx_)
         ctx_->end_frame(backend_);
 }
 
-basic_render_context::frame_holder::operator bool() const
+frame_holder::operator bool() const
 {
     return ctx_ != nullptr;
 }
 
-auto basic_render_context::new_frame(FD_RENDER_BACKEND *backend) -> frame_holder
+auto basic_render_context::new_frame(native_render_backend backend) -> frame_holder
 {
     return {this, backend};
 }

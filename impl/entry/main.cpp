@@ -118,8 +118,22 @@ struct hook_proxy_getter<hook_proxy_createmove<Callback, Call_T, C, Args...>>
 };
 #endif
 
-#define NAMED_VFUNC(_NAME_, _OBJ_) BOOST_STRINGIZE(_NAME_), _OBJ_[&_NAME_]
-#define NATIVE_LIB(_L_)            native_library<#_L_> _L_##_dll
+#define NATIVE_LIB(_L_) native_library<#_L_> _L_##_dll
+
+#if !defined(_DEBUG) || __RESHARPER__ < 20230100
+#define NAMED_VFUNC(_SRC_, _NAME_, _OBJ_) BOOST_STRINGIZE(_SRC_::_NAME_), _OBJ_[&_SRC_::_NAME_]
+#else
+template <class T, size_t S>
+constexpr auto member_function_name(char const (&function)[S])
+{
+    constexpr string_view type_name = __rscpp_type_name<T>();
+    static_string<type_name.length() + 2 + S> buff;
+    buff.append(type_name).append("::").append(function, S - 1);
+    return buff;
+}
+
+#define NAMED_VFUNC(_SRC_, _NAME_, _OBJ_) member_function_name<_SRC_>(#_NAME_), _OBJ_[&_SRC_::_NAME_]
+#endif
 
 static bool context() noexcept
 {
@@ -171,7 +185,7 @@ static bool context() noexcept
         "WinAPI.WndProc",
         render.window_proc(),
         [&render, def = render.default_window_proc()](auto orig, auto... args) -> LRESULT {
-            using result_t = basic_render_context::process_result;
+            using result_t = basic_render_context::processed_message;
             result_t pmr;
             render.process_message(args..., &pmr);
             switch (pmr)
@@ -186,11 +200,11 @@ static bool context() noexcept
                 std::unreachable();
             }
         });
-    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Reset, render), [&](auto &&orig, auto... args) {
+    hooks.create(NAMED_VFUNC(IDirect3DDevice9, Reset, render), [&](auto &&orig, auto... args) {
         render.reset();
         return orig(args...);
     });
-    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Present, render), [&](auto &&orig, auto... args) {
+    hooks.create(NAMED_VFUNC(IDirect3DDevice9, Present, render), [&](auto &&orig, auto... args) {
         if (auto frame = render.new_frame(orig))
         {
             ImGui::ShowDemoWindow();
@@ -207,7 +221,7 @@ static bool context() noexcept
     });
 #ifdef FD_SHARED_LIB
 #if 0 // not it detach automatically
-    hooks.create(NAMED_VFUNC(FD_RENDER_BACKEND::Release, render), [&](auto &&orig) {
+    hooks.create(NAMED_VFUNC(IDirect3DDevice9, Release, render), [&](auto &&orig) {
         auto refs = orig();
         if (refs == 0 && orig == render.backend())
             render.detach();

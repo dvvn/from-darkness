@@ -17,38 +17,35 @@ static auto get_creation_params(T *ptr)
     return creation_parameters;
 }
 
-namespace detail
-{
-internal_render_backend<IDirect3DDevice9>::internal_render_backend(system_library_info info)
+internal_render_backend::internal_render_backend(system_library_info info)
     : device_(*reinterpret_cast<IDirect3DDevice9 ***>(
           static_cast<uint8_t *>(info.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C"_pat)) + 1))
 {
     assert(info.name() == _T("shaderapidx9.dll"));
 }
 
-IDirect3DDevice9 *internal_render_backend<IDirect3DDevice9>::backend() const
+IDirect3DDevice9 *internal_render_backend::backend() const
 {
     return *device_;
 }
 
-HWND internal_render_backend<IDirect3DDevice9>::window() const
+HWND internal_render_backend::window() const
 {
     return get_creation_params(*device_).hFocusWindow;
 }
 
-WNDPROC internal_render_backend<IDirect3DDevice9>::window_proc() const
+WNDPROC internal_render_backend::window_proc() const
 {
     auto w = get_creation_params(*device_).hFocusWindow;
     return reinterpret_cast<WNDPROC>(
         std::invoke(IsWindowUnicode(w) ? GetWindowLongPtrW : GetWindowLongPtrA, w, GWLP_WNDPROC));
 }
 
-WNDPROC internal_render_backend<IDirect3DDevice9>::default_window_proc() const
+WNDPROC internal_render_backend::default_window_proc() const
 {
     auto w = get_creation_params(*device_).hFocusWindow;
     return IsWindowUnicode(w) ? DefWindowProcW : DefWindowProcA;
 }
-} // namespace detail
 
 render_context<true>::render_context()
     : own_render_backend(_T("Unnamed"))
@@ -63,7 +60,7 @@ render_context<false>::~render_context()
 }
 
 render_context<false>::render_context(system_library_info info)
-    : detail::internal_render_backend<FD_RENDER_BACKEND>(info)
+    : internal_render_backend(info)
     , basic_render_context(window(), backend())
 {
 }

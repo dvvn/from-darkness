@@ -1,3 +1,4 @@
+#include "native.h"
 #include "own_backend.h"
 
 #include "fd/tool/exception.h"
@@ -6,7 +7,6 @@
 #include <tchar.h>
 
 #include <cassert>
-#include <system_error>
 
 #pragma comment(lib, "d3d9.lib")
 
@@ -18,17 +18,17 @@ DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND hwnd, UINT msg, WPARAM wpa
 {
     switch (msg) // NOLINT(hicpp-multiway-paths-covered)
     {
-    case WM_CREATE: {
+    /*case WM_CREATE: {
         auto lpcs = reinterpret_cast<LPCREATESTRUCT>(lparam);
         auto d3d  = reinterpret_cast<LONG>(lpcs->lpCreateParams);
         SetWindowLongPtr(hwnd, GWLP_USERDATA, d3d);
         break;
-    }
+    }*/
     case WM_SIZE: {
         if (wparam == SIZE_MINIMIZED)
             break;
 
-        auto &d3d = *reinterpret_cast<d3d_device9 *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+        auto &d3d = *reinterpret_cast<own_d3d_device *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
         if (!d3d)
             break;
 
@@ -54,15 +54,66 @@ DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND hwnd, UINT msg, WPARAM wpa
     return ::DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-d3d_device9::d3d_device9()
+own_window_info::~own_window_info()
 {
+    UnregisterClass(info_.lpszClassName, info_.hInstance);
+    DestroyWindow(hwnd_);
 }
 
-bool d3d_device9::attach(HWND hwnd)
+own_window_info::own_window_info(LPCTSTR name, HMODULE handle, HWND parent)
+{
+    memset(&info_, 0, sizeof(WNDCLASSEX));
+    info_ = {
+        .cbSize        = sizeof(WNDCLASSEX),
+        .style         = CS_CLASSDC,
+        .lpfnWndProc   = wnd_proc,
+        .hInstance     = handle,
+        .lpszClassName = name};
+    RegisterClassEx(&info_);
+
+    hwnd_ = CreateWindow( // NOLINT(cppcoreguidelines-prefer-member-initializer)
+        name,
+        name,
+        WS_OVERLAPPEDWINDOW,
+        100,
+        100,
+        1280,
+        800,
+        parent,
+        nullptr,
+        handle,
+        nullptr);
+
+    if (!hwnd_)
+        throw system_error("Window not created!");
+}
+
+void own_window_info::bind(own_d3d_device *device)
+{
+    SetWindowLongPtr(hwnd_, GWLP_USERDATA, reinterpret_cast<LONG>(device));
+}
+
+void own_window_info::show()
+{
+    ShowWindow(hwnd_, SW_SHOWDEFAULT);
+    UpdateWindow(hwnd_);
+}
+
+HWND own_window_info::get() const
+{
+    return hwnd_;
+}
+
+WNDPROC own_window_info::proc() const
+{
+    return info_.lpfnWndProc;
+}
+
+own_d3d_device::own_d3d_device(HWND hwnd)
 {
     auto d3d = Direct3DCreate9(D3D_SDK_VERSION);
     if (!d3d)
-        return false;
+        throw system_error("D3D device init error");
 
     d3d_.Attach(d3d);
     memset(&params_, 0, sizeof(D3DPRESENT_PARAMETERS));
@@ -89,11 +140,15 @@ bool d3d_device9::attach(HWND hwnd)
     params_.PresentationInterval   = D3DPRESENT_INTERVAL_ONE;
     // Present without vsync, maximum unthrottled framerate
     // params_.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
-    return SUCCEEDED(d3d->CreateDevice(
-        D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, device_));
+
+    auto result = d3d->CreateDevice(
+        D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, device_);
+
+    if (FAILED(result))
+        throw system_error(result, "D3D device create error");
 }
 
-bool d3d_device9::resize(UINT w, UINT h)
+bool own_d3d_device::resize(UINT w, UINT h)
 {
     auto ret = false;
     if (auto &w_old = params_.BackBufferWidth; w_old != w)
@@ -109,59 +164,37 @@ bool d3d_device9::resize(UINT w, UINT h)
     return ret;
 }
 
-void d3d_device9::reset()
+void own_d3d_device::reset()
 {
     auto hr = device_->Reset(&params_);
     assert(hr != D3DERR_INVALIDCALL);
 }
 
-d3d_device9::operator pointer() const
+own_d3d_device::operator pointer() const
 {
     return device_;
 }
 
-auto d3d_device9::get() const -> pointer
+auto own_d3d_device::get() const -> pointer
 {
     return device_;
 }
 
-auto d3d_device9::operator->() const -> pointer
+auto own_d3d_device::operator->() const -> pointer
 {
     return device_;
-}
-
-own_render_backend::~own_render_backend()
-{
-    UnregisterClass(info_.lpszClassName, info_.hInstance);
-    DestroyWindow(hwnd_);
 }
 
 own_render_backend::own_render_backend(LPCTSTR name, HMODULE handle, HWND parent)
+    : window_(name, handle, parent)
+    , device_(window_.get())
 {
-    memset(&info_, 0, sizeof(WNDCLASSEX));
-    info_ = {
-        .cbSize        = sizeof(WNDCLASSEX),
-        .style         = CS_CLASSDC,
-        .lpfnWndProc   = wnd_proc,
-        .hInstance     = handle,
-        .lpszClassName = name};
-    RegisterClassEx(&info_);
-
-    hwnd_ = CreateWindow(name, name, WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, parent, nullptr, handle, &device_);
-
-    if (!hwnd_)
-        throw runtime_error("Window not created!");
-    if (!device_.attach(hwnd_))
-        throw runtime_error("D3D device not created!");
-
-    ShowWindow(hwnd_, SW_SHOWDEFAULT);
-    UpdateWindow(hwnd_);
+    window_.bind(&device_);
+    window_.show();
 }
 
 bool own_render_backend::run()
 {
-    assert(device_ != nullptr);
-
     for (;;)
     {
         MSG msg;
@@ -183,23 +216,22 @@ bool own_render_backend::run()
 
 bool own_render_backend::stop()
 {
-    ignore_unused(this);
-    return PostMessage(hwnd_, WM_QUIT, 0, 0);
+    return PostMessage(window_.get(), WM_QUIT, 0, 0);
 }
 
-auto own_render_backend::backend() const -> device_type::pointer
+native_render_backend own_render_backend::backend() const
 {
     return device_.get();
 }
 
 HWND own_render_backend::window() const
 {
-    return hwnd_;
+    return window_.get();
 }
 
 WNDPROC own_render_backend::window_proc() const
 {
-    return info_.lpfnWndProc;
+    return window_.proc();
 }
 
 WNDPROC own_render_backend::default_window_proc() const
