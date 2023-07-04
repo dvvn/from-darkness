@@ -26,8 +26,10 @@ endif()
 
 set(_FD_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(_FD_IMPL_DIR ${_FD_ROOT_DIR}/impl)
-set(_FD_DIR ${_FD_IMPL_DIR}/fd)
 set(_FD_OUT_DIR ${_FD_ROOT_DIR}/.out/${CMAKE_BUILD_TYPE})
+
+set(_FD_SHARED_DIR ${_FD_IMPL_DIR}/shared)
+set(_FD_ENTRY_DIR ${_FD_IMPL_DIR}/entry)
 
 include(ProcessorCount)
 ProcessorCount(_CPUS)
@@ -86,7 +88,7 @@ include(FetchContent)
 set(GIT_SHALLOW true)
 set(FETCHCONTENT_QUIET off)
 set(FETCHCONTENT_BASE_DIR ${_FD_ROOT_DIR}/.deps1)
-#set(FETCHCONTENT_FULLY_DISCONNECTED on)
+set(FETCHCONTENT_FULLY_DISCONNECTED on)
 
 set(_GIT_DIR "C:/git" CACHE STRING "The repos storage")
 
@@ -118,7 +120,6 @@ endfunction()
 
 macro(Dependency_Use _name)
     FetchContent_MakeAvailable(${_name})
-    unset(_target)
 
     if(TARGET ${_name}::${_name})
         set(_target ${_name}::${_name})
@@ -312,39 +313,18 @@ Dependency_Use(freetype)
 Dependency_Load(ocornut imgui GIT_TAG features/string_view)
 Dependency_Use_Imgui()
 target_compile_definitions(imgui PUBLIC
-    IMGUI_USER_CONFIG="${_FD_DIR}/render/config.h"
+    IMGUI_USER_CONFIG="${_FD_SHARED_DIR}/render/config.h"
 )
 
 # -------------------
 
-file(GLOB_RECURSE _FD_FILES ${_FD_DIR}/*.cpp)
-add_library(fd ${_FD_FILES})
 
-target_link_libraries(fd PUBLIC
-    ${_FD_DEPS}
-)
-target_include_directories(fd PUBLIC
-    ${_FD_IMPL_DIR}
-    ${_FD_DEPS_INCLUDE})
-target_compile_definitions(fd PUBLIC
-    FD_WORK_DIR=${_FD_DIR}
-    FD_ROOT_DIR=${_FD_ROOT_DIR}
-    FD_IMPL_DIR=${_FD_IMPL_DIR}
-)
+file(GLOB_RECURSE _sources ${_FD_SHARED_DIR}/*.cpp)
+add_library(FD ${_sources})
+target_link_libraries(FD PUBLIC ${_FD_DEPS})
+target_include_directories(FD PUBLIC ${_FD_SHARED_DIR}/ ${_FD_DEPS_INCLUDE})
 
-# -------------------
-
-set(_FD_ENTRY_DIR ${_FD_IMPL_DIR}/entry)
-
-add_library(cheat SHARED ${_FD_ENTRY_DIR}/main.cpp)
-target_link_libraries(cheat PUBLIC fd)
-target_compile_definitions(cheat PUBLIC FD_SHARED_LIB)
-
-add_executable(gui ${_FD_ENTRY_DIR}/main.cpp)
-target_link_libraries(gui PUBLIC fd)
-
-#add_subdirectory(${_FD_IMPL_DIR}/imgui ${imgui_BINARY_DIR})
-#add_subdirectory(${_FD_IMPL_DIR}/fd ${FD_OUT_DIR}/shared)
-#add_subdirectory(${_FD_IMPL_DIR}/targets ${FD_OUT_DIR}/core)
-#add_subdirectory(${_FD_IMPL_DIR}/gui_test ${FD_OUT_DIR}/gui_test)
-#add_subdirectory(${_FD_IMPL_DIR}/dll ${FD_OUT_DIR}/dll)
+add_library(FDLIB SHARED ${_FD_ENTRY_DIR}/library.cpp)
+target_link_libraries(FDLIB PUBLIC FD)
+add_executable(FDLIB_GUI ${_FD_ENTRY_DIR}/gui.cpp)
+target_link_libraries(FDLIB_GUI PUBLIC FD d3d9.lib)

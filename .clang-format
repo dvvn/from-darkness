@@ -42,16 +42,17 @@ IncludeCategories:
   - Regex: '"[^\/\\]*\.h.*"'
     Priority: 0
   - Regex: '".*[\/\\].*"'
-    Priority: 1
+    Priority: 0
+    SortPriority: 1
   - Regex: '<boost/.*>'
-    Priority: 2
+    Priority: 1
   - Regex: '<fmt/.*>'
-    Priority: 3
+    Priority: 2
   - Regex: '<imgui.*h>'
-    Priority: 4
+    Priority: 3
   - Regex: '<windows\.h>'
-    Priority: 5
+    Priority: 4
   - Regex: '<[^\\\/]*\.h.*>'
-    Priority: 5
-    SortPriority: 6
+    Priority: 4
+    SortPriority: 5
 ...
