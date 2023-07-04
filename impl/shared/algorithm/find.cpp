@@ -1,9 +1,9 @@
 #include "basic_pattern.h"
 #include "basic_xref.h"
 #include "find.h"
-#include "type_traits.h"
 #include "container/array.h"
 #include "container/vector/dynamic.h"
+#include "functional/ignore.h"
 
 #include <algorithm>
 #include <cassert>
@@ -306,10 +306,10 @@ template <size_t SegmentCount>
 class known_pattern_segements
 {
     static constexpr size_t table_size_ = SegmentCount + 1; // +1 to skip 0
-#ifdef _DEBUG
-    std::array<find_pattern_t, table_size_> table_;
-#else
+#ifdef __RESHARPER__
     find_pattern_t table_[table_size_];
+#else
+   array<find_pattern_t, table_size_> table_;
 #endif
 
   public:
@@ -326,7 +326,7 @@ class known_pattern_segements
 
     find_pattern_t operator[](size_t index) const
     {
-        return table_[index];
+        return table_[index];  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
 
     size_t size() const
@@ -376,4 +376,4 @@ void *find(void *begin, void *end, void const *from, void const *to)
         b_begin = front + 1;
     }
 }
-}
+} // namespace fd

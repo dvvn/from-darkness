@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // ReSharper disable CppInconsistentNaming
 #ifdef _WIN64

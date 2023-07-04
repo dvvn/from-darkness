@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "type_traits.h"
+#include "noncopyable.h"
 #include "render/backend/basic_win32.h"
 
 #include <Windows.h>
@@ -12,8 +12,10 @@ class own_window_info : public noncopyable
     WNDCLASSEX info_;
     HWND hwnd_;
 
-  public:
+  protected:
     ~own_window_info();
+
+  public:
     own_window_info(LPCTSTR name, HMODULE handle, HWND parent);
 
     HWND handle() const;
@@ -31,7 +33,7 @@ class win32_backend_own final : own_window_info, public basic_win32_backend
 
   public:
     ~win32_backend_own();
-    win32_backend_own(HWND parent=0);
+    win32_backend_own(HWND parent = 0);
 
     window_params *peek();
 };

@@ -1,6 +1,7 @@
 #include "context.h"
 //
 #include "diagnostics/runtime_error.h"
+#include "functional/ignore.h"
 
 namespace fd
 {
@@ -40,16 +41,23 @@ render_context::render_context()
         throw runtime_error("Unable to init Win32 backend!");*/
 }
 
-bool render_context::begin_scene()
+#if 0
+//this method sucks
+bool render_context::skip_scene() const
 {
-    // backend call
-
-#ifndef IMGUI_HAS_VIEWPORT
+#ifdef IMGUI_HAS_VIEWPORT
+    return false;
+#else
     // sets in win32 impl
     auto &display_size = context_.IO.DisplaySize;
-    if (display_size.x <= 0 || display_size.y <= 0)
-        return false;
+    return static_cast<size_t>(display_size.x) != 0 && static_cast<size_t>(display_size.y) != 0;
 #endif
+}
+#endif
+
+void render_context::begin_scene()
+{
+    // backend call
 
     /*for (auto w : context.WindowsFocusOrder)
   {
@@ -62,7 +70,6 @@ bool render_context::begin_scene()
   }*/
 
     ImGui::NewFrame();
-    return true;
 }
 
 void render_context::end_scene()
@@ -71,8 +78,5 @@ void render_context::end_scene()
     ImGui::Render();
     // backend call
 }
-
-
-
 
 } // namespace fd

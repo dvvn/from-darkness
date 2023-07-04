@@ -29,20 +29,7 @@ namespace fd
 
 
 
-template <typename Fn>
-void *get_function_pointer(Fn function)
-{
-    static_assert(sizeof(Fn) == sizeof(void *));
 
-    union
-    {
-        Fn fn;
-        void *ptr;
-    };
-
-    fn = function;
-    return ptr;
-}
 
 using boost::ignore_unused;
 using boost::noncopyable;

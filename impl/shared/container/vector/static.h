@@ -1,7 +1,7 @@
 #pragma once
 
 // ReSharper disable once CppUnusedIncludeDirective
-#include ".detail/boost_iterator_unwrapper.h"
+#include "iterator/unwrap.h"
 
 #include <boost/container/static_vector.hpp>
 

@@ -6,20 +6,20 @@ namespace fd
 {
 struct basic_pattern_segment
 {
-    friend struct basic_pattern;
-
     using value_type = uint8_t;
     using pointer    = value_type const *;
     using size_type  = uint8_t;
+
+  protected:
+    ~basic_pattern_segment() = default;
+
+  public:
+    virtual size_type self_size() const = 0;
 
     virtual pointer begin() const = 0;
     virtual pointer end() const   = 0;
 
     virtual size_type tail() const = 0;
-
-  protected:
-    // class size for iterator
-    virtual size_type self_size() const = 0;
 };
 
 struct basic_pattern
@@ -72,6 +72,10 @@ struct basic_pattern
         }
     };
 
+  protected:
+    ~basic_pattern() = default;
+
+  public:
     virtual iterator begin() const = 0;
     virtual iterator end() const   = 0;
 

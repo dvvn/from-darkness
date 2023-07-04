@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "runtime_error.h"
-#include ".detail/winapi_fwd.h"
+#include "internal/winapi.h"
 
 namespace fd
 {

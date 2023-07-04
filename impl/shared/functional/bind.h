@@ -1,5 +1,7 @@
 #pragma once
 
+#include "noncopyable.h"
+
 #include <functional>
 
 namespace fd

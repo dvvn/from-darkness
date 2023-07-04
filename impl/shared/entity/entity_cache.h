@@ -10,8 +10,8 @@
 
 namespace std
 {
-template <class _InIt, class _Fn>
-constexpr _Fn for_each(_InIt _First, _InIt _Last, _Fn _Func);
+template <class It, class Fn>
+constexpr Fn for_each(It first, It last, Fn func);
 }
 
 namespace fd

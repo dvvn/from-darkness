@@ -1,8 +1,7 @@
 #pragma once
 
 #include "basic_context.h"
-//
-#include "type_traits.h"
+#include "noncopyable.h"
 
 #include <imgui_internal.h>
 
@@ -17,7 +16,8 @@ class render_context final : public basic_render_context, public noncopyable
     ~render_context();
     render_context();
 
-    bool begin_scene() override;
+    //bool skip_scene() const override;
+    void begin_scene() override;
     void end_scene() override;
 };
 } // namespace fd

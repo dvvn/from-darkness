@@ -1,6 +1,6 @@
 #pragma once
 
-#include ".detail/wrapper.h"
+#include "internal/wrapper.h"
 
 #include <span>
 

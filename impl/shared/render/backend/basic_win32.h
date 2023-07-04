@@ -1,9 +1,8 @@
 ﻿#pragma once
 
-#include "base.h"
-//
-#include "type_traits.h"
-#include ".detail/winapi_fwd.h"
+#include "diagnostics/fatal.h"
+#include "internal/winapi.h"
+#include "render/basic_backend.h"
 
 #include <concepts>
 
@@ -79,6 +78,7 @@ struct basic_win32_backend : basic_backend
     };
 
   protected:
+    ~basic_win32_backend() = default;
     basic_win32_backend(HWND window);
 
   public:

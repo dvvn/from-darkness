@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "type_traits.h"
+#include "noncopyable.h"
 #include "render/backend/basic_win32.h"
 
 namespace fd

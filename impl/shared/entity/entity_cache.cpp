@@ -1,7 +1,7 @@
 ﻿#include "entity_cache.h"
-#include "type_traits.h"
+//
+#include "functional/ignore.h"
 #include "functional/placeholders.h"
-#include "iterator/unwrap.h"
 
 #include <algorithm>
 

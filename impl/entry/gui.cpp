@@ -1,3 +1,4 @@
+#include "functional/ignore.h"
 #include "render/backend/own/dx9.h"
 #include "render/backend/own/win32.h"
 #include "render/context.h"
@@ -22,11 +23,10 @@ int main(int argc, int *argv) noexcept
         win32.new_frame();
         dx9.new_frame();
 
-        if (!rctx.begin_scene())
-            continue;
-
-        ImGui::ShowDemoWindow();
-
+        rctx.begin_scene();
+        {
+            ImGui::ShowDemoWindow();
+        }
         rctx.end_scene();
 
         dx9.render(ImGui::GetDrawData());

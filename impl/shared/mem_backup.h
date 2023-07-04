@@ -1,6 +1,6 @@
 #pragma once
 
-#include "type_traits.h"
+#include "noncopyable.h"
 
 #include <cassert>
 #include <utility>
@@ -88,7 +88,7 @@ struct mem_backup : noncopyable
 template <typename T>
 struct mem_backup<T const>
 {
-    mem_backup(auto&&...) = delete;
+    mem_backup(auto &&...) = delete;
 };
 
 template <typename T>

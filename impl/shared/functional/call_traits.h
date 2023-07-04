@@ -14,6 +14,41 @@
 
 namespace fd
 {
+template <typename Fn>
+Fn void_to_func(void *function)
+{
+    if constexpr (std::convertible_to<void *, Fn>)
+        return static_cast<Fn>(function);
+    else
+    {
+        static_assert(sizeof(Fn) == sizeof(void *));
+
+        union
+        {
+            void *from;
+            Fn to;
+        };
+
+        from = function;
+        return to;
+    }
+}
+
+template <typename Fn>
+void *get_function_pointer(Fn function)
+{
+    static_assert(sizeof(Fn) == sizeof(void *));
+
+    union
+    {
+        Fn fn;
+        void *ptr;
+    };
+
+    fn = function;
+    return ptr;
+}
+
 enum class call_type_t : uint8_t
 {
     // ReSharper disable CppInconsistentNaming
@@ -118,7 +153,6 @@ namespace call_type
 X86_CALL_MEMBER(X86_CALL_TYPE)
 #undef X86_CALL_TYPE
 } // namespace call_type
-
 
 template <call_type_t Call_T, typename Ret, typename T, typename... Args>
 requires(std::is_class_v<T> || std::is_union_v<T> /*std::is_fundamental_v<T>*/)

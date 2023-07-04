@@ -104,7 +104,7 @@ void dx9_backend_own::render(ImDrawData *draw_data)
     auto result = device->Present(nullptr, nullptr, nullptr, nullptr);
     // Handle loss of D3D9 device
     if (result == D3DERR_DEVICELOST && device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
-        reset();
+        dx9_backend_own::reset();
 }
 
 void dx9_backend_own::resize(UINT w, UINT h)

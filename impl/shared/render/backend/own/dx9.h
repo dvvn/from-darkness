@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "comptr.h"
-#include "type_traits.h"
+#include "noncopyable.h"
 #include "render/backend/basic_dx9.h"
 
 #include <d3d9.h>
@@ -16,6 +16,9 @@ struct own_d3d_device : noncopyable
     comptr<IDirect3D9> d3d_;
     comptr<IDirect3DDevice9> device_;
     D3DPRESENT_PARAMETERS params_;
+
+  protected:
+    ~own_d3d_device() = default;
 
   public:
     own_d3d_device(HWND hwnd);

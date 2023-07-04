@@ -16,7 +16,6 @@
 
 namespace fd
 {
-
 template <size_t S>
 struct pattern_string
 {
@@ -34,16 +33,19 @@ struct pattern_string
     }
 };
 
-#ifdef __cpp_lib_constexpr_vector
-template <class C>
-using dynamic_pattern_buffer = vector<C>;
-#else
-#error custom constexpr vector not implemented
-#endif
+namespace detail
+{
+template <typename T>
+struct dynamic_segment_allocator : std::allocator<T>
+{
+    using size_type       = basic_pattern_segment::size_type;
+    using difference_type = std::make_signed_t<size_type>;
+};
+} // namespace detail
 
 class dynamic_pattern_segment final : public basic_pattern_segment
 {
-    using buffer_type = dynamic_pattern_buffer<value_type>;
+    using buffer_type = vector_ex2<value_type, detail::dynamic_segment_allocator>;
 
     buffer_type buffer_;
     size_type tail_;
@@ -128,12 +130,12 @@ class dynamic_pattern_segment final : public basic_pattern_segment
     }
 };
 
-class dynamic_pattern : public basic_pattern
+class dynamic_pattern final : public basic_pattern
 {
     friend constexpr size_t size(dynamic_pattern const &p);
 
     using segment_type = dynamic_pattern_segment;
-    using buffer_type  = dynamic_pattern_buffer<segment_type>;
+    using buffer_type  = vector_ex2<segment_type, detail::dynamic_segment_allocator>;
 
     buffer_type buffer_;
 
@@ -251,8 +253,6 @@ class pattern_segment final : public basic_pattern_segment
     }
 };
 
-constexpr uint8_t pattern_segment_runtime_buffer = 128;
-
 template <>
 class pattern_segment<0> final : public basic_pattern_segment
 {
@@ -303,7 +303,7 @@ class pattern_segment<0> final : public basic_pattern_segment
 };
 
 template <size_t... SegmentLength>
-class pattern : public basic_pattern
+class pattern final : public basic_pattern
 {
     static constexpr bool tuple_store_elements_as_is()
     {
@@ -410,6 +410,7 @@ struct pattern_segment_info<0>
         , length(bytes.length())
         , tail(tail)
     {
+        
     }
 
     pattern_segment_info(char const *bytes, size_type length, size_type tail = 0)
@@ -426,7 +427,7 @@ struct pattern_segment_info<0>
 };
 
 template <size_t S>
-pattern_segment_info(const char (&)[S], auto...) -> pattern_segment_info<S>;
+pattern_segment_info(char const (&)[S], auto...) -> pattern_segment_info<S>;
 
 // template <size_t S>
 pattern_segment_info(std::type_identity_t<string_view>, auto...) -> pattern_segment_info<0>;

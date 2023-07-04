@@ -1,8 +1,8 @@
 #pragma once
 
+#include "internal/wrapper.h"
 // ReSharper disable once CppUnusedIncludeDirective
-#include ".detail/boost_iterator_unwrapper.h"
-#include ".detail/wrapper.h"
+#include "iterator/unwrap.h"
 
 #include <boost/container/small_vector.hpp>
 
