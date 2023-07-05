@@ -24,7 +24,6 @@
 #define DECLSPEC_NAKED __declspec(naked)
 
 static HINSTANCE self_handle;
-
 static HANDLE thread;
 static DWORD thread_id;
 

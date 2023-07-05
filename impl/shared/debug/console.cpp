@@ -1,6 +1,6 @@
 ﻿#include "console.h"
-#include "type_traits.h"
 #include "diagnostics/system_error.h"
+#include "functional/ignore.h"
 
 #include <boost/nowide/iostream.hpp>
 

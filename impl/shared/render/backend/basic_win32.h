@@ -85,5 +85,8 @@ struct basic_win32_backend : basic_backend
     void destroy() override;
     void new_frame() override;
     virtual update_result update(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
+
+    virtual WNDPROC proc() const = 0;
+    virtual HWND id() const      = 0;
 };
 } // namespace fd

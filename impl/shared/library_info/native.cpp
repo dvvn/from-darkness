@@ -209,4 +209,5 @@ void *native_library_info::interface(string_view name) const
 
     return isdigit(name.back()) ? do_find(std::false_type()) : do_find(std::true_type());
 }
+
 } // namespace fd

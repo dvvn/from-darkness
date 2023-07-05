@@ -1,3 +1,4 @@
+#include "debug/log.h"
 #include "functional/ignore.h"
 #include "render/backend/own/dx9.h"
 #include "render/backend/own/win32.h"
@@ -5,13 +6,15 @@
 
 int main(int argc, int *argv) noexcept
 {
-    using namespace fd;
+    fd::ignore_unused(argc, argv);
 
-    ignore_unused(argc, argv);
+#ifdef _DEBUG
+    fd::log_activator log_activator;
+#endif
 
-    render_context rctx;
-    win32_backend_own win32(GetDesktopWindow());
-    dx9_backend_own dx9;
+    fd::render_context rctx;
+    fd::win32_backend_own win32(GetDesktopWindow());
+    fd::dx9_backend_own dx9;
 
     while (auto params = win32.peek())
     {

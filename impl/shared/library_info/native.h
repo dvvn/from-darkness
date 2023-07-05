@@ -3,9 +3,8 @@
 
 namespace fd
 {
-class native_library_info : public system_library_info
+struct native_library_info : system_library_info
 {
-  public:
     using system_library_info::system_library_info;
 
     void *interface(string_view name) const;

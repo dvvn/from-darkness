@@ -4,6 +4,8 @@
 
 namespace fd
 {
+struct native_library_info;
+
 enum class native_frame_stage : int32_t
 {
     undefined = -1,
@@ -27,6 +29,8 @@ FD_BIND_NATIVE_INTERFACE(CHLClient, client);
 
 union native_client
 {
+    native_client(native_library_info info);
+
     FD_NATIVE_INTERFACE(CHLClient);
     function<8, native_client_class *> get_all_classes;
 };

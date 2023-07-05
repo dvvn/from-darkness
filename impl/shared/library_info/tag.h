@@ -29,7 +29,6 @@ struct library_tag
 
     constexpr size_t length() const
     {
-        ignore_unused(this);
         return static_length();
     }
 

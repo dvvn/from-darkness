@@ -16,5 +16,16 @@ class system_library_info : public basic_library_info
 };
 
 template <library_tag Tag>
-struct system_library;
+struct system_library : system_library_info
+{
+    system_library()
+        : system_library_info(Tag)
+    {
+    }
+
+    system_library(system_library_info info)
+        : system_library_info(info)
+    {
+    }
+};
 } // namespace fd

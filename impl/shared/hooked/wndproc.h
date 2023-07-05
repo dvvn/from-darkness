@@ -12,18 +12,11 @@ extern LRESULT __stdcall DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 
 namespace fd
 {
-
-template <typename Original>
 struct hooked_wndproc
 {
     basic_win32_backend *backend;
 
-    LRESULT __stdcall operator()( //
-        Original &original,
-        HWND window,
-        UINT message,
-        WPARAM wparam,
-        LPARAM lparam) const noexcept
+    LRESULT __stdcall operator()(auto &original, HWND window, UINT message, WPARAM wparam, LPARAM lparam) const noexcept
     {
         // todo: check are unput must be blocked before update
         // if not, always call original

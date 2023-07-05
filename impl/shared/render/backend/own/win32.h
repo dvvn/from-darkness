@@ -18,6 +18,7 @@ class own_window_info : public noncopyable
   public:
     own_window_info(LPCTSTR name, HMODULE handle, HWND parent);
 
+    WNDPROC wndproc() const;
     HWND handle() const;
 };
 
@@ -33,8 +34,11 @@ class win32_backend_own final : own_window_info, public basic_win32_backend
 
   public:
     ~win32_backend_own();
-    win32_backend_own(HWND parent = 0);
+    win32_backend_own(HWND parent = nullptr);
 
     window_params *peek();
+
+    WNDPROC proc() const override;
+    HWND id() const override;
 };
 }

@@ -21,6 +21,9 @@ class win32_backend_native final : public basic_win32_backend, public noncopyabl
 #ifdef _DEBUG
     update_result update(HWND window, UINT message, WPARAM wparam, LPARAM lparam) override;
 #endif
+
+    WNDPROC proc() const override;
+    HWND id() const override;
 };
 
 } // namespace fd

@@ -13,10 +13,9 @@ struct native_return_address_gadget
 };
 
 #define FD_NATIVE_INTERFACE(_NAME_)                                        \
-                                                                           \
+  private:                                                                 \
     detail::native_vtable<_NAME_> __vtable;                                \
                                                                            \
-  private:                                                                 \
     template <size_t Index, typename Ret, typename... Args>                \
     using function = detail::native_function<_NAME_, Index, Ret, Args...>; \
                                                                            \

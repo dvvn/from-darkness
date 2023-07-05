@@ -1,6 +1,7 @@
 ﻿#pragma once
 #ifdef _DEBUG
-#include "type_traits.h"
+
+#include "noncopyable.h"
 
 #include <fmt/format.h>
 #include <fmt/xchar.h>

@@ -62,6 +62,20 @@ auto win32_backend_native::update(HWND window, UINT message, WPARAM wparam, LPAR
     assert(window_ == window);
     return basic_win32_backend::update(window, message, wparam, lparam);
 }
+
+WNDPROC win32_backend_native::proc() const
+{
+    return reinterpret_cast<WNDPROC>(GetWindowLongPtr(id(), GWL_WNDPROC));
+}
+
+HWND win32_backend_native::id() const
+{
+#ifdef _DEBUG
+    return window_;
+#else
+    return find_game_window<true>();
+#endif
+}
 #endif
 
 } // namespace fd

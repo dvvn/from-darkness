@@ -2,7 +2,7 @@
 #include "basic_hook.h"
 #include "name.h"
 //
-#include "type_traits.h"
+#include "noncopyable.h"
 #include "container/vector/dynamic.h"
 #include "functional/call_traits.h"
 #ifdef _DEBUG
@@ -56,8 +56,12 @@ class hook_proxy_member_holder
     }
 };
 
+struct hook_proxy_member_tag
+{
+};
+
 template <class Callback, call_type_t Call_T, typename Ret, class Object, typename... Args>
-struct basic_hook_proxy_member : noncopyable
+struct basic_hook_proxy_member : noncopyable, hook_proxy_member_tag
 {
     using proxy_type = hook_proxy_member<Callback, Call_T, Ret, Object, Args...>;
 
@@ -268,6 +272,7 @@ class hook_context : public noncopyable
     size_t size() const;
 
 #define HOOK_PROXY_SAMPLE template <typename, call_type_t, typename...>
+#define CALLBACK_SAMPLE   template <typename>
 
 #define MAKE_HOOK_CALLBACK_MEMBER(call__, __call, call)                                     \
     template <                                                                              \

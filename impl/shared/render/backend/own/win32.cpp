@@ -92,13 +92,16 @@ own_window_info::own_window_info(LPCTSTR name, HMODULE handle, HWND parent)
         // ReSharper disable CppClangTidyClangDiagnosticFloatConversion
         // ReSharper disable CppClangTidyBugproneNarrowingConversions
         // ReSharper disable CppClangTidyClangDiagnosticImplicitIntFloatConversion
-         
+
+#pragma warning(push)
+#pragma warning(disable : 4244)
         float w = parent_rect.right - parent_rect.left;
         float h = parent_rect.bottom - parent_rect.top;
         x       = w * 0.1f / 2.f;
         y       = h * 0.1f / 2.f;
         width   = w * 0.9f;
         height  = h * 0.9f;
+#pragma warning(pop)
     }
     else
     {
@@ -110,6 +113,11 @@ own_window_info::own_window_info(LPCTSTR name, HMODULE handle, HWND parent)
 
     if (!hwnd_)
         throw system_error("Window not created!");
+}
+
+WNDPROC own_window_info::wndproc() const
+{
+    return info_.lpfnWndProc;
 }
 
 HWND own_window_info::handle() const
@@ -170,5 +178,15 @@ auto win32_backend_own::peek() -> window_params *
     }
 
     return quit ? nullptr : &params_;
+}
+
+WNDPROC win32_backend_own::proc() const
+{
+    return wndproc();
+}
+
+HWND win32_backend_own::id() const
+{
+    return handle();
 }
 } // namespace fd

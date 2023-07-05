@@ -12,6 +12,7 @@
 #include <boost/hana/tuple.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <ranges>
 
 namespace fd
@@ -407,10 +408,10 @@ struct pattern_segment_info<0>
 
     pattern_segment_info(string_view bytes, size_type tail = 0)
         : bytes(reinterpret_cast<pointer>(bytes.data()))
-        , length(bytes.length())
+        , length(static_cast<size_type>(bytes.length()))
         , tail(tail)
     {
-        
+        assert(bytes.length() < std::numeric_limits<size_type>::max());
     }
 
     pattern_segment_info(char const *bytes, size_type length, size_type tail = 0)

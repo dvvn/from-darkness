@@ -1,5 +1,6 @@
 ﻿#include "hook.h"
 #include "debug/log.h"
+#include "functional/ignore.h"
 
 #ifdef _DEBUG
 #include "string/char.h"
@@ -800,7 +801,7 @@ char const *basic_hook_data::name() const
 
 void *hook_context::create_trampoline(hook_name name, void *target, void *replace)
 {
-    auto info        = hook_info(name, target);
+    hook_info info(name, target);
     void *trampoline = nullptr;
     auto created     = mh_action(act_names::create, MH_CreateHook, info, replace, &trampoline);
     /*if (!created && error_handler_)
