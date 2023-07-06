@@ -80,7 +80,7 @@ struct basic_pattern
     virtual iterator end() const   = 0;
 
     // segments count
-    virtual size_t size() const = 0;
+    virtual size_t segments() const = 0;
     // segemnts length in bytes
     // virtual size_t length() const     = 0;
     // virtual size_t abs_length() const = 0;

@@ -150,7 +150,7 @@ class dynamic_pattern final : public basic_pattern
         }
     }
 
-    size_t size() const override
+    size_t segments() const override
     {
         return buffer_.size();
     }
@@ -334,18 +334,18 @@ class pattern final : public basic_pattern
         // return reinterpret_cast<segment>(std::next(&buffer_));
     }
 
-    size_t size() const override
+    size_t segments() const override
+    {
+        return sizeof...(SegmentLength);
+    }
+
+    /*size_t length() const override
     {
         if constexpr (((SegmentLength == 0) || ...))
             return boost::hana::sum<size_t>(boost::hana::transform(buffer_, [](auto &p) { return p.length(); }));
         else
             return (SegmentLength + ...);
-    }
-
-    // size_t length() const override
-    //{
-    //     return (SegmentLength + ...);
-    // }
+    }*/
 
     // size_t abs_length() const override
     //{
