@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "noncopyable.h"
+#include "functional/vfunc.h"
 #include "render/backend/basic_dx9.h"
 
 namespace fd
@@ -22,12 +23,11 @@ struct dx9_backend_native final : basic_dx9_backend, noncopyable
     void destroy() override;
     void render(ImDrawData *draw_data) override;
 
-    /*
-     template <typename Ret, class T, typename... Args>
-    vfunc<call_type_t::stdcall_, Ret, Args...> operator[](Ret (__stdcall T::*func)(Args...)) const
+    template <typename Ret, typename... Args>
+    auto operator[](Ret (__stdcall IDirect3DDevice9::*func)(Args...)) const
+        -> vfunc<call_type_t::stdcall_, Ret, IDirect3DDevice9, Args...>
     {
-        return {func, static_cast<Base const *>(this)->backend()};
+        return {func, *device_};
     }
-     */
 };
 } // namespace fd

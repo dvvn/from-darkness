@@ -1,8 +1,32 @@
 ﻿#pragma once
 
-#include <utility>
+#include <cassert>
+#include <cstdlib>
 
 namespace fd
 {
-using std::unreachable;
+#ifdef _DEBUG
+[[noreturn]]
+inline void unreachable()
+{
+    assert(0);
+}
+#else
+#ifdef __GNUC__
+[[noreturn]]
+inline __attribute__((always_inline)) void unreachable()
+{
+    __builtin_unreachable();
+}
+#elif defined(_MSC_VER)
+[[noreturn]]
+__forceinline void unreachable() // NOLINT(clang-diagnostic-language-extension-token)
+{
+    __assume(false);
+}
+#else
+constexpr auto unreachable = std::abort;
+#endif
+#endif
+
 } // namespace fd

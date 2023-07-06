@@ -49,7 +49,7 @@ void *get_vfunc(Fn table_function, void *instance)
     static_assert(member_function<Fn>);
 
     constexpr auto call = function_info<Fn>::call_type;
-    auto function       = get_function_pointer(table_function);
+    auto function       = unsafe_cast<void *>(table_function);
     return get_vfunc<call>(function, instance);
 }
 

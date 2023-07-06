@@ -4,10 +4,12 @@
 
 namespace fd
 {
+constexpr auto default_exception_message = "Unknown exception";
+
 #ifdef _MSC_VER
 struct exception : std::exception
 {
-    exception(char const *message = nullptr)
+    exception(char const *message = default_exception_message)
         : std::exception(message, 0)
     {
     }
@@ -18,14 +20,14 @@ class exception : public std::exception
     char const *message_;
 
   public:
-    exception(char const *message = nullptr)
+    exception(char const *message = default_exception_message)
         : message_(message)
     {
     }
 
     char const *what() const override
     {
-        return message_ ? message_ : "Unknown exception";
+        return message_ ? message_ : default_exception_message;
     }
 };
 #endif

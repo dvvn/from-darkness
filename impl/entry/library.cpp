@@ -1,14 +1,17 @@
 #include "native_sources.h"
 #include "debug/console.h"
 #include "debug/log.h"
-#include "hook/hook.h"
-#include "hooked/wndproc.h"
+#include "hook/backend_holder.h"
+#include "hook/callback.h"
+#include "hooked/directx9.h"
+#include "hooked/winapi.h"
 #include "native/client.h"
 #include "render/backend/native/dx9.h"
 #include "render/backend/native/win32.h"
 #include "render/context.h"
 
 #include <Windows.h>
+#include <d3d9.h>
 
 #include <cassert>
 #include <cstdlib>
@@ -18,19 +21,18 @@ static HINSTANCE self_handle;
 static HANDLE thread;
 static DWORD thread_id;
 
-[[noreturn]]
-static void exit_context(bool success)
+static void DECLSPEC_NORETURN exit_thread(bool success)
 {
     assert(GetCurrentThread() == thread);
     FreeLibraryAndExitThread(self_handle, success ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
-static bool lock_context()
+static bool pause_thread()
 {
     return SuspendThread(thread) != -1;
 }
 
-static bool resume_context()
+static bool resume_thread()
 {
     return ResumeThread(thread) != -1;
 }
@@ -43,11 +45,11 @@ static DWORD CALLBACK context_proxy(LPVOID ptr) noexcept
     {
         self_handle = static_cast<HINSTANCE>(ptr);
         context();
-        exit_context(true);
+        exit_thread(true);
     }
     catch (std::exception const &ex)
     {
-        exit_context(false);
+        exit_thread(false);
     }
 }
 
@@ -86,8 +88,8 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
 void context()
 {
 #ifdef _DEBUG
-    fd::log_activator log_activator;
     fd::system_console console;
+    fd::log_activator log_activator;
 #endif
 
     fd::native_sources sources;
@@ -97,7 +99,13 @@ void context()
     fd::win32_backend_native win32;
     fd::dx9_backend_native dx9(sources.shaderapidx9);
 
-    fd::hook_context hooks;
+    auto hook_backend = fd::hook_backend();
 
-    hooks.create("WinAPI.WndProc", win32.proc(), fd::hooked_wndproc(&win32));
+    hook_backend->create(prepare_hook<fd::hooked_wndproc>(win32.proc(), &win32));
+    hook_backend->create(prepare_hook<fd::hooked_dx9_reset>(dx9[&IDirect3DDevice9::Reset], &dx9));
+    hook_backend->create(prepare_hook<fd::hooked_dx9_present>(dx9[&IDirect3DDevice9::Present], &dx9, &win32, &rctx));
+
+    hook_backend->enable();
+
+    pause_thread();
 }

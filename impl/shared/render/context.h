@@ -16,8 +16,9 @@ class render_context final : public basic_render_context, public noncopyable
     ~render_context();
     render_context();
 
-    //bool skip_scene() const override;
+    // bool skip_scene() const override;
     void begin_scene() override;
     void end_scene() override;
+    ImDrawData *data() override;
 };
 } // namespace fd

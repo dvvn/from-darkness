@@ -79,4 +79,9 @@ void render_context::end_scene()
     // backend call
 }
 
+ImDrawData *render_context::data()
+{
+    return ImGui::GetDrawData();
+}
+
 } // namespace fd

@@ -32,6 +32,6 @@ int main(int argc, int *argv) noexcept
         }
         rctx.end_scene();
 
-        dx9.render(ImGui::GetDrawData());
+        dx9.render(rctx.data());
     }
 }

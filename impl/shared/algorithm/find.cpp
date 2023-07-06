@@ -215,12 +215,12 @@ class basic_pattern_view
     }
 };
 
-template <size_t Size>
-struct pattern_view : basic_pattern_view<array<pattern_segment_view, Size>>
+template <size_t SegmentCount>
+struct pattern_view : basic_pattern_view<array<pattern_segment_view, SegmentCount>>
 {
     pattern_view(basic_pattern const &pattern)
     {
-        assert(pattern.size() == Size);
+        assert(pattern.segments() == SegmentCount);
         auto dst = this->buff_.data();
         auto end = pattern.end();
         for (auto it = pattern.begin(); it != end; ++it)
@@ -309,7 +309,7 @@ class known_pattern_segements
 #ifdef __RESHARPER__
     find_pattern_t table_[table_size_];
 #else
-   array<find_pattern_t, table_size_> table_;
+    array<find_pattern_t, table_size_> table_;
 #endif
 
   public:
@@ -326,7 +326,7 @@ class known_pattern_segements
 
     find_pattern_t operator[](size_t index) const
     {
-        return table_[index];  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+        return table_[index]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     }
 
     size_t size() const
@@ -338,11 +338,11 @@ class known_pattern_segements
 
 void *find(void *begin, void *end, basic_pattern const &pattern)
 {
-    auto pattern_segments = pattern.size();
+    auto segments = pattern.segments();
 
     constexpr known_pattern_segements<32> cache;
-    auto use_cache = pattern_segments < cache.size();
-    return (use_cache ? cache[pattern_segments] : find_pattern<0>)(begin, end, pattern);
+    auto use_cache = segments < cache.size();
+    return (use_cache ? cache[segments] : find_pattern<0>)(begin, end, pattern);
 }
 
 void *find(void *begin, void *end, basic_xref const &xref)

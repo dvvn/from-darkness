@@ -14,24 +14,32 @@
 
 namespace fd
 {
-template <typename Fn>
-Fn void_to_func(void *function)
+template <typename To, typename From>
+To unsafe_cast(From from)
 {
-    if constexpr (std::convertible_to<void *, Fn>)
-        return static_cast<Fn>(function);
+    if constexpr (std::convertible_to<To, From>)
+    {
+        return static_cast<To>(from);
+    }
     else
     {
-        static_assert(sizeof(Fn) == sizeof(void *));
+        static_assert(sizeof(To) == sizeof(From));
 
         union
         {
-            void *from;
-            Fn to;
+            From from0;
+            To to;
         };
 
-        from = function;
+        from0 = from;
         return to;
     }
+}
+
+#if 0
+template <typename Fn>
+Fn void_to_func(void *function)
+{
 }
 
 template <typename Fn>
@@ -48,6 +56,7 @@ void *get_function_pointer(Fn function)
     fn = function;
     return ptr;
 }
+#endif
 
 enum class call_type_t : uint8_t
 {
@@ -190,7 +199,7 @@ decltype(auto) try_spoof_member_return_address(void *function, Object *instance,
     {
         using obj_t = std::conditional_t<forwarded<Object>, dummy_class, Object>;
         using fn_t  = member_func_type<Call_T, Ret, obj_t, Args...>;
-        return std::invoke(void_to_func<fn_t>(function), (obj_t *)instance, args...);
+        return std::invoke(unsafe_cast<fn_t>(function), unsafe_cast<obj_t *>(instance), args...);
     }
 }
 
@@ -248,7 +257,7 @@ struct non_member_func_invoker
 
     Ret operator()(void *function, Args... args) const
     {
-        return std::invoke(void_to_func<type>(function), args...);
+        return std::invoke(unsafe_cast<type>(function), args...);
     }
 };
 
@@ -294,7 +303,7 @@ struct member_func_invoker<Call_T, Ret, void, Args...>
 
     Ret operator()(void *function, void *instance, Args... args) const
     {
-        return operator()(void_to_func<type>(function), instance, args...);
+        return operator()(unsafe_cast<type>(function), instance, args...);
     }
 };
 
