@@ -25,14 +25,14 @@ namespace fd
 {
 struct pattern_segment_view
 {
-    using pointer   = basic_pattern_segment::pointer;
-    using size_type = std::make_unsigned_t<std::iter_difference_t<pointer>>;
-    using tail_type = basic_pattern_segment::size_type;
+    using pointer         = basic_pattern_segment::pointer;
+    using size_type       = basic_pattern_segment::size_type;
+    using difference_type = basic_pattern_segment::difference_type;
 
   private:
     pointer begin_;
     pointer end_;
-    tail_type tail_;
+    size_type tail_;
 #ifdef _DEBUG
     size_type length_;
     size_type abs_length_;
@@ -65,7 +65,7 @@ struct pattern_segment_view
         return end_;
     }
 
-    tail_type tail() const
+    size_type tail() const
     {
         return tail_;
     }
@@ -75,7 +75,7 @@ struct pattern_segment_view
 #ifdef _DEBUG
         return length_;
 #else
-        return std::distance(begin_, end_);
+        return static_cast<size_type>(std::distance(begin_, end_));
 #endif
     }
 
@@ -111,7 +111,7 @@ static uint8_t *find_byte(void *begin, void *end, uint8_t byte)
 
 static ptrdiff_t distance(void const *begin, void const *end)
 {
-    return std::distance(static_cast<uint8_t const *>(begin), static_cast<uint8_t const *>(end));
+    return (std::distance(static_cast<uint8_t const *>(begin), static_cast<uint8_t const *>(end)));
 }
 
 template <bool ValidateTail>
@@ -159,9 +159,11 @@ class basic_pattern_view
         static_assert(std::ranges::random_access_range<T>);
     }
 
-    using pointer   = pattern_segment_view const *;
-    using reference = pattern_segment_view const &;
-    using iterator  = pointer;
+    using pointer         = pattern_segment_view const *;
+    using reference       = pattern_segment_view const &;
+    using iterator        = pointer;
+    using size_type       = pattern_segment_view::size_type;
+    using difference_type = pattern_segment_view::difference_type;
 
     iterator begin() const
     {
@@ -205,10 +207,10 @@ class basic_pattern_view
         return buff_.back().tail();
     }
 
-    size_t abs_length() const
+    size_type abs_length() const
     {
-        size_t ret = 0;
-        auto ed    = end();
+        size_type ret = 0;
+        auto ed       = end();
         for (auto it = begin(); it != ed; ++it)
             ret += it->abs_length();
         return ret;
@@ -245,7 +247,9 @@ static void *find_pattern(void *begin, void *end, basic_pattern const &pattern)
 {
     auto b_begin = static_cast<uint8_t *>(begin);
 
-    pattern_view<SegmentCount> view(pattern);
+    using sigment_type = pattern_view<SegmentCount>;
+
+    sigment_type view(pattern);
 
     auto segments_begin = view.begin();
     auto segments_end   = view.end();
@@ -281,7 +285,7 @@ static void *find_pattern(void *begin, void *end, basic_pattern const &pattern)
 
             if (view.have_tail())
             {
-                if (distance(first_match, end) > view.abs_length())
+                if (static_cast<typename sigment_type::difference_type>(distance(first_match, end)) > view.abs_length())
                     return nullptr;
             }
         }
