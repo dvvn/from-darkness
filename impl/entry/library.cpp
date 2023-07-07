@@ -1,8 +1,9 @@
+#include "interface_holder.h"
 #include "native_sources.h"
 #include "debug/console.h"
 #include "debug/log.h"
-#include "hook/backend_holder.h"
 #include "hook/callback.h"
+#include "hook/preferred_backend.h"
 #include "hooked/directx9.h"
 #include "hooked/winapi.h"
 #include "native/client.h"
@@ -99,7 +100,8 @@ void context()
     fd::win32_backend_native win32;
     fd::dx9_backend_native dx9(sources.shaderapidx9);
 
-    auto hook_backend = fd::hook_backend();
+    
+    auto hook_backend = fd::make_interface<fd::preferred_hook_backend>();
 
     hook_backend->create(prepare_hook<fd::hooked_wndproc>(win32.proc(), &win32));
     hook_backend->create(prepare_hook<fd::hooked_dx9_reset>(dx9[&IDirect3DDevice9::Reset], &dx9));

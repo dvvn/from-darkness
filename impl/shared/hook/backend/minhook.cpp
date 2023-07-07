@@ -1,4 +1,5 @@
-﻿#include "minhook.h"
+﻿#include "interface_holder.h"
+#include "minhook.h"
 #include "noncopyable.h"
 #include "diagnostics/hook_error.h"
 
@@ -15,13 +16,12 @@ class minhook_error final : public hook_error
 
   public:
     minhook_error(MH_STATUS status, char const *message)
-        : hook_error(
-              message
+        : hook_error(message
 #ifdef _DEBUG
-                  ? message
-                  : default_exception_message
+                         ? message
+                         : default_exception_message
 #endif
-              )
+                     )
         , status_(status)
     {
     }
@@ -43,11 +43,7 @@ class minhook_error final : public hook_error
 
 struct backend_minhook final : basic_hook_backend, noncopyable
 {
-#ifdef FD_ALLOCATE_HOOK_BACKEND
     ~backend_minhook() override
-#else
-    ~backend_minhook()
-#endif
     {
         MH_DisableHook(MH_ALL_HOOKS);
         MH_Uninitialize();
@@ -91,13 +87,14 @@ struct backend_minhook final : basic_hook_backend, noncopyable
     }
 };
 
-basic_hook_backend *hook_backend_minhook()
+auto interface_creator<interface_type::heap, backend_minhook>::get() -> holder
 {
-#ifdef FD_ALLOCATE_HOOK_BACKEND
     return new backend_minhook();
-#else
+}
+
+auto interface_creator<interface_type::stack, backend_minhook>::get() -> pointer
+{
     static backend_minhook b;
     return &b;
-#endif
 }
 }

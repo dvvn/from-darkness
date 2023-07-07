@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#define FD_ALLOCATE_HOOK_BACKEND
+#include "interface.h"
 
 namespace fd
 {
@@ -11,19 +11,8 @@ struct prepared_hook_data
     void **original;
 };
 
-class basic_hook_backend
+struct basic_hook_backend : basic_interface
 {
-#ifdef FD_ALLOCATE_HOOK_BACKEND
-  public:
-    virtual ~basic_hook_backend() = default;
-#else
-  protected:
-    ~basic_hook_backend() = default;
-#endif
-
-#ifndef FD_ALLOCATE_HOOK_BACKEND
-  public:
-#endif
     virtual void *create(void *target, void *replace) = 0;
 
     virtual void create(prepared_hook_data const &data)
