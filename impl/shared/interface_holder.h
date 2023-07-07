@@ -11,81 +11,56 @@
 namespace fd
 {
 template <class T>
-concept valid_unique_interface = //
-    std::is_final_v<T> ? std::derived_from<T, basic_stack_interface>
-                       : std::derived_from<T, basic_interface> /* or has_virtual_destructor_v  */;
-
-template <class T>
-class unique_heap_interface : public noncopyable
-{
-    // simple 'unique_ptr' class
-
-    T *object_;
-
-  public:
-    ~unique_heap_interface()
-    {
-        if (object_)
-            delete object_;
-    }
-
-    unique_heap_interface(T *object)
-        : object_(object)
-    {
-        static_assert(valid_unique_interface<T>);
-    }
-
-    constexpr unique_heap_interface() = default;
-
-    T *operator->() const
-    {
-        return object_;
-    }
-
-    T &operator*() const
-    {
-        return *object_;
-    }
-};
-
-template <class T>
-class unique_stack_interface : public noncopyable
-{
-    // simple 'unique_ptr' class
-
-    T *object_;
-
-  public:
-    ~unique_stack_interface()
-    {
-        if (object_)
-            object_->~T();
-    }
-
-    unique_stack_interface(T *object)
-        : object_(object)
-    {
-        static_assert(valid_unique_interface<T>);
-    }
-
-    constexpr unique_stack_interface() = default;
-
-    T *operator->() const
-    {
-        return object_;
-    }
-
-    T &operator*() const
-    {
-        return *object_;
-    }
-};
+concept valid_unique_interface = (std::is_final_v<T> && std::derived_from<T, basic_stack_interface>) ||
+                                 /* or has_virtual_destructor_v  */
+                                 std::derived_from<T, basic_interface>;
 
 enum class interface_type : uint8_t
 {
     heap,
     in_place,
     stack,
+};
+
+template <interface_type Type, class T>
+class unique_interface : public noncopyable
+{
+    // simple 'unique_ptr' class
+
+    T *object_;
+
+  public:
+    ~unique_interface()
+    {
+        using enum interface_type;
+        if constexpr (Type == heap)
+        {
+            delete object_;
+        }
+        else if constexpr (Type == in_place)
+        {
+            if (object_)
+                object_->~T();
+        }
+    }
+
+    unique_interface(T *object)
+        : object_(object)
+    {
+        static_assert(valid_unique_interface<T>);
+    }
+
+    constexpr unique_interface() = default;
+
+    T *operator->() const
+    {
+        return object_;
+    }
+
+    T &operator*() const
+    {
+        return *object_;
+    }
 };
 
 constexpr interface_type default_interface_type = interface_type::heap;
@@ -107,46 +82,53 @@ class construct_interface
     }
 
   public:
-    static constexpr auto heap = []<typename... Args>(Args &&...args) -> T * {
+    template <typename Ret>
+    static constexpr auto heap = []<typename... Args>(Args &&...args) -> Ret {
         init_once();
         return new T(static_cast<Args &&>(args)...);
     };
-
-    static constexpr auto stack = []<typename... Args>(Args &&...args) -> T * {
-        static T object(static_cast<Args &&>(args)...);
+    template <typename Ret>
+    static constexpr auto stack = []<typename... Args>(Args &&...args) -> Ret {
         init_once();
+        static T object(static_cast<Args &&>(args)...);
         return &object;
     };
-
-    static constexpr auto in_place = []<typename... Args>(void *buffer, size_t buffer_size, Args &&...args) -> T * {
-    // static_assert(std::derived_from<T, basic_stack_interface>);
+    template <typename Ret>
+    static constexpr auto in_place = []<typename... Args>(void *buffer, size_t buffer_size, Args &&...args) -> Ret {
+        init_once();
 #ifdef _DEBUG
         if (buffer_size < sizeof(T))
             unreachable();
 #else
         (void)buffer_size;
 #endif
-        init_once();
         return new (buffer) T(static_cast<Args &&>(args)...);
     };
 };
 
+template <class T, typename Ret = unique_interface<interface_type::heap, T>>
+constexpr auto construct_interface_heap = construct_interface<T>::template heap<Ret>;
+template <class T, typename Ret = T *>
+constexpr auto construct_interface_stack = construct_interface<T>::template stack<Ret>;
+template <class T, typename Ret = unique_interface<interface_type::in_place, T>>
+constexpr auto construct_interface_in_place = construct_interface<T>::template in_place<Ret>;
+
 template <class T>
 struct interface_creator<interface_type::heap, T>
 {
-    static constexpr auto get = construct_interface<T>::heap;
+    static constexpr auto get = construct_interface_heap<T>;
 };
 
 template <class T>
 struct interface_creator<interface_type::stack, T>
 {
-    static constexpr auto get = construct_interface<T>::stack;
+    static constexpr auto get = construct_interface_stack<T>;
 };
 
 template <class T>
 struct interface_creator<interface_type::in_place, T>
 {
-    static constexpr auto get = construct_interface<T>::in_place;
+    static constexpr auto get = construct_interface_in_place<T>;
 };
 
 template <interface_type Type, class T>
