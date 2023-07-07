@@ -1,9 +1,12 @@
 #pragma once
 
+#include "concepts.h"
+#include "diagnostics/fatal.h"
+#include "functional/bind.h"
+
 #include <x86RetSpoof.h>
 
 #include <cassert>
-#include <functional>
 #include <tuple>
 
 #undef thiscall
@@ -36,29 +39,7 @@ To unsafe_cast(From from)
     }
 }
 
-#if 0
-template <typename Fn>
-Fn void_to_func(void *function)
-{
-}
-
-template <typename Fn>
-void *get_function_pointer(Fn function)
-{
-    static_assert(sizeof(Fn) == sizeof(void *));
-
-    union
-    {
-        Fn fn;
-        void *ptr;
-    };
-
-    fn = function;
-    return ptr;
-}
-#endif
-
-enum class call_type_t : uint8_t
+enum class call_type : uint8_t
 {
     // ReSharper disable CppInconsistentNaming
     thiscall_,
@@ -67,7 +48,6 @@ enum class call_type_t : uint8_t
     stdcall_,
     vectorcall_,
     // ReSharper restore CppInconsistentNaming
-    // unknown,
 };
 
 struct dummy_class
@@ -79,7 +59,7 @@ struct dummy_class
 #define X86_CALL_PROXY_MEMBER(call__, __call, call)
 #endif
 
-#define _X86_CALL_PROXY(_PROXY_, _T_) _PROXY_(call_type_t::_T_##_, __##_T_, ##_T_)
+#define _X86_CALL_PROXY(_PROXY_, _T_) _PROXY_(call_type::_T_##_, __##_T_, ##_T_)
 
 #define X86_CALL(_PROXY_)              \
     _X86_CALL_PROXY(_PROXY_, cdecl)    \
@@ -90,8 +70,8 @@ struct dummy_class
     _X86_CALL_PROXY(_PROXY_, thiscall) \
     X86_CALL(_PROXY_)
 
-template <template <call_type_t Call_T> class Q, typename... Args>
-decltype(auto) apply(call_type_t info, Args... args)
+template <template <call_type Call_T> class Q, typename... Args>
+decltype(auto) apply(call_type info, Args... args)
 {
 #define INFO_CASE(call__, __call, _call_) \
     case call__:                          \
@@ -101,73 +81,31 @@ decltype(auto) apply(call_type_t info, Args... args)
     {
         X86_CALL_MEMBER(INFO_CASE);
     default:
-        std::unreachable();
+        unreachable();
     }
 
 #undef INFO_CASE
 }
 
-#if 0
-#define X86_CALL_TYPE(call__, __call, call)                                      \
-    template <typename Ret, typename T, typename... Args>                        \
-    constexpr call_type_t get_call_type(Ret (__call T::*)(Args...))              \
-    {                                                                            \
-        return call__;                                                           \
-    }                                                                            \
-    template <typename Ret, typename T, typename... Args>                        \
-    constexpr call_type_t get_call_type_member(Ret (__call T::*)(Args...))       \
-    {                                                                            \
-        return call__;                                                           \
-    }                                                                            \
-    template <typename Ret, typename T, typename... Args>                        \
-    constexpr call_type_t get_call_type(Ret (__call T::*)(Args...) const)        \
-    {                                                                            \
-        return call__;                                                           \
-    }                                                                            \
-    template <typename Ret, typename T, typename... Args>                        \
-    constexpr call_type_t get_call_type_member(Ret (__call T::*)(Args...) const) \
-    {                                                                            \
-        return call__;                                                           \
-    }                                                                            \
-    template <typename Ret, typename... Args>                                    \
-    constexpr call_type_t get_call_type(Ret(__call *)(Args...))                  \
-    {                                                                            \
-        return call__;                                                           \
-    }
-
-X86_CALL_MEMBER(X86_CALL_TYPE);
-#undef X86_CALL_TYPE
-
-template <typename T>
-concept member_function = requires(T fn) { get_call_type_member(fn); };
-
-template <typename Fn, call_type_t Call_T>
-concept same_call_type = get_call_type(Fn()) == Call_T;
-#endif
-
-template <call_type_t C>
-struct call_type_holder
+template <call_type C>
+struct call_type_t
 {
-    static constexpr call_type_t value = C;
+    static constexpr call_type value = C;
 
-    constexpr operator call_type_t() const
+    constexpr operator call_type() const
     {
         return C;
     }
 };
 
-namespace call_type
-{
-#define X86_CALL_TYPE(call__, __call, call) constexpr call_type_holder<call__> call##_;
-X86_CALL_MEMBER(X86_CALL_TYPE)
-#undef X86_CALL_TYPE
-} // namespace call_type
+template <call_type C>
+constexpr call_type_t<C> call_type_v;
 
-template <call_type_t Call_T, typename Ret, typename T, typename... Args>
+template <call_type Call_T, typename Ret, typename T, typename... Args>
 requires(std::is_class_v<T> || std::is_union_v<T> /*std::is_fundamental_v<T>*/)
 struct member_func_type_impl;
 
-template <call_type_t Call_T, typename Ret, typename T, typename... Args>
+template <call_type Call_T, typename Ret, typename T, typename... Args>
 using member_func_type = typename member_func_type_impl<Call_T, Ret, T, Args...>::type;
 
 template <class Object>
@@ -176,13 +114,10 @@ struct return_address_gadget;
 template <class Object>
 concept valid_return_address_gadget = requires { return_address_gadget<Object>::address; };
 
-template <call_type_t Call_T, typename Ret, typename... Args>
+template <call_type Call_T, typename Ret, typename... Args>
 struct return_address_spoofer;
 
-template <class T>
-concept forwarded = !requires { sizeof(T); };
-
-template <call_type_t Call_T, typename Ret, class Object, typename... Args>
+template <call_type Call_T, typename Ret, class Object, typename... Args>
 decltype(auto) try_spoof_member_return_address(void *function, Object *instance, Args... args)
 {
     using spoofer = return_address_spoofer<Call_T, Ret, Object *, Args...>;
@@ -204,7 +139,7 @@ decltype(auto) try_spoof_member_return_address(void *function, Object *instance,
 }
 
 template <typename Ret, typename... Args>
-struct return_address_spoofer<call_type_t::cdecl_, Ret, Args...>
+struct return_address_spoofer<call_type::cdecl_, Ret, Args...>
 {
     Ret operator()(uintptr_t gadget, void *function, Args... args) const
     {
@@ -214,7 +149,7 @@ struct return_address_spoofer<call_type_t::cdecl_, Ret, Args...>
 };
 
 template <typename Ret, typename... Args>
-struct return_address_spoofer<call_type_t::stdcall_, Ret, Args...>
+struct return_address_spoofer<call_type::stdcall_, Ret, Args...>
 {
     Ret operator()(uintptr_t gadget, void *function, Args... args) const
     {
@@ -224,7 +159,7 @@ struct return_address_spoofer<call_type_t::stdcall_, Ret, Args...>
 };
 
 template <typename Ret, class Object, typename... Args>
-struct return_address_spoofer<call_type_t::thiscall_, Ret, Object *, Args...>
+struct return_address_spoofer<call_type::thiscall_, Ret, Object *, Args...>
 {
     Ret operator()(uintptr_t gadget, void *function, Object *instance, Args... args) const
     {
@@ -239,13 +174,13 @@ struct return_address_spoofer<call_type_t::thiscall_, Ret, Object *, Args...>
     }
 };
 
-template <call_type_t Call_T, typename Ret, typename... Args>
+template <call_type Call_T, typename Ret, typename... Args>
 struct non_member_func_type_impl;
 
-template <call_type_t Call_T, typename Ret, typename... Args>
+template <call_type Call_T, typename Ret, typename... Args>
 using non_member_func_type = typename non_member_func_type_impl<Call_T, Ret, Args...>::type;
 
-template <call_type_t Call_T, class Ret, typename... Args>
+template <call_type Call_T, class Ret, typename... Args>
 struct non_member_func_invoker
 {
     using type = non_member_func_type<Call_T, Ret, Args...>;
@@ -271,7 +206,7 @@ struct non_member_func_invoker
 X86_CALL_MEMBER(MEMBER_FN_TYPE)
 #undef MEMBER_FN_BUILDER
 
-template <call_type_t Call_T, class Ret, class T, typename... Args>
+template <call_type Call_T, class Ret, class T, typename... Args>
 struct member_func_invoker
 {
     Ret operator()(member_func_type<Call_T, Ret, T, Args...> function, T *instance, Args... args) const
@@ -286,12 +221,12 @@ struct member_func_invoker
 };
 
 template <class Ret, typename... Args>
-struct member_func_invoker<call_type_t::thiscall_, Ret, void, Args...>
-    : non_member_func_invoker<call_type_t::thiscall_, Ret, void *, Args...>
+struct member_func_invoker<call_type::thiscall_, Ret, void, Args...>
+    : non_member_func_invoker<call_type::thiscall_, Ret, void *, Args...>
 {
 };
 
-template <call_type_t Call_T, class Ret, typename... Args>
+template <call_type Call_T, class Ret, typename... Args>
 struct member_func_invoker<Call_T, Ret, void, Args...>
 {
     using type = member_func_type<Call_T, Ret, dummy_class, Args...>;
@@ -317,7 +252,7 @@ struct member_func_invoker<Call_T, Ret, void, Args...>
 X86_CALL_MEMBER(NON_MEMBER_FN_TYPE)
 #undef NON_MEMBER_FN_TYPE
 
-template <call_type_t Call_T, typename T, typename... Args>
+template <call_type Call_T, typename T, typename... Args>
 class member_func_return_type_resolver
 {
     template <typename Ret>
@@ -350,7 +285,7 @@ struct function_info;
 template <typename Ret, typename T, typename... Args>
 struct function_info<Ret(__thiscall *)(T *, Args...)>
 {
-    static constexpr auto call_type = call_type_t::thiscall_;
+    static constexpr auto call_type = call_type::thiscall_;
     using return_type               = Ret;
     using self_type                 = T;
 };
