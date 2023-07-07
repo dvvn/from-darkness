@@ -3,7 +3,7 @@
 #include "interface.h"
 #include "noncopyable.h"
 #ifdef _DEBUG
-#include "diagnostics/fatal.h"
+#include "diagnostics/fatal.h" 
 #endif
 
 #include <concepts>
