@@ -3,7 +3,7 @@
 #include "interface.h"
 #include "noncopyable.h"
 #ifdef _DEBUG
-#include "diagnostics/fatal.h" 
+#include "diagnostics/fatal.h"
 #endif
 
 #include <concepts>
@@ -11,7 +11,7 @@
 namespace fd
 {
 template <class T>
-constexpr bool valid_unique_interface_v =
+concept valid_unique_interface = //
     std::is_final_v<T> ? std::derived_from<T, basic_stack_interface>
                        : std::derived_from<T, basic_interface> /* or has_virtual_destructor_v  */;
 
@@ -32,7 +32,7 @@ class unique_heap_interface : public noncopyable
     unique_heap_interface(T *object)
         : object_(object)
     {
-        static_assert(valid_unique_interface_v<T>);
+        static_assert(valid_unique_interface<T>);
     }
 
     constexpr unique_heap_interface() = default;
@@ -65,7 +65,7 @@ class unique_stack_interface : public noncopyable
     unique_stack_interface(T *object)
         : object_(object)
     {
-        static_assert(valid_unique_interface_v<T>);
+        static_assert(valid_unique_interface<T>);
     }
 
     constexpr unique_stack_interface() = default;
@@ -156,7 +156,7 @@ constexpr bool is_valid_interface_v = /*!forwarded<T> &&*/ [] {
     {
     case heap:
     case in_place:
-        return valid_unique_interface_v<T>;
+        return valid_unique_interface<T>;
     case stack:
         return std::derived_from<T, basic_stack_interface>;
     default:
