@@ -6,9 +6,9 @@
 namespace fd
 {
 template <class T>
-constexpr call_type_t vtable_call_type = call_type_t::thiscall_;
+constexpr call_type vtable_call_type = call_type::thiscall_;
 
-template <call_type_t Call_T>
+template <call_type Call_T>
 class vfunc_index
 {
     size_t index_;
@@ -94,7 +94,7 @@ struct basic_vtable
         return make_mem_backup(*vtable_, other.get());
     }
 
-    template <call_type_t Call_T>
+    template <call_type Call_T>
     unknown_vfunc_args<Call_T, T> operator[](vfunc_index<Call_T> index) const
     {
         return {index, instance_};

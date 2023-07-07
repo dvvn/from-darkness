@@ -9,6 +9,7 @@ namespace fd
 class basic_dx9_backend : public basic_render_backend
 {
   protected:
+    ~basic_dx9_backend() = default;
     basic_dx9_backend(IDirect3DDevice9 *device);
 
   public:

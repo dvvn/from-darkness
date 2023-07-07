@@ -25,7 +25,7 @@ struct dx9_backend_native final : basic_dx9_backend, noncopyable
 
     template <typename Ret, typename... Args>
     auto operator[](Ret (__stdcall IDirect3DDevice9::*func)(Args...)) const
-        -> vfunc<call_type_t::stdcall_, Ret, IDirect3DDevice9, Args...>
+        -> vfunc<call_type::stdcall_, Ret, IDirect3DDevice9, Args...>
     {
         return {func, *device_};
     }

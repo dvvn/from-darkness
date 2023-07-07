@@ -63,10 +63,10 @@ void init_hook_callback(Args &&...args)
     new (&unique_hook_callback<T>) T(std::forward<Args>(args)...);
 }
 
-template <call_type_t Call_T, typename Ret, class C, typename... Args>
+template <call_type Call_T, typename Ret, class C, typename... Args>
 struct hook_proxy_member;
 
-template <call_type_t Call_T, typename Ret, class Object, typename... Args>
+template <call_type Call_T, typename Ret, class Object, typename... Args>
 class object_proxy_member
 {
     void *original_;
@@ -101,9 +101,9 @@ class object_proxy_member
     }
 };
 
-#define HOOK_PROXY_SAMPLE template <call_type_t, typename...>
+#define HOOK_PROXY_SAMPLE template <call_type, typename...>
 
-template <class Callback, call_type_t Call_T, typename Ret, class Object, typename... Args>
+template <class Callback, call_type Call_T, typename Ret, class Object, typename... Args>
 Ret invoke_hook_proxy(hook_proxy_member<Call_T, Ret, Object, Args...> *proxy, Args... args)
 {
     void *original = unique_hook_trampoline<Callback>;
@@ -126,10 +126,10 @@ Ret invoke_hook_proxy(hook_proxy_member<Call_T, Ret, Object, Args...> *proxy, Ar
 X86_CALL_MEMBER(HOOK_PROXY_MEMBER);
 #undef HOOK_PROXY_MEMBER
 
-template <call_type_t Call_T, typename Ret, typename... Args>
+template <call_type Call_T, typename Ret, typename... Args>
 struct hook_proxy_non_member;
 
-template <call_type_t Call_T, typename Ret, typename... Args>
+template <call_type Call_T, typename Ret, typename... Args>
 class object_proxy_non_member
 {
     void *original_;
@@ -147,7 +147,7 @@ class object_proxy_non_member
     }
 };
 
-template <class Callback, call_type_t Call_T, typename Ret, typename... Args>
+template <class Callback, call_type Call_T, typename Ret, typename... Args>
 Ret invoke_hook_proxy(Args... args)
 {
     void *original = unique_hook_trampoline<Callback>;
@@ -173,7 +173,7 @@ X86_CALL(HOOK_PROXY_STATIC);
 template <class Proxy>
 struct extract_hook_proxy;
 
-template <call_type_t Call_T, typename Ret, typename Object, typename... Args>
+template <call_type Call_T, typename Ret, typename Object, typename... Args>
 struct extract_hook_proxy<hook_proxy_member<Call_T, Ret, Object, Args...>>
 {
     template <class Callback>
@@ -183,7 +183,7 @@ struct extract_hook_proxy<hook_proxy_member<Call_T, Ret, Object, Args...>>
     }
 };
 
-template <call_type_t Call_T, typename Ret, typename... Args>
+template <call_type Call_T, typename Ret, typename... Args>
 struct extract_hook_proxy<hook_proxy_non_member<Call_T, Ret, Args...>>
 {
     template <class Callback>
@@ -240,18 +240,18 @@ prepared_hook_data prepare_hook(Ret(__thiscall *target)(Object *, Args...))
 {
     return {
         unsafe_cast<void *>(target),
-        extract_hook_proxy<Proxy<call_type_t::thiscall_, Ret, Object, Args...>>::template get<Callback>(),
+        extract_hook_proxy<Proxy<call_type::thiscall_, Ret, Object, Args...>>::template get<Callback>(),
         &unique_hook_trampoline<Callback> //
     };
 }
 
-template <call_type_t Call_T, typename Ret, typename T, typename... Args>
+template <call_type Call_T, typename Ret, typename T, typename... Args>
 class vfunc;
 
 template <
     typename Callback,
     HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member,
-    call_type_t Call_T,
+    call_type Call_T,
     typename Ret,
     class Object,
     typename... Args>

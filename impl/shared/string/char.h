@@ -10,18 +10,33 @@ constexpr size_t strlen(char const (&)[S])
     return S - 1;
 }
 
+namespace detail
+{
+constexpr bool is_betweet_two(char c, char left, char rigtht)
+{
+    return c >= left && c <= rigtht;
+}
+} // namespace detail
+
 constexpr bool islower(char c)
 {
-    return c >= 'a' && c <= 'z';
+    return detail::is_betweet_two(c, 'a', 'z');
 }
 
 constexpr bool isupper(char c)
 {
-    return c >= 'A' && c <= 'Z';
+    return detail::is_betweet_two(c, 'A', 'Z');
 }
 
 constexpr bool isdigit(char c)
 {
-    return c >= '0' && c <= '9';
+    return detail::is_betweet_two(c, '0', '9');
 }
+
+constexpr bool isxdigit(char c)
+{
+    return detail::is_betweet_two(c, '0', '9') || detail::is_betweet_two(c, 'a', 'f') ||
+           detail::is_betweet_two(c, 'A', 'F');
+}
+
 } // namespace fd

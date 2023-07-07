@@ -17,7 +17,7 @@ FixNamespaceComments: true
 BreakConstructorInitializers: BeforeComma
 RemoveSemicolon: true
 #BreakBeforeBraces: Allman
-AlignAfterOpenBracket: AlwaysBreak #BlockIndent
+AlignAfterOpenBracket: Align #AlwaysBreak #BlockIndent
 AllowShortLambdasOnASingleLine: Inline
 SeparateDefinitionBlocks: Always
 BinPackArguments: false
