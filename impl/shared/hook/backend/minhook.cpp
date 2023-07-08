@@ -87,18 +87,5 @@ struct backend_minhook final : basic_hook_backend, noncopyable
     }
 };
 
-auto interface_creator<interface_type::heap, backend_minhook>::get() -> holder
-{
-    return construct_interface_heap<backend_minhook, holder>();
-}
-
-auto interface_creator<interface_type::in_place, backend_minhook>::get(void *buffer, size_t buffer_size) -> holder
-{
-    return construct_interface_in_place<backend_minhook, holder>(buffer, buffer_size);
-}
-
-auto interface_creator<interface_type::stack, backend_minhook>::get() -> pointer
-{
-    return construct_interface_stack<backend_minhook>();
-}
+FD_CONSTRUCT_INTERFACE_IMPL(backend_minhook);
 }
