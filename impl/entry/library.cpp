@@ -96,7 +96,7 @@ void context()
     fd::native_sources sources;
     fd::native_client client(sources.client);
 
-    fd::render_context rctx;
+    auto render = fd::make_interface<fd::render_context>();
     fd::win32_backend_native win32;
     fd::dx9_backend_native dx9(sources.shaderapidx9);
 
@@ -104,7 +104,7 @@ void context()
 
     hook_backend->create(prepare_hook<fd::hooked_wndproc>(win32.proc(), &win32));
     hook_backend->create(prepare_hook<fd::hooked_dx9_reset>(dx9[&IDirect3DDevice9::Reset], &dx9));
-    hook_backend->create(prepare_hook<fd::hooked_dx9_present>(dx9[&IDirect3DDevice9::Present], &dx9, &win32, &rctx));
+    hook_backend->create(prepare_hook<fd::hooked_dx9_present>(dx9[&IDirect3DDevice9::Present], &dx9, &win32, &render));
 
     hook_backend->enable();
 
