@@ -27,34 +27,45 @@ enum class interface_type : uint8_t
 template <interface_type Type, class T>
 struct unique_interface;
 
-template <class T>
-struct unique_interface<interface_type::heap, T>
+namespace detail
 {
-    using type = std::unique_ptr<T>;
+template <class T>
+struct delete_interface : std::default_delete<T>
+{
+    static_assert(valid_unique_interface<T>);
+
+    using std::default_delete<T>::default_delete;
 };
 
 template <class T>
-struct default_destroy
+struct destroy_interface
 {
-    static_assert(std::is_final_v<T> || std::has_virtual_destructor_v<T>);
+    static_assert(valid_unique_interface<T>);
+
+    constexpr destroy_interface() = default;
 
     template <std::derived_from<T> T2>
-    constexpr default_destroy(default_destroy<T2>)
+    constexpr destroy_interface(destroy_interface<T2>)
     {
     }
-
-    constexpr default_destroy() = default;
 
     constexpr void operator()(T *ptr) const
     {
         ptr->~T();
     }
 };
+} // namespace detail
+
+template <class T>
+struct unique_interface<interface_type::heap, T>
+{
+    using type = std::unique_ptr<T, detail::delete_interface<T>>;
+};
 
 template <class T>
 struct unique_interface<interface_type::in_place, T>
 {
-    using type = std::unique_ptr<T, default_destroy<T>>;
+    using type = std::unique_ptr<T, detail::destroy_interface<T>>;
 };
 
 constexpr interface_type default_interface_type = interface_type::heap;
@@ -71,7 +82,7 @@ struct construct_interface<interface_type::heap, T, false>
     template <typename... Args>
     static holder_type get(Args &&...args)
     {
-        return std::make_unique<element_type>(std::forward<Args>(args)...);
+        return holder_type(new element_type(std::forward<Args>(args)...));
     }
 };
 
@@ -107,6 +118,7 @@ struct construct_interface<interface_type::stack, T, false>
     }
 };
 
+#pragma region construct_interface_wrapper
 #define FD_CONSTRUCT_INTERFACE(_T_, _IFC_)                                                   \
     template <>                                                                              \
     struct construct_interface<interface_type::heap, _T_>                                    \
@@ -142,6 +154,7 @@ struct construct_interface<interface_type::stack, T, false>
     {                                                                                                             \
         return construct_interface<interface_type::stack, _T_, false>::get();                                     \
     }
+#pragma endregion
 
 template <interface_type Type, class T>
 constexpr bool is_valid_interface_v = false;
