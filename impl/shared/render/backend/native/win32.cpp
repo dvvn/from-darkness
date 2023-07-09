@@ -1,5 +1,4 @@
 ﻿#include "win32.h"
-//
 #include "diagnostics/system_error.h"
 
 #include <imgui_impl_win32.h>
@@ -10,7 +9,7 @@
 namespace fd
 {
 template <bool Validate>
-static HWND find_game_window()
+static HWND find_game_window() noexcept(!Validate)
 {
     auto window = FindWindow(_T("Valve001"), nullptr);
     if constexpr (Validate)
@@ -19,63 +18,70 @@ static HWND find_game_window()
     return window;
 }
 
-win32_backend_native::~win32_backend_native()
+class win32_backend_native final : public basic_win32_backend, public noncopyable
 {
-    win32_backend_native::destroy();
-}
-
 #ifdef _DEBUG
-win32_backend_native::win32_backend_native(HWND window)
-    : basic_win32_backend(window)
-    , window_(window)
-{
-}
+    HWND window_;
+
+    win32_backend_native(HWND window)
+        : basic_win32_backend(window)
+        , window_(window)
+    {
+    }
 #endif
 
-win32_backend_native::win32_backend_native()
-    :
+  public:
+    ~win32_backend_native() override
+    {
+        destroy();
+    }
+
+    win32_backend_native()
+        :
 #ifdef _DEBUG
-    win32_backend_native
+        win32_backend_native
 #else
-    basic_win32_backend
+        basic_win32_backend
 #endif
-    (find_game_window<true>())
-{
-}
+        (find_game_window<true>())
+    {
+    }
 
-void win32_backend_native::destroy()
-{
-    bool exists;
+    void destroy() override
+    {
+        bool exists;
 #ifdef _DEBUG
-    exists = IsWindow(window_);
+        exists = IsWindow(window_);
 #else
-    exists = find_game_window<false>();
+        exists = find_game_window<false>();
 #endif
 
-    if (exists)
-        basic_win32_backend::destroy();
-}
+        if (exists)
+            basic_win32_backend::destroy();
+    }
 
 #ifdef _DEBUG
-auto win32_backend_native::update(HWND window, UINT message, WPARAM wparam, LPARAM lparam) -> update_result
-{
-    assert(window_ == window);
-    return basic_win32_backend::update(window, message, wparam, lparam);
-}
+    update_result update(HWND window, UINT message, WPARAM wparam, LPARAM lparam) override
+    {
+        assert(window_ == window);
+        return basic_win32_backend::update(window, message, wparam, lparam);
+    }
+#endif
 
-WNDPROC win32_backend_native::proc() const
-{
-    return reinterpret_cast<WNDPROC>(GetWindowLongPtr(id(), GWL_WNDPROC));
-}
+    WNDPROC proc() const override
+    {
+        return reinterpret_cast<WNDPROC>(GetWindowLongPtr(id(), GWL_WNDPROC));
+    }
 
-HWND win32_backend_native::id() const
-{
+    HWND id() const override
+    {
 #ifdef _DEBUG
-    return window_;
+        return window_;
 #else
-    return find_game_window<true>();
+        return find_game_window<true>();
 #endif
-}
-#endif
+    }
+};
 
+FD_INTERFACE_IMPL(win32_backend_native);
 } // namespace fd

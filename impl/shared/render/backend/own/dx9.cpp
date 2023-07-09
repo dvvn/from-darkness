@@ -63,7 +63,7 @@ bool own_d3d_device::resize_device(UINT w, UINT h)
     return ret;
 }
 
-void own_d3d_device::reset_device()
+void own_d3d_device::reset()
 {
     auto hr = device_->Reset(&params_);
     assert(hr != D3DERR_INVALIDCALL);
@@ -88,13 +88,13 @@ auto own_d3d_device::operator->() const -> pointer
 
 dx9_backend_own::dx9_backend_own()
     : own_d3d_device(FindWindow(_T("__backend_win32"), nullptr))
-    , basic_dx9_backend(get())
+    , basic_dx9_backend(own_d3d_device::get())
 {
 }
 
 void dx9_backend_own::render(ImDrawData *draw_data)
 {
-    auto device = get();
+    auto device = own_d3d_device::get();
     (void)device->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 
     (void)device->BeginScene();
@@ -113,10 +113,15 @@ void dx9_backend_own::resize(UINT w, UINT h)
         dx9_backend_own::reset();
 }
 
+IDirect3DDevice9 *dx9_backend_own::get() const
+{
+    return own_d3d_device::get();
+}
+
 void dx9_backend_own::reset()
 {
     basic_dx9_backend::reset();
-    reset_device();
+    own_d3d_device::reset();
 }
 
 dx9_backend_own::~dx9_backend_own()

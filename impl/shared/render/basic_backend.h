@@ -1,13 +1,11 @@
 ﻿#pragma once
 
+#include "interface.h"
+
 namespace fd
 {
-class basic_backend
+struct basic_backend : basic_interface
 {
-  protected:
-    ~basic_backend() = default;
-
-  public:
     virtual void destroy()   = 0;
     virtual void new_frame() = 0;
 };

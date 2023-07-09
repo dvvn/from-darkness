@@ -24,7 +24,7 @@ struct own_d3d_device : noncopyable
     own_d3d_device(HWND hwnd);
 
     bool resize_device(UINT w, UINT h);
-    void reset_device();
+    void reset();
 
     operator pointer() const;
     pointer get() const;
@@ -36,10 +36,11 @@ class dx9_backend_own final : own_d3d_device, public basic_dx9_backend
     void reset() override;
 
   public:
-    ~dx9_backend_own();
+    ~dx9_backend_own() override;
     dx9_backend_own();
 
     void render(ImDrawData *draw_data) override;
     void resize(UINT w, UINT h);
+    IDirect3DDevice9 *get() const override;
 };
 } // namespace fd

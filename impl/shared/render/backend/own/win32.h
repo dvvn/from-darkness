@@ -33,7 +33,7 @@ class win32_backend_own final : own_window_info, public basic_win32_backend
     update_result update(HWND window, UINT message, WPARAM wparam, LPARAM lparam) override;
 
   public:
-    ~win32_backend_own();
+    ~win32_backend_own() override;
     win32_backend_own(HWND parent = nullptr);
 
     window_params *peek();

@@ -85,5 +85,5 @@ bool skip_scene() const
     }
 };
 
-FD_CONSTRUCT_INTERFACE_IMPL(render_context);
+FD_INTERFACE_IMPL(render_context);
 } // namespace fd

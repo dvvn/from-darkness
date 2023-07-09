@@ -87,5 +87,5 @@ struct backend_minhook final : basic_hook_backend, noncopyable
     }
 };
 
-FD_CONSTRUCT_INTERFACE_IMPL(backend_minhook);
+FD_INTERFACE_IMPL(backend_minhook);
 }

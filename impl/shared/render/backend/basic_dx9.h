@@ -6,10 +6,9 @@ struct IDirect3DDevice9;
 
 namespace fd
 {
-class basic_dx9_backend : public basic_render_backend
+struct basic_dx9_backend : basic_render_backend
 {
   protected:
-    ~basic_dx9_backend() = default;
     basic_dx9_backend(IDirect3DDevice9 *device);
 
   public:
@@ -17,5 +16,6 @@ class basic_dx9_backend : public basic_render_backend
     void new_frame() override;
     void render(ImDrawData *draw_data) override;
     void reset() override;
+    virtual IDirect3DDevice9 *get() const = 0;
 };
 }

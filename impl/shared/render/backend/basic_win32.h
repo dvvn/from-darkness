@@ -78,7 +78,6 @@ struct basic_win32_backend : basic_backend
     };
 
   protected:
-    ~basic_win32_backend() = default;
     basic_win32_backend(HWND window);
 
   public:

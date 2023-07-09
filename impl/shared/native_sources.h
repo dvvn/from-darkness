@@ -37,13 +37,16 @@ struct native_library : native_library_info
 
 struct native_sources
 {
+#if _DEBUG && 0
+#define NATIVE_SOURCE(_NAME_) native_library_info _NAME_ = L"" #_NAME_;
+#else
 #define NATIVE_SOURCE(_NAME_) native_library<#_NAME_> _NAME_;
-
+#endif
     NATIVE_SOURCE(client);
     NATIVE_SOURCE(engine);
     NATIVE_SOURCE(vguimatsurface);
     NATIVE_SOURCE(shaderapidx9);
-    
+
 #undef NATIVE_SOURCE
 };
 } // namespace fd
