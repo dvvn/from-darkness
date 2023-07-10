@@ -1,37 +1,42 @@
 #include "debug/log.h"
-#include "functional/ignore.h"
 #include "render/backend/own/dx9.h"
 #include "render/backend/own/win32.h"
 #include "render/context.h"
 
 int main(int argc, int *argv) noexcept
 {
-    fd::ignore_unused(argc, argv);
+    (void)argc;
+    (void)argv;
 
 #ifdef _DEBUG
     fd::log_activator log_activator;
 #endif
 
-    fd::render_context rctx;
-    fd::win32_backend_own win32(GetDesktopWindow());
-    fd::dx9_backend_own dx9;
+    auto render = fd::make_interface<fd::render_context>();
+    auto win32  = fd::make_interface<fd::own_win32_backend>();
+    auto dx9    = fd::make_interface<fd::own_dx9_backend>();
 
-    while (auto params = win32.peek())
+    for (;;)
     {
-        if (params->minimized)
+        win32->peek();
+
+        if (win32->closed())
+            return EXIT_SUCCESS;
+        if (win32->minimized())
             continue;
 
-        dx9.resize(params->w, params->h);
+        auto windows_size = win32->size();
+        dx9->resize(windows_size.w, windows_size.h);
 
-        win32.new_frame();
-        dx9.new_frame();
+        win32->new_frame();
+        dx9->new_frame();
 
-        rctx.begin_scene();
+        render->begin_scene();
         {
-            ImGui::ShowDemoWindow();
+            // ImGui::ShowDemoWindow();
         }
-        rctx.end_scene();
+        render->end_scene();
 
-        dx9.render(rctx.data());
+        dx9->render(render->data());
     }
 }

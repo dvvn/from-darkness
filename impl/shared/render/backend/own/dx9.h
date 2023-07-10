@@ -1,46 +1,18 @@
 ﻿#pragma once
-#include "comptr.h"
-#include "noncopyable.h"
-#include "render/backend/basic_dx9.h"
 
-#include <d3d9.h>
+#include "interface_holder.h"
+#include "internal/winapi.h"
+#include "render/backend/basic_dx9.h"
 
 namespace fd
 {
-struct own_d3d_device : noncopyable
+struct basic_own_dx9_backend : basic_dx9_backend
 {
-    using value_type = IDirect3DDevice9;
-    using pointer    = value_type *;
+    using basic_dx9_backend::basic_dx9_backend;
 
-  private:
-    comptr<IDirect3D9> d3d_;
-    comptr<IDirect3DDevice9> device_;
-    D3DPRESENT_PARAMETERS params_;
-
-  protected:
-    ~own_d3d_device() = default;
-
-  public:
-    own_d3d_device(HWND hwnd);
-
-    bool resize_device(UINT w, UINT h);
-    void reset();
-
-    operator pointer() const;
-    pointer get() const;
-    pointer operator->() const;
+    virtual void resize(UINT w, UINT h) = 0;
 };
 
-class dx9_backend_own final : own_d3d_device, public basic_dx9_backend
-{
-    void reset() override;
-
-  public:
-    ~dx9_backend_own() override;
-    dx9_backend_own();
-
-    void render(ImDrawData *draw_data) override;
-    void resize(UINT w, UINT h);
-    IDirect3DDevice9 *get() const override;
-};
+class own_dx9_backend;
+FD_INTERFACE_FWD(own_dx9_backend, basic_own_dx9_backend);
 } // namespace fd

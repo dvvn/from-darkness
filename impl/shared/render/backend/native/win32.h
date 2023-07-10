@@ -4,6 +4,6 @@
 
 namespace fd
 {
-class win32_backend_native;
-FD_INTERFACE_FWD(win32_backend_native, basic_win32_backend);
+class native_win32_backend;
+FD_INTERFACE_FWD(native_win32_backend, basic_win32_backend);
 } // namespace fd

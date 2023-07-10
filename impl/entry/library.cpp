@@ -40,20 +40,6 @@ static bool resume_thread()
 
 static void context();
 
-static DWORD CALLBACK context_proxy(LPVOID ptr) noexcept
-{
-    try
-    {
-        self_handle = static_cast<HINSTANCE>(ptr);
-        context();
-        exit_thread(true);
-    }
-    catch (std::exception const &ex)
-    {
-        exit_thread(false);
-    }
-}
-
 // ReSharper disable once CppInconsistentNaming
 BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
 {
@@ -62,7 +48,24 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
     case DLL_PROCESS_ATTACH: {
         // Initialize once for each new process.
         // Return FALSE to fail DLL load.
-        thread = CreateThread(nullptr, 0, context_proxy, handle, 0, &thread_id);
+        thread = CreateThread(
+            nullptr,
+            0,
+            [](LPVOID ptr) -> DWORD {
+                try
+                {
+                    self_handle = static_cast<HINSTANCE>(ptr);
+                    context();
+                    exit_thread(true);
+                }
+                catch (std::exception const &ex)
+                {
+                    exit_thread(false);
+                }
+            },
+            handle,
+            0,
+            &thread_id);
         if (!thread)
             return FALSE;
         break;
@@ -97,15 +100,16 @@ void context()
     fd::native_client client(sources.client);
 
     auto render     = fd::make_interface<fd::render_context>();
-    auto win32      = fd::make_interface<fd::win32_backend_native>();
-    auto dx9        = fd::make_interface<fd::dx9_backend_native>(sources.shaderapidx9);
+    auto win32      = fd::make_interface<fd::native_win32_backend>();
+    auto dx9        = fd::make_interface<fd::native_dx9_backend>(sources.shaderapidx9);
     auto dx9_vtable = fd::vtable(dx9->get());
 
     auto hook_backend = fd::make_interface<fd::preferred_hook_backend>();
 
     hook_backend->create(prepare_hook<fd::hooked_wndproc>(win32->proc(), &win32));
     hook_backend->create(prepare_hook<fd::hooked_dx9_reset>(dx9_vtable[&IDirect3DDevice9::Reset], &dx9));
-    hook_backend->create(prepare_hook<fd::hooked_dx9_present>(dx9_vtable[&IDirect3DDevice9::Present], &dx9, &win32, &render));
+    hook_backend->create(
+        prepare_hook<fd::hooked_dx9_present>(dx9_vtable[&IDirect3DDevice9::Present], &dx9, &win32, &render));
 
     hook_backend->enable();
 

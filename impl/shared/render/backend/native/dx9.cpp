@@ -13,26 +13,26 @@
 
 namespace fd
 {
-class dx9_backend_native final : public basic_dx9_backend
+class native_dx9_backend final : public basic_dx9_backend
 {
     using pointer = IDirect3DDevice9 **;
 
     pointer device_;
 
-    dx9_backend_native(pointer device)
+    native_dx9_backend(pointer device)
         : basic_dx9_backend(*device)
         , device_(device)
     {
     }
 
   public:
-    ~dx9_backend_native() override
+    ~native_dx9_backend() override
     {
-        dx9_backend_native::destroy();
+        native_dx9_backend::destroy();
     }
 
-    dx9_backend_native(system_library_info info)
-        : dx9_backend_native([info] {
+    native_dx9_backend(system_library_info info)
+        : native_dx9_backend([info] {
             assert(info.name() == L"shaderapidx9.dll");
             auto addr = info.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C"_pat);
             if (!addr)
@@ -68,5 +68,5 @@ class dx9_backend_native final : public basic_dx9_backend
     }
 };
 
-FD_INTERFACE_IMPL(dx9_backend_native);
+FD_INTERFACE_IMPL(native_dx9_backend);
 } // namespace fd

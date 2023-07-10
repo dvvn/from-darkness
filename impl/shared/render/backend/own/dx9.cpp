@@ -1,7 +1,10 @@
-﻿#include "dx9.h"
-//
+﻿#include "comptr.h"
+#include "dx9.h"
+#include "name.h"
+#include "noncopyable.h"
 #include "diagnostics/system_error.h"
 
+#include <d3d9.h>
 #include <tchar.h>
 
 #include <cassert>
@@ -10,13 +13,24 @@
 
 namespace fd
 {
-own_d3d_device::own_d3d_device(HWND hwnd)
+struct dx9_holder : noncopyable
 {
-    auto d3d = Direct3DCreate9(D3D_SDK_VERSION);
-    if (!d3d)
-        throw system_error("D3D device init error");
+    using value_type = IDirect3DDevice9;
+    using pointer    = value_type *;
 
-    d3d_.Attach(d3d);
+  private:
+    comptr<IDirect3D9> d3d_;
+    comptr<IDirect3DDevice9> device_;
+    D3DPRESENT_PARAMETERS params_;
+
+  public:
+    dx9_holder(HWND hwnd)
+    {
+        auto d3d = Direct3DCreate9(D3D_SDK_VERSION);
+        if (!d3d)
+            throw system_error("D3D device init error");
+
+        d3d_.Attach(d3d);
 #if 0
     RECT windowRect;
     // Get a handle to the desktop window
@@ -29,103 +43,124 @@ own_d3d_device::own_d3d_device(HWND hwnd)
     params_.BackBufferHeight = height;
     params_.BackBufferWidth  = width;
 #endif
-    params_ = {
-        // Need to use an explicit format with alpha if needing per-pixel alpha composition.
-        .BackBufferFormat       = D3DFMT_UNKNOWN,
-        .SwapEffect             = D3DSWAPEFFECT_DISCARD,
-        .Windowed               = TRUE,
-        .EnableAutoDepthStencil = TRUE,
-        .AutoDepthStencilFormat = D3DFMT_D16,
-        .PresentationInterval   = D3DPRESENT_INTERVAL_ONE // vsync on
-        //.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE // vsync off
-    };
+        params_ = {
+            // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+            .BackBufferFormat       = D3DFMT_UNKNOWN,
+            .SwapEffect             = D3DSWAPEFFECT_DISCARD,
+            .Windowed               = TRUE,
+            .EnableAutoDepthStencil = TRUE,
+            .AutoDepthStencilFormat = D3DFMT_D16,
+            .PresentationInterval   = D3DPRESENT_INTERVAL_ONE // vsync on
+            //.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE // vsync off
+        };
 
-    auto result = d3d->CreateDevice(
-        D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, device_);
+        auto result = d3d->CreateDevice(
+            D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, device_);
 
-    if (FAILED(result))
-        throw system_error(result, "D3D device create error");
-}
-
-bool own_d3d_device::resize_device(UINT w, UINT h)
-{
-    auto ret = false;
-    if (auto &w_old = params_.BackBufferWidth; w_old != w)
-    {
-        ret   = true;
-        w_old = w;
+        if (FAILED(result))
+            throw system_error(result, "D3D device create error");
     }
-    if (auto &h_old = params_.BackBufferHeight; h_old != h)
+
+    bool resize(UINT w, UINT h)
     {
-        h_old = h;
-        ret   = true;
+        auto ret = false;
+        if (auto &w_old = params_.BackBufferWidth; w_old != w)
+        {
+            ret   = true;
+            w_old = w;
+        }
+        if (auto &h_old = params_.BackBufferHeight; h_old != h)
+        {
+            h_old = h;
+            ret   = true;
+        }
+        return ret;
     }
-    return ret;
-}
 
-void own_d3d_device::reset()
+    void reset()
+    {
+        auto hr = device_->Reset(&params_);
+        assert(hr != D3DERR_INVALIDCALL);
+    }
+
+    operator pointer() const
+    {
+        return device_;
+    }
+
+    auto get() const -> pointer
+    {
+        return device_;
+    }
+
+    auto operator->() const -> pointer
+    {
+        return device_;
+    }
+};
+
+struct dx9_holder_proxy
 {
-    auto hr = device_->Reset(&params_);
-    assert(hr != D3DERR_INVALIDCALL);
-}
+    dx9_holder dx9;
 
-own_d3d_device::operator pointer() const
+    dx9_holder_proxy(HWND hwnd)
+        : dx9(hwnd)
+    {
+    }
+};
+
+class own_dx9_backend final : dx9_holder_proxy, public basic_own_dx9_backend
 {
-    return device_;
-}
+    void reset() override
+    {
+        basic_dx9_backend::reset();
+        dx9.reset();
+    }
 
-auto own_d3d_device::get() const -> pointer
-{
-    return device_;
-}
+  public:
+    ~own_dx9_backend() override
+    {
+        basic_dx9_backend::destroy();
+    }
 
-auto own_d3d_device::operator->() const -> pointer
-{
-    return device_;
-}
+    own_dx9_backend()
+        : dx9_holder_proxy(FindWindow(own_backend_class_name, nullptr))
+        , basic_own_dx9_backend(dx9.get())
+    {
+    }
 
-//-------
+    void render(ImDrawData *draw_data) override
+    {
+        auto device = dx9.get();
+        auto clear  = device->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+        assert(clear == D3D_OK);
 
-dx9_backend_own::dx9_backend_own()
-    : own_d3d_device(FindWindow(_T("__backend_win32"), nullptr))
-    , basic_dx9_backend(own_d3d_device::get())
-{
-}
+        auto begin = device->BeginScene();
+        assert(begin == D3D_OK); 
 
-void dx9_backend_own::render(ImDrawData *draw_data)
-{
-    auto device = own_d3d_device::get();
-    (void)device->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+        basic_dx9_backend::render(draw_data);
 
-    (void)device->BeginScene();
-    basic_dx9_backend::render(draw_data);
-    (void)device->EndScene();
+        auto end = device->EndScene();
+        assert(end == D3D_OK);
 
-    auto result = device->Present(nullptr, nullptr, nullptr, nullptr);
-    // Handle loss of D3D9 device
-    if (result == D3DERR_DEVICELOST && device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
-        dx9_backend_own::reset();
-}
+        auto present = device->Present(nullptr, nullptr, nullptr, nullptr);
+        if (present == D3DERR_DEVICELOST && device->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
+            own_dx9_backend::reset();
+        else
+            assert(present == D3D_OK);
+    }
 
-void dx9_backend_own::resize(UINT w, UINT h)
-{
-    if (resize_device(w, h))
-        dx9_backend_own::reset();
-}
+    void resize(UINT w, UINT h) override
+    {
+        if (dx9.resize(w, h))
+            own_dx9_backend::reset();
+    }
 
-IDirect3DDevice9 *dx9_backend_own::get() const
-{
-    return own_d3d_device::get();
-}
+    IDirect3DDevice9 *get() const override
+    {
+        return dx9.get();
+    }
+};
 
-void dx9_backend_own::reset()
-{
-    basic_dx9_backend::reset();
-    own_d3d_device::reset();
-}
-
-dx9_backend_own::~dx9_backend_own()
-{
-    basic_dx9_backend::destroy();
-}
+FD_INTERFACE_IMPL(own_dx9_backend);
 } // namespace fd

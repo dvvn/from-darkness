@@ -5,15 +5,15 @@
 using LONG_PTR = __int64;
 using UINT_PTR = __int64;
 #else
-using LONG_PTR   = long;
-using UINT_PTR   = unsigned int;
+using LONG_PTR = long;
+using UINT_PTR = unsigned int;
 #endif
 
-//#ifdef UNICODE
-//using WNDCLASSEX = struct tagWNDCLASSEXW;
-//#else
-//using WNDCLASSEX = struct tagWNDCLASSEXA;
-//#endif
+// #ifdef UNICODE
+// using WNDCLASSEX = struct tagWNDCLASSEXW;
+// #else
+// using WNDCLASSEX = struct tagWNDCLASSEXA;
+// #endif
 
 using UINT  = unsigned int;
 using DWORD = unsigned long;
@@ -25,3 +25,4 @@ using HRESULT = long;
 
 using HWND    = struct HWND__ *;
 using WNDPROC = LRESULT(__stdcall *)(HWND, UINT, WPARAM, LPARAM);
+using RECT    = struct tagRECT;

@@ -2,10 +2,11 @@
 #include "internal/d3d9.h"
 #include "render/basic_context.h"
 #include "render/basic_render_backend.h"
+#include "render/basic_system_backend.h"
 
 namespace ImGui
 {
-void ShowDemoWindow(bool* p_open);
+void ShowDemoWindow(bool *p_open);
 }
 
 namespace fd
@@ -30,11 +31,26 @@ class hooked_dx9_reset final
 class hooked_dx9_present final
 {
     basic_render_backend *render_;
-    basic_backend *system_;
+    basic_system_backend *system_;
     basic_render_context *context_;
 
+    void run() const
+    {
+        system_->new_frame();
+        render_->new_frame();
+
+        context_->begin_scene();
+        {
+            // only as example
+            ImGui::ShowDemoWindow(0);
+        }
+        context_->end_scene();
+
+        render_->render(context_->data());
+    }
+
   public:
-    hooked_dx9_present(basic_render_backend *render, basic_backend *system, basic_render_context *context)
+    hooked_dx9_present(basic_render_backend *render, basic_system_backend *system, basic_render_context *context)
         : render_(render)
         , system_(system)
         , context_(context)
@@ -48,19 +64,8 @@ class hooked_dx9_present final
         HWND dest_window_override,
         RGNDATA const *dirty_region)
     {
-        // todo: skip if minimized
-
-        system_->new_frame();
-        render_->new_frame();
-
-        context_->begin_scene();
-        {
-            //only as example
-            ImGui::ShowDemoWindow(0);
-        }
-        context_->end_scene();
-        
-        render_->render(context_->data());
+        if (!system_->minimized())
+            run();
         return original(source_rect, dest_rect, dest_window_override, dirty_region);
     }
 };

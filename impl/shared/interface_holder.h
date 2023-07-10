@@ -19,7 +19,7 @@ enum class interface_type : uint8_t
     stack,
 };
 
-constexpr interface_type default_interface_type = interface_type::in_place;
+inline constexpr interface_type default_interface_type = interface_type::in_place;
 
 template <class T>
 struct delete_interface final : std::default_delete<T>
@@ -137,11 +137,25 @@ struct construct_interface<interface_type::stack, T, false>
         static holder_type get(args_packed args);                  \
     };
 
-#define FD_INTERFACE_FWD(_T_, _IFC_, ...)                                                                           \
-    FD_INTERFACE_FWD0(heap, _T_, _IFC_, FD_PACK_ARG(std::unique_ptr<_IFC_, delete_interface<_IFC_>>), __VA_ARGS__); \
-    FD_INTERFACE_FWD0(                                                                                              \
-        in_place, _T_, _IFC_, FD_PACK_ARG(std::unique_ptr<_IFC_, destroy_interface<_IFC_>>), __VA_ARGS__);          \
-    FD_INTERFACE_FWD0(stack, _T_, _IFC_, FD_PACK_ARG(_IFC_ *), __VA_ARGS__);
+#define FD_INTERFACE_FWD(_T_, _IFC_, ...)                              \
+    FD_INTERFACE_FWD0(                                                 \
+        heap, /**/                                                     \
+        _T_,                                                           \
+        _IFC_,                                                         \
+        FD_PACK_ARG(std::unique_ptr<_IFC_, delete_interface<_IFC_>>),  \
+        __VA_ARGS__);                                                  \
+    FD_INTERFACE_FWD0(                                                 \
+        in_place, /**/                                                 \
+        _T_,                                                           \
+        _IFC_,                                                         \
+        FD_PACK_ARG(std::unique_ptr<_IFC_, destroy_interface<_IFC_>>), \
+        __VA_ARGS__);                                                  \
+    FD_INTERFACE_FWD0(                                                 \
+        stack, /**/                                                    \
+        _T_,                                                           \
+        _IFC_,                                                         \
+        _IFC_ *,                                                       \
+        __VA_ARGS__);
 
 #define FD_INTERFACE_IMPL0(_TYPE_, _T_)                                                       \
     auto construct_interface<interface_type::_TYPE_, _T_>::get(args_packed args)->holder_type \
@@ -158,15 +172,15 @@ struct construct_interface<interface_type::stack, T, false>
 namespace detail
 {
 template <interface_type Type, class T>
-constexpr bool valid_interface_v = false;
+inline constexpr bool valid_interface_v = false;
 template <interface_type Type, class T, class D>
-constexpr bool valid_interface_v<Type, std::unique_ptr<T, D>> = valid_interface_v<Type, T>;
+inline constexpr bool valid_interface_v<Type, std::unique_ptr<T, D>> = valid_interface_v<Type, T>;
 template <class T>
-constexpr bool valid_interface_v<interface_type::heap, T> = std::derived_from<T, basic_interface>;
+inline constexpr bool valid_interface_v<interface_type::heap, T> = std::derived_from<T, basic_interface>;
 template <class T>
-constexpr bool valid_interface_v<interface_type::in_place, T> = std::derived_from<T, basic_interface>;
+inline constexpr bool valid_interface_v<interface_type::in_place, T> = std::derived_from<T, basic_interface>;
 template <class T>
-constexpr bool valid_interface_v<interface_type::stack, T> = std::derived_from<T, basic_stack_interface>;
+inline constexpr bool valid_interface_v<interface_type::stack, T> = std::derived_from<T, basic_stack_interface>;
 
 template <interface_type Type, class T>
 concept valid_interface = valid_interface_v<Type, T>;

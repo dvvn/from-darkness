@@ -8,7 +8,7 @@ class basic_stack_interface
     ~basic_stack_interface() = default;
 };
 
-class basic_interface : public basic_stack_interface
+class basic_interface //: public basic_stack_interface
 {
   public:
     virtual ~basic_interface() = default;

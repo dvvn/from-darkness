@@ -1,4 +1,5 @@
 ﻿#include "win32.h"
+#include "noncopyable.h"
 #include "diagnostics/system_error.h"
 
 #include <imgui_impl_win32.h>
@@ -18,45 +19,30 @@ static HWND find_game_window() noexcept(!Validate)
     return window;
 }
 
-class win32_backend_native final : public basic_win32_backend, public noncopyable
+class native_win32_backend final : public basic_win32_backend, public noncopyable
 {
-#ifdef _DEBUG
     HWND window_;
 
-    win32_backend_native(HWND window)
+    native_win32_backend(HWND window)
         : basic_win32_backend(window)
         , window_(window)
     {
     }
-#endif
 
   public:
-    ~win32_backend_native() override
+    ~native_win32_backend() override
     {
-        destroy();
+        native_win32_backend::destroy();
     }
 
-    win32_backend_native()
-        :
-#ifdef _DEBUG
-        win32_backend_native
-#else
-        basic_win32_backend
-#endif
-        (find_game_window<true>())
+    native_win32_backend()
+        : native_win32_backend(find_game_window<true>())
     {
     }
 
     void destroy() override
     {
-        bool exists;
-#ifdef _DEBUG
-        exists = IsWindow(window_);
-#else
-        exists = find_game_window<false>();
-#endif
-
-        if (exists)
+        if (IsWindow(window_))
             basic_win32_backend::destroy();
     }
 
@@ -70,18 +56,27 @@ class win32_backend_native final : public basic_win32_backend, public noncopyabl
 
     WNDPROC proc() const override
     {
-        return reinterpret_cast<WNDPROC>(GetWindowLongPtr(id(), GWL_WNDPROC));
+        return reinterpret_cast<WNDPROC>(GetWindowLongPtr(window_, GWL_WNDPROC));
     }
 
     HWND id() const override
     {
-#ifdef _DEBUG
         return window_;
-#else
-        return find_game_window<true>();
-#endif
+    }
+
+    bool minimized() const override
+    {
+        return IsIconic(window_);
+    }
+
+    window_size size() const override
+    {
+        RECT rect;
+        auto rect_get = GetWindowRect(window_, &rect);
+        assert(rect_get);
+        return rect;
     }
 };
 
-FD_INTERFACE_IMPL(win32_backend_native);
+FD_INTERFACE_IMPL(native_win32_backend);
 } // namespace fd

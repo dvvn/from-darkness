@@ -14,6 +14,23 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 
 namespace fd
 {
+basic_win32_backend::window_size::window_size()
+    : w(0)
+    , h(0)
+{
+}
+
+basic_win32_backend::window_size::window_size(LPARAM lparam)
+    : w(LOWORD(lparam))
+    , h(HIWORD(lparam))
+{
+}
+
+basic_win32_backend::window_size::window_size(RECT const &rect)
+    : w(rect.right - rect.left)
+    , h(rect.bottom - rect.top)
+{
+}
 
 basic_win32_backend::basic_win32_backend(HWND window)
 {
@@ -48,7 +65,7 @@ auto basic_win32_backend::update(HWND window, UINT message, WPARAM wparam, LPARA
     else if (events_stored != events.size())
         response = updated;
     else
-        response = idle;
+        response = skipped;
 
     return {value, response};
 }

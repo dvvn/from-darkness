@@ -99,7 +99,7 @@ struct call_type_t
 };
 
 template <call_type C>
-constexpr call_type_t<C> call_type_v;
+inline constexpr call_type_t<C> call_type_v;
 
 template <call_type Call_T, typename Ret, typename T, typename... Args>
 requires(std::is_class_v<T> || std::is_union_v<T> /*std::is_fundamental_v<T>*/)

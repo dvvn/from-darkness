@@ -37,7 +37,7 @@ struct native_library : native_library_info
 
 struct native_sources
 {
-#if _DEBUG && 0
+#ifdef __RESHARPER__
 #define NATIVE_SOURCE(_NAME_) native_library_info _NAME_ = L"" #_NAME_;
 #else
 #define NATIVE_SOURCE(_NAME_) native_library<#_NAME_> _NAME_;

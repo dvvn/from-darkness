@@ -33,6 +33,9 @@ class hooked_wndproc final
         // if not, always call original
         // or add extra state and check it inside update
 
+        // if (backend_->minimized())
+        // return original(window, message, wparam, lparam);
+
         auto result = backend_->update(window, message, wparam, lparam);
         return result.finish(original, DefWindowProc, window, message, wparam, lparam);
     }

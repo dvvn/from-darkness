@@ -24,16 +24,25 @@ struct native_return_address_gadget
     {                                                                      \
         return __vtable[index];                                            \
     }
-
-#define FD_BIND_NATIVE_INTERFACE(_MEMBER_, _LIB_)                                       \
-    inline namespace native                                                             \
-    {                                                                                   \
-    struct _MEMBER_;                                                                    \
-    }                                                                                   \
+#ifdef __RESHARPER__
+#define FD_BIND_NATIVE_INTERFACE_GADGET(_MEMBER_, _LIB_) \
+    template <>                                          \
+    struct return_address_gadget<_MEMBER_> final         \
+    {                                                    \
+    };
+#else
+#define FD_BIND_NATIVE_INTERFACE_GADGET(_MEMBER_, _LIB_)                                \
     template <>                                                                         \
     struct return_address_gadget<_MEMBER_> final : native_return_address_gadget<#_LIB_> \
     {                                                                                   \
     };
+#endif
+#define FD_BIND_NATIVE_INTERFACE(_MEMBER_, _LIB_) \
+    inline namespace native                       \
+    {                                             \
+    struct _MEMBER_;                              \
+    }                                             \
+    FD_BIND_NATIVE_INTERFACE_GADGET(_MEMBER_, _LIB_);
 
 struct native_function_tag
 {

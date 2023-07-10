@@ -41,13 +41,13 @@ class non_default_constructible_hook_callback : public noncopyable
 } // namespace detail
 
 template <typename Callback, bool = std::is_default_constructible_v<Callback>>
-Callback unique_hook_callback;
+inline Callback unique_hook_callback;
 
 template <typename Callback>
-detail::non_default_constructible_hook_callback<Callback> unique_hook_callback<Callback, false>;
+inline detail::non_default_constructible_hook_callback<Callback> unique_hook_callback<Callback, false>;
 
 template <typename Callback>
-void *unique_hook_trampoline;
+inline void *unique_hook_trampoline;
 
 template <typename T>
 void init_hook_callback(T &&callback)
