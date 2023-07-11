@@ -65,7 +65,8 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
             },
             handle,
             0,
-            &thread_id);
+            &thread_id
+        );
         if (!thread)
             return FALSE;
         break;
@@ -99,17 +100,19 @@ void context()
     fd::native_sources sources;
     fd::native_client client(sources.client);
 
-    auto render     = fd::make_interface<fd::render_context>();
-    auto win32      = fd::make_interface<fd::native_win32_backend>();
-    auto dx9        = fd::make_interface<fd::native_dx9_backend>(sources.shaderapidx9);
-    auto dx9_vtable = fd::vtable(dx9->get());
+    auto render_context = fd::make_interface<fd::render_context>();
+    auto system_backend = fd::make_interface<fd::native_win32_backend>();
+    auto render_backend = fd::make_interface<fd::native_dx9_backend>(sources.shaderapidx9);
+
+    fd::vtable dx9_vtable(render_backend->get());
 
     auto hook_backend = fd::make_interface<fd::preferred_hook_backend>();
 
-    hook_backend->create(prepare_hook<fd::hooked_wndproc>(win32->proc(), &win32));
-    hook_backend->create(prepare_hook<fd::hooked_dx9_reset>(dx9_vtable[&IDirect3DDevice9::Reset], &dx9));
-    hook_backend->create(
-        prepare_hook<fd::hooked_dx9_present>(dx9_vtable[&IDirect3DDevice9::Present], &dx9, &win32, &render));
+    hook_backend->create(prepare_hook<fd::hooked_wndproc>(system_backend->proc(), &system_backend));
+    hook_backend->create(prepare_hook<fd::hooked_dx9_reset>(dx9_vtable[&IDirect3DDevice9::Reset], &render_backend));
+    hook_backend->create(prepare_hook<fd::hooked_dx9_present>(
+        dx9_vtable[&IDirect3DDevice9::Present], FD_GROUP_ARGS(&render_backend, &system_backend, &render_context)
+    ));
 
     hook_backend->enable();
 

@@ -4,7 +4,7 @@
 #include "render/basic_render_backend.h"
 #include "render/basic_system_backend.h"
 
-namespace ImGui
+namespace Immenu
 {
 void ShowDemoWindow(bool *p_open);
 }
@@ -42,7 +42,7 @@ class hooked_dx9_present final
         context_->begin_scene();
         {
             // only as example
-            ImGui::ShowDemoWindow(0);
+            Immenu::ShowDemoWindow(0);
         }
         context_->end_scene();
 

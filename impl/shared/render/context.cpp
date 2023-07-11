@@ -27,8 +27,10 @@ class render_context final : public basic_render_context, public noncopyable
         ImGui::SetCurrentContext(&context_);
 
 #if defined(_DEBUG) || defined(IMGUI_DISABLE_DEFAULT_ALLOCATORS)
-        ImGui::SetAllocatorFunctions([](size_t size, void *) { return operator new(size, std::nothrow); },
-                                     [](void *buff, void *) { operator delete(buff, std::nothrow); });
+        ImGui::SetAllocatorFunctions(
+            [](size_t size, void *) { return operator new(size, std::nothrow); },
+            [](void *buff, void *) { operator delete(buff, std::nothrow); }
+        );
 #endif
 
         ImGui::Initialize();
@@ -74,7 +76,7 @@ bool skip_scene() const
 
     void end_scene() override
     {
-        ignore_unused(this);
+        ImGui::EndFrame();
         ImGui::Render();
         // backend call
     }

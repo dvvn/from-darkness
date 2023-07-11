@@ -71,7 +71,8 @@ struct construct_interface;
                 /**/                                     \
                 return get(std::forward<Args>(args)...); \
             },                                           \
-            std::move(tpl));                             \
+            std::move(tpl)                               \
+        );                                               \
     }                                                    \
     static holder_type get(std::tuple<>)                 \
     {                                                    \
@@ -126,7 +127,7 @@ struct construct_interface<interface_type::stack, T, false>
 
 #pragma region construct_interface_wrapper
 
-#define FD_PACK_ARG(...) __VA_ARGS__
+#define FD_GROUP_ARGS(...) __VA_ARGS__
 
 #define FD_INTERFACE_FWD0(_TYPE_, _T_, _IFC_, _HOLDER_, ...)       \
     template <>                                                    \
@@ -137,25 +138,28 @@ struct construct_interface<interface_type::stack, T, false>
         static holder_type get(args_packed args);                  \
     };
 
-#define FD_INTERFACE_FWD(_T_, _IFC_, ...)                              \
-    FD_INTERFACE_FWD0(                                                 \
-        heap, /**/                                                     \
-        _T_,                                                           \
-        _IFC_,                                                         \
-        FD_PACK_ARG(std::unique_ptr<_IFC_, delete_interface<_IFC_>>),  \
-        __VA_ARGS__);                                                  \
-    FD_INTERFACE_FWD0(                                                 \
-        in_place, /**/                                                 \
-        _T_,                                                           \
-        _IFC_,                                                         \
-        FD_PACK_ARG(std::unique_ptr<_IFC_, destroy_interface<_IFC_>>), \
-        __VA_ARGS__);                                                  \
-    FD_INTERFACE_FWD0(                                                 \
-        stack, /**/                                                    \
-        _T_,                                                           \
-        _IFC_,                                                         \
-        _IFC_ *,                                                       \
-        __VA_ARGS__);
+#define FD_INTERFACE_FWD(_T_, _IFC_, ...)                                \
+    FD_INTERFACE_FWD0(                                                   \
+        heap, /**/                                                       \
+        _T_,                                                             \
+        _IFC_,                                                           \
+        FD_GROUP_ARGS(std::unique_ptr<_IFC_, delete_interface<_IFC_>>),  \
+        __VA_ARGS__                                                      \
+    );                                                                   \
+    FD_INTERFACE_FWD0(                                                   \
+        in_place, /**/                                                   \
+        _T_,                                                             \
+        _IFC_,                                                           \
+        FD_GROUP_ARGS(std::unique_ptr<_IFC_, destroy_interface<_IFC_>>), \
+        __VA_ARGS__                                                      \
+    );                                                                   \
+    FD_INTERFACE_FWD0(                                                   \
+        stack, /**/                                                      \
+        _T_,                                                             \
+        _IFC_,                                                           \
+        _IFC_ *,                                                         \
+        __VA_ARGS__                                                      \
+    );
 
 #define FD_INTERFACE_IMPL0(_TYPE_, _T_)                                                       \
     auto construct_interface<interface_type::_TYPE_, _T_>::get(args_packed args)->holder_type \

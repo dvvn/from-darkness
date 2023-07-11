@@ -1,7 +1,9 @@
 #include "debug/log.h"
+#include "gui/menu.h"
 #include "render/backend/own/dx9.h"
 #include "render/backend/own/win32.h"
 #include "render/context.h"
+#include "vars/sample.h"
 
 int main(int argc, int *argv) noexcept
 {
@@ -12,31 +14,41 @@ int main(int argc, int *argv) noexcept
     fd::log_activator log_activator;
 #endif
 
-    auto render = fd::make_interface<fd::render_context>();
-    auto win32  = fd::make_interface<fd::own_win32_backend>();
-    auto dx9    = fd::make_interface<fd::own_dx9_backend>();
+    auto render_context = fd::make_interface<fd::render_context>();
+    auto system_backend = fd::make_interface<fd::own_win32_backend>();
+    auto render_backend = fd::make_interface<fd::own_dx9_backend>();
+
+    auto menu = fd::make_interface<fd::menu>();
+
+    auto vars_sample = fd::make_interface<fd::vars_sample>();
 
     for (;;)
     {
-        win32->peek();
+        system_backend->peek();
 
-        if (win32->closed())
+        if (system_backend->closed())
             return EXIT_SUCCESS;
-        if (win32->minimized())
+        if (system_backend->minimized())
             continue;
 
-        auto windows_size = win32->size();
-        dx9->resize(windows_size.w, windows_size.h);
+        auto windows_size = system_backend->size();
+        render_backend->resize(windows_size.w, windows_size.h);
 
-        win32->new_frame();
-        dx9->new_frame();
+        menu->new_frame();
+        system_backend->new_frame();
+        render_backend->new_frame();
 
-        render->begin_scene();
+        render_context->begin_scene();
+        if (menu->visible())
         {
-            // ImGui::ShowDemoWindow();
+            if (menu->begin_scene())
+            {
+                menu->render(&vars_sample);
+            }
+            menu->end_scene();
         }
-        render->end_scene();
+        render_context->end_scene();
 
-        dx9->render(render->data());
+        render_backend->render(render_context->data());
     }
 }

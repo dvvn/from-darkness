@@ -62,29 +62,24 @@ T ImRsqrt(T x)
 }
 #endif
 
-namespace std
-{
-template <typename C, typename Tr>
-class basic_string_view;
-
-template <typename C, typename Tr, typename Alloc>
-class basic_string;
-} // namespace std
-
-#define IM_STRV_CLASS_EXTRA                                    \
-    template <size_t S>                                        \
-    constexpr ImStrv(char const(&str)[S])                      \
-        : Begin(str)                                           \
-        , End(str + S - 1)                                     \
-    {                                                          \
-    }                                                          \
-    constexpr ImStrv(const char *begin, size_t length)         \
-        : Begin(begin)                                         \
-        , End(begin + length)                                  \
-    {                                                          \
-    }                                                          \
-    template <typename Traits>                                 \
-    constexpr ImStrv(std::basic_string_view<char, Traits> str) \
-        : ImStrv(str.data(), str.size())                       \
-    {                                                          \
+#define IM_STRV_CLASS_EXTRA                            \
+    template <size_t S>                                \
+    constexpr ImStrv(char const(&str)[S])              \
+        : Begin(str)                                   \
+        , End(str + S - 1)                             \
+    {                                                  \
+    }                                                  \
+    constexpr ImStrv(const char *begin, size_t length) \
+        : Begin(begin)                                 \
+        , End(begin + length)                          \
+    {                                                  \
+    }                                                  \
+    template <class T>                                 \
+    constexpr ImStrv(T const &rng) requires requires { \
+        Begin = rng.data();                            \
+        rng.length();                                  \
+    }                                                  \
+        : Begin(rng.data())                            \
+        , End(Begin + rng.length())                    \
+    {                                                  \
     }

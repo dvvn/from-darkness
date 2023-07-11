@@ -17,7 +17,7 @@ FixNamespaceComments: true
 BreakConstructorInitializers: BeforeComma
 RemoveSemicolon: true
 #BreakBeforeBraces: Allman
-AlignAfterOpenBracket: AlwaysBreak #BlockIndent
+AlignAfterOpenBracket: BlockIndent #Align #AlwaysBreak
 AllowShortLambdasOnASingleLine: Inline
 SeparateDefinitionBlocks: Always
 BinPackArguments: false
@@ -48,7 +48,7 @@ IncludeCategories:
     Priority: 1
   - Regex: '<fmt/.*>'
     Priority: 2
-  - Regex: '<imgui.*h>'
+  - Regex: '<immenu.*h>'
     Priority: 3
   - Regex: '<windows\.h>'
     Priority: 4
