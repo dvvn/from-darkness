@@ -2,6 +2,7 @@
 #include "native_sources.h"
 #include "debug/console.h"
 #include "debug/log.h"
+#include "gui/menu.h"
 #include "hook/callback.h"
 #include "hook/preferred_backend.h"
 #include "hooked/directx9.h"
@@ -10,13 +11,13 @@
 #include "render/backend/native/dx9.h"
 #include "render/backend/native/win32.h"
 #include "render/context.h"
+#include "render/frame.h"
+#include "vars/sample.h"
 
 #include <Windows.h>
 #include <d3d9.h>
 
 #include <cassert>
-#include <cstdlib>
-#include <exception>
 
 static HINSTANCE self_handle;
 static HANDLE thread;
@@ -100,18 +101,33 @@ void context()
     fd::native_sources sources;
     fd::native_client client(sources.client);
 
-    auto render_context = fd::make_interface<fd::render_context>();
-    auto system_backend = fd::make_interface<fd::native_win32_backend>();
-    auto render_backend = fd::make_interface<fd::native_dx9_backend>(sources.shaderapidx9);
+    using enum fd::interface_type;
 
-    fd::vtable dx9_vtable(render_backend->get());
+    auto menu           = fd::make_interface<fd::menu, stack>();
+    auto vars_sample    = fd::make_interface<fd::vars_sample, stack>();
+    auto render_context = fd::make_interface<fd::render_context, in_place>();
+    auto system_backend = fd::make_interface<fd::native_win32_backend, in_place>();
+    auto render_backend = fd::make_interface<fd::native_dx9_backend, in_place>(sources.shaderapidx9);
 
-    auto hook_backend = fd::make_interface<fd::preferred_hook_backend>();
+    auto vars = join(vars_sample);
+    fd::render_frame_full render_frame( //
+        FD_GROUP_ARGS(render_backend, system_backend, render_context),
+        FD_GROUP_ARGS(menu, data(vars), size(vars))
+    );
 
-    hook_backend->create(prepare_hook<fd::hooked_wndproc>(system_backend->proc(), &system_backend));
-    hook_backend->create(prepare_hook<fd::hooked_dx9_reset>(dx9_vtable[&IDirect3DDevice9::Reset], &render_backend));
-    hook_backend->create(prepare_hook<fd::hooked_dx9_present>(
-        dx9_vtable[&IDirect3DDevice9::Present], FD_GROUP_ARGS(&render_backend, &system_backend, &render_context)
+    auto hook_backend = fd::make_interface<fd::preferred_hook_backend, in_place>();
+    fd::vtable render_vtable(render_backend->get());
+    hook_backend->create(prepare_hook<fd::hooked_wndproc>( //
+        system_backend->proc(),
+        system_backend
+    ));
+    hook_backend->create(prepare_hook<fd::hooked_dx9_reset>( //
+        render_vtable[&IDirect3DDevice9::Reset],
+        render_backend
+    ));
+    hook_backend->create(prepare_hook<fd::hooked_dx9_present>( //
+        render_vtable[&IDirect3DDevice9::Present],
+        &render_frame
     ));
 
     hook_backend->enable();

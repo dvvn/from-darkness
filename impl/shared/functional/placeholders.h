@@ -19,28 +19,29 @@ constexpr bool operator==(lambda2_arg<I_1>, lambda2_arg<I_2>)
 
 namespace fd
 {
-using std::bind;
-
-namespace placeholders = boost::lambda2;
-
 namespace detail
 {
 template <char... C>
 struct placeholder_literal
 {
     static constexpr auto index = from_chars<int, 10, C...>();
-    static constexpr placeholders::lambda2_arg<index> value;
+    static constexpr boost::lambda2::lambda2_arg<index> value;
 };
 } // namespace detail
 
+namespace placeholders
+{
 inline namespace literals
 {
 template <char... C>
 constexpr auto operator"" _p()
 {
-    return detail::placeholder_literal<C...>::value;
+    return boost::lambda2::lambda2_arg<from_chars<int, 10, C...>()>();
 }
-
-static_assert(2_p == placeholders::_2);
 } // namespace literals
+
+using namespace boost::lambda2;
+} // namespace placeholders
+
+using std::bind;
 }

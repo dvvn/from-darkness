@@ -65,11 +65,10 @@ class menu final : public basic_menu
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
         ImGui::ShowDemoWindow();
 #endif
-
         return ImGui::Begin("WIP", &next_visible_);
     }
 
-    static void do_render(basic_variables_group *group)
+    static void render_current(basic_variables_group *group)
     {
         for (; group != nullptr; group = group->next())
         {
@@ -86,7 +85,7 @@ class menu final : public basic_menu
     {
         if (group && ImGui::BeginTabBar(group))
         {
-            do_render(group);
+            render_current(group);
             ImGui::EndTabBar();
         }
     }
@@ -95,7 +94,7 @@ class menu final : public basic_menu
     {
         if (ImGui::BeginTabBar(this))
         {
-            do_render(group);
+            render_current(group);
             ImGui::EndTabBar();
         }
     }

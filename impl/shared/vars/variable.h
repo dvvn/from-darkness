@@ -10,6 +10,12 @@ struct variable_range
 {
     T min;
     T max;
+
+    constexpr variable_range(T min, T max)
+        : min((min))
+        , max((max))
+    {
+    }
 };
 
 template <>
@@ -27,10 +33,17 @@ class variable : public basic_variable<T>
 
     string_type name_;
     value_type value_;
+    [[no_unique_address]] //
     range_type range_;
 
   public:
-    variable(string_view name, value_type value, range_type range = {})
+    variable(string_type name, value_type value)
+        : name_(std::move(name))
+        , value_(std::move(value))
+    {
+    }
+
+    variable(string_type name, value_type value, range_type range)
         : name_(std::move(name))
         , value_(std::move(value))
         , range_(std::move(range))

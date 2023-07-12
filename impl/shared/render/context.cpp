@@ -57,7 +57,7 @@ bool skip_scene() const
 }
 #endif
 
-    void begin_scene() override
+    void begin_frame() override
     {
         // backend call
 
@@ -74,7 +74,7 @@ bool skip_scene() const
         ImGui::NewFrame();
     }
 
-    void end_scene() override
+    void end_frame() override
     {
         ImGui::EndFrame();
         ImGui::Render();

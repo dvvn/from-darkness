@@ -3,6 +3,7 @@
 #include "render/backend/own/dx9.h"
 #include "render/backend/own/win32.h"
 #include "render/context.h"
+#include "render/frame.h"
 #include "vars/sample.h"
 
 int main(int argc, int *argv) noexcept
@@ -14,13 +15,20 @@ int main(int argc, int *argv) noexcept
     fd::log_activator log_activator;
 #endif
 
-    auto render_context = fd::make_interface<fd::render_context>();
-    auto system_backend = fd::make_interface<fd::own_win32_backend>();
-    auto render_backend = fd::make_interface<fd::own_dx9_backend>();
+    using enum fd::interface_type;
 
-    auto menu = fd::make_interface<fd::menu>();
+    auto render_context = fd::make_interface<fd::render_context, in_place>();
+    auto system_backend = fd::make_interface<fd::own_win32_backend, in_place>();
+    auto render_backend = fd::make_interface<fd::own_dx9_backend, in_place>();
+    auto menu           = fd::make_interface<fd::menu, stack>();
+    auto vars_sample    = fd::make_interface<fd::vars_sample, stack>();
 
-    auto vars_sample = fd::make_interface<fd::vars_sample>();
+    auto vars = join(vars_sample);
+
+    fd::render_frame_simple render_frame( //
+        FD_GROUP_ARGS(render_backend, system_backend, render_context),
+        FD_GROUP_ARGS(menu, data(vars), size(vars))
+    );
 
     for (;;)
     {
@@ -34,21 +42,6 @@ int main(int argc, int *argv) noexcept
         auto windows_size = system_backend->size();
         render_backend->resize(windows_size.w, windows_size.h);
 
-        menu->new_frame();
-        system_backend->new_frame();
-        render_backend->new_frame();
-
-        render_context->begin_scene();
-        if (menu->visible())
-        {
-            if (menu->begin_scene())
-            {
-                menu->render(&vars_sample);
-            }
-            menu->end_scene();
-        }
-        render_context->end_scene();
-
-        render_backend->render(render_context->data());
+        render_frame.render();
     }
 }
