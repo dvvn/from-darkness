@@ -17,8 +17,6 @@ enum class interface_type : uint8_t
     stack,
 };
 
-// inline constexpr interface_type default_interface_type = interface_type::in_place;
-
 template <interface_type Type, class T>
 class unique_interface final
 {
@@ -86,7 +84,7 @@ class unique_interface final
 };
 
 template <interface_type Type, class T, bool = forwarded<T>>
-struct construct_interface;
+struct interface_creator;
 
 #define CONSTRUCT_INTERFACE_PACKED                             \
     template <typename... Args>                                \
@@ -94,12 +92,12 @@ struct construct_interface;
     static holder_type get(std::tuple<Args...> &tpl)           \
     {                                                          \
         return std::apply(                                     \
-            [](Args... args) {                                 \
+            [](Args... args)                                   \
+            {                                                  \
                 /**/                                           \
                 return get(std::forward<Args>(args)...);       \
             },                                                 \
-            std::move(tpl)                                     \
-        );                                                     \
+            std::move(tpl));                                   \
     }                                                          \
     static holder_type get(std::tuple<>)                       \
     {                                                          \
@@ -119,7 +117,7 @@ struct interface_holder<interface_type::stack, T>
 };
 
 template <class T>
-struct construct_interface<interface_type::heap, T, false>
+struct interface_creator<interface_type::heap, T, false>
 {
     using holder_type = typename interface_holder<interface_type::heap, T>::type;
 
@@ -133,7 +131,7 @@ struct construct_interface<interface_type::heap, T, false>
 };
 
 template <class T>
-struct construct_interface<interface_type::in_place, T, false>
+struct interface_creator<interface_type::in_place, T, false>
 {
     using holder_type = typename interface_holder<interface_type::in_place, T>::type;
 
@@ -148,7 +146,7 @@ struct construct_interface<interface_type::in_place, T, false>
 };
 
 template <class T>
-struct construct_interface<interface_type::stack, T, false>
+struct interface_creator<interface_type::stack, T, false>
 {
     using holder_type = typename interface_holder<interface_type::stack, T>::type;
 
@@ -166,11 +164,9 @@ struct construct_interface<interface_type::stack, T, false>
 
 #pragma region construct_interface_wrapper
 
-#define FD_GROUP_ARGS(...) __VA_ARGS__
-
 #define FD_INTERFACE_FWD0(_TYPE_, _T_, _IFC_, ...)                                          \
     template <>                                                                             \
-    struct construct_interface<interface_type::_TYPE_, _T_>                                 \
+    struct interface_creator<interface_type::_TYPE_, _T_>                                   \
     {                                                                                       \
         using holder_type = typename interface_holder<interface_type::_TYPE_, _IFC_>::type; \
         using args_packed = std::tuple<__VA_ARGS__> __VA_OPT__(&);                          \
@@ -180,27 +176,18 @@ struct construct_interface<interface_type::stack, T, false>
 #define FD_INTERFACE_FWD(_T_, _IFC_, ...) \
     FD_INTERFACE_FWD0(                    \
         heap, /**/                        \
-        _T_,                              \
-        _IFC_,                            \
-        __VA_ARGS__                       \
-    );                                    \
+        _T_, _IFC_, __VA_ARGS__);         \
     FD_INTERFACE_FWD0(                    \
         in_place, /**/                    \
-        _T_,                              \
-        _IFC_,                            \
-        __VA_ARGS__                       \
-    );                                    \
+        _T_, _IFC_, __VA_ARGS__);         \
     FD_INTERFACE_FWD0(                    \
         stack, /**/                       \
-        _T_,                              \
-        _IFC_,                            \
-        __VA_ARGS__                       \
-    );
+        _T_, _IFC_, __VA_ARGS__);
 
-#define FD_INTERFACE_IMPL0(_TYPE_, _T_)                                                       \
-    auto construct_interface<interface_type::_TYPE_, _T_>::get(args_packed args)->holder_type \
-    {                                                                                         \
-        return construct_interface<interface_type::_TYPE_, _T_, false>::get(args);            \
+#define FD_INTERFACE_IMPL0(_TYPE_, _T_)                                                     \
+    auto interface_creator<interface_type::_TYPE_, _T_>::get(args_packed args)->holder_type \
+    {                                                                                       \
+        return interface_creator<interface_type::_TYPE_, _T_, false>::get(args);            \
     }
 
 #define FD_INTERFACE_IMPL(_T_)         \
@@ -211,25 +198,6 @@ struct construct_interface<interface_type::stack, T, false>
 
 namespace detail
 {
-#if 0
-template <interface_type Type, class T>
-inline constexpr bool valid_interface_v = false;
-template <interface_type Type, class T>
-inline constexpr bool valid_interface_v<Type, unique_interface<Type, T>> = valid_interface_v<Type, T>;
-template <class T>
-inline constexpr bool valid_interface_v<interface_type::heap, T> = std::derived_from<T, basic_interface>;
-template <class T>
-inline constexpr bool valid_interface_v<interface_type::in_place, T> = std::derived_from<T, basic_interface>;
-template <class T>
-inline constexpr bool valid_interface_v<interface_type::stack, T> = std::derived_from<T, basic_stack_interface>;
-
-template <interface_type Type, class T>
-concept valid_interface = valid_interface_v<Type, T>;
-#endif
-
-template <interface_type Type, class T>
-concept pack_interface_args = requires { typename construct_interface<Type, T>::args_packed; };
-
 template <typename>
 void init_once()
 {
@@ -240,17 +208,26 @@ void init_once()
     used = true;
 #endif
 }
+
+template <class Creator, typename... Args>
+requires requires { typename Creator::args_packed; }
+auto create_interface(Args &&...args) -> typename Creator::holder_type
+{
+    return Creator::get(Creator::args_packed(std::forward<Args>(args)...));
+}
+
+template <class Creator, typename... Args>
+auto create_interface(Args &&...args) -> typename Creator::holder_type
+{
+    return Creator::get(std::forward<Args>(args)...);
+}
 } // namespace detail
 
-template <class T, interface_type Type /*= default_interface_type*/, typename... Args>
+template <class T, interface_type Type = interface_type::in_place, typename... Args>
 auto make_interface(Args &&...args)
 {
     detail::init_once<T>();
-    using constructor = construct_interface<Type, T>;
-    if constexpr (detail::pack_interface_args<Type, T>)
-        return constructor::get(constructor::args_packed(std::forward<Args>(args)...));
-    else
-        return constructor::get(std::forward<Args>(args)...);
+    return detail::create_interface<interface_creator<Type, T>>(std::forward<Args>(args)...);
 }
 
 } // namespace fd

@@ -1,10 +1,18 @@
 ﻿#include "netvar_storage.h"
-#include "type_traits.h"
+#include "preprocessor.h"
+#include "variant.h"
 #include "container/span.h"
+#include "container/vector/dynamic.h"
+#include "functional/ignore.h"
 #include "functional/overload.h"
 #include "functional/placeholders.h"
 #include "iterator/unwrap.h"
 #include "native/client_class.h"
+#include "native/data_map.h"
+#include "native/recv_table.h"
+#include "string/char.h"
+#include "string/dynamic.h"
+#include "string/view.h"
 
 #include <fmt/format.h>
 
@@ -13,6 +21,17 @@
 
 namespace fd
 {
+using netvar_source      = variant<native_recv_table::prop *, native_data_map::field *>;
+using netvar_type_stored = variant<string, basic_netvar_type_cache *>;
+
+using netvar_table_source = variant<native_recv_table *, native_data_map *>;
+
+template <size_t S>
+static bool strcmp_unsafe(char const *buff, char const (&cmp)[S])
+{
+    return buff[S] == '\0' && memcmp(buff, cmp, S - 1) == 0;
+}
+
 template <bool InFront>
 static bool one_demension_array(string_view str)
 {
@@ -26,13 +45,13 @@ static bool one_demension_array(string_view str)
     {
         if (!str.ends_with(']'))
             return false;
-        auto open  = str.rfind('[');
-        auto start = str.begin() + open;
-        if (*std::prev(start) == ']')
+        auto open  = static_cast<string_view::difference_type>(str.rfind('['));
+        auto start = next(str.begin(), open);
+        if (*prev(start) == ']')
             return false;
         if (str.length() - 1 - open == 1)
             return isdigit(*start);
-        return std::all_of(start, str.end() - 1, isdigit);
+        return std::all_of(start, prev(str.end()), isdigit);
     }
 }
 
@@ -43,50 +62,14 @@ using v_field_type = native_data_map::field_type;
 
 using placeholders::_1;
 
-#ifdef FD_MERGE_NETVAR_TABLES
-netvar_info::netvar_info(netvar_source source, size_t extra_offset, basic_netvar_type_cache *type_cache)
-    : source_(source)
-    , type_(type_cache)
-    , extra_offset_(extra_offset)
-{
-    assert(type_cache != nullptr);
-}
-
-netvar_info::netvar_info(netvar_source source, size_t extra_offset)
-    : source_(source)
-    , extra_offset_(extra_offset)
-{
-}
-#else
-netvar_info::netvar_info(netvar_source source, basic_netvar_type_cache *type_cache)
-    : source_(source)
-    , type_(type_cache)
-{
-    assert(type_cache != nullptr);
-}
-
-netvar_info::netvar_info(netvar_source source)
-    : source_(source)
-{
-}
-#endif
-
-char const *netvar_info::raw_name() const
-{
-    return visit(overload(&native_recv_table::prop::name, &native_data_map::field::name), source_);
-}
-
-size_t netvar_info::raw_offset() const
-{
-    return visit(overload(&native_recv_table::prop::offset, &native_data_map::field::offset), source_);
-}
-
 static char const *recv_prop_name(native_recv_table::prop *prop)
 {
+    using std::prev;
+
     if (isdigit(prop->name[0]))
         return prop->parent_array_name;
     if (prop->type == v_prop_type::array)
-        return std::prev(prop)->name;
+        return prev(prop)->name;
     return prop->name;
 }
 
@@ -106,25 +89,6 @@ static string_view recv_prop_name_pretty(native_recv_table::prop *prop)
 static string_view data_map_field_name_pretty(native_data_map::field *field)
 {
     return field->name;
-}
-
-char const *netvar_info::name() const
-{
-    return visit(overload(recv_prop_name, &native_data_map::field::name), source_);
-}
-
-string_view netvar_info::pretty_name() const
-{
-    return visit(overload(recv_prop_name_pretty, data_map_field_name_pretty), source_);
-}
-
-size_t netvar_info::offset() const
-{
-    return
-#ifdef FD_MERGE_NETVAR_TABLES
-        extra_offset_ +
-#endif
-        raw_offset();
 }
 
 class netvar_prefix
@@ -254,7 +218,8 @@ static string_view netvar_type_int32(netvar_prefix name)
         {
         case 0:
             break;
-        case 1: {
+        case 1:
+        {
             if (prefix[0] == 'b')
                 return "bool";
             if (prefix[0] == 'c')
@@ -263,7 +228,8 @@ static string_view netvar_type_int32(netvar_prefix name)
                 return "valve::entity_handle";
             break;
         }
-        case 2: {
+        case 2:
+        {
             if (prefix == "un")
                 return "uint32_t";
             if (prefix == "ch")
@@ -272,13 +238,14 @@ static string_view netvar_type_int32(netvar_prefix name)
                 return "float";
             break;
         }
-        case 3: {
+        case 3:
+        {
             if (prefix == "clr")
                 return "valve::color"; // not sure
             break;
         }
         default:
-            std::unreachable();
+            unreachable();
         }
     }
     return "int32_t";
@@ -333,11 +300,13 @@ static string_view netvar_type(native_recv_table::prop *prop)
         return prop_type_vec2(prop); // 3d vector. z unused??
     case v_prop_type::string:
         return "char *"; // char[X]
-    case v_prop_type::array: {
+    case v_prop_type::array:
+    {
         assert(0 && "Resolve array manually");
         return "void *";
     }
-    case v_prop_type::data_table: {
+    case v_prop_type::data_table:
+    {
 #if 0
         return prop->name;
 #else
@@ -347,7 +316,8 @@ static string_view netvar_type(native_recv_table::prop *prop)
     }
     case v_prop_type::int64:
         return "int64_t";
-    default: {
+    default:
+    {
         assert(0 && "Unknown recv prop type");
         return "void *";
     }
@@ -380,17 +350,17 @@ static string_view netvar_type(native_data_map::field *field)
         return "valve::color";
     case v_field_type::embedded:
         assert(0 && "embedded field detected");
-        std::unreachable();
+        unreachable();
     case v_field_type::custom:
         assert(0 && "custom field detected");
-        std::unreachable();
+        unreachable();
     case v_field_type::classptr:
         return /*types_cache::simple(name,client_side::base_entity *)*/ "void *";
     case v_field_type::ehandle:
         return "valve::handle";
     case v_field_type::edict:
         assert(0 && "edict field detected"); //  "edict_t*"
-        std::unreachable();
+        unreachable();
     case v_field_type::position_vector:
         return "valve::vector3d";
     case v_field_type::time:
@@ -402,10 +372,10 @@ static string_view netvar_type(native_data_map::field *field)
         return "char *"; // string_t at real
     case v_field_type::input:
         assert(0 && "inputvar field detected"); //  "cmultiinputvar"
-        std::unreachable();
+        unreachable();
     case v_field_type::function:
         assert(0 && "function detected");
-        std::unreachable();
+        unreachable();
     case v_field_type::vmatrix:
     case v_field_type::vmatrix_worldspace:
         return "valve::matrix4x4"; // vmatrix
@@ -413,7 +383,7 @@ static string_view netvar_type(native_data_map::field *field)
         return "valve::matrix3x4";
     case v_field_type::interval:
         assert(0 && "interval field detected"); // "interval_t"
-        std::unreachable();
+        unreachable();
     case v_field_type::modelindex:
     case v_field_type::materialindex:
         return "int32_t";
@@ -421,7 +391,7 @@ static string_view netvar_type(native_data_map::field *field)
         return "valve::vector2d";
     default:
         assert(0 && "unknown datamap field type");
-        std::unreachable();
+        unreachable();
     }
 }
 
@@ -438,7 +408,8 @@ static string_view wrap_prop_in(native_recv_table::prop *prop)
 
     string_view prop_name(prop->name);
 
-    auto splitted_array = [&]() -> size_t {
+    auto splitted_array = [&]() -> size_t
+    {
         if (!one_demension_array<true>(prop_name))
             return -1;
         auto num      = prop_name.length() - 2;
@@ -454,7 +425,8 @@ static string_view wrap_prop_in(native_recv_table::prop *prop)
         return length;
     };
 
-    auto named_vector = [&]() -> size_t {
+    auto named_vector = [&]() -> size_t
+    {
         auto offset = prop_name.find('X');
         if (offset == prop_name.npos)
             return -1; // ignore _Y _Z by default
@@ -538,97 +510,168 @@ static basic_netvar_type_cache::key_type key_for_cache(native_data_map::field *d
     return dmap->name;
 }
 
-string_view netvar_info::type() const
+class netvar_info final : public basic_netvar_info
 {
-    return visit(
-        overload(
-            [](auto *prop, string const &cache) -> string_view {
-                if (cache.empty())
-                    write_netvar_type(prop, remove_const(cache));
-                return {cache.begin(), cache.end()};
-            },
-            [](auto *prop, basic_netvar_type_cache *cache) {
-                auto key = key_for_cache(prop);
-                if (auto result = cache->get(key); !result.empty())
-                    return result;
-                string buff;
-                write_netvar_type(prop, buff);
-                return cache->store(key, std::move(buff));
-            }),
-        source_,
-        type_);
-}
+    // friend class netvar_table;
 
-static void try_write_netvar_table(auto &storage, auto... args)
-{
-    netvar_table table(args...);
-    if (!table.empty())
-        storage.emplace_back(std::move(table));
-}
-
-template <size_t S>
-static bool strcmp_unsafe(char const *buff, char const (&cmp)[S])
-{
-    return buff[S] == '\0' && memcmp(buff, cmp, S - 1) == 0;
-}
-
-void netvar_table::parse_recv_table(
-    native_recv_table *recv,
-    size_t offset,
-    basic_netvar_type_cache *type_cache,
-    bool filter_duplicates)
-{
-    if (recv->props_count == 0)
-        return;
-
-    auto prop = recv->props;
-
-    auto store = [&]<bool Cache>(std::bool_constant<Cache>) {
-
+    netvar_source source_;
+    netvar_type_stored type_;
 #ifdef FD_MERGE_NETVAR_TABLES
-        if constexpr (Cache)
-            storage_.emplace_back(prop, offset, type_cache);
-        else
-            storage_.emplace_back(prop, offset);
+    size_t extra_offset_;
+#endif
+
+  public:
+#ifdef FD_MERGE_NETVAR_TABLES
+    netvar_info(netvar_source source, size_t extra_offset, basic_netvar_type_cache *type_cache)
+        : source_(source)
+        , type_(type_cache)
+        , extra_offset_(extra_offset)
+    {
+        assert(type_cache != nullptr);
+    }
+
+    netvar_info(netvar_source source, size_t extra_offset)
+        : source_(source)
+        , extra_offset_(extra_offset)
+    {
+    }
 #else
-        if constexpr (Cache)
-            storage_.emplace_back(prop, type_cache);
-        else
-            storage_.emplace_back(prop);
-#endif
-    };
-
-    if (strcmp_unsafe(prop->name, "baseclass"))
+    netvar_info(netvar_source source, basic_netvar_type_cache *type_cache)
+        : source_(source)
+        , type_(type_cache)
     {
-        if (recv->props_count == 1)
-            return;
-        ++prop;
+        assert(type_cache != nullptr);
     }
 
-    if (prop->name[0] == '0')
+    netvar_info(netvar_source source)
+        : source_(source)
     {
-        // calculate array length and skip it
+    }
+#endif
+
+    char const *raw_name() const
+    {
+        return visit(overload(&native_recv_table::prop::name, &native_data_map::field::name), source_);
+    }
+
+    size_t raw_offset() const
+    {
+        return visit(overload(&native_recv_table::prop::offset, &native_data_map::field::offset), source_);
+    }
+
+    char const *name() const
+    {
+        return visit(overload(recv_prop_name, &native_data_map::field::name), source_);
+    }
+
+    /**
+     * \brief dont compare internal names with it!!!
+     */
+    string_view pretty_name() const
+    {
+        return visit(overload(recv_prop_name_pretty, data_map_field_name_pretty), source_);
+    }
+
+    size_t offset() const override
+    {
+        return
 #ifdef FD_MERGE_NETVAR_TABLES
-        if (!filter_duplicates ||
-            std::all_of(storage_.begin(), storage_.end(), _1->*&netvar_info::name != prop->parent_array_name))
-        {
-            if (type_cache)
-                store(std::true_type());
-            else
-                store(std::false_type());
-        }
+            extra_offset_ +
 #endif
-        return;
-    }
-    else if ( // NOLINT(readability-else-after-return)
-        prop->array_length_proxy || strcmp_unsafe(prop->name, "lengthproxy"))
-    {
-        // WIP
-        return;
+            raw_offset();
     }
 
-    auto do_parse =
-        [&]<bool Cache, bool Duplicates>(std::bool_constant<Cache> cache, std::bool_constant<Duplicates> duplicates) {
+    string_view type() const
+    {
+        return visit(
+            overload(
+                [](auto *prop, string const &cache) -> string_view
+                {
+                    if (cache.empty())
+                        write_netvar_type(prop, const_cast<string &>(cache));
+                    return {cache.begin(), cache.end()};
+                },
+                [](auto *prop, basic_netvar_type_cache *cache)
+                {
+                    auto key = key_for_cache(prop);
+                    if (auto result = cache->get(key); !result.empty())
+                        return result;
+                    string buff;
+                    write_netvar_type(prop, buff);
+                    return cache->store(key, std::move(buff));
+                }),
+            source_,
+            type_);
+    }
+};
+
+class netvar_table final : public basic_netvar_table
+{
+    friend class netvar_storage;
+
+    using view_type = span<netvar_info const>;
+
+    netvar_table_source source_;
+    vector<netvar_info> storage_;
+#ifndef FD_MERGE_NETVAR_TABLES
+    vector<netvar_table> inner_;
+#endif
+
+    void parse_recv_table(
+        native_recv_table *recv, size_t offset, basic_netvar_type_cache *type_cache, bool filter_duplicates)
+    {
+        if (recv->props_count == 0)
+            return;
+
+        auto prop = recv->props;
+
+        auto store = [&]<bool Cache>(std::bool_constant<Cache>)
+        {
+#ifdef FD_MERGE_NETVAR_TABLES
+            if constexpr (Cache)
+                storage_.emplace_back(prop, offset, type_cache);
+            else
+                storage_.emplace_back(prop, offset);
+#else
+            if constexpr (Cache)
+                storage_.emplace_back(prop, type_cache);
+            else
+                storage_.emplace_back(prop);
+#endif
+        };
+
+        if (strcmp_unsafe(prop->name, "baseclass"))
+        {
+            if (recv->props_count == 1)
+                return;
+            ++prop;
+        }
+
+        if (prop->name[0] == '0')
+        {
+            // calculate array length and skip it
+#ifdef FD_MERGE_NETVAR_TABLES
+            if (!filter_duplicates ||
+                std::all_of(storage_.begin(), storage_.end(), _1->*&netvar_info::name != prop->parent_array_name))
+            {
+                if (type_cache)
+                    store(std::true_type());
+                else
+                    store(std::false_type());
+            }
+#endif
+            return;
+        }
+        else if ( // NOLINT(readability-else-after-return)
+            prop->array_length_proxy || strcmp_unsafe(prop->name, "lengthproxy"))
+        {
+            // WIP
+            return;
+        }
+
+        auto do_parse =
+            [&]<bool Cache, bool Duplicates>(std::bool_constant<Cache> cache, std::bool_constant<Duplicates>)
+        {
             auto props_end = recv->props + recv->props_count;
             for (; prop != props_end; ++prop)
             {
@@ -652,153 +695,184 @@ void netvar_table::parse_recv_table(
             }
         };
 
-    // filter also possible without 'filter_duplicates'
-    // when offset != 0
+        // filter also possible without 'filter_duplicates'
+        // when offset != 0
 
-    if (type_cache && filter_duplicates)
-        do_parse(std::true_type(), std::true_type());
-    else if (type_cache)
-        do_parse(std::true_type(), std::false_type());
-    else if (filter_duplicates)
-        do_parse(std::false_type(), std::true_type());
-    else
-        do_parse(std::false_type(), std::false_type());
-}
+        if (type_cache && filter_duplicates)
+            do_parse(std::true_type(), std::true_type());
+        else if (type_cache)
+            do_parse(std::true_type(), std::false_type());
+        else if (filter_duplicates)
+            do_parse(std::false_type(), std::true_type());
+        else
+            do_parse(std::false_type(), std::false_type());
+    }
 
-void netvar_table::parse_data_map(
-    native_data_map *dmap,
-    size_t offset,
-    basic_netvar_type_cache *type_cache,
-    bool filter_duplicates)
-{
-    auto do_parse = [=]<bool Cache, bool Duplicates>(std::bool_constant<Cache>, std::bool_constant<Duplicates>) {
-        auto fields_end = dmap->fields + dmap->fields_count;
-        for (auto field = dmap->fields; field != fields_end; ++field)
+    void parse_data_map(
+        native_data_map *dmap, size_t offset, basic_netvar_type_cache *type_cache, bool filter_duplicates)
+    {
+        auto do_parse = [=]<bool Cache, bool Duplicates>(std::bool_constant<Cache>, std::bool_constant<Duplicates>)
         {
-            if (field->type == v_field_type::embedded)
+            auto fields_end = dmap->fields + dmap->fields_count;
+            for (auto field = dmap->fields; field != fields_end; ++field)
             {
-                assert(!field->description); // Embedded datamap not implemented
-            }
-            else
-            {
-                if constexpr (Duplicates)
+                if (field->type == v_field_type::embedded)
                 {
-                    if (this->get_raw(field->name))
-                        continue;
+                    assert(!field->description); // Embedded datamap not implemented
+                }
+                else
+                {
+                    if constexpr (Duplicates)
+                    {
+                        if (this->get_raw(field->name))
+                            continue;
+                    }
+
+                    if constexpr (Cache)
+#ifdef FD_MERGE_NETVAR_TABLES
+                        storage_.emplace_back(field, offset, type_cache);
+                    else
+                        storage_.emplace_back(field, offset);
+#else
+                        storage_.emplace_back(field, type_cache);
+                    else
+                        storage_.emplace_back(field);
+#endif
                 }
 
-                if constexpr (Cache)
-#ifdef FD_MERGE_NETVAR_TABLES
-                    storage_.emplace_back(field, offset, type_cache);
-                else
-                    storage_.emplace_back(field, offset);
-#else
-                    storage_.emplace_back(field, type_cache);
-                else
-                    storage_.emplace_back(field);
-#endif
-            }
-
 #ifdef _DEBUG
-            if constexpr (Duplicates)
-            {
-                // todo: sort by offset
-            }
+                if constexpr (Duplicates)
+                {
+                    // todo: sort by offset
+                }
 #endif
+            }
+        };
+
+        if (type_cache && filter_duplicates)
+            do_parse(std::true_type(), std::true_type());
+        else if (type_cache)
+            do_parse(std::true_type(), std::false_type());
+        else if (filter_duplicates)
+            do_parse(std::false_type(), std::true_type());
+        else
+            do_parse(std::false_type(), std::false_type());
+    }
+
+    /**
+     * \brief for internal use only
+     * \param name pointer to other netvar name stored in game's memory
+     */
+    basic_netvar_info *get_raw(char const *name)
+    {
+        auto end = storage_.end();
+        auto it  = std::find_if(storage_.begin(), end, _1->*&netvar_info::raw_name == name);
+        return it == end ? nullptr : iterator_to_raw_pointer(it);
+    }
+
+  public:
+    netvar_table(netvar_table_source source, basic_netvar_type_cache *type_cache)
+        : source_(source)
+    {
+        visit(
+            bind(
+                overload(&netvar_table::parse_recv_table, &netvar_table::parse_data_map),
+                FD_GROUP_ARGS(this, _1, 0u, type_cache, 0u)),
+            source_);
+    }
+
+    basic_netvar_table *inner(string_view name) override
+    {
+#ifndef FD_MERGE_NETVAR_TABLES
+        auto end = inner_.end();
+        auto it  = std::find_if(inner_.begin(), end, _1->*&netvar_table::name == name);
+
+        if (it != end)
+            return iterator_to_raw_pointer(it);
+#else
+        ignore_unused(this, name);
+#endif
+        return nullptr;
+    }
+
+    basic_netvar_info *get(string_view name) override
+    {
+#ifdef _DEBUG
+        if (storage_.empty())
+            return nullptr;
+#endif
+        auto end = storage_.end();
+        auto it  = std::find_if(storage_.begin(), end, _1->*&netvar_info::pretty_name == name);
+        return it == end ? nullptr : iterator_to_raw_pointer(it);
+    }
+
+    view_type view() const
+    {
+        return storage_;
+    }
+
+    char const *raw_name() const
+    {
+        return visit(overload(&native_recv_table::name, &native_data_map::name), source_);
+    }
+
+    char const *name() const
+    {
+        return visit(
+            overload(
+                [](native_recv_table *table)
+                {
+                    auto table_name = table->name;
+                    return table_name[0] == 'D' ? table_name + strlen("DT_") : table_name;
+                },
+                _1->*&native_data_map::name + strlen("C_")),
+            source_);
+    }
+
+    bool empty() const
+    {
+        return storage_.empty();
+    }
+};
+
+static void try_write_netvar_table(auto &storage, auto... args)
+{
+    netvar_table table(args...);
+    if (!table.empty())
+        storage.emplace_back(std::move(table));
+}
+
+class netvar_type_cache final : public basic_netvar_type_cache
+{
+    struct stored_value
+    {
+        key_type key;
+        string type;
+
+        string_view view() const
+        {
+            return {type.begin(), type.end()};
         }
     };
 
-    if (type_cache && filter_duplicates)
-        do_parse(std::true_type(), std::true_type());
-    else if (type_cache)
-        do_parse(std::true_type(), std::false_type());
-    else if (filter_duplicates)
-        do_parse(std::false_type(), std::true_type());
-    else
-        do_parse(std::false_type(), std::false_type());
-}
+    vector<stored_value> storage_;
 
-netvar_table::netvar_table(netvar_table_source source, basic_netvar_type_cache *type_cache)
-    : source_(source)
-{
-    visit(
-        bind(overload(&netvar_table::parse_recv_table, &netvar_table::parse_data_map), this, _1, 0u, type_cache, 0u),
-        source_);
-}
+  public:
+    string_view get(key_type key) const override
+    {
+        string_view result;
+        auto end = storage_.end();
+        auto it  = std::find_if(storage_.begin(), end, _1->*&stored_value::key == key);
+        if (it != end)
+            result = it->view();
+        return result;
+    }
 
-basic_netvar_table *netvar_table::inner(string_view name)
-{
-#ifndef FD_MERGE_NETVAR_TABLES
-    auto end = inner_.end();
-    auto it  = std::find_if(inner_.begin(), end, _1->*&netvar_table::name == name);
-
-    if (it != end)
-        return iterator_to_raw_pointer(it);
-#else
-    ignore_unused(this, name);
-#endif
-    return nullptr;
-}
-
-basic_netvar_info *netvar_table::get(string_view name)
-{
-#ifdef _DEBUG
-    if (storage_.empty())
-        return nullptr;
-#endif
-    auto end = storage_.end();
-    auto it  = std::find_if(storage_.begin(), end, _1->*&netvar_info::pretty_name == name);
-    return it == end ? nullptr : iterator_to_raw_pointer(it);
-}
-
-auto netvar_table::view() const -> view_type
-{
-    return storage_;
-}
-
-basic_netvar_info *netvar_table::get_raw(char const *name)
-{
-    auto end = storage_.end();
-    auto it  = std::find_if(storage_.begin(), end, _1->*&netvar_info::raw_name == name);
-    return it == end ? nullptr : iterator_to_raw_pointer(it);
-}
-
-char const *netvar_table::raw_name() const
-{
-    return visit(overload(&native_recv_table::name, &native_data_map::name), source_);
-}
-
-char const *netvar_table::name() const
-{
-    return visit(
-        overload(
-            [](native_recv_table *table) {
-                auto table_name = table->name;
-                return table_name[0] == 'D' ? table_name + strlen("DT_") : table_name;
-            },
-            _1->*&native_data_map::name + strlen("C_")),
-        source_);
-}
-
-bool netvar_table::empty() const
-{
-    return storage_.empty();
-}
-
-string_view netvar_type_cache::get(key_type key) const
-{
-    string_view result;
-    auto end = storage_.end();
-    auto it  = std::find_if(storage_.begin(), end, _1->*&stored_value::key == key);
-    if (it != end)
-        result = it->view();
-    return result;
-}
-
-string_view netvar_type_cache::store(key_type key, string &&value)
-{
-    return storage_.emplace_back(key, std::move(value)).view();
-}
+    string_view store(key_type key, string &&value) override
+    {
+        return storage_.emplace_back(key, move(value)).view();
+    }
+};
 
 static netvar_table *find_netvar_table(string_view name, auto &storage)
 {
@@ -808,12 +882,12 @@ static netvar_table *find_netvar_table(string_view name, auto &storage)
 }
 
 template <bool Raw, typename T, typename... Next>
-static netvar_table *find_netvar_table(string_view name, T &storage, Next &...next)
+static netvar_table *find_netvar_table(string_view name, T  &storage, Next &...next)
 {
     // static_assert(!Raw || sizeof...(Next) == 0);
     {
         auto end = storage.end();
-        decltype(end) it;
+        typename T::iterator it;
         if constexpr (Raw)
             it = std::find_if(storage.begin(), end, _1->*&netvar_table::raw_name == name);
         else
@@ -828,47 +902,63 @@ static netvar_table *find_netvar_table(string_view name, T &storage, Next &...ne
         return find_netvar_table<Raw>(name, next...);
 }
 
-basic_netvar_table *netvar_storage::get(string_view name)
+class netvar_storage final : public basic_netvar_storage
 {
-    if (name.starts_with("DT_"))
-        return find_netvar_table<true>(name, recv_tables_ /*, data_maps_*/);
-
-    if (name.starts_with("C_"))
-        return find_netvar_table<true>(name, data_maps_ /*, data_tables_*/);
-
-    return find_netvar_table<false>(name, data_maps_, recv_tables_);
-}
-
-void netvar_storage::store(native_client_class *root)
-{
-    for (; root != nullptr; root = root->next)
-        try_write_netvar_table(recv_tables_, root->table, &recv_tables_.types);
-}
-
-void netvar_storage::store(native_data_map *root)
-{
-    if (data_maps_.empty())
+    struct data_storage : vector<netvar_table>
     {
-        for (; root != nullptr; root = root->base)
-            try_write_netvar_table(data_maps_, root, &data_maps_.types);
+        netvar_type_cache types;
+    };
+
+    data_storage recv_tables_;
+    data_storage data_maps_;
+
+  public:
+    basic_netvar_table *get(string_view name) override
+    {
+        if (name.starts_with("DT_"))
+            return find_netvar_table<true>(name, recv_tables_ /*, data_maps_*/);
+
+        if (name.starts_with("C_"))
+            return find_netvar_table<true>(name, data_maps_ /*, data_tables_*/);
+
+        return find_netvar_table<false>(name, data_maps_, recv_tables_);
     }
-    else
+
+    void store(native_client_class *root) override
     {
-        for (; root != nullptr; root = root->base)
+        for (; root != nullptr; root = root->next)
+            try_write_netvar_table(recv_tables_, root->table, &recv_tables_.types);
+    }
+
+    void store(native_data_map *root) override
+    {
+        if (data_maps_.empty())
         {
-            auto end = data_maps_.end();
+            for (; root != nullptr; root = root->base)
+                try_write_netvar_table(data_maps_, root, &data_maps_.types);
+        }
+        else
+        {
+            for (; root != nullptr; root = root->base)
+            {
+                auto end = data_maps_.end();
 #if 0
             auto existing = std::find_if(data_maps_.begin(), end, _1->*&netvar_table::raw_name == root->name);
 #else // skip inner visit
-            auto existing = std::find_if(data_maps_.begin(), end, [root_name = root->name](netvar_table &table) {
-                return std::get<native_data_map *>(table.source_)->name == root_name;
-            });
+                auto existing = std::find_if(
+                    data_maps_.begin(),
+                    end,
+                    [root_name = root->name](netvar_table &table)
+                    { return std::get<native_data_map *>(table.source_)->name == root_name; });
 #endif
-            if (existing == end)
-                try_write_netvar_table(data_maps_, root, &data_maps_.types);
-            else
-                existing->parse_data_map(root, 0, &data_maps_.types, true);
+                if (existing == end)
+                    try_write_netvar_table(data_maps_, root, &data_maps_.types);
+                else
+                    existing->parse_data_map(root, 0, &data_maps_.types, true);
+            }
         }
     }
-}
+};
+
+FD_INTERFACE_IMPL(netvar_storage);
 } // namespace fd

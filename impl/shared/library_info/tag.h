@@ -7,14 +7,13 @@ namespace fd
 template <size_t S>
 struct library_tag
 {
-    char tag[S - 1];
-
-    using pointer = char const *;
-
     static constexpr size_t static_length()
     {
         return S - 1;
     }
+
+    char tag[static_length()];
+    using pointer = char const *;
 
     consteval library_tag(char const (&name)[S])
         : tag()

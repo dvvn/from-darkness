@@ -164,9 +164,14 @@ macro(Dependency_Use_Imgui)
         list(APPEND _IMGUI_FILES
             ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
             ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp
-        )
+        )      
         add_library(imgui ${_IMGUI_FILES})
         add_library(imgui::imgui ALIAS imgui)             
+
+        target_sources(imgui PUBLIC
+            ${imgui_SOURCE_DIR}/misc/debuggers/imgui.natvis
+            ${imgui_SOURCE_DIR}/misc/debuggers/imgui.natstepfilter
+        )
 
         target_compile_definitions(imgui PRIVATE 
             IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
@@ -318,9 +323,9 @@ target_compile_definitions(imgui PUBLIC
 
 # -------------------
 
-
 file(GLOB_RECURSE _sources ${_FD_SHARED_DIR}/*.cpp)
-add_library(FD ${_sources})
+file(GLOB_RECURSE _visualizers ${_FD_SHARED_DIR}/*.nat*)
+add_library(FD ${_sources} ${_visualizers})
 target_link_libraries(FD PUBLIC ${_FD_DEPS})
 target_include_directories(FD PUBLIC ${_FD_SHARED_DIR}/ ${_FD_DEPS_INCLUDE})
 

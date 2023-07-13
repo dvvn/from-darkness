@@ -3,11 +3,13 @@
 #include "find.h"
 #include "container/array.h"
 #include "container/vector/dynamic.h"
+#include "diagnostics/fatal.h"
 #include "functional/ignore.h"
 
 #include <algorithm>
 #include <cassert>
 
+#if 0
 template <>
 struct std::iterator_traits<fd::basic_pattern::iterator>
 {
@@ -20,7 +22,7 @@ struct std::iterator_traits<fd::basic_pattern::iterator>
     using value_type        = decay_t<reference>;
     using difference_type   = ptrdiff_t;
 };
-
+#endif
 namespace fd
 {
 struct pattern_segment_view
@@ -44,10 +46,10 @@ struct pattern_segment_view
         ignore_unused(this);
     }
 
-    pattern_segment_view(basic_pattern_segment const &segment)
-        : begin_(segment.begin())
-        , end_(segment.end())
-        , tail_(segment.tail())
+    pattern_segment_view(basic_pattern_segment const *segment)
+        : begin_(segment->begin())
+        , end_(segment->end())
+        , tail_(segment->tail())
 #ifdef _DEBUG
         , length_(std::distance(begin_, end_))
         , abs_length_(length_ + tail_)
@@ -89,14 +91,6 @@ struct pattern_segment_view
     }
 };
 
-template <int, typename... T>
-requires(sizeof(T) == -1)
-static void *find(T...)
-{
-    // dummy gap
-    std::unreachable();
-}
-
 template <bool Rewrap>
 static uint8_t *find_byte(void *begin, void *end, uint8_t byte)
 {
@@ -109,7 +103,7 @@ static uint8_t *find_byte(void *begin, void *end, uint8_t byte)
     return it;
 }
 
-static ptrdiff_t distance(void const *begin, void const *end)
+static size_t distance(void const *begin, void const *end)
 {
     return (std::distance(static_cast<uint8_t const *>(begin), static_cast<uint8_t const *>(end)));
 }
@@ -140,7 +134,7 @@ static uint8_t *find(void *begin, void *end, pattern_segment_view const &segment
     }
 }
 
-void *find(void *begin, void *end, basic_pattern_segment const &segment)
+void *find(void *begin, void *end, basic_pattern_segment const *segment)
 {
     return find<true>(begin, end, segment);
 }
@@ -297,7 +291,7 @@ template <size_t SegmentCount>
 static void *find(void *begin, void *end, basic_pattern const &pattern)
 {
     if constexpr (SegmentCount == 0)
-        std::unreachable();
+        unreachable();
     else if constexpr (SegmentCount == 1)
         return find<true>(begin, end, *pattern.begin());
     else

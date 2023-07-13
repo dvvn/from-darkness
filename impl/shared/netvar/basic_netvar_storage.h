@@ -1,5 +1,7 @@
 #pragma once
 
+#include "interface.h"
+
 #include <cstddef>
 
 namespace fd
@@ -25,12 +27,13 @@ class basic_netvar_table
     virtual basic_netvar_info *get(string_view name)    = 0;
 };
 
-class basic_netvar_storage
-{
-  protected:
-    ~basic_netvar_storage() = default;
+struct native_client_class;
+struct native_data_map;
 
-  public:
+struct basic_netvar_storage : basic_interface
+{
     virtual basic_netvar_table *get(string_view name) = 0;
+    virtual void store(native_client_class *root)     = 0;
+    virtual void store(native_data_map *root)         = 0;
 };
 }

@@ -17,18 +17,17 @@ int main(int argc, int *argv) noexcept
 
     using enum fd::interface_type;
 
-    auto render_context = fd::make_interface<fd::render_context, in_place>();
-    auto system_backend = fd::make_interface<fd::own_win32_backend, in_place>();
-    auto render_backend = fd::make_interface<fd::own_dx9_backend, in_place>();
     auto menu           = fd::make_interface<fd::menu, stack>();
     auto vars_sample    = fd::make_interface<fd::vars_sample, stack>();
+    auto render_context = fd::make_interface<fd::render_context>();
+    auto system_backend = fd::make_interface<fd::own_win32_backend>();
+    auto render_backend = fd::make_interface<fd::own_dx9_backend>();
 
     auto vars = join(vars_sample);
 
-    fd::render_frame_simple render_frame( //
-        FD_GROUP_ARGS(render_backend, system_backend, render_context),
-        FD_GROUP_ARGS(menu, data(vars), size(vars))
-    );
+    fd::render_frame_simple render_frame(               //
+        render_backend, system_backend, render_context, //
+        menu, data(vars), size(vars));
 
     for (;;)
     {

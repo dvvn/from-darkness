@@ -156,7 +156,7 @@ class own_dx9_backend final : dx9_holder_proxy, public basic_own_dx9_backend
             own_dx9_backend::reset();
     }
 
-    IDirect3DDevice9 *get() const override
+    IDirect3DDevice9 *native() const override
     {
         return dx9.get();
     }

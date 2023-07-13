@@ -10,7 +10,6 @@
 #include "string/view.h"
 
 #include <boost/hana/append.hpp>
-#include <boost/hana/sum.hpp>
 #include <boost/hana/tuple.hpp>
 
 #include <algorithm>
@@ -83,39 +82,45 @@ constexpr void validate_pattern(char const *pattern, pattern_size_type length, T
         if (pattern[0] == '?')
             return bad_pattern::front_unknown();
 
-        for_each(cache, [](auto &&part) {
-            switch (distance(part))
+        for_each(
+            cache,
+            [](auto &&part)
             {
-            case 1: {
-                if (!validate_pattern_char(*begin(part)))
-                    return bad_pattern::bad_character();
-                break;
-            }
-            case 2: {
-                auto it  = begin(part);
-                auto tmp = validate_pattern_char(*it);
-                if (!tmp)
-                    return bad_pattern::bad_character();
-                auto tmp2 = validate_pattern_char(*next(it));
-                if (!tmp2)
-                    return bad_pattern::bad_character2();
-                if (tmp != tmp2)
-                    return bad_pattern::incompatible_chars();
-                break;
-            }
-            default: {
-                return bad_pattern::unsupported_char();
-            }
-            }
-        });
+                switch (distance(part))
+                {
+                case 1:
+                {
+                    if (!validate_pattern_char(*begin(part)))
+                        return bad_pattern::bad_character();
+                    break;
+                }
+                case 2:
+                {
+                    auto it  = begin(part);
+                    auto tmp = validate_pattern_char(*it);
+                    if (!tmp)
+                        return bad_pattern::bad_character();
+                    auto tmp2 = validate_pattern_char(*next(it));
+                    if (!tmp2)
+                        return bad_pattern::bad_character2();
+                    if (tmp != tmp2)
+                        return bad_pattern::incompatible_chars();
+                    break;
+                }
+                default:
+                {
+                    return bad_pattern::unsupported_char();
+                }
+                }
+            });
     }
 }
 
 template <typename It>
-constexpr pattern_size_type pattern_to_segments(It segment,
-                                                char const *raw_pattern,
-                                                pattern_size_type length,
-                                                pattern_size_type segments_ignore)
+constexpr pattern_size_type pattern_to_segments(
+    It segment,                                        //
+    char const *raw_pattern, pattern_size_type length, //
+    pattern_size_type segments_ignore)
 {
 #ifdef _DEBUG
     constexpr auto split = std::views::lazy_split;
@@ -134,79 +139,115 @@ constexpr pattern_size_type pattern_to_segments(It segment,
 
     pattern_size_type segments_count = 1;
 
-    for_each(view, [&](auto &&part) {
-        auto it = begin(part);
-
-        if (*it == '?')
+    for_each(
+        view,
+        [&](auto &&part)
         {
-            ++segment->tail;
-            return;
-        }
+            auto it = begin(part);
 
-        if (segment->tail != 0)
-        {
-            ++segment;
-            ++segments_count;
-        }
+            if (*it == '?')
+            {
+                segment->stretch_tail();
+                return;
+            }
 
-        auto part_begin = &*it;
-        auto part_end   = part_begin + distance(part);
+            if (segment->tail() != 0)
+            {
+                ++segment;
+                ++segments_count;
+            }
 
-        pattern_segment_value_type value;
+            auto part_begin = &*it;
+            auto part_end   = part_begin + distance(part);
 
-        [[maybe_unused]] //
-        auto result = from_chars(part_begin, part_end, value, 16);
+            pattern_segment_value_type value;
+
+            [[maybe_unused]] //
+            auto result = from_chars(part_begin, part_end, value, 16);
 #ifndef _DEBUG
-        if (result.ec != std::errc())
-            unreachable();
+            if (result.ec != std::errc())
+                unreachable();
 #endif
-        segment->emplace_back(value);
-    });
+            segment->emplace_back(value);
+        });
 
     return segments_count;
 }
 
 template <pattern_size_type Length>
-struct dirty_pattern
+class dirty_segment
 {
-    struct segment;
+    using size_type  = pattern_size_type;
+    using value_type = pattern_segment_value_type;
 
-    using pointer   = segment const *;
-    using iterator  = pointer;
-    using reference = segment const &;
-
-    struct segment
-    {
-        pattern_segment_value_type buff[Length];
-        pattern_size_type tail;
-
-        pattern_size_type length;
-
-        constexpr segment()
-            : buff()
-            , tail(0)
-            , length(0)
-        {
-        }
-
-        constexpr void emplace_back(pattern_segment_value_type byte)
-        {
-            buff[length] = byte;
-            ++length;
-        }
-
-        constexpr packed_pattern_segment extract() const
-        {
-            return {buff, tail};
-        }
-    };
-
-  private:
-    segment segments_[Length];
-    pattern_size_type segments_count_;
+    value_type buff_[Length];
+    size_type tail_;
+    size_type length_;
 
   public:
-    constexpr dirty_pattern(char const (&pattern)[Length], pattern_size_type ignore = 0)
+    constexpr dirty_segment()
+        : buff_()
+        , tail_(0)
+        , length_(0)
+    {
+    }
+
+    constexpr size_type tail() const
+    {
+        return tail_;
+    }
+
+    constexpr void stretch_tail()
+    {
+        ++tail_;
+    }
+
+    constexpr size_type length() const
+    {
+        return length_;
+    }
+
+    constexpr void emplace_back(value_type byte)
+    {
+        buff_[length_] = byte;
+        ++length_;
+    }
+
+    constexpr packed_pattern_segment extract() const
+    {
+        return {buff_, tail_};
+    }
+};
+
+template <pattern_size_type Length>
+class dirty_pattern
+{
+    using segment = dirty_segment<Length>;
+
+#ifdef _DEBUG
+    using storage_type = array<segment, Length>;
+#else
+    using storage_type = segment[Length];
+#endif
+
+  public:
+    using pointer = segment const *;
+#ifdef _DEBUG
+    using iterator = typename storage_type::const_iterator;
+#else
+    using iterator     = pointer;
+#endif
+    using reference = segment const &;
+
+    using size_type       = pattern_size_type;
+    using difference_type = pattern_difference_type;
+
+  private:
+    storage_type segments_;
+    size_type segments_count_;
+
+  public:
+    constexpr dirty_pattern(char const (&pattern)[Length], size_type ignore = 0)
         : segments_()
         , segments_count_(
               pattern_to_segments(std::begin(segments_), pattern, Length - (*std::rbegin(pattern) == '\0'), ignore))
@@ -223,12 +264,12 @@ struct dirty_pattern
         return begin() + count();
     }
 
-    constexpr pattern_size_type count() const
+    constexpr size_type count() const
     {
         return segments_count_;
     }
 
-    constexpr reference operator[](pattern_difference_type idx) const
+    constexpr reference operator[](size_type idx) const
     {
         assert(idx < count());
         return segments_[idx];
@@ -243,7 +284,7 @@ class dynamic_pattern_segment final : public basic_pattern_segment
     size_type tail_;
 
   public:
-    constexpr dynamic_pattern_segment()
+    dynamic_pattern_segment()
         : tail_(0)
     {
     }
@@ -263,10 +304,15 @@ class dynamic_pattern_segment final : public basic_pattern_segment
         return tail_;
     }
 
-  protected:
-    size_type self_size() const override
+    void stretch_tail()
     {
-        return sizeof(dynamic_pattern_segment);
+        ++tail_;
+    }
+
+    void emplace_back(value_type value)
+    {
+        assert(tail_ == 0);
+        buffer_.emplace_back(value);
     }
 };
 
@@ -275,7 +321,7 @@ class dynamic_pattern_segment final : public basic_pattern_segment
 template <pattern_size_type Length>
 class pattern_segment final : public basic_pattern_segment
 {
-    array<value_type, Length> bytes_;
+    value_type bytes_[Length];
     size_type tail_;
 
     template <size_type... I>
@@ -298,7 +344,7 @@ class pattern_segment final : public basic_pattern_segment
 
     pointer begin() const override
     {
-        return bytes_.data();
+        return std::data(bytes_);
     }
 
     pointer end() const override
@@ -309,12 +355,6 @@ class pattern_segment final : public basic_pattern_segment
     size_type tail() const override
     {
         return tail_;
-    }
-
-  protected:
-    size_type self_size() const override
-    {
-        return sizeof(pattern_segment);
     }
 };
 
@@ -347,25 +387,57 @@ class pattern_segment<0> final : public basic_pattern_segment
     {
         return tail_;
     }
-
-  protected:
-    size_type self_size() const override
-    {
-        return sizeof(pattern_segment);
-    }
 };
 } // namespace detail
 
 class dynamic_pattern final : public basic_pattern
 {
-    using segment_type = detail::dynamic_pattern_segment;
-    using buffer_type  = vector_ex2<segment_type, detail::dynamic_segment_allocator>;
+    using segment_type         = detail::dynamic_pattern_segment;
+    using buffer_type          = vector_ex2<segment_type, detail::dynamic_segment_allocator>;
+    // todo: replace vector with unique_ptr or similar
+    using abstract_buffer_type = vector_ex2<basic_pattern_segment *, detail::dynamic_segment_allocator>;
 
     buffer_type buffer_;
+    abstract_buffer_type abstract_buffer_;
+
+    struct segment_adder : std::back_insert_iterator<buffer_type>
+    {
+        using std::back_insert_iterator<buffer_type>::back_insert_iterator;
+
+        segment_type *operator->() const
+        {
+            return container->data() - 1;
+        }
+    };
+
+    static constexpr size_type dirty_segemnts_count(char const *pattern, size_type length)
+    {
+        for (size_type count = 1;;)
+        {
+            auto pos = string_view::traits_type::find(pattern, length, '?');
+            if (!pos)
+                return count;
+            ++pos;
+            ++count;
+            while (*pos == '?' || *pos == ' ')
+                ++pos;
+        }
+    }
 
   public:
-    constexpr dynamic_pattern(char const *pat, size_type pattern_length)
+    constexpr dynamic_pattern(char const *pattern, size_type length)
     {
+        using detail::pattern_to_segments;
+#if 0
+       auto count =  pattern_to_segments(segment_adder(buffer_), pattern, length, 0);
+#else
+        auto dirty_count = dirty_segemnts_count(pattern, length);
+        buffer_.resize(dirty_count);
+        auto count = pattern_to_segments(buffer_.begin(), pattern, length, 0);
+        assert(dirty_count == count);
+#endif
+        abstract_buffer_.reserve(count);
+        std::for_each(buffer_.begin(), buffer_.end(), [&](segment_type &s) { abstract_buffer_.emplace_back(&s); });
     }
 
     size_type segments() const override
@@ -375,12 +447,12 @@ class dynamic_pattern final : public basic_pattern
 
     iterator begin() const override
     {
-        return buffer_.data();
+        return abstract_buffer_.data();
     }
 
     iterator end() const override
     {
-        return buffer_.data() + buffer_.size();
+        return begin() + buffer_.size();
     }
 };
 
@@ -393,31 +465,40 @@ class pattern final : public basic_pattern
         return &at_c<0>(tpl) + 1 == &at_c<1>(tpl);
     }
 
+    static constexpr size_type segments_count_ = sizeof...(SegmentLength);
+
     // non-std tuple because std's one store elements back-to-front
     using buffer_type = boost::hana::tuple<detail::pattern_segment<SegmentLength>...>;
     buffer_type buffer_;
+    using abstract_buffer = array<basic_pattern_segment *, segments_count_>;
+    abstract_buffer abstract_buffer_;
 
   public:
     constexpr pattern(auto... info)
         : buffer_(info...)
     {
         static_assert(tuple_store_elements_as_is());
+        abstract_buffer_ = boost::hana::unpack(
+            buffer_, //
+            [&](auto &...s) -> abstract_buffer { return {static_cast<basic_pattern_segment *>(&s)...}; });
     }
 
     iterator begin() const override
     {
-        return &at_c<0>(buffer_);
+        return abstract_buffer_.data();
+        // return &at_c<0>(buffer_);
     }
 
     iterator end() const override
     {
-        return &at_c<sizeof...(SegmentLength) - 1>(buffer_) + 1;
-        // return reinterpret_cast<segment>(std::next(&buffer_));
+        return begin() + segments_count_;
+        // return &at_c<segments_count - 1>(buffer_) + 1;
+        //  return reinterpret_cast<segment>(std::next(&buffer_));
     }
 
     size_type segments() const override
     {
-        return sizeof...(SegmentLength);
+        return segments_count_;
     }
 
     /*pattern_size_type length() const override
@@ -449,8 +530,9 @@ template <pattern_string Pattern>
 constexpr auto make_pattern()
 {
     constexpr dirty_pattern pat(Pattern.buff);
-    constexpr auto convert_segments = []<pattern_size_type... I>(std::integer_sequence<pattern_size_type, I...>) {
-        return pattern<pat[I].length...>(pat[I].extract()...);
+    constexpr auto convert_segments = []<pattern_size_type... I>(std::integer_sequence<pattern_size_type, I...>)
+    {
+        return pattern<pat[I].length()...>(pat[I].extract()...);
     };
     return convert_segments(std::make_integer_sequence<pattern_size_type, pat.count()>());
 }
@@ -498,6 +580,7 @@ struct pattern_segment_info<0>
     }
 
     pattern_segment_info(string_view bytes, size_type tail = 0)
+        // ReSharper disable once CppRedundantCastExpression
         : pattern_segment_info(bytes.data(), static_cast<size_type>(bytes.length()), tail)
     {
         assert(bytes.length() < std::numeric_limits<size_type>::max());
@@ -539,10 +622,10 @@ constexpr auto pattern_args_to_segments(T &&tpl, A1 &arg1, A2 &arg2, Args &...ar
 template <typename... T>
 constexpr auto make_pattern(T const &...args) requires(sizeof...(T) > 1)
 {
-    return boost::hana::unpack(detail::pattern_args_to_segments(boost::hana::tuple(), args...),
-                               []<pattern_size_type... S>(pattern_segment_info<S>... segment) {
-                                   return pattern < S ? S - 1 : 0 ... > (segment.get()...);
-                               });
+    return boost::hana::unpack(
+        detail::pattern_args_to_segments(boost::hana::tuple(), args...),
+        []<pattern_size_type... S>(pattern_segment_info<S>... segment)
+        { return pattern < S ? S - 1 : 0 ... > (segment.get()...); });
 }
 
 template <pattern_string Pattern>

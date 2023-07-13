@@ -16,23 +16,24 @@ FixNamespaceComments: true
 #NamespaceIndentation: All
 BreakConstructorInitializers: BeforeComma
 RemoveSemicolon: true
-#BreakBeforeBraces: Allman
-AlignAfterOpenBracket: BlockIndent #Align #AlwaysBreak
+AlignAfterOpenBracket: AlwaysBreak #Align #BlockIndent
 AllowShortLambdasOnASingleLine: Inline
 SeparateDefinitionBlocks: Always
-BinPackArguments: false
-BinPackParameters: false
+BinPackArguments: true
+BinPackParameters: true
+ExperimentalAutoDetectBinPacking: true
+AllowAllParametersOfDeclarationOnNextLine: true
 AlwaysBreakTemplateDeclarations: Yes
-AllowAllParametersOfDeclarationOnNextLine: false
 PenaltyBreakAssignment: 100
 PenaltyBreakBeforeFirstCallParameter: 40
 PenaltyBreakFirstLessLess: 50
 PenaltyBreakOpenParenthesis: 60
 #ColumnLimit: 180
-BraceWrapping:
-  AfterUnion: true
-  BeforeWhile: true
-  BeforeLambdaBody: false
+BreakBeforeBraces: Allman
+#BraceWrapping:
+#  AfterUnion: true
+#  BeforeWhile: true
+#  BeforeLambdaBody: false
 RequiresClausePosition: WithPreceding
 KeepEmptyLinesAtTheStartOfBlocks: false
 #QualifierAlignment: Right ###let reshareper do this work
