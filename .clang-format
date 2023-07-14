@@ -21,7 +21,7 @@ AllowShortLambdasOnASingleLine: Inline
 SeparateDefinitionBlocks: Always
 BinPackArguments: true
 BinPackParameters: true
-ExperimentalAutoDetectBinPacking: true
+ExperimentalAutoDetectBinPacking: false
 AllowAllParametersOfDeclarationOnNextLine: true
 AlwaysBreakTemplateDeclarations: Yes
 PenaltyBreakAssignment: 100

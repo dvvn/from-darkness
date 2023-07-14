@@ -8,7 +8,7 @@ namespace fd
 namespace detail
 {
 template <typename T>
-class non_default_constructible_hook_callback : public noncopyable
+class non_default_constructible_hook_callback final : public noncopyable
 {
     uint8_t buff_[sizeof(T)];
 
@@ -49,11 +49,19 @@ inline detail::non_default_constructible_hook_callback<Callback> unique_hook_cal
 template <typename Callback>
 inline void *unique_hook_trampoline;
 
-template <typename T>
-void init_hook_callback(T &&callback)
+template <typename Callback>
+struct hook_callback_reference final : noncopyable
 {
-    static_assert(std::is_trivially_destructible_v<T>);
-    unique_hook_callback<T> = std::forward<T>(callback);
+};
+
+template <typename Callback>
+inline Callback &unique_hook_callback<hook_callback_reference<Callback>> = unique_hook_callback<Callback>;
+
+template <typename Callback>
+void init_hook_callback(Callback &callback)
+{
+    static_assert(std::is_trivially_destructible_v<Callback>);
+    unique_hook_callback<Callback> = static_cast<Callback &&>(callback);
 }
 
 template <typename T, typename... Args>
@@ -195,15 +203,12 @@ struct extract_hook_proxy<hook_proxy_non_member<Call_T, Ret, Args...>>
 
 #define GET_HOOK_PROXY_MEMBER(call__, __call, _call_)                                          \
     template <                                                                                 \
-        class Callback,                                                                        \
-        HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member,                                     \
-        typename Ret,                                                                          \
-        class Object,                                                                          \
-        typename... Args>                                                                      \
+        class Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member, /**/                \
+        typename Ret, class Object, typename... Args>                                          \
     prepared_hook_data prepare_hook(Ret (__call Object::*target)(Args...))                     \
     {                                                                                          \
         return {                                                                               \
-            unsafe_cast<void *>(target),                                                       \
+            unsafe_cast<void *>(target), /**/                                                  \
             extract_hook_proxy<Proxy<call__, Ret, Object, Args...>>::template get<Callback>(), \
             &unique_hook_trampoline<Callback> /**/                                             \
         };                                                                                     \
@@ -214,14 +219,12 @@ X86_CALL_MEMBER(GET_HOOK_PROXY_MEMBER)
 
 #define GET_HOOK_PROXY_NON_MEMBER(call__, __call, _call_)                              \
     template <                                                                         \
-        class Callback, /**/                                                           \
-        HOOK_PROXY_SAMPLE class Proxy = hook_proxy_non_member,                         \
-        typename Ret,                                                                  \
-        typename... Args>                                                              \
+        class Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_non_member, /**/    \
+        typename Ret, typename... Args>                                                \
     prepared_hook_data prepare_hook(Ret(__call *target)(Args...))                      \
     {                                                                                  \
         return {                                                                       \
-            unsafe_cast<void *>(target),                                               \
+            unsafe_cast<void *>(target), /**/                                          \
             extract_hook_proxy<Proxy<call__, Ret, Args...>>::template get<Callback>(), \
             &unique_hook_trampoline<Callback> /**/                                     \
         };                                                                             \
@@ -231,15 +234,12 @@ X86_CALL(GET_HOOK_PROXY_NON_MEMBER)
 #undef GET_HOOK_PROXY_NON_MEMBER
 
 template <
-    typename Callback,
-    HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member,
-    typename Ret,
-    class Object,
-    typename... Args>
+    typename Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member, //
+    typename Ret, class Object, typename... Args>
 prepared_hook_data prepare_hook(Ret(__thiscall *target)(Object *, Args...))
 {
     return {
-        unsafe_cast<void *>(target),
+        unsafe_cast<void *>(target), //
         extract_hook_proxy<Proxy<call_type::thiscall_, Ret, Object, Args...>>::template get<Callback>(),
         &unique_hook_trampoline<Callback> //
     };
@@ -249,16 +249,12 @@ template <call_type Call_T, typename Ret, typename T, typename... Args>
 class vfunc;
 
 template <
-    typename Callback,
-    HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member,
-    call_type Call_T,
-    typename Ret,
-    class Object,
-    typename... Args>
+    typename Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member, //
+    call_type Call_T, typename Ret, class Object, typename... Args>
 prepared_hook_data prepare_hook(vfunc<Call_T, Ret, Object, Args...> target)
 {
     return {
-        target.get(),
+        target.get(), //
         extract_hook_proxy<Proxy<Call_T, Ret, Object, Args...>>::template get<Callback>(),
         &unique_hook_trampoline<Callback> //
     };
@@ -267,8 +263,7 @@ prepared_hook_data prepare_hook(vfunc<Call_T, Ret, Object, Args...> target)
 struct native_function_tag;
 
 template <
-    typename Callback,
-    HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member,
+    typename Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member, //
     std::derived_from<native_function_tag> Fn>
 prepared_hook_data prepare_hook(Fn abstract_fn)
 {
