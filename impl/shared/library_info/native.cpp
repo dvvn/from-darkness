@@ -1,6 +1,6 @@
 ﻿#include "native.h"
-//
-#include "functional/const_cast.h"
+#include "pattern.h"
+#include "functional/cast.h"
 #include "functional/ignore.h"
 #include "string/char.h"
 #include "string/view.h"
@@ -179,7 +179,8 @@ static native_interface_holder *root_interface(void *create_fn)
 void *native_library_info::interface(string_view name) const
 {
     auto do_find = [root = root_interface(function("CreateInterface")),
-                    name]<bool Partial>(std::bool_constant<Partial>) -> void * {
+                    name]<bool Partial>(std::bool_constant<Partial>) -> void *
+    {
         found_native_interface<Partial> found = root->find<Partial>(name);
         found.set_input_string_length(name.length());
 
@@ -208,6 +209,12 @@ void *native_library_info::interface(string_view name) const
     };
 
     return isdigit(name.back()) ? do_find(std::false_type()) : do_find(std::true_type());
+}
+
+auto native_library_info::return_address_checker() const -> return_address_checker_t
+{
+    auto ptr = this->pattern("55 8B EC 56 8B F1 33 C0 57 8B 7D 08 8B 8E"_pat);
+    return unsafe_cast<return_address_checker_t>(ptr);
 }
 
 } // namespace fd

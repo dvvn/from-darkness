@@ -33,12 +33,8 @@ class hooked_dx9_present final
     }
 
     HRESULT operator()(
-        auto &original,
-        RECT const *source_rect,
-        RECT const *dest_rect,
-        HWND dest_window_override,
-        RGNDATA const *dirty_region
-    )
+        auto &original, //
+        RECT const *source_rect, RECT const *dest_rect, HWND dest_window_override, RGNDATA const *dirty_region)
     {
         render_frame_->render();
         return original(source_rect, dest_rect, dest_window_override, dirty_region);

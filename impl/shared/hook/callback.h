@@ -40,6 +40,11 @@ class non_default_constructible_hook_callback final : public noncopyable
 };
 } // namespace detail
 
+template <typename Callback>
+struct hook_callback_reference final : noncopyable
+{
+};
+
 template <typename Callback, bool = std::is_default_constructible_v<Callback>>
 inline Callback unique_hook_callback;
 
@@ -49,13 +54,22 @@ inline detail::non_default_constructible_hook_callback<Callback> unique_hook_cal
 template <typename Callback>
 inline void *unique_hook_trampoline;
 
+template <typename Callback, bool V>
+inline Callback &unique_hook_callback<hook_callback_reference<Callback>, V> = unique_hook_callback<Callback>;
+
 template <typename Callback>
-struct hook_callback_reference final : noncopyable
+struct hook_callback
+{
+    using type = Callback;
+};
+
+template <typename Callback>
+struct hook_callback<hook_callback_reference<Callback>> : hook_callback<Callback>
 {
 };
 
 template <typename Callback>
-inline Callback &unique_hook_callback<hook_callback_reference<Callback>> = unique_hook_callback<Callback>;
+using hook_callback_t = typename hook_callback<Callback>::type;
 
 template <typename Callback>
 void init_hook_callback(Callback &callback)
@@ -64,11 +78,11 @@ void init_hook_callback(Callback &callback)
     unique_hook_callback<Callback> = static_cast<Callback &&>(callback);
 }
 
-template <typename T, typename... Args>
+template <typename Callback, typename... Args>
 void init_hook_callback(Args &&...args)
 {
-    static_assert(std::is_trivially_destructible_v<T>);
-    new (&unique_hook_callback<T>) T(std::forward<Args>(args)...);
+    static_assert(std::is_trivially_destructible_v<Callback>);
+    new (&unique_hook_callback<Callback>) Callback(std::forward<Args>(args)...);
 }
 
 template <call_type Call_T, typename Ret, class C, typename... Args>
@@ -114,10 +128,28 @@ class object_proxy_member
 template <class Callback, call_type Call_T, typename Ret, class Object, typename... Args>
 Ret invoke_hook_proxy(hook_proxy_member<Call_T, Ret, Object, Args...> *proxy, Args... args)
 {
-    void *original = unique_hook_trampoline<Callback>;
-    object_proxy_member<Call_T, Ret, Object, Args...> obj(original, proxy);
-    Callback &callback = unique_hook_callback<Callback>;
-    return callback(obj, args...);
+    using original_proxy = object_proxy_member<Call_T, Ret, Object, Args...>;
+    using callback_type  = hook_callback_t<Callback>;
+
+    callback_type &callback = unique_hook_callback<Callback>;
+
+    constexpr auto pass_original = std::invocable<callback_type, original_proxy &, Args...>;
+    constexpr auto pass_classptr = std::invocable<callback_type, Object *, Args...>;
+
+    if constexpr (pass_original)
+    {
+        original_proxy obj(unique_hook_trampoline<Callback>, proxy);
+        return callback(obj, args...);
+    }
+    else if constexpr (pass_classptr)
+    {
+        auto classptr = unsafe_cast<Object *>(proxy);
+        return callback(classptr, args...);
+    }
+    else
+    {
+        return callback(args...);
+    }
 }
 
 #define HOOK_PROXY_MEMBER(call__, __call, _call_)                         \
@@ -158,10 +190,29 @@ class object_proxy_non_member
 template <class Callback, call_type Call_T, typename Ret, typename... Args>
 Ret invoke_hook_proxy(Args... args)
 {
-    void *original = unique_hook_trampoline<Callback>;
-    object_proxy_non_member<Call_T, Ret, Args...> holder(original);
-    Callback &callback = unique_hook_callback<Callback>;
-    return callback(holder, args...);
+    using original       = non_member_func_type<Call_T, Ret, Args...>;
+    using original_proxy = object_proxy_non_member<Call_T, Ret, Args...>; // or std::bind
+    using callback_type  = hook_callback_t<Callback>;
+
+    callback_type &callback = unique_hook_callback<Callback>;
+
+    constexpr auto pass_original       = std::invocable<callback_type, original, Args...>;
+    constexpr auto pass_original_proxy = std::invocable<callback_type, original_proxy &, Args...>;
+
+    if constexpr (pass_original)
+    {
+        auto fn = unsafe_cast<original>(unique_hook_trampoline<Callback>);
+        return callback(fn, args...);
+    }
+    else if constexpr (pass_original_proxy)
+    {
+        original_proxy holder(unique_hook_trampoline<Callback>);
+        return callback(holder, args...);
+    }
+    else
+    {
+        return callback(args...);
+    }
 }
 
 #define HOOK_PROXY_STATIC(call__, __call, call)                            \

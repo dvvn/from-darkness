@@ -7,6 +7,7 @@
 #include "hook/callback.h"
 #include "hook/preferred_backend.h"
 #include "hooked/directx9.h"
+#include "hooked/universal.h"
 #include "hooked/winapi.h"
 #include "native/client.h"
 #include "netvar/netvar_storage.h"
@@ -54,8 +55,7 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
         // Initialize once for each new process.
         // Return FALSE to fail DLL load.
         thread = CreateThread(
-            nullptr,
-            0,
+            nullptr, 0,
             [](LPVOID ptr) -> DWORD
             {
                 try
@@ -69,9 +69,7 @@ BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
                     exit_thread(false);
                 }
             },
-            handle,
-            0,
-            &thread_id);
+            handle, 0, &thread_id);
         if (!thread)
             return FALSE;
         break;
@@ -124,14 +122,22 @@ void context()
     auto hook_backend = fd::make_interface<fd::preferred_hook_backend>();
     fd::vtable render_vtable(render_backend->native());
     hook_backend->create(prepare_hook<fd::hooked_wndproc>( //
-        system_backend->proc(),
-        system_backend));
+        system_backend->proc(), system_backend));
     hook_backend->create(prepare_hook<fd::hooked_dx9_reset>( //
-        render_vtable[&IDirect3DDevice9::Reset],
-        render_backend));
+        render_vtable[&IDirect3DDevice9::Reset], render_backend));
     hook_backend->create(prepare_hook<fd::hooked_dx9_present>( //
-        render_vtable[&IDirect3DDevice9::Present],
-        &render_frame));
+        render_vtable[&IDirect3DDevice9::Present], &render_frame));
+
+#ifndef FD_SPOOF_RETURN_ADDRESS
+    fd::init_hook_callback<fd::hooked_verify_return_address>();
+    using hooked_verify_return_address_ref = fd::hook_callback_reference<fd::hooked_verify_return_address>;
+    hook_backend->create(fd::prepare_hook<hooked_verify_return_address_ref>( //
+        sources.client.return_address_checker()));
+#if 0
+    hook_backend->create(fd::prepare_hook<hooked_verify_return_address_ref>( //
+        sources.shaderapidx9.return_address_checker()));
+#endif
+#endif
 
     hook_backend->enable();
 

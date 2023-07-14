@@ -5,12 +5,12 @@
 #include "concepts.h"
 #include "diagnostics/fatal.h"
 #include "functional/bind.h"
+#include "functional/cast.h"
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
 #include <x86RetSpoof.h>
 #endif
 
-#include <boost/hana/functional/apply.hpp>
 #include <boost/hana/tuple.hpp>
 
 #undef thiscall
@@ -21,35 +21,6 @@
 
 namespace fd
 {
-
-template <class L, class R, size_t L_Size = sizeof(L), size_t R_Size = sizeof(R)>
-constexpr void same_size()
-{
-    static_assert(L_Size == R_Size);
-}
-
-template <typename To, typename From>
-To unsafe_cast(From from)
-{
-    if constexpr (std::convertible_to<To, From>)
-    {
-        return static_cast<To>(from);
-    }
-    else
-    {
-        // static_assert(sizeof(To) == sizeof(From));
-        same_size<To, From>();
-
-        union
-        {
-            From from0;
-            To to;
-        };
-
-        from0 = from;
-        return to;
-    }
-}
 
 enum class call_type : uint8_t
 {
@@ -206,7 +177,7 @@ struct non_member_func_invoker
 
     Ret operator()(void *function, Args... args) const
     {
-        return std::invoke(unsafe_cast<type>(function), args...);
+        return operator()(unsafe_cast<type>(function), args...);
     }
 };
 
@@ -243,7 +214,7 @@ struct member_func_invoker
         }
         else*/
         {
-            return std::invoke(unsafe_cast<function_type>(function), instance, args...);
+            return operator()(unsafe_cast<function_type>(function), instance, args...);
         }
 #endif
     }
