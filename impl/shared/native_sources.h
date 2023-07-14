@@ -1,11 +1,14 @@
 ﻿#pragma once
 
-#include "pattern.h"
 #include "library_info/native.h"
+#ifdef FD_SPOOF_RETURN_ADDRESS
+#include "pattern.h"
 #include "library_info/tag.h"
+#endif
 
 namespace fd
 {
+#ifdef FD_SPOOF_RETURN_ADDRESS
 template <library_tag Tag>
 struct native_return_address_gadget;
 
@@ -34,11 +37,13 @@ struct native_library : native_library_info
         return static_cast<system_library_info>(*this);
     }
 };
+#else
 
+#endif
 struct native_sources
 {
-#ifdef __RESHARPER__
-#define NATIVE_SOURCE(_NAME_) native_library_info _NAME_ = L"" #_NAME_;
+#if defined(__RESHARPER__) || !defined(FD_SPOOF_RETURN_ADDRESS)
+#define NATIVE_SOURCE(_NAME_) native_library_info _NAME_ = {L"" #_NAME_, sizeof(#_NAME_) - 1};
 #else
 #define NATIVE_SOURCE(_NAME_) native_library<#_NAME_> _NAME_;
 #endif

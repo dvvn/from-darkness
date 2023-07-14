@@ -2,15 +2,12 @@
 
 // #include "fd/library_info/native.h"
 #include "functional/vtable.h"
+#ifdef FD_SPOOF_RETURN_ADDRESS
 #include "library_info/tag.h"
+#endif
 
 namespace fd
 {
-template <library_tag Tag>
-struct native_return_address_gadget
-{
-    inline static uintptr_t address;
-};
 
 #define FD_NATIVE_INTERFACE(_NAME_)                                        \
   private:                                                                 \
@@ -24,6 +21,13 @@ struct native_return_address_gadget
     {                                                                      \
         return __vtable[index];                                            \
     }
+
+#ifdef FD_SPOOF_RETURN_ADDRESS
+template <library_tag Tag>
+struct native_return_address_gadget
+{
+    inline static uintptr_t address;
+};
 #ifdef __RESHARPER__
 #define FD_BIND_NATIVE_INTERFACE_GADGET(_MEMBER_, _LIB_) \
     template <>                                          \
@@ -43,6 +47,13 @@ struct native_return_address_gadget
     struct _MEMBER_;                              \
     }                                             \
     FD_BIND_NATIVE_INTERFACE_GADGET(_MEMBER_, _LIB_);
+#else
+#define FD_BIND_NATIVE_INTERFACE(_MEMBER_, _LIB_) \
+    inline namespace native                       \
+    {                                             \
+    struct _MEMBER_;                              \
+    }
+#endif
 
 struct native_function_tag
 {

@@ -1,13 +1,17 @@
 #pragma once
 
+// #define FD_SPOOF_RETURN_ADDRESS
+
 #include "concepts.h"
 #include "diagnostics/fatal.h"
 #include "functional/bind.h"
 
+#ifdef FD_SPOOF_RETURN_ADDRESS
 #include <x86RetSpoof.h>
+#endif
 
-#include <cassert>
-#include <tuple>
+#include <boost/hana/functional/apply.hpp>
+#include <boost/hana/tuple.hpp>
 
 #undef thiscall
 #undef cdecl
@@ -17,6 +21,13 @@
 
 namespace fd
 {
+
+template <class L, class R, size_t L_Size = sizeof(L), size_t R_Size = sizeof(R)>
+constexpr void same_size()
+{
+    static_assert(L_Size == R_Size);
+}
+
 template <typename To, typename From>
 To unsafe_cast(From from)
 {
@@ -26,7 +37,8 @@ To unsafe_cast(From from)
     }
     else
     {
-        static_assert(sizeof(To) == sizeof(From));
+        // static_assert(sizeof(To) == sizeof(From));
+        same_size<To, From>();
 
         union
         {
@@ -108,6 +120,7 @@ struct member_func_type_impl;
 template <call_type Call_T, typename Ret, typename T, typename... Args>
 using member_func_type = typename member_func_type_impl<Call_T, Ret, T, Args...>::type;
 
+#ifdef FD_SPOOF_RETURN_ADDRESS
 template <class Object>
 struct return_address_gadget;
 
@@ -173,6 +186,7 @@ struct return_address_spoofer<call_type::thiscall_, Ret, Object *, Args...>
         return operator()(return_address_gadget<Object>::address, function, instance, args...);
     }
 };
+#endif
 
 template <call_type Call_T, typename Ret, typename... Args>
 struct non_member_func_type_impl;
@@ -209,15 +223,37 @@ X86_CALL_MEMBER(MEMBER_FN_TYPE)
 template <call_type Call_T, class Ret, class T, typename... Args>
 struct member_func_invoker
 {
-    Ret operator()(member_func_type<Call_T, Ret, T, Args...> function, T *instance, Args... args) const
+    using function_type = member_func_type<Call_T, Ret, T, Args...>;
+
+    Ret operator()(function_type function, T *instance, Args... args) const
     {
         return std::invoke(function, instance, args...);
     }
 
     Ret operator()(void *function, T *instance, Args... args) const
     {
+#ifdef FD_SPOOF_RETURN_ADDRESS
         return try_spoof_member_return_address<Call_T, Ret>(function, instance, args...);
+#else
+        // msvc generate fat pointer here, idk why
+        /*if constexpr (forwarded<T> && sizeof(function_type) != sizeof(void *))
+        {
+            member_func_invoker<Call_T, Ret, void, Args...> invoker;
+            return invoker(function, unsafe_cast<void *>(instance), args...);
+        }
+        else*/
+        {
+            return std::invoke(unsafe_cast<function_type>(function), instance, args...);
+        }
+#endif
     }
+};
+
+template <call_type Call_T, class Ret, class T, typename... Args>
+requires(std::is_class_v<T> && forwarded<T>)
+struct member_func_invoker<Call_T, Ret, T, Args...> : member_func_invoker<Call_T, Ret, void, Args...>
+{
+    static_assert(sizeof(member_func_type<Call_T, Ret, T, Args...>) != sizeof(void *));
 };
 
 template <class Ret, typename... Args>
@@ -229,16 +265,16 @@ struct member_func_invoker<call_type::thiscall_, Ret, void, Args...>
 template <call_type Call_T, class Ret, typename... Args>
 struct member_func_invoker<Call_T, Ret, void, Args...>
 {
-    using type = member_func_type<Call_T, Ret, dummy_class, Args...>;
+    using function_type = member_func_type<Call_T, Ret, dummy_class, Args...>;
 
-    Ret operator()(type function, void *instance, Args... args) const
+    Ret operator()(function_type function, void *instance, Args... args) const
     {
         return std::invoke(function, static_cast<dummy_class *>(instance), args...);
     }
 
     Ret operator()(void *function, void *instance, Args... args) const
     {
-        return operator()(unsafe_cast<type>(function), instance, args...);
+        return operator()(unsafe_cast<function_type>(function), instance, args...);
     }
 };
 
@@ -257,7 +293,7 @@ class member_func_return_type_resolver
 {
     template <typename Ret>
     using invoker     = member_func_invoker<Call_T, Ret, T, Args...>;
-    using args_packed = std::tuple<Args...>;
+    using args_packed = boost::hana::tuple<Args...>;
 
     void *function_;
     T *instance_;
@@ -275,7 +311,7 @@ class member_func_return_type_resolver
     template <typename Ret>
     operator Ret()
     {
-        return std::apply(bind_front(invoker<Ret>(), function_, instance_), args_);
+        return boost::hana::unpack(args_, bind_front(invoker<Ret>(), function_, instance_));
     }
 };
 

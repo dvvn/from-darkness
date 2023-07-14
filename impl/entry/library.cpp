@@ -25,7 +25,8 @@ static HINSTANCE self_handle;
 static HANDLE thread;
 static DWORD thread_id;
 
-static void DECLSPEC_NORETURN exit_thread(bool success)
+[[noreturn]]
+static void exit_thread(bool success)
 {
     assert(GetCurrentThread() == thread);
     FreeLibraryAndExitThread(self_handle, success ? EXIT_SUCCESS : EXIT_FAILURE);
