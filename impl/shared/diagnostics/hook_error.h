@@ -2,7 +2,6 @@
 
 #include "runtime_error.h"
 
-
 namespace fd
 {
 struct hook_error : runtime_error

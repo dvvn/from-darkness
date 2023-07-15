@@ -4,7 +4,9 @@ namespace fd
 {
 struct hooked_verify_return_address
 {
-    bool operator()(/*auto&original,*/ char const *module_name) const
+    using function_type = char(__thiscall *)(void *, char const *);
+
+    bool operator()(/*auto &original,*/ void const *retaddr) const
     {
         return true;
     }

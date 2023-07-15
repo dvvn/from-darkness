@@ -296,6 +296,30 @@ prepared_hook_data prepare_hook(Ret(__thiscall *target)(Object *, Args...))
     };
 }
 
+template <typename Callback, HOOK_PROXY_SAMPLE class Proxy>
+prepared_hook_data prepare_hook(void *target)
+{
+    return prepare_hook<Callback, Proxy>(unsafe_cast<typename hook_callback_t<Callback>::function_type>(target));
+}
+
+template <typename Callback>
+prepared_hook_data prepare_hook(void *target)
+{
+    return prepare_hook<Callback>(unsafe_cast<typename hook_callback_t<Callback>::function_type>(target));
+}
+
+template <
+    typename Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_non_member, //
+    call_type Call_T, typename Ret, typename... Args>
+prepared_hook_data prepare_hook(void *target)
+{
+    return {
+        (target), //
+        extract_hook_proxy<Proxy<Call_T, Ret, Args...>>::template get<Callback>(),
+        &unique_hook_trampoline<Callback> //
+    };
+}
+
 template <call_type Call_T, typename Ret, typename T, typename... Args>
 class vfunc;
 
@@ -324,28 +348,28 @@ prepared_hook_data prepare_hook(Fn abstract_fn)
 //----
 
 template <typename Callback>
-prepared_hook_data prepare_hook(auto target, Callback callback)
+prepared_hook_data prepare_hook_full(auto target, Callback callback)
 {
     init_hook_callback(std::move(callback));
     return prepare_hook<Callback>(target);
 }
 
 template <HOOK_PROXY_SAMPLE class Proxy, typename Callback>
-prepared_hook_data prepare_hook(auto target, Callback callback)
+prepared_hook_data prepare_hook_full(auto target, Callback callback)
 {
     init_hook_callback(std::move(callback));
     return prepare_hook<Callback, Proxy>(target);
 }
 
 template <typename Callback, typename... Args>
-prepared_hook_data prepare_hook(auto target, Args &&...args)
+prepared_hook_data prepare_hook_full(auto target, Args &&...args)
 {
     init_hook_callback<Callback>(std::forward<Args>(args)...);
     return prepare_hook<Callback>(target);
 }
 
 template <HOOK_PROXY_SAMPLE class Proxy, typename Callback, typename... Args>
-prepared_hook_data prepare_hook(auto target, Args &&...args)
+prepared_hook_data prepare_hook_full(auto target, Args &&...args)
 {
     init_hook_callback<Callback>(std::forward<Args>(args)...);
     return prepare_hook<Callback, Proxy>(target);

@@ -10,31 +10,39 @@
 
 namespace fd
 {
+static char const *to_string(MH_STATUS const status)
+{
+    auto msg = MH_StatusToString(status);
+    if (msg[2] == '_' /*MH_*/)
+        msg += 3;
+    return msg;
+}
+
 class minhook_error final : public hook_error
 {
     MH_STATUS status_;
 
   public:
-    minhook_error(MH_STATUS status, char const *message)
-        : hook_error(message
+    minhook_error(MH_STATUS const status, char const *message)
+        : hook_error(
+              message
 #ifdef _DEBUG
-                         ? message
-                         : default_exception_message
+                  ? message
+                  : to_string(status)
 #endif
-                     )
+                  )
         , status_(status)
     {
     }
 
     char const *status() const override
     {
-        auto msg = MH_StatusToString(status_);
-        if (msg[2] == '_' /*MH_*/)
-            msg += 3;
-        return msg;
+        return to_string(status_);
     }
 
-    static void create(MH_STATUS status, char const *message = nullptr)
+   
+
+    static void create(MH_STATUS const status, char const *message = nullptr)
     {
         if (status != MH_OK)
             throw minhook_error(status, message);

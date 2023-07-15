@@ -592,8 +592,8 @@ struct pattern_segment_info<0>
     }
 };
 
-// template <pattern_size_type S>
-pattern_segment_info(std::type_identity_t<string_view>, auto...) -> pattern_segment_info<0>;
+template <std::same_as<string_view> S>
+pattern_segment_info(S, pattern_size_type) -> pattern_segment_info<0>;
 
 template <class T, typename A1>
 constexpr auto pattern_args_to_segments(T &&tpl, A1 &arg1)
@@ -625,7 +625,7 @@ constexpr auto make_pattern(T const &...args) requires(sizeof...(T) > 1)
     return boost::hana::unpack(
         detail::pattern_args_to_segments(boost::hana::tuple(), args...),
         []<pattern_size_type... S>(pattern_segment_info<S>... segment)
-        { return pattern < S ? S - 1 : 0 ... > (segment.get()...); });
+        { return pattern<(S ? S - 1 : 0)...>(segment.get()...); });
 }
 
 template <pattern_string Pattern>

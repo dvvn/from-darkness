@@ -10,6 +10,12 @@ constexpr size_t strlen(char const (&)[S])
     return S - 1;
 }
 
+template <size_t S>
+constexpr size_t strlen(wchar_t const (&)[S])
+{
+    return S - 1;
+}
+
 namespace detail
 {
 constexpr bool is_betweet_two(char c, char left, char rigtht)
@@ -35,7 +41,8 @@ constexpr bool isdigit(char c)
 
 constexpr bool isxdigit(char c)
 {
-    return detail::is_betweet_two(c, '0', '9') || detail::is_betweet_two(c, 'a', 'f') ||
+    return detail::is_betweet_two(c, '0', '9') || //
+           detail::is_betweet_two(c, 'a', 'f') || //
            detail::is_betweet_two(c, 'A', 'F');
 }
 

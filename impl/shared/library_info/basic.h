@@ -22,7 +22,6 @@ using IMAGE_NT_HEADERS = struct _IMAGE_NT_HEADERS;
 
 namespace fd
 {
-struct string_view;
 struct wstring_view;
 
 template <size_t S>
@@ -33,7 +32,8 @@ struct basic_library_info
     using string_type = wstring_view;
     using char_type   = wchar_t;
 
-    static constexpr auto &file_extension = ".dll";
+    static constexpr auto file_extension        = ".dll";
+    static constexpr auto file_extension_length = 4;
 
   private:
     union
@@ -43,13 +43,18 @@ struct basic_library_info
     };
 
   public:
-    basic_library_info(string_type name);
     basic_library_info(char_type const *name, size_t length);
+
+    template <size_t Length>
+    basic_library_info(char_type (&name)[Length])
+        : basic_library_info(name, Length - 1)
+    {
+    }
 
     template <size_t S>
     basic_library_info(library_tag<S> const &tag)
     {
-        constexpr auto buffer_length = tag.static_length() + sizeof(file_extension) - 1;
+        constexpr auto buffer_length = tag.static_length() + file_extension_length;
 
         char_type buffer[buffer_length];
         tag.add_extension(buffer, file_extension);
@@ -63,6 +68,12 @@ struct basic_library_info
     string_type name() const;
     string_type path() const;
     IMAGE_DATA_DIRECTORY *directory(uint8_t index) const;
-    IMAGE_SECTION_HEADER *section(string_view name) const;
+    IMAGE_SECTION_HEADER *section(char const *name, uint8_t length) const;
+
+    template <size_t Length>
+    IMAGE_SECTION_HEADER *section(char const (&name)[Length]) const
+    {
+        return section(name, Length - 1);
+    }
 };
 } // namespace fd

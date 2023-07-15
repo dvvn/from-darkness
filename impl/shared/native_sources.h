@@ -43,7 +43,7 @@ struct native_library : native_library_info
 struct native_sources
 {
 #if defined(__RESHARPER__) || !defined(FD_SPOOF_RETURN_ADDRESS)
-#define NATIVE_SOURCE(_NAME_) native_library_info _NAME_ = {L"" #_NAME_, sizeof(#_NAME_) - 1};
+#define NATIVE_SOURCE(_NAME_) native_library_info _NAME_ = {L"" #_NAME_ ".dll", sizeof(#_NAME_) - 1 + 4};
 #else
 #define NATIVE_SOURCE(_NAME_) native_library<#_NAME_> _NAME_;
 #endif

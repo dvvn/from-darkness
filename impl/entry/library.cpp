@@ -27,9 +27,9 @@ static HANDLE thread;
 static DWORD thread_id;
 
 [[noreturn]]
-static void exit_thread(bool success)
+static void exit_thread(bool const success)
 {
-    assert(GetCurrentThread() == thread);
+    assert(GetCurrentThreadId() == thread_id);
     FreeLibraryAndExitThread(self_handle, success ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
@@ -46,7 +46,7 @@ static bool resume_thread()
 static void context();
 
 // ReSharper disable once CppInconsistentNaming
-BOOL WINAPI DllMain(HINSTANCE handle, DWORD reason, LPVOID reserved)
+BOOL WINAPI DllMain(HINSTANCE const handle, DWORD const reason, LPCVOID const reserved)
 {
     switch (reason)
     {
@@ -100,17 +100,17 @@ void context()
     fd::log_activator log_activator;
 #endif
 
-    fd::native_sources sources;
-    fd::native_client client(sources.client);
+    fd::native_sources const sources;
+    fd::native_client const client(sources.client);
 
     using enum fd::interface_type;
 
-    auto menu           = fd::make_interface<fd::menu, stack>();
-    auto vars_sample    = fd::make_interface<fd::vars_sample, stack>();
-    auto netvars        = fd::make_interface<fd::netvar_storage>();
-    auto render_context = fd::make_interface<fd::render_context>();
-    auto system_backend = fd::make_interface<fd::native_win32_backend>();
-    auto render_backend = fd::make_interface<fd::native_dx9_backend>(sources.shaderapidx9);
+    auto const menu           = fd::make_interface<fd::menu, stack>();
+    auto vars_sample          = fd::make_interface<fd::vars_sample, stack>();
+    auto const netvars        = fd::make_interface<fd::netvar_storage>();
+    auto const render_context = fd::make_interface<fd::render_context>();
+    auto system_backend       = fd::make_interface<fd::native_win32_backend>();
+    auto render_backend       = fd::make_interface<fd::native_dx9_backend>(sources.shaderapidx9);
 
     auto vars = join(vars_sample);
     fd::render_frame_full render_frame(
@@ -120,12 +120,12 @@ void context()
     netvars->store(client.get_all_classes());
 
     auto hook_backend = fd::make_interface<fd::preferred_hook_backend>();
-    fd::vtable render_vtable(render_backend->native());
-    hook_backend->create(prepare_hook<fd::hooked_wndproc>( //
+    fd::vtable const render_vtable(render_backend->native());
+    hook_backend->create(prepare_hook_full<fd::hooked_wndproc>( //
         system_backend->proc(), system_backend));
-    hook_backend->create(prepare_hook<fd::hooked_dx9_reset>( //
+    hook_backend->create(prepare_hook_full<fd::hooked_dx9_reset>( //
         render_vtable[&IDirect3DDevice9::Reset], render_backend));
-    hook_backend->create(prepare_hook<fd::hooked_dx9_present>( //
+    hook_backend->create(prepare_hook_full<fd::hooked_dx9_present>( //
         render_vtable[&IDirect3DDevice9::Present], &render_frame));
 
 #ifndef FD_SPOOF_RETURN_ADDRESS

@@ -37,6 +37,14 @@ BreakBeforeBraces: Allman
 RequiresClausePosition: WithPreceding
 KeepEmptyLinesAtTheStartOfBlocks: false
 #QualifierAlignment: Right ###let reshareper do this work
+QualifierAlignment: Custom
+QualifierOrder:
+  - friend
+  - inline
+  - static
+  - constexpr
+  - type
+  - const
 UseTab: Never
 IncludeBlocks: Regroup
 IncludeCategories:
