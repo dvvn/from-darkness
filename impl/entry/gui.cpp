@@ -15,13 +15,11 @@ int main(int argc, int *argv) noexcept
     fd::log_activator log_activator;
 #endif
 
-    using enum fd::interface_type;
-
-    auto menu           = fd::make_interface<fd::menu, stack>();
-    auto vars_sample    = fd::make_interface<fd::vars_sample, stack>();
-    auto render_context = fd::make_interface<fd::render_context>();
-    auto system_backend = fd::make_interface<fd::own_win32_backend>();
-    auto render_backend = fd::make_interface<fd::own_dx9_backend>();
+    auto const menu           = fd::make_interface<fd::menu>();
+    auto const vars_sample    = fd::make_interface<fd::vars_sample>();
+    auto const render_context = fd::make_interface<fd::render_context>();
+    auto const system_backend = fd::make_interface<fd::own_win32_backend>();
+    auto const render_backend = fd::make_interface<fd::own_dx9_backend>();
 
     auto vars = join(vars_sample);
 
@@ -38,7 +36,7 @@ int main(int argc, int *argv) noexcept
         if (system_backend->minimized())
             continue;
 
-        auto windows_size = system_backend->size();
+        auto const windows_size = system_backend->size();
         render_backend->resize(windows_size.w, windows_size.h);
 
         render_frame.render();

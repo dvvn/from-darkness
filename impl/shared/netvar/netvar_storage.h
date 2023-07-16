@@ -21,11 +21,6 @@ class basic_netvar_type_cache
     virtual string_view store(key_type key, string &&value) = 0;
 };
 
-
-
-
-
 class netvar_storage;
-FD_INTERFACE_FWD(netvar_storage, basic_netvar_storage);
-
+FD_INTERFACE_FWD(netvar_storage,  basic_netvar_storage);
 }

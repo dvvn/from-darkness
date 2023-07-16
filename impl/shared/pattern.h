@@ -82,37 +82,31 @@ constexpr void validate_pattern(char const *pattern, pattern_size_type length, T
         if (pattern[0] == '?')
             return bad_pattern::front_unknown();
 
-        for_each(
-            cache,
-            [](auto &&part)
+        for_each(cache, [](auto &&part) {
+            switch (distance(part))
             {
-                switch (distance(part))
-                {
-                case 1:
-                {
-                    if (!validate_pattern_char(*begin(part)))
-                        return bad_pattern::bad_character();
-                    break;
-                }
-                case 2:
-                {
-                    auto it  = begin(part);
-                    auto tmp = validate_pattern_char(*it);
-                    if (!tmp)
-                        return bad_pattern::bad_character();
-                    auto tmp2 = validate_pattern_char(*next(it));
-                    if (!tmp2)
-                        return bad_pattern::bad_character2();
-                    if (tmp != tmp2)
-                        return bad_pattern::incompatible_chars();
-                    break;
-                }
-                default:
-                {
-                    return bad_pattern::unsupported_char();
-                }
-                }
-            });
+            case 1: {
+                if (!validate_pattern_char(*begin(part)))
+                    return bad_pattern::bad_character();
+                break;
+            }
+            case 2: {
+                auto it  = begin(part);
+                auto tmp = validate_pattern_char(*it);
+                if (!tmp)
+                    return bad_pattern::bad_character();
+                auto tmp2 = validate_pattern_char(*next(it));
+                if (!tmp2)
+                    return bad_pattern::bad_character2();
+                if (tmp != tmp2)
+                    return bad_pattern::incompatible_chars();
+                break;
+            }
+            default: {
+                return bad_pattern::unsupported_char();
+            }
+            }
+        });
     }
 }
 
@@ -139,37 +133,34 @@ constexpr pattern_size_type pattern_to_segments(
 
     pattern_size_type segments_count = 1;
 
-    for_each(
-        view,
-        [&](auto &&part)
+    for_each(view, [&](auto &&part) {
+        auto it = begin(part);
+
+        if (*it == '?')
         {
-            auto it = begin(part);
+            segment->stretch_tail();
+            return;
+        }
 
-            if (*it == '?')
-            {
-                segment->stretch_tail();
-                return;
-            }
+        if (segment->tail() != 0)
+        {
+            ++segment;
+            ++segments_count;
+        }
 
-            if (segment->tail() != 0)
-            {
-                ++segment;
-                ++segments_count;
-            }
+        auto part_begin = &*it;
+        auto part_end   = part_begin + distance(part);
 
-            auto part_begin = &*it;
-            auto part_end   = part_begin + distance(part);
+        pattern_segment_value_type value;
 
-            pattern_segment_value_type value;
-
-            [[maybe_unused]] //
-            auto result = from_chars(part_begin, part_end, value, 16);
+        [[maybe_unused]] //
+        auto result = from_chars(part_begin, part_end, value, 16);
 #ifndef _DEBUG
-            if (result.ec != std::errc())
-                unreachable();
+        if (result.ec != std::errc())
+            unreachable();
 #endif
-            segment->emplace_back(value);
-        });
+        segment->emplace_back(value);
+    });
 
     return segments_count;
 }
@@ -437,7 +428,9 @@ class dynamic_pattern final : public basic_pattern
         assert(dirty_count == count);
 #endif
         abstract_buffer_.reserve(count);
-        std::for_each(buffer_.begin(), buffer_.end(), [&](segment_type &s) { abstract_buffer_.emplace_back(&s); });
+        std::for_each(buffer_.begin(), buffer_.end(), [&](segment_type &s) {
+            abstract_buffer_.emplace_back(&s);
+        });
     }
 
     size_type segments() const override
@@ -480,7 +473,9 @@ class pattern final : public basic_pattern
         static_assert(tuple_store_elements_as_is());
         abstract_buffer_ = boost::hana::unpack(
             buffer_, //
-            [&](auto &...s) -> abstract_buffer { return {static_cast<basic_pattern_segment *>(&s)...}; });
+            [&](auto &...s) -> abstract_buffer {
+                return {static_cast<basic_pattern_segment *>(&s)...};
+            });
     }
 
     iterator begin() const override
@@ -530,8 +525,7 @@ template <pattern_string Pattern>
 constexpr auto make_pattern()
 {
     constexpr dirty_pattern pat(Pattern.buff);
-    constexpr auto convert_segments = []<pattern_size_type... I>(std::integer_sequence<pattern_size_type, I...>)
-    {
+    constexpr auto convert_segments = []<pattern_size_type... I>(std::integer_sequence<pattern_size_type, I...>) {
         return pattern<pat[I].length()...>(pat[I].extract()...);
     };
     return convert_segments(std::make_integer_sequence<pattern_size_type, pat.count()>());
@@ -624,8 +618,9 @@ constexpr auto make_pattern(T const &...args) requires(sizeof...(T) > 1)
 {
     return boost::hana::unpack(
         detail::pattern_args_to_segments(boost::hana::tuple(), args...),
-        []<pattern_size_type... S>(pattern_segment_info<S>... segment)
-        { return pattern<(S ? S - 1 : 0)...>(segment.get()...); });
+        []<pattern_size_type... S>(pattern_segment_info<S>... segment) {
+            return pattern<(S ? S - 1 : 0)...>(segment.get()...);
+        });
 }
 
 template <pattern_string Pattern>

@@ -17,7 +17,7 @@ FixNamespaceComments: true
 BreakConstructorInitializers: BeforeComma
 RemoveSemicolon: true
 AlignAfterOpenBracket: AlwaysBreak #Align #BlockIndent
-AllowShortLambdasOnASingleLine: Inline
+AllowShortLambdasOnASingleLine: Empty
 SeparateDefinitionBlocks: Always
 BinPackArguments: true
 BinPackParameters: true
@@ -29,11 +29,19 @@ PenaltyBreakBeforeFirstCallParameter: 40
 PenaltyBreakFirstLessLess: 50
 PenaltyBreakOpenParenthesis: 60
 #ColumnLimit: 180
-BreakBeforeBraces: Allman
-#BraceWrapping:
-#  AfterUnion: true
-#  BeforeWhile: true
-#  BeforeLambdaBody: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  BeforeElse: true
+  BeforeCatch: true
+  BeforeWhile: true
+  AfterExternBlock: true
+  AfterNamespace: true
+  AfterClass: true
+  AfterEnum: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterFunction: true
+  BeforeLambdaBody: false
 RequiresClausePosition: WithPreceding
 KeepEmptyLinesAtTheStartOfBlocks: false
 #QualifierAlignment: Right ###let reshareper do this work

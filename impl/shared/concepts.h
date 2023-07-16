@@ -2,6 +2,6 @@
 
 namespace fd
 {
-template <class T/*, unsigned = __builtin_LINE()*/>
+template <class T>
 concept forwarded = !requires { sizeof(T); };
 } // namespace fd

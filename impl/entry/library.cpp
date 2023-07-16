@@ -50,14 +50,12 @@ BOOL WINAPI DllMain(HINSTANCE const handle, DWORD const reason, LPCVOID const re
 {
     switch (reason)
     {
-    case DLL_PROCESS_ATTACH:
-    {
+    case DLL_PROCESS_ATTACH: {
         // Initialize once for each new process.
         // Return FALSE to fail DLL load.
         thread = CreateThread(
             nullptr, 0,
-            [](LPVOID ptr) -> DWORD
-            {
+            [](LPVOID ptr) -> DWORD {
                 try
                 {
                     self_handle = static_cast<HINSTANCE>(ptr);
@@ -103,14 +101,12 @@ void context()
     fd::native_sources const sources;
     fd::native_client const client(sources.client);
 
-    using enum fd::interface_type;
-
-    auto const menu           = fd::make_interface<fd::menu, stack>();
-    auto vars_sample          = fd::make_interface<fd::vars_sample, stack>();
+    auto const menu           = fd::make_interface<fd::menu>();
+    auto const vars_sample    = fd::make_interface<fd::vars_sample>();
     auto const netvars        = fd::make_interface<fd::netvar_storage>();
     auto const render_context = fd::make_interface<fd::render_context>();
-    auto system_backend       = fd::make_interface<fd::native_win32_backend>();
-    auto render_backend       = fd::make_interface<fd::native_dx9_backend>(sources.shaderapidx9);
+    auto const system_backend = fd::make_interface<fd::native_win32_backend>();
+    auto const render_backend = fd::make_interface<fd::native_dx9_backend>(sources.shaderapidx9);
 
     auto vars = join(vars_sample);
     fd::render_frame_full render_frame(
