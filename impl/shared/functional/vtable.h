@@ -6,7 +6,7 @@
 namespace fd
 {
 template <class T>
-constexpr call_type vtable_call_type = call_type::thiscall_;
+inline constexpr call_type vtable_call_type = call_type::thiscall_;
 
 template <call_type Call_T>
 class vfunc_index

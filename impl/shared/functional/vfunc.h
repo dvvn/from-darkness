@@ -6,10 +6,11 @@
 
 namespace fd
 {
-size_t get_vfunc_index(call_type call, void *function, void *instance);
+size_t get_vfunc_index(call_type call, void *function);
 
 #define GET_VFUNC_IDX(call__, __call, _call_) \
-    size_t get_vfunc_index(call_type_t<call__> call, void *function, void *instance);
+    /**/                                      \
+    size_t get_vfunc_index(call_type_t<call__> call, void *function);
 
 X86_CALL_MEMBER(GET_VFUNC_IDX);
 #undef GET_VFUNC_IDX
@@ -32,14 +33,14 @@ inline void **&get_vtable_ref(void *instance)
 
 inline void *get_vfunc(call_type call, void *table_function, void *instance)
 {
-    auto function_index = get_vfunc_index(call, table_function, instance);
+    auto function_index = get_vfunc_index(call, table_function);
     return get_vtable(instance)[function_index];
 }
 
 template <call_type Call_T>
 void *get_vfunc(void *table_function, void *instance)
 {
-    auto function_index = get_vfunc_index(call_type_v<Call_T>, table_function, instance);
+    auto function_index = get_vfunc_index(call_type_v<Call_T>, table_function);
     return get_vtable(instance)[function_index];
 }
 
