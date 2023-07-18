@@ -50,11 +50,14 @@ class players_range final : public basic_players_range
         else
         {
             range_.clear();
-            for_each(begin, end, [this](player &player) { range_.push_back(&player); });
+            for_each(begin, end, [this](player &player) {
+                range_.push_back(&player);
+            });
         }
     }
 };
 
+// todo: use only input index. remove any custom index-related operations
 class entity_cache
 {
     basic_native_entity_finder *find_native_entity_;

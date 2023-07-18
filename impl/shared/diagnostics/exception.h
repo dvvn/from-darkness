@@ -4,7 +4,7 @@
 
 namespace fd
 {
-constexpr auto default_exception_message = "Unknown exception";
+inline constexpr auto default_exception_message = "Unknown exception";
 
 #ifdef _MSC_VER
 struct exception : std::exception

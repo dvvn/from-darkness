@@ -4,7 +4,6 @@
 
 #include "concepts.h"
 #include "diagnostics/fatal.h"
-#include "functional/bind.h"
 #include "functional/cast.h"
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
@@ -21,7 +20,6 @@
 
 namespace fd
 {
-
 enum class call_type : uint8_t
 {
     // ReSharper disable CppInconsistentNaming
@@ -33,7 +31,21 @@ enum class call_type : uint8_t
     // ReSharper restore CppInconsistentNaming
 };
 
-struct dummy_class
+template <call_type C>
+struct call_type_t
+{
+    static constexpr call_type value = C;
+
+    constexpr operator call_type() const
+    {
+        return C;
+    }
+};
+
+template <call_type C>
+inline constexpr call_type_t<C> call_type_v;
+
+struct dummy_class final
 {
 };
 
@@ -70,19 +82,22 @@ decltype(auto) apply(call_type info, Args... args)
 #undef INFO_CASE
 }
 
-template <call_type C>
-struct call_type_t
+template <typename Fn, typename... Args>
+decltype(auto) apply(Fn fn, call_type info, Args... args)
 {
-    static constexpr call_type value = C;
+#define INFO_CASE(call__, __call, _call_) \
+    case call__:                          \
+        return fn(call_type_v<call__>, args...);
 
-    constexpr operator call_type() const
+    switch (info)
     {
-        return C;
+        X86_CALL_MEMBER(INFO_CASE);
+    default:
+        unreachable();
     }
-};
 
-template <call_type C>
-inline constexpr call_type_t<C> call_type_v;
+#undef INFO_CASE
+}
 
 template <call_type Call_T, typename Ret, typename T, typename... Args>
 requires(std::is_class_v<T> || std::is_union_v<T> /*std::is_fundamental_v<T>*/)
@@ -206,16 +221,7 @@ struct member_func_invoker
 #ifdef FD_SPOOF_RETURN_ADDRESS
         return try_spoof_member_return_address<Call_T, Ret>(function, instance, args...);
 #else
-        // msvc generate fat pointer here, idk why
-        /*if constexpr (forwarded<T> && sizeof(function_type) != sizeof(void *))
-        {
-            member_func_invoker<Call_T, Ret, void, Args...> invoker;
-            return invoker(function, unsafe_cast<void *>(instance), args...);
-        }
-        else*/
-        {
-            return operator()(unsafe_cast<function_type>(function), instance, args...);
-        }
+        return operator()(unsafe_cast<function_type>(function), instance, args...);
 #endif
     }
 };
@@ -262,8 +268,6 @@ X86_CALL_MEMBER(NON_MEMBER_FN_TYPE)
 template <call_type Call_T, typename T, typename... Args>
 class member_func_return_type_resolver
 {
-    template <typename Ret>
-    using invoker     = member_func_invoker<Call_T, Ret, T, Args...>;
     using args_packed = boost::hana::tuple<Args...>;
 
     void *function_;
@@ -282,7 +286,10 @@ class member_func_return_type_resolver
     template <typename Ret>
     operator Ret()
     {
-        return boost::hana::unpack(args_, bind_front(invoker<Ret>(), function_, instance_));
+        return boost::hana::unpack(args_, [this](Args... args) {
+            member_func_invoker<Call_T, Ret, T, Args...> invoker;
+            return invoker(args..., function_, instance_);
+        });
     }
 };
 

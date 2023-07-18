@@ -23,6 +23,7 @@ struct std::iterator_traits<fd::basic_pattern::iterator>
     using difference_type   = ptrdiff_t;
 };
 #endif
+
 namespace fd
 {
 struct pattern_segment_view
@@ -171,7 +172,7 @@ class basic_pattern_view
     iterator end() const
     {
 #ifdef _DEBUG
-        return std::data(buff_) + std::size(buff_);
+        return begin() + std::size(buff_);
 #else
         return iterator_to_raw_pointer(std::end(buff_));
 #endif
@@ -304,11 +305,8 @@ template <size_t SegmentCount>
 class known_pattern_segements
 {
     static constexpr size_t table_size_ = SegmentCount + 1; // +1 to skip 0
-#ifdef __RESHARPER__
-    find_pattern_t table_[table_size_];
-#else
+
     array<find_pattern_t, table_size_> table_;
-#endif
 
   public:
     template <size_t... I>

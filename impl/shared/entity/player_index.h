@@ -6,7 +6,7 @@
 
 namespace fd
 {
-constexpr uint8_t max_player_count = 64;
+inline constexpr uint8_t max_player_count = 64;
 
 constexpr bool validate_player_index(basic_entity_index<entity_index_source::csgo> index)
 {

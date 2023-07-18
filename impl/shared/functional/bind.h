@@ -10,6 +10,7 @@ using std::bind;
 using std::bind_back;
 using std::bind_front;
 
+//todo: add flags to invoke on copy/move/destruct
 template <
     typename Fn,
     bool Trivial = std::equality_comparable_with<Fn, nullptr_t> && /**/ std::assignable_from<Fn &, nullptr_t>>

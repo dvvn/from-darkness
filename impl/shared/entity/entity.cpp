@@ -1,4 +1,5 @@
 ﻿#include "entity.h"
+#include "diagnostics/fatal.h"
 
 #include <cassert>
 
@@ -34,7 +35,7 @@ bool entity::keep() const
 native_entity_index entity::index() const
 {
     // not implemented
-    std::unreachable();
+    unreachable();
 }
 
 } // namespace fd

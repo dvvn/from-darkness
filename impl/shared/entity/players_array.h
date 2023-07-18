@@ -14,6 +14,7 @@ struct basic_players_array
     ~basic_players_array() = default;
 
   public:
+    
     virtual reference operator[](own_player_index index) const = 0;
 };
 } // namespace fd

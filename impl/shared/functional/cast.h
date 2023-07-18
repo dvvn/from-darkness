@@ -48,36 +48,32 @@ constexpr void can_unsafe_cast()
     static_assert(sizeof(L) == sizeof(R));
 }
 
-template <typename To, typename From>
+template <typename From, typename To>
 concept native_unsafe_cast = requires(From from) { reinterpret_cast<To>(from); };
 
 template <typename To, typename From>
 To unsafe_cast(From from)
 {
-    if constexpr (std::convertible_to<To, From>)
+    // static_assert(sizeof(To) == sizeof(From));
+    can_unsafe_cast<From, To>();
+    if constexpr (std::convertible_to<From, To>)
     {
         return static_cast<To>(from);
     }
+    else if constexpr (native_unsafe_cast<From, To>)
+    {
+        return reinterpret_cast<To>(from);
+    }
     else
     {
-        // static_assert(sizeof(To) == sizeof(From));
-        can_unsafe_cast<To, From>();
-
-        if constexpr (native_unsafe_cast<To, From>)
+        union
         {
-            return reinterpret_cast<To>(from);
-        }
-        else
-        {
-            union
-            {
-                From from0;
-                To to;
-            };
+            From from0;
+            To to;
+        };
 
-            from0 = from;
-            return to;
-        }
+        from0 = from;
+        return to;
     }
 }
 }
