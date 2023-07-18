@@ -20,27 +20,22 @@ inline void **get_vtable(void *instance)
     return *static_cast<void ***>(instance);
 }
 
-inline void **&get_vtable_ref(void *instance)
-{
-    return *static_cast<void ***>(instance);
-}
-
 // template <typename T>
 // void **get_vtable(T *instance)
 //{
 //     return get_vtable(static_cast<void *>( (instance)));
 // }
 
-inline void *get_vfunc(call_type call, void *table_function, void *instance)
+inline void *get_vfunc(call_type const call, void *table_function, void *instance)
 {
-    auto function_index = get_vfunc_index(call, table_function);
+    auto const function_index = get_vfunc_index(call, table_function);
     return get_vtable(instance)[function_index];
 }
 
 template <call_type Call_T>
 void *get_vfunc(void *table_function, void *instance)
 {
-    auto function_index = get_vfunc_index(call_type_v<Call_T>, table_function);
+    auto const function_index = get_vfunc_index(call_type_v<Call_T>, table_function);
     return get_vtable(instance)[function_index];
 }
 
@@ -54,7 +49,7 @@ void *get_vfunc(Fn table_function, void *instance)
     return get_vfunc<call>(function, instance);
 }
 
-inline void *get_vfunc(ptrdiff_t function_index, void *instance)
+inline void *get_vfunc(ptrdiff_t const function_index, void *instance)
 {
     return get_vtable(instance)[function_index];
 }
@@ -136,7 +131,7 @@ class unknown_vfunc_args
         static_assert(function_info<Fn>::call_type == Call_T);
     }
 
-    unknown_vfunc_args(ptrdiff_t function_index, T *instance)
+    unknown_vfunc_args(ptrdiff_t const function_index, T *instance)
         : function_(get_vfunc(function_index, instance))
         , instance_(instance)
     {
@@ -148,7 +143,7 @@ class unknown_vfunc_args
         return {function_, instance_};
     }
 
-    void *operator+(size_t offset) const
+    void *operator+(size_t const offset) const
     {
         return static_cast<uint8_t *>(function_) + offset;
     }

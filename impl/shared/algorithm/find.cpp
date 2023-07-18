@@ -4,6 +4,7 @@
 #include "container/array.h"
 #include "container/vector/dynamic.h"
 #include "diagnostics/fatal.h"
+#include "functional/cast.h"
 #include "functional/ignore.h"
 
 #include <algorithm>
@@ -93,30 +94,31 @@ struct pattern_segment_view
 };
 
 template <bool Rewrap>
-static uint8_t *find_byte(void *begin, void *end, uint8_t byte)
+static uint8_t *find_byte(void *begin, void const *end, uint8_t byte)
 {
-    auto it = std::find(static_cast<uint8_t *>(begin), static_cast<uint8_t *>(end), byte);
+    auto it = std::find(safe_cast<uint8_t *>(begin), unsafe_cast<uint8_t *>(end), byte);
     if constexpr (Rewrap)
     {
         if (it == end)
             return nullptr;
     }
-    return it;
+    return remove_const(it);
 }
 
 static size_t distance(void const *begin, void const *end)
 {
-    return (std::distance(static_cast<uint8_t const *>(begin), static_cast<uint8_t const *>(end)));
+    assert(begin < end);
+    return std::distance(safe_cast<uint8_t>(begin), safe_cast<uint8_t>(end));
 }
 
 template <bool ValidateTail>
-static uint8_t *find(void *begin, void *end, pattern_segment_view const &segment)
+static uint8_t *find(void *begin, void const *end, pattern_segment_view const &segment)
 {
-    auto b_begin = static_cast<uint8_t *>(begin);
+    auto b_begin = safe_cast<uint8_t>(begin);
 
     for (;;)
     {
-        auto midpoint = find_byte<false>(b_begin, end, *segment.begin());
+        auto const midpoint = find_byte<false>(b_begin, end, *segment.begin());
         if (midpoint == end)
             return nullptr;
 
@@ -135,7 +137,7 @@ static uint8_t *find(void *begin, void *end, pattern_segment_view const &segment
     }
 }
 
-void *find(void *begin, void *end, basic_pattern_segment const *segment)
+void *find(void *begin, void const *end, basic_pattern_segment const *segment)
 {
     return find<true>(begin, end, segment);
 }
@@ -205,7 +207,7 @@ class basic_pattern_view
     size_type abs_length() const
     {
         size_type ret = 0;
-        auto ed       = end();
+        auto const ed = end();
         for (auto it = begin(); it != ed; ++it)
             ret += it->abs_length();
         return ret;
@@ -218,8 +220,8 @@ struct pattern_view : basic_pattern_view<array<pattern_segment_view, SegmentCoun
     pattern_view(basic_pattern const &pattern)
     {
         assert(pattern.segments() == SegmentCount);
-        auto dst = this->buff_.data();
-        auto end = pattern.end();
+        auto dst       = this->buff_.data();
+        auto const end = pattern.end();
         for (auto it = pattern.begin(); it != end; ++it)
             std::construct_at(dst++, *it);
     }
@@ -238,9 +240,9 @@ template <>
 struct pattern_view<1>; // deleted
 
 template <size_t SegmentCount>
-static void *find_pattern(void *begin, void *end, basic_pattern const &pattern)
+static void *find_pattern(void *begin, void const *end, basic_pattern const &pattern)
 {
-    auto b_begin = static_cast<uint8_t *>(begin);
+    auto b_begin = safe_cast<uint8_t>(begin);
 
     using sigment_type = pattern_view<SegmentCount>;
 
@@ -280,7 +282,7 @@ static void *find_pattern(void *begin, void *end, basic_pattern const &pattern)
 
             if (view.have_tail())
             {
-                if (static_cast<typename sigment_type::difference_type>(distance(first_match, end)) > view.abs_length())
+                if (safe_cast<typename sigment_type::difference_type>(distance(first_match, end)) > view.abs_length())
                     return nullptr;
             }
         }
@@ -289,7 +291,7 @@ static void *find_pattern(void *begin, void *end, basic_pattern const &pattern)
 }
 
 template <size_t SegmentCount>
-static void *find(void *begin, void *end, basic_pattern const &pattern)
+static void *select_find(void *begin, void const *end, basic_pattern const &pattern)
 {
     if constexpr (SegmentCount == 0)
         unreachable();
@@ -299,7 +301,7 @@ static void *find(void *begin, void *end, basic_pattern const &pattern)
         return find_pattern<SegmentCount>(begin, end, pattern);
 }
 
-using find_pattern_t = void *(*)(void *, void *, basic_pattern const &);
+using find_pattern_t = std::add_pointer_t<decltype(select_find<0>)>;
 
 template <size_t SegmentCount>
 class known_pattern_segements
@@ -311,7 +313,7 @@ class known_pattern_segements
   public:
     template <size_t... I>
     consteval known_pattern_segements(std::index_sequence<I...>)
-        : table_{find<I>...}
+        : table_{select_find<I>...}
     {
     }
 
@@ -332,37 +334,37 @@ class known_pattern_segements
     }
 };
 
-void *find(void *begin, void *end, basic_pattern const &pattern)
+void *find(void *begin, void const *end, basic_pattern const &pattern)
 {
-    auto segments = pattern.segments();
+    auto const segments = pattern.segments();
 
     constexpr known_pattern_segements<32> cache;
-    auto use_cache = segments < cache.size();
+    auto const use_cache = segments < cache.size();
     return (use_cache ? cache[segments] : find_pattern<0>)(begin, end, pattern);
 }
 
-void *find(void *begin, void *end, basic_xref const &xref)
+void *find(void *begin, void const *end, basic_xref const &xref)
 {
-    auto ptr = xref.get();
+    auto const ptr = xref.get();
     return find(begin, end, ptr, ptr + 1);
 }
 
-void *find(void *begin, void *end, void const *from, void const *to)
+void *find(void *begin, void const *end, void const *from, void const *to)
 {
-    auto from_0        = static_cast<uint8_t const *>(from)[0];
-    auto target_length = distance(from, to);
+    auto const from_0        = safe_cast<uint8_t>(from)[0];
+    auto const target_length = distance(from, to);
 
     if (target_length == 1)
     {
         return find_byte<true>(begin, end, from_0);
     }
 
-    auto b_begin = static_cast<uint8_t *>(begin);
-    auto b_end   = static_cast<uint8_t *>(end);
+    auto b_begin     = safe_cast<uint8_t>(begin);
+    auto const b_end = safe_cast<uint8_t>(end);
 
-    for (auto safe_end = b_end - target_length;;)
+    for (auto const safe_end = b_end - target_length;;)
     {
-        auto front = find_byte<false>(b_begin, safe_end, from_0);
+        auto const front = find_byte<false>(b_begin, safe_end, from_0);
         if (front == safe_end)
             return nullptr;
 
