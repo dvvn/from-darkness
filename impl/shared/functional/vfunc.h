@@ -44,7 +44,7 @@ void *get_vfunc(Fn table_function, void *instance)
 {
     static_assert(member_function<Fn>);
 
-    constexpr auto call = function_info<Fn>::call_type;
+    constexpr auto call = function_info<Fn>::call;
     auto function       = unsafe_cast<void *>(table_function);
     return get_vfunc<call>(function, instance);
 }
@@ -128,7 +128,7 @@ class unknown_vfunc_args
         : function_(get_vfunc(function, instance))
         , instance_(instance)
     {
-        static_assert(function_info<Fn>::call_type == Call_T);
+        static_assert(function_info<Fn>::call == Call_T);
     }
 
     unknown_vfunc_args(ptrdiff_t const function_index, T *instance)

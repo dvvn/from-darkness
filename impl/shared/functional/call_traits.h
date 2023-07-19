@@ -293,34 +293,93 @@ class member_func_return_type_resolver
     }
 };
 
+template <typename... T>
+struct function_args
+{
+};
+
+template <size_t Target, size_t Current, typename, typename... T>
+struct function_arg : function_arg<Target, Current + 1, T...>
+{
+};
+
+template <size_t Target, typename Arg, typename... T>
+struct function_arg<Target, Target, Arg, T...>
+{
+    using type = Arg;
+};
+
+template <size_t Target, size_t Current, typename... T>
+struct function_arg<Target, Current, function_args<T...>> : function_arg<Target, Current, T...>
+{
+};
+
+template <size_t Target, typename... T>
+using function_arg_t = typename function_arg<Target, 0, T...>::type;
+
+template <call_type Call_T, typename Ret, typename T, typename... Args>
+struct member_function_info
+{
+    static constexpr call_type_t<Call_T> call;
+    using return_type = Ret;
+    using self_type   = T;
+
+    using args = function_args<Args...>;
+    template <size_t I>
+    using arg = function_arg_t<I, Args...>;
+};
+
+template <call_type Call_T, typename Ret, typename... Args>
+struct non_member_function_info
+{
+    static constexpr call_type_t<Call_T> call;
+    using return_type = Ret;
+
+    using args = function_args<Args...>;
+    template <size_t I>
+    using arg = function_arg_t<I, Args...>;
+};
+
 template <typename Fn>
 struct function_info;
 
-template <typename Ret, typename T, typename... Args>
-struct function_info<Ret(__thiscall *)(T *, Args...)>
+template <typename Obj>
+requires requires { &Obj::operator(); }
+struct function_info<Obj> : function_info<decltype(&Obj::operator())>
 {
-    static constexpr auto call_type = call_type::thiscall_;
-    using return_type               = Ret;
-    using self_type                 = T;
 };
 
-#define FN_INFO(call__, __call, _call_)                   \
-    template <typename Ret, typename T, typename... Args> \
-    struct function_info<Ret (__call T::*)(Args...)>      \
-    {                                                     \
-        static constexpr auto call_type = call__;         \
-        using return_type               = Ret;            \
-        using self_type                 = T;              \
-    };                                                    \
-    template <typename Ret, typename... Args>             \
-    struct function_info<Ret(__call *)(Args...)>          \
-    {                                                     \
-        static constexpr auto call_type = call__;         \
-        using return_type               = Ret;            \
+template <typename Ret, typename T, typename... Args>
+struct function_info<Ret(__thiscall *)(T *, Args...)> : member_function_info<call_type::thiscall_, Ret, T, Args...>
+{
+};
+
+// template <typename Ret, typename T, typename... Args>
+// struct non_member_function_info<call_type::thiscall_, Ret, T, Args...>
+//     : member_function_info<call_type::thiscall_, Ret, T, Args...>
+//{
+// };
+
+#define FN_INFO_MEMBER(call__, __call, _call_)                                                                   \
+    template <typename Ret, typename T, typename... Args>                                                        \
+    struct function_info<Ret (__call T::*)(Args...)> : member_function_info<call__, Ret, T, Args...>             \
+    {                                                                                                            \
+    };                                                                                                           \
+    template <typename Ret, typename T, typename... Args>                                                        \
+    struct function_info<Ret (__call T::*)(Args...) const> : member_function_info<call__, Ret, T const, Args...> \
+    {                                                                                                            \
     };
 
-X86_CALL_MEMBER(FN_INFO)
-#undef FN_INFO
+X86_CALL_MEMBER(FN_INFO_MEMBER)
+#undef FN_INFO_MEMBER
+
+#define FN_INFO_NON_MEMEBER(call__, __call, _call_)                                               \
+    template <typename Ret, typename... Args>                                                     \
+    struct function_info<Ret(__call *)(Args...)> : non_member_function_info<call__, Ret, Args...> \
+    {                                                                                             \
+    };
+X86_CALL(FN_INFO_NON_MEMEBER)
+#undef FN_INFO_NON_MEMEBER
 
 template <typename Fn>
 concept member_function = requires { typename function_info<Fn>::self_type; };

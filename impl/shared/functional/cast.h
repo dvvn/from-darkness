@@ -156,8 +156,6 @@ constexpr Result safe_cast(From *from)
 template <typename To, typename From>
 To unsafe_cast(From from)
 {
-    static_assert(sizeof(To) == sizeof(From));
-
     if constexpr (can_static_cast<To, From>)
         return static_cast<To>(from);
     else if constexpr (can_const_cast<To, From>)
@@ -166,6 +164,8 @@ To unsafe_cast(From from)
         return reinterpret_cast<To>(from);
     else
     {
+        static_assert(sizeof(To) == sizeof(From));
+
         union
         {
             From from0;

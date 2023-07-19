@@ -8,7 +8,7 @@ template <bool Owned>
 class xref;
 
 template <>
-class xref<false> : public basic_xref
+class xref<false> final : public basic_xref
 {
     uintptr_t const *value;
 
@@ -27,7 +27,7 @@ class xref<false> : public basic_xref
 };
 
 template <>
-class xref<true> : public basic_xref
+class xref<true> final: public basic_xref
 {
     uintptr_t value_;
 

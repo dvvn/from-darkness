@@ -1,6 +1,8 @@
 #include "basic_pattern.h"
+#include "basic_search_stop_token.h"
 #include "basic_xref.h"
 #include "find.h"
+#include "search.h"
 #include "container/array.h"
 #include "container/vector/dynamic.h"
 #include "diagnostics/fatal.h"
@@ -94,15 +96,32 @@ struct pattern_segment_view
 };
 
 template <bool Rewrap>
-static uint8_t *find_byte(void *begin, void const *end, uint8_t byte)
+static uint8_t *find_byte(void *begin, void const *end, uint8_t const byte)
 {
-    auto it = std::find(safe_cast<uint8_t *>(begin), unsafe_cast<uint8_t *>(end), byte);
+    auto const it = std::find(safe_cast<uint8_t *>(begin), unsafe_cast<uint8_t *>(end), byte);
     if constexpr (Rewrap)
     {
         if (it == end)
             return nullptr;
     }
-    return remove_const(it);
+    return (it);
+}
+
+template <bool Rewrap, typename T>
+static uint8_t *search_byte(void *begin, void const *end, uint8_t const byte, T const &validate)
+{
+    for (;;)
+    {
+        auto const it = find_byte<false>(begin, end, byte);
+        if (it == end)
+            return Rewrap ? nullptr : it;
+        if (!validate(it))
+        {
+            begin = it;
+            continue;
+        }
+        return (it);
+    }
 }
 
 static size_t distance(void const *begin, void const *end)
@@ -112,7 +131,7 @@ static size_t distance(void const *begin, void const *end)
 }
 
 template <bool ValidateTail>
-static uint8_t *find(void *begin, void const *end, pattern_segment_view const &segment)
+static uint8_t *find_segment(void *begin, void const *end, pattern_segment_view const &segment)
 {
     auto b_begin = safe_cast<uint8_t>(begin);
 
@@ -137,30 +156,82 @@ static uint8_t *find(void *begin, void const *end, pattern_segment_view const &s
     }
 }
 
-void *find(void *begin, void const *end, basic_pattern_segment const *segment)
+template <bool ValidateTail>
+static uint8_t *search_segment(
+    void *begin, void const *end, //
+    pattern_segment_view const &segment, basic_search_stop_token const &token)
 {
-    return find<true>(begin, end, segment);
+    for (;;)
+    {
+        auto const found = find_segment<ValidateTail>(begin, end, segment);
+        if (!found || token(found))
+            return found;
+        begin = found;
+    }
+}
+
+static uint8_t first_byte(void const *ptr)
+{
+    return safe_cast<uint8_t>(ptr)[0];
+}
+
+template <typename T = nullptr_t>
+static void *scan_range(
+    void *begin, void const *end,                                 //
+    void const *from, void const *to, size_t const target_length, //
+    T const &extra_check = {})
+{
+    assert(target_length > 1);
+    assert(target_length == distance(from, to));
+
+    auto const from_0 = first_byte(from);
+    auto b_begin      = safe_cast<uint8_t>(begin);
+    for (auto const safe_end = safe_cast<uint8_t>(end) - target_length;;)
+    {
+        auto const front = find_byte<false>(b_begin, safe_end, from_0);
+        if (front == safe_end)
+            return nullptr;
+
+        if (memcmp(front, from, target_length) == 0)
+        {
+            if constexpr (std::invocable<T, void *>)
+                if (!extra_check(front))
+                    continue;
+
+            return front;
+        }
+
+        b_begin = front + 1;
+    }
 }
 
 template <class T>
-class basic_pattern_view
+struct basic_pattern_view
 {
     template <size_t Size>
     friend struct pattern_view;
 
+    using pointer         = pattern_segment_view *;
+    using const_pointer   = pattern_segment_view const *;
+    using reference       = pattern_segment_view const &;
+    using iterator        = const_pointer;
+    using size_type       = pattern_segment_view::size_type;
+    using difference_type = pattern_segment_view::difference_type;
+
+  private:
     T buff_;
+
+  protected:
+    pointer data()
+    {
+        return std::data(buff_);
+    }
 
   public:
     basic_pattern_view()
     {
         static_assert(std::ranges::random_access_range<T>);
     }
-
-    using pointer         = pattern_segment_view const *;
-    using reference       = pattern_segment_view const &;
-    using iterator        = pointer;
-    using size_type       = pattern_segment_view::size_type;
-    using difference_type = pattern_segment_view::difference_type;
 
     iterator begin() const
     {
@@ -220,7 +291,7 @@ struct pattern_view : basic_pattern_view<array<pattern_segment_view, SegmentCoun
     pattern_view(basic_pattern const &pattern)
     {
         assert(pattern.segments() == SegmentCount);
-        auto dst       = this->buff_.data();
+        auto dst       = this->data();
         auto const end = pattern.end();
         for (auto it = pattern.begin(); it != end; ++it)
             std::construct_at(dst++, *it);
@@ -240,20 +311,18 @@ template <>
 struct pattern_view<1>; // deleted
 
 template <size_t SegmentCount>
-static void *find_pattern(void *begin, void const *end, basic_pattern const &pattern)
+static void *find_pattern(void *begin, void const *end, pattern_view<SegmentCount> const &view)
 {
     auto b_begin = safe_cast<uint8_t>(begin);
 
     using sigment_type = pattern_view<SegmentCount>;
-
-    sigment_type view(pattern);
 
     auto segments_begin = view.begin();
     auto segments_end   = view.end();
 
     for (;;)
     {
-        auto first_match = find<false>(b_begin, end, *segments_begin);
+        auto first_match = find_segment<false>(b_begin, end, *segments_begin);
         if (first_match)
         {
             auto match        = first_match + segments_begin->abs_length();
@@ -282,7 +351,7 @@ static void *find_pattern(void *begin, void const *end, basic_pattern const &pat
 
             if (view.have_tail())
             {
-                if (safe_cast<typename sigment_type::difference_type>(distance(first_match, end)) > view.abs_length())
+                if (safe_cast<typename sigment_type::size_type>(distance(first_match, end)) > view.abs_length())
                     return nullptr;
             }
         }
@@ -296,82 +365,106 @@ static void *select_find(void *begin, void const *end, basic_pattern const &patt
     if constexpr (SegmentCount == 0)
         unreachable();
     else if constexpr (SegmentCount == 1)
-        return find<true>(begin, end, *pattern.begin());
+        return find_segment<true>(begin, end, *pattern.begin());
     else
         return find_pattern<SegmentCount>(begin, end, pattern);
 }
 
-using find_pattern_t = std::add_pointer_t<decltype(select_find<0>)>;
+template <size_t SegmentCount>
+static void *search_pattern(
+    void *begin, void const *end, //
+    basic_pattern const &pattern, basic_search_stop_token const &token)
+{
+    pattern_view<SegmentCount> const view(pattern);
+    for (;;)
+    {
+        auto found = find_pattern(begin, end, view);
+        if (!found || token(found))
+            return found;
+        begin = found;
+    }
+}
 
 template <size_t SegmentCount>
-class known_pattern_segements
+static void *select_search(
+    void *begin, void const *end, //
+    basic_pattern const &pattern, basic_search_stop_token const &token)
 {
-    static constexpr size_t table_size_ = SegmentCount + 1; // +1 to skip 0
+    if constexpr (SegmentCount == 0)
+        unreachable();
+    else if constexpr (SegmentCount == 1)
+        return search_segment<true>(begin, end, *pattern.begin(), token);
+    else
+        return search_pattern<SegmentCount>(begin, end, pattern, token);
+}
 
-    array<find_pattern_t, table_size_> table_;
+constexpr size_t cached_segments_limit = 32;
 
-  public:
-    template <size_t... I>
-    consteval known_pattern_segements(std::index_sequence<I...>)
-        : table_{select_find<I>...}
-    {
-    }
+template <typename FnGetter>
+constexpr auto cache_segments(FnGetter getter)
+{
+    using fn_t                = decltype(getter(std::in_place_index<0>));
+    constexpr auto array_size = cached_segments_limit + 1;
 
-    consteval known_pattern_segements()
-        : known_pattern_segements(std::make_index_sequence<table_size_>())
-    {
-    }
-
-    find_pattern_t operator[](size_t index) const
-    {
-        return table_[index]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
-    }
-
-    size_t size() const
-    {
-        ignore_unused(this);
-        return table_size_;
-    }
-};
+    return [&]<size_t... I>(std::index_sequence<I...>) -> array<fn_t, array_size> {
+        return {getter(std::in_place_index<I>)...};
+    }(std::make_index_sequence<array_size>());
+}
 
 void *find(void *begin, void const *end, basic_pattern const &pattern)
 {
-    auto const segments = pattern.segments();
-
-    constexpr known_pattern_segements<32> cache;
-    auto const use_cache = segments < cache.size();
-    return (use_cache ? cache[segments] : find_pattern<0>)(begin, end, pattern);
+    constexpr auto cache = cache_segments([]<size_t I>(std::in_place_index_t<I>) {
+        return select_find<I>;
+    });
+    void *found;
+    if (auto const segments = pattern.segments(); segments < cache.size())
+        found = cache[segments](begin, end, pattern);
+    else
+        found = find_pattern<0>(begin, end, pattern);
+    return found;
 }
 
 void *find(void *begin, void const *end, basic_xref const &xref)
 {
     auto const ptr = xref.get();
-    return find(begin, end, ptr, ptr + 1);
+    return scan_range(begin, end, ptr, ptr + 1, sizeof(basic_xref::value_type));
 }
 
 void *find(void *begin, void const *end, void const *from, void const *to)
 {
-    auto const from_0        = safe_cast<uint8_t>(from)[0];
     auto const target_length = distance(from, to);
-
     if (target_length == 1)
-    {
-        return find_byte<true>(begin, end, from_0);
-    }
+        return find_byte<true>(begin, end, first_byte(from));
 
-    auto b_begin     = safe_cast<uint8_t>(begin);
-    auto const b_end = safe_cast<uint8_t>(end);
-
-    for (auto const safe_end = b_end - target_length;;)
-    {
-        auto const front = find_byte<false>(b_begin, safe_end, from_0);
-        if (front == safe_end)
-            return nullptr;
-
-        if (memcmp(front, from, target_length) == 0)
-            return front;
-
-        b_begin = front + 1;
-    }
+    return scan_range(begin, end, from, to, target_length);
 }
+
+void *search(void *begin, void const *end, basic_pattern const &pattern, basic_search_stop_token const &token)
+{
+    constexpr auto cache = cache_segments([]<size_t I>(std::in_place_index_t<I>) {
+        return select_search<I>;
+    });
+    void *found;
+    if (auto const segments = pattern.segments(); segments < cache.size())
+        found = cache[segments](begin, end, pattern, token);
+    else
+        found = search_pattern<0>(begin, end, pattern, token);
+    return found;
+}
+
+void *search(void *begin, void const *end, basic_xref const &xref, basic_search_stop_token const &token)
+{
+    auto const ptr = xref.get();
+    return scan_range(begin, end, ptr, ptr + 1, sizeof(basic_xref::value_type), token);
+}
+
+void *search(void *begin, void const *end, void const *from, void const *to, basic_search_stop_token const &token)
+{
+    auto const target_length = distance(from, to);
+    if (target_length == 1)
+        return search_byte<true>(begin, end, first_byte(from), token);
+
+    return scan_range(begin, end, from, to, target_length, token);
+}
+
 } // namespace fd

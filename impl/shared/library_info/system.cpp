@@ -1,7 +1,9 @@
 ﻿#include "pattern.h"
+#include "search_stop_token.h"
 #include "system.h"
 #include "xref.h"
 #include "algorithm/find.h"
+#include "algorithm/search.h"
 #include "iterator/unwrap.h"
 #include "string/view.h"
 
@@ -10,6 +12,39 @@
 #include <Windows.h>
 
 #include <cassert>
+
+namespace fd
+{
+class object_tag
+{
+    string_view obj_;
+
+  public:
+    object_tag(string_view const obj)
+        : obj_(obj)
+    {
+    }
+
+    operator string_view() const
+    {
+        return obj_;
+    }
+
+    operator char() const
+    {
+        if (obj_ == "struct")
+            return 'U';
+        if (obj_ == "class")
+            return 'V';
+        // todo: union
+        unreachable();
+    }
+};
+}; // namespace fd
+
+FMT_BEGIN_NAMESPACE
+FMT_FORMAT_AS(fd::object_tag, char);
+FMT_END_NAMESPACE
 
 namespace fd
 {
@@ -62,26 +97,20 @@ void *system_library_info::pattern(basic_pattern const &pattern) const
     return find(base, base + this->length(), pattern);
 }
 
-static void *find_rtti_descriptor(string_view name, void *image_base, void *image_end)
+static void *find_rtti_descriptor(string_view const name, void *image_base, void const *image_end)
 {
     if (auto const space = name.find(' '); space == name.npos)
     {
-        auto pat = make_pattern(".?A", 1, name, "@@");
+        auto const pat = make_pattern(".?A", 1, name, "@@");
         return find(image_base, image_end, pat);
     }
     else
     {
-        auto const info = name.substr(0, space - 1);
-        auto class_name = name.substr(space);
+        object_tag const info(name.substr(0, space - 1));
+        auto const class_name = name.substr(space);
 
         array<char, 64> buff;
-        auto const buff_end = fmt::format_to(
-            buff.begin(), //
-            ".?A{}{}@@",
-            info == "struct"  ? 'U'
-            : info == "class" ? 'V'
-                              : (unreachable(), '\0'),
-            class_name);
+        auto const buff_end = fmt::format_to(buff.begin(), ".?A{}{}@@", info, class_name);
 
         return find(image_base, image_end, data(buff), iterator_to_raw_pointer(buff_end));
     }
@@ -116,27 +145,18 @@ void *system_library_info::vtable(char const *name, size_t length) const
     auto const text_begin = image_base + text->VirtualAddress;
     auto const text_end   = text_begin + text->SizeOfRawData;
 
-    void *addr1;
-    for (auto begin = rdata_begin;;)
-    {
-        auto const tmp = static_cast<uint8_t *>(find(begin, rdata_end, type_descriptor));
-        if (!tmp)
-            return nullptr;
-        auto const offset = *reinterpret_cast<uint32_t *>(tmp - 0x8);
-        if (offset == 0)
-        {
-            addr1 = (tmp);
-            break;
-        }
-        begin = tmp + sizeof(uintptr_t);
-    }
+    auto const addr1 = search(
+        rdata_begin, rdata_end, type_descriptor, //
+        search_stop_token([](uint8_t *found) -> bool {
+            return *unsafe_cast<uint32_t *>(found - 0x8) == 0;
+        }));
+    if (!addr1)
+        return nullptr;
 
-    xref const object_locator = static_cast<uint8_t *>(addr1) - 0xC;
-    auto addr2                = find(rdata_begin, rdata_end, object_locator);
-
+    auto const addr2 = find(rdata_begin, rdata_end, xref(safe_cast<uint8_t *>(addr1) - 0xC));
     if (!addr2)
         return nullptr;
 
-    return find(text_begin, text_end, xref(reinterpret_cast<uintptr_t>(addr2) + 4));
+    return find(text_begin, text_end, xref(unsafe_cast<uintptr_t>(addr2) + 4));
 }
 } // namespace fd
