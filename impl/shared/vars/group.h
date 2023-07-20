@@ -17,10 +17,4 @@ array<basic_variables_group *, sizeof...(T)> join(T &&...group)
 {
     return {static_cast<basic_variables_group *>(group)...};
 }
-
-template <size_t S>
-constexpr uint8_t size(array<basic_variables_group *, S> const &)
-{
-    return S;
-}
 } // namespace fd

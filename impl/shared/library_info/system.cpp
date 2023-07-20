@@ -106,8 +106,8 @@ static void *find_rtti_descriptor(string_view const name, void *image_base, void
     }
     else
     {
-        object_tag const info(name.substr(0, space - 1));
-        auto const class_name = name.substr(space);
+        object_tag const info(name.substr(0, space));
+        auto const class_name = name.substr(space + 1);
 
         array<char, 64> buff;
         auto const buff_end = fmt::format_to(buff.begin(), ".?A{}{}@@", info, class_name);

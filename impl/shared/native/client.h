@@ -1,6 +1,6 @@
 #pragma once
 #include "client_class.h"
-#include ".detail/interface.h"
+#include "internal/native_interface.h"
 
 namespace fd
 {
@@ -30,8 +30,8 @@ FD_BIND_NATIVE_INTERFACE(CHLClient, client);
 union native_client
 {
     native_client(native_library_info info);
-
+    
     FD_NATIVE_INTERFACE(CHLClient);
-    function<8, native_client_class *> get_all_classes;
+    function<8, native_client_class *> all_classes;
 };
 }

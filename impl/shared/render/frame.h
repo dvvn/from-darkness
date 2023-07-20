@@ -1,43 +1,29 @@
 ﻿#pragma once
 
 #include "basic_frame.h"
-
-#include <cstdint>
+#include "interface_holder.h"
+#include "preprocessor.h"
 
 namespace fd
 {
+struct basic_render_backend;
+struct basic_system_backend;
+struct basic_render_context;
 
-class render_frame_simple : public basic_render_frame
-{
-    friend class render_frame_full;
+struct basic_menu;
+struct basic_variables_group;
 
-    struct basic_render_backend *render_backend_;
-    struct basic_system_backend *system_backend_;
-    struct basic_render_context *render_context_;
+#define RENDER_FRAME_CONSTRUCT_ARGS                                 \
+    FD_GROUP_ARGS(basic_render_backend *, basic_system_backend *, ) \
+    FD_GROUP_ARGS(basic_render_context *, )                         \
+    FD_GROUP_ARGS(basic_menu *, basic_variables_group **, size_t)
 
-    struct basic_menu *menu_;
-    struct basic_variables_group **menu_data_;
-    uint8_t menu_data_length_;
+class render_frame_simple;
+struct render_frame_full;
 
-  public:
-    render_frame_simple(
-        basic_render_backend *render_backend,
-        basic_system_backend *system_backend,
-        basic_render_context *render_context,
-        basic_menu *menu,
-        basic_variables_group **menu_data,
-        uint8_t menu_data_length
-    );
+FD_INTERFACE_FWD(render_frame_simple, basic_render_frame, RENDER_FRAME_CONSTRUCT_ARGS);
+FD_INTERFACE_FWD(render_frame_full, basic_render_frame, RENDER_FRAME_CONSTRUCT_ARGS);
 
-    void render() override;
-};
-
-class render_frame_full : public render_frame_simple
-{
-  public:
-    using render_frame_simple::render_frame_simple;
-
-    void render() override;
-};
+#undef RENDER_FRAME_CONSTRUCT_ARGS
 
 } // namespace fd

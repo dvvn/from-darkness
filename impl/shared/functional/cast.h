@@ -42,8 +42,23 @@ constexpr T &remove_const(T &ref)
     return (ref);
 }
 
+namespace detail
+{
+template <typename Left, typename Right>
+constexpr bool cast_between_pointer_and_function() // for msvc, otherwise unreachable
+{
+    if (std::is_pointer_v<Left>)
+        return std::is_function_v<Right> && std::is_member_function_pointer_v<Right>;
+    if (std::is_pointer_v<Right>)
+        return std::is_function_v<Left> && std::is_member_function_pointer_v<Left>;
+
+    return false;
+}
+} // namespace detail
+
 template <typename To, typename From>
-concept can_static_cast = requires(From from) { static_cast<To>(from); };
+concept can_static_cast = requires(From from) { static_cast<To>(from); } &&
+                          !detail::cast_between_pointer_and_function<From, To>();
 
 template <typename To, typename From>
 concept can_const_cast = requires(From from) { const_cast<To>(from); };
@@ -127,11 +142,15 @@ struct change_type_as<To *, Sample const *>
 template <typename To, typename Sample>
 struct change_type_as<To &, Sample const &>
 {
-    using type = To const &;
+    using type = std::add_const_t<To> &;
 };
 
+template <typename T>
+using remove_rvalue_reference_t = std::conditional_t<std::is_rvalue_reference_v<T>, std::remove_reference_t<T>, T>;
+
 template <typename To, typename Sample>
-using change_type_as_t = typename change_type_as<To, Sample>::type;
+using change_type_as_t = typename change_type_as<To, remove_rvalue_reference_t<Sample>>::type;
+
 } // namespace detail
 
 template <
@@ -160,20 +179,25 @@ To unsafe_cast(From from)
         return static_cast<To>(from);
     else if constexpr (can_const_cast<To, From>)
         return const_cast<To>(from);
-    else if constexpr (can_reinterpret_cast<To, From>)
-        return reinterpret_cast<To>(from);
     else
     {
-        static_assert(sizeof(To) == sizeof(From));
+        static_assert(sizeof(From) == sizeof(To));
 
-        union
+        if constexpr (can_reinterpret_cast<To, From>)
         {
-            From from0;
-            To to;
-        };
+            return reinterpret_cast<To>(from);
+        }
+        else
+        {
+            union
+            {
+                From from0;
+                To to;
+            };
 
-        from0 = from;
-        return to;
+            from0 = from;
+            return to;
+        }
     }
 }
 } // namespace fd

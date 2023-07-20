@@ -34,7 +34,7 @@ class native_dx9_backend final : public basic_dx9_backend
     native_dx9_backend(system_library_info info)
         : native_dx9_backend([info] {
             assert(info.name() == L"shaderapidx9.dll");
-            auto addr = info.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C"_pat);
+            auto const addr = info.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C"_pat);
             if (!addr)
                 throw runtime_error("Unable to find DX9 device!");
             return *reinterpret_cast<pointer *>(static_cast<uint8_t *>(addr) + 1);

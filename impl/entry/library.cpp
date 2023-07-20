@@ -1,6 +1,5 @@
 #include "interface_holder.h"
 #include "native_sources.h"
-#include "preprocessor.h"
 #include "debug/console.h"
 #include "debug/log.h"
 #include "gui/menu.h"
@@ -10,6 +9,10 @@
 #include "hooked/universal.h"
 #include "hooked/winapi.h"
 #include "native/client.h"
+#include "native/engine.h"
+#include "native/entity.h"
+#include "native/entity_list.h"
+#include "native/player.h"
 #include "netvar/netvar_storage.h"
 #include "render/backend/native/dx9.h"
 #include "render/backend/native/win32.h"
@@ -99,7 +102,6 @@ void context()
 #endif
 
     fd::native_sources const sources;
-    fd::native_client const client(sources.client);
 
     auto const menu           = fd::make_interface<fd::menu>();
     auto const vars_sample    = fd::make_interface<fd::vars_sample>();
@@ -108,27 +110,37 @@ void context()
     auto const system_backend = fd::make_interface<fd::native_win32_backend>();
     auto const render_backend = fd::make_interface<fd::native_dx9_backend>(sources.shaderapidx9);
 
-    auto vars = join(vars_sample);
-    fd::render_frame_full render_frame(
-        render_backend, system_backend, render_context, //
+    auto vars         = join(vars_sample);
+    auto render_frame = fd::make_interface<fd::render_frame_full>(
+        render_backend, system_backend, //
+        render_context,                 //
         menu, data(vars), size(vars));
 
-    netvars->store(client.get_all_classes());
+    fd::native_client const client(sources.client);
+    fd::native_engine const engine(sources.engine);
+    fd::native_entity_list const ents_list(sources.client);
+
+    auto const player = engine.in_game() ? fd::native_player(ents_list, engine.local_player_index())
+                                         : fd::native_player(sources.client);
+
+    netvars->store(client.all_classes());
+    netvars->store(player.data_map.description());
+    netvars->store(player.data_map.prediction());
 
     auto hook_backend = fd::make_interface<fd::preferred_hook_backend>();
     fd::vtable const render_vtable(render_backend->native());
-    hook_backend->create(prepare_hook_full<fd::hooked_wndproc>( //
+    hook_backend->create(prepare_hook_ex<fd::hooked_wndproc>( //
         system_backend->proc(), system_backend));
-    hook_backend->create(prepare_hook_full<fd::hooked_dx9_reset>( //
+    hook_backend->create(prepare_hook_ex<fd::hooked_dx9_reset>( //
         render_vtable[&IDirect3DDevice9::Reset], render_backend));
-    hook_backend->create(prepare_hook_full<fd::hooked_dx9_present>( //
-        render_vtable[&IDirect3DDevice9::Present], &render_frame));
+    hook_backend->create(prepare_hook_ex<fd::hooked_dx9_present>( //
+        render_vtable[&IDirect3DDevice9::Present], render_frame));
 
 #ifndef FD_SPOOF_RETURN_ADDRESS
     fd::init_hook_callback<fd::hooked_verify_return_address>();
-    using hooked_verify_return_address_ref = fd::hook_callback_reference<fd::hooked_verify_return_address>;
-    hook_backend->create(fd::prepare_hook<hooked_verify_return_address_ref>( //
+    hook_backend->create(fd::prepare_hook<fd::hook_callback_ref<fd::hooked_verify_return_address>>( //
         sources.client.return_address_checker()));
+
 #if 0
     hook_backend->create(fd::prepare_hook<hooked_verify_return_address_ref>( //
         sources.shaderapidx9.return_address_checker()));

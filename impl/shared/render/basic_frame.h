@@ -1,13 +1,11 @@
 ﻿#pragma once
 
+#include "interface.h"
+
 namespace fd
 {
-struct basic_render_frame
+struct basic_render_frame : basic_interface
 {
-  protected:
-    ~basic_render_frame() = default;
-
-  public:
     virtual void render() = 0;
 };
 } // namespace fd

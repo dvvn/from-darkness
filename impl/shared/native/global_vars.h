@@ -40,4 +40,4 @@ struct native_global_vars : native_global_vars_base
     uint32_t server_count;      // 0x5C
     void *edicts;               // 0x60
 };
-} // namespace fd::valve
+} // namespace fd

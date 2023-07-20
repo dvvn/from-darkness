@@ -3,6 +3,8 @@
 #include "basic_backend.h"
 #include "functional/call_traits.h"
 
+#include <source_location>
+
 namespace fd
 {
 namespace detail
@@ -38,12 +40,29 @@ class non_default_constructible_hook_callback final : public noncopyable
         return reinterpret_cast<T *>(&buff_);
     }
 };
-} // namespace detail
 
-template <typename Callback>
+template <typename Callback, size_t N>
 struct hook_callback_reference final : noncopyable
 {
 };
+
+template <typename Callback>
+struct hook_callback
+{
+    using type = Callback;
+};
+
+template <typename Callback, size_t N>
+struct hook_callback<detail::hook_callback_reference<Callback, N>> : hook_callback<Callback>
+{
+};
+
+constexpr size_t hook_reference_index(std::source_location const &loc)
+{
+    return loc.column() + loc.line();
+}
+
+} // namespace detail
 
 template <typename Callback, bool = std::is_default_constructible_v<Callback>>
 inline Callback unique_hook_callback;
@@ -54,22 +73,11 @@ inline detail::non_default_constructible_hook_callback<Callback> unique_hook_cal
 template <typename Callback>
 inline void *unique_hook_trampoline;
 
-template <typename Callback, bool V>
-inline Callback &unique_hook_callback<hook_callback_reference<Callback>, V> = unique_hook_callback<Callback>;
+template <typename Callback, size_t N, bool V>
+inline Callback &unique_hook_callback<detail::hook_callback_reference<Callback, N>, V> = unique_hook_callback<Callback>;
 
 template <typename Callback>
-struct hook_callback
-{
-    using type = Callback;
-};
-
-template <typename Callback>
-struct hook_callback<hook_callback_reference<Callback>> : hook_callback<Callback>
-{
-};
-
-template <typename Callback>
-using hook_callback_t = typename hook_callback<Callback>::type;
+using hook_callback_t = typename detail::hook_callback<Callback>::type;
 
 template <typename Callback>
 void init_hook_callback(Callback &callback)
@@ -348,28 +356,38 @@ prepared_hook_data prepare_hook(Fn abstract_fn)
 //----
 
 template <typename Callback>
-prepared_hook_data prepare_hook_full(auto target, Callback callback)
+using hook_callback_ref = detail::hook_callback_reference<
+    Callback,
+#ifdef __RESHARPER__
+    0
+#else
+    detail::hook_reference_index(std::source_location::current())
+#endif
+    >;
+
+template <typename Callback>
+prepared_hook_data prepare_hook_ex(auto target, Callback callback)
 {
     init_hook_callback(std::move(callback));
     return prepare_hook<Callback>(target);
 }
 
 template <HOOK_PROXY_SAMPLE class Proxy, typename Callback>
-prepared_hook_data prepare_hook_full(auto target, Callback callback)
+prepared_hook_data prepare_hook_ex(auto target, Callback callback)
 {
     init_hook_callback(std::move(callback));
     return prepare_hook<Callback, Proxy>(target);
 }
 
 template <typename Callback, typename... Args>
-prepared_hook_data prepare_hook_full(auto target, Args &&...args)
+prepared_hook_data prepare_hook_ex(auto target, Args &&...args)
 {
     init_hook_callback<Callback>(std::forward<Args>(args)...);
     return prepare_hook<Callback>(target);
 }
 
 template <HOOK_PROXY_SAMPLE class Proxy, typename Callback, typename... Args>
-prepared_hook_data prepare_hook_full(auto target, Args &&...args)
+prepared_hook_data prepare_hook_ex(auto target, Args &&...args)
 {
     init_hook_callback<Callback>(std::forward<Args>(args)...);
     return prepare_hook<Callback, Proxy>(target);

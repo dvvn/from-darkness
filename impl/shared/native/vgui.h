@@ -1,5 +1,5 @@
 #pragma once
-#include ".detail/interface.h"
+#include "internal/native_interface.h"
 
 namespace fd
 {

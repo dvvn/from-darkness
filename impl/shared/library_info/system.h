@@ -27,6 +27,12 @@ class system_library_info : public basic_library_info
     {
         return vtable(name, Length - 1);
     }
+
+    template <class T>
+    void *vtable(char const *name = __rscpp_type_name<T>()) const
+    {
+        return vtable(name, __builtin_strlen(name));
+    }
 };
 
 template <library_tag Tag>

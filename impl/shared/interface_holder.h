@@ -6,7 +6,6 @@
 #include "diagnostics/fatal.h"
 #endif
 
-#include <boost/config/helper_macros.hpp>
 #include <boost/hana/tuple.hpp>
 
 namespace fd
@@ -87,6 +86,12 @@ class unique_interface final
 };
 
 template <class T>
+unique_interface<T> const *operator&(unique_interface<T> const &) = delete;
+
+template <class T>
+unique_interface<T> *operator&(unique_interface<T> &) = delete;
+
+template <class T>
 struct interface_info
 {
     using base        = T;
@@ -132,12 +137,6 @@ wrapped_interface<T> make_interface(interface_construct_args<T> &args_packed)
 
 #define FD_INTERFACE_FN(_T_) \
     wrapped_interface<_T_> make_interface(std::type_identity<_T_>, interface_construct_args<_T_> args)
-
-/*#define FD_INTERFACE_WRAPPED_1 unique_interface<base>
-#define FD_INTERFACE_WRAPPED_TRUE unique_interface<base>
-
-#define FD_INTERFACE_WRAPPED_0 base *
-#define FD_INTERFACE_WRAPPED_FALSE base **/
 
 #define FD_INTERFACE_FWD(_T_, /*_TRIVIAL_,*/ _IFC_, ...)                                  \
     template <>                                                                           \

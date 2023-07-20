@@ -1,15 +1,15 @@
 ﻿#pragma once
 
-#include <cstdint>
-
 namespace fd
 {
 class native_entity_handle
 {
-    /*unsigned long*/ uint32_t value;
+    using size_type = unsigned long;
+
+    size_type value;
 
   public:
-    uint32_t index() const;
+    size_type index() const;
 };
 
 }

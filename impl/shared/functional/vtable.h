@@ -26,11 +26,54 @@ class vfunc_index
 };
 
 template <class T>
-struct basic_vtable
-{
-    template <typename>
-    friend struct vtable;
+struct vtable;
 
+template <class T>
+struct vtable_expander;
+
+template <class T>
+vtable<T> *safe_cast(vtable_expander<T> *ptr)
+{
+    return safe_cast<vtable<T>>(ptr);
+}
+
+template <class T>
+vtable<T> const *safe_cast(vtable_expander<T> const *ptr)
+{
+    return safe_cast<vtable<T>>(ptr);
+}
+
+template <class T>
+struct vtable_expander
+{
+#define VFUNC_ACCESS(call__, __call, _call_)                                        \
+    template <typename Ret, typename... Args>                                       \
+    vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
+    {                                                                               \
+        return {func, safe_cast<T>(this)->instance()};                              \
+    }
+
+    X86_CALL_MEMBER(VFUNC_ACCESS);
+#undef VFUNC_ACCESS
+};
+
+template <>
+struct vtable_expander<void>
+{
+#define VFUNC_ACCESS(call__, __call, _call_)                                        \
+    template <typename Ret, typename T, typename... Args>                           \
+    vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
+    {                                                                               \
+        return {func, safe_cast<T>(this)->instance()};                              \
+    }
+
+    X86_CALL_MEMBER(VFUNC_ACCESS);
+#undef VFUNC_ACCESS
+};
+
+template <class T>
+struct vtable : vtable_expander<T>
+{
     using instance_pointer = T *;
     using table_pointer    = void **;
 
@@ -42,10 +85,21 @@ struct basic_vtable
     };
 
   public:
-    basic_vtable(instance_pointer instance = nullptr)
+    using vtable_expander<T>::operator[];
+
+    vtable()
+        : instance_(nullptr)
+    {
+    }
+
+    /*explicit*/ vtable(void *instance) requires(!std::is_void_v<T>)
+        : instance_(static_cast<instance_pointer>(instance))
+    {
+    }
+
+    vtable(instance_pointer instance)
         : instance_(instance)
     {
-        static_assert(std::is_class_v<T>);
     }
 
     instance_pointer operator->() const
@@ -89,7 +143,7 @@ struct basic_vtable
     }
 
     template <typename Q>
-    mem_backup<table_pointer> replace(basic_vtable<Q> other) &
+    mem_backup<table_pointer> replace(vtable<Q> other) &
     {
         return make_mem_backup(*vtable_, other.get());
     }
@@ -104,40 +158,6 @@ struct basic_vtable
     {
         return {index, instance_};
     }
-};
-
-template <class T>
-struct vtable : basic_vtable<T>
-{
-    using basic_vtable<T>::basic_vtable;
-    using basic_vtable<T>::operator[];
-
-#define VFUNC_ACCESS(call__, __call, _call_)                                        \
-    template <typename Ret, typename... Args>                                       \
-    vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
-    {                                                                               \
-        return {func, basic_vtable<T>::instance_};                                  \
-    }
-
-    X86_CALL_MEMBER(VFUNC_ACCESS);
-#undef VFUNC_ACCESS
-};
-
-template <>
-struct vtable<void> : basic_vtable<void>
-{
-    using basic_vtable::basic_vtable;
-    using basic_vtable::operator[];
-
-#define VFUNC_ACCESS(call__, __call, _call_)                                        \
-    template <typename Ret, typename T, typename... Args>                           \
-    vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
-    {                                                                               \
-        return {func, instance_};                                                   \
-    }
-
-    X86_CALL_MEMBER(VFUNC_ACCESS);
-#undef VFUNC_ACCESS
 };
 
 template <typename T>
