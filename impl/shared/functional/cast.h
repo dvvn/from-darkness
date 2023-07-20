@@ -44,21 +44,24 @@ constexpr T &remove_const(T &ref)
 
 namespace detail
 {
-template <typename Left, typename Right>
-constexpr bool cast_between_pointer_and_function() // for msvc, otherwise unreachable
-{
-    if (std::is_pointer_v<Left>)
-        return std::is_function_v<Right> && std::is_member_function_pointer_v<Right>;
-    if (std::is_pointer_v<Right>)
-        return std::is_function_v<Left> && std::is_member_function_pointer_v<Left>;
+template <typename T>
+concept is_basic_pointer = std::is_pointer_v<T> && !std::is_function_v<std::remove_pointer_t<T>>;
 
-    return false;
-}
+template <typename T>
+concept is_pointer_to_function = //
+    std::is_member_function_pointer_v<T> || (std::is_pointer_v<T> && std::is_function_v<std::remove_pointer_t<T>>);
+
+// for msvc, otherwise unreachable
+template <typename Left, typename Right>
+concept cast_between_pointer_and_function =                      //
+    (is_basic_pointer<Left> && is_pointer_to_function<Right>) || //
+    (is_basic_pointer<Right> && is_pointer_to_function<Left>);
+
 } // namespace detail
 
 template <typename To, typename From>
 concept can_static_cast = requires(From from) { static_cast<To>(from); } &&
-                          !detail::cast_between_pointer_and_function<From, To>();
+                          !detail::cast_between_pointer_and_function<From, To>;
 
 template <typename To, typename From>
 concept can_const_cast = requires(From from) { const_cast<To>(from); };
@@ -144,17 +147,33 @@ struct change_type_as<To &, Sample const &>
 {
     using type = std::add_const_t<To> &;
 };
-
+#if 0
 template <typename T>
 using remove_rvalue_reference_t = std::conditional_t<std::is_rvalue_reference_v<T>, std::remove_reference_t<T>, T>;
+#else
+template <typename T>
+struct remove_rvalue_reference
+{
+    using type = T;
+};
+
+template <typename T>
+struct remove_rvalue_reference<T &&>
+{
+    using type = T;
+};
+
+template <typename T>
+using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
+#endif
 
 template <typename To, typename Sample>
 using change_type_as_t = typename change_type_as<To, remove_rvalue_reference_t<Sample>>::type;
-
 } // namespace detail
 
 template <
-    typename To, typename From, //
+    typename To,
+    typename From, //
     can_static_cast<From &&> Result = detail::change_type_as_t<To, From &&>>
 constexpr Result safe_cast(From &&from)
 {
