@@ -105,5 +105,5 @@ class menu final : public basic_menu
     }
 };
 
-FD_INTERFACE_IMPL(menu);
+FD_OBJECT_IMPL(menu);
 }

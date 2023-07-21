@@ -72,6 +72,6 @@ struct render_frame_full final : render_frame_simple
     }
 };
 
-FD_INTERFACE_IMPL(render_frame_simple);
-FD_INTERFACE_IMPL(render_frame_full);
+FD_OBJECT_IMPL(render_frame_simple);
+FD_OBJECT_IMPL(render_frame_full);
 }

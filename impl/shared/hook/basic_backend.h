@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "interface.h"
+#include "object.h"
 
 namespace fd
 {
@@ -11,7 +11,7 @@ struct prepared_hook_data
     void **original;
 };
 
-struct basic_hook_backend : basic_interface
+struct basic_hook_backend : basic_object
 {
     virtual void *create(void *target, void *replace) = 0;
 

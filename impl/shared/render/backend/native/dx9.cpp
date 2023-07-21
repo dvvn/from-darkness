@@ -68,5 +68,5 @@ class native_dx9_backend final : public basic_dx9_backend
     }
 };
 
-FD_INTERFACE_IMPL(native_dx9_backend);
+FD_OBJECT_IMPL(native_dx9_backend);
 } // namespace fd

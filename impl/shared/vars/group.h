@@ -1,14 +1,14 @@
 ﻿#pragma once
 
 #include "basic_group.h"
-#include "interface.h"
+#include "object.h"
 #include "container/array.h"
 
 #include <concepts>
 
 namespace fd
 {
-struct variables_group : basic_variables_group, basic_interface
+struct variables_group : basic_variables_group, basic_object
 {
 };
 

@@ -92,5 +92,5 @@ struct vars_sample final : variables_group
     }
 };
 
-FD_INTERFACE_IMPL(vars_sample);
+FD_OBJECT_IMPL(vars_sample);
 }

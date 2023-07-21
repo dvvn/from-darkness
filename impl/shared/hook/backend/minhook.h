@@ -5,5 +5,5 @@
 namespace fd
 {
 struct backend_minhook;
-FD_INTERFACE_FWD(backend_minhook, basic_hook_backend);
+FD_OBJECT_FWD(backend_minhook, basic_hook_backend);
 } // namespace fd

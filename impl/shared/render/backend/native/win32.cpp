@@ -78,5 +78,5 @@ class native_win32_backend final : public basic_win32_backend, public noncopyabl
     }
 };
 
-FD_INTERFACE_IMPL(native_win32_backend);
+FD_OBJECT_IMPL(native_win32_backend);
 } // namespace fd

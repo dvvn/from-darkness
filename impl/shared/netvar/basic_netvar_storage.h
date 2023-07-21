@@ -1,6 +1,6 @@
 #pragma once
 
-#include "interface.h"
+#include "object.h"
 
 #include <cstddef>
 
@@ -30,7 +30,7 @@ class basic_netvar_table
 struct native_client_class;
 struct native_data_map;
 
-struct basic_netvar_storage : basic_interface
+struct basic_netvar_storage : basic_object
 {
     virtual basic_netvar_table *get(string_view name) = 0;
     virtual void store(native_client_class *root)     = 0;

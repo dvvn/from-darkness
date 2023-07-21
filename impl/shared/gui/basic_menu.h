@@ -1,12 +1,12 @@
 ﻿#pragma once
 
-#include "interface.h"
+#include "object.h"
 
 namespace fd
 {
 struct basic_variables_group;
 
-struct basic_menu : basic_interface
+struct basic_menu : basic_object
 {
     virtual void toggle()                             = 0;
     virtual void new_frame()                          = 0;

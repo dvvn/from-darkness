@@ -1,10 +1,10 @@
 ﻿#pragma once
 
-#include "interface.h"
+#include "object.h"
 
 namespace fd
 {
-struct basic_render_frame : basic_interface
+struct basic_render_frame : basic_object
 {
     virtual void render() = 0;
 };

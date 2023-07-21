@@ -1,4 +1,4 @@
-﻿#include "interface_holder.h"
+﻿#include "object_holder.h"
 #include "minhook.h"
 #include "noncopyable.h"
 #include "diagnostics/hook_error.h"
@@ -95,5 +95,5 @@ struct backend_minhook final : basic_hook_backend, noncopyable
     }
 };
 
-FD_INTERFACE_IMPL(backend_minhook);
+FD_OBJECT_IMPL(backend_minhook);
 }

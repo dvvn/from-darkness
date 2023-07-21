@@ -960,5 +960,5 @@ class netvar_storage final : public basic_netvar_storage
     }
 };
 
-FD_INTERFACE_IMPL(netvar_storage);
+FD_OBJECT_IMPL(netvar_storage);
 } // namespace fd

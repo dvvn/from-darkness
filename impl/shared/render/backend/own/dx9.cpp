@@ -162,5 +162,5 @@ class own_dx9_backend final : dx9_holder_proxy, public basic_own_dx9_backend
     }
 };
 
-FD_INTERFACE_IMPL(own_dx9_backend);
+FD_OBJECT_IMPL(own_dx9_backend);
 } // namespace fd

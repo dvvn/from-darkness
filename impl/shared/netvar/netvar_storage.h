@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "basic_netvar_storage.h"
-#include "interface_holder.h"
+#include "object_holder.h"
 
 #define FD_MERGE_NETVAR_TABLES
 
@@ -22,5 +22,5 @@ class basic_netvar_type_cache
 };
 
 class netvar_storage;
-FD_INTERFACE_FWD(netvar_storage,  basic_netvar_storage);
+FD_OBJECT_FWD(netvar_storage,  basic_netvar_storage);
 }

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "interface_holder.h"
+#include "object_holder.h"
 #include "internal/winapi.h"
 #include "render/backend/basic_dx9.h"
 
@@ -14,5 +14,5 @@ struct basic_own_dx9_backend : basic_dx9_backend
 };
 
 class own_dx9_backend;
-FD_INTERFACE_FWD(own_dx9_backend, basic_own_dx9_backend);
+FD_OBJECT_FWD(own_dx9_backend, basic_own_dx9_backend);
 } // namespace fd

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "interface_holder.h"
+#include "object_holder.h"
 #include "render/backend/basic_win32.h"
 
 namespace fd
@@ -15,5 +15,5 @@ struct basic_own_win32_backend : basic_win32_backend
 };
 
 class own_win32_backend;
-FD_INTERFACE_FWD(own_win32_backend, basic_own_win32_backend);
+FD_OBJECT_FWD(own_win32_backend, basic_own_win32_backend);
 }

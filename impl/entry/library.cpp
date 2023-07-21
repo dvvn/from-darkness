@@ -1,5 +1,5 @@
-#include "interface_holder.h"
 #include "native_sources.h"
+#include "object_holder.h"
 #include "debug/console.h"
 #include "debug/log.h"
 #include "gui/menu.h"
@@ -103,15 +103,15 @@ void context()
 
     fd::native_sources const sources;
 
-    auto const menu           = fd::make_interface<fd::menu>();
-    auto const vars_sample    = fd::make_interface<fd::vars_sample>();
-    auto const netvars        = fd::make_interface<fd::netvar_storage>();
-    auto const render_context = fd::make_interface<fd::render_context>();
-    auto const system_backend = fd::make_interface<fd::native_win32_backend>();
-    auto const render_backend = fd::make_interface<fd::native_dx9_backend>(sources.shaderapidx9);
+    auto const menu           = fd::make_object<fd::menu>();
+    auto const vars_sample    = fd::make_object<fd::vars_sample>();
+    auto const netvars        = fd::make_object<fd::netvar_storage>();
+    auto const render_context = fd::make_object<fd::render_context>();
+    auto const system_backend = fd::make_object<fd::native_win32_backend>();
+    auto const render_backend = fd::make_object<fd::native_dx9_backend>(sources.shaderapidx9);
 
     auto vars         = join(vars_sample);
-    auto render_frame = fd::make_interface<fd::render_frame_full>(
+    auto render_frame = fd::make_object<fd::render_frame_full>(
         render_backend, system_backend, //
         render_context,                 //
         menu, data(vars), size(vars));
@@ -127,7 +127,7 @@ void context()
     netvars->store(player.data_map.description());
     netvars->store(player.data_map.prediction());
 
-    auto hook_backend = fd::make_interface<fd::preferred_hook_backend>();
+    auto hook_backend = fd::make_object<fd::preferred_hook_backend>();
     fd::vtable const render_vtable(render_backend->native());
     hook_backend->create(prepare_hook_ex<fd::hooked_wndproc>( //
         system_backend->proc(), system_backend));

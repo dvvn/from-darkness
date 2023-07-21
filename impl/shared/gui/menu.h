@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "basic_menu.h"
-#include "interface_holder.h"
+#include "object_holder.h"
 
 namespace fd
 {
 class menu;
-FD_INTERFACE_FWD(menu,  basic_menu);
+FD_OBJECT_FWD(menu,  basic_menu);
 } // namespace fd

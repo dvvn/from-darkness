@@ -1,10 +1,10 @@
-﻿#include "noncopyable.h"
+﻿#include "name.h"
+#include "noncopyable.h"
 #include "win32.h"
 #include "diagnostics/system_error.h"
 
 #include <Windows.h>
 #include <tchar.h>
-#include "name.h"
 
 namespace fd
 {
@@ -232,5 +232,5 @@ class own_win32_backend final : own_window_info_proxy, public basic_own_win32_ba
     }
 };
 
-FD_INTERFACE_IMPL(own_win32_backend);
+FD_OBJECT_IMPL(own_win32_backend);
 } // namespace fd
