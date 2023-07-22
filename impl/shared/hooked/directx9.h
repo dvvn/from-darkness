@@ -1,43 +1,14 @@
 ﻿#pragma once
-#include "internal/d3d9.h"
-#include "render/basic_frame.h"
-#include "render/basic_render_backend.h"
+#include "basic/directx9.h"
+#include "hook/holder.h"
 
 namespace fd
 {
-class hooked_dx9_reset final
-{
-    basic_render_backend *render_ = nullptr;
+struct basic_render_backend;
+struct basic_render_frame;
 
-  public:
-    hooked_dx9_reset(basic_render_backend *render)
-        : render_(render)
-    {
-    }
-
-    HRESULT operator()(auto &original, D3DPRESENT_PARAMETERS *params) const
-    {
-        render_->reset();
-        return original(params);
-    }
-};
-
-class hooked_dx9_present final
-{
-    basic_render_frame *render_frame_;
-
-  public:
-    hooked_dx9_present(basic_render_frame *render_frame)
-        : render_frame_(render_frame)
-    {
-    }
-
-    HRESULT operator()(
-        auto &original, //
-        RECT const *source_rect, RECT const *dest_rect, HWND dest_window_override, RGNDATA const *dirty_region)
-    {
-        render_frame_->render();
-        return original(source_rect, dest_rect, dest_window_override, dirty_region);
-    }
-};
+class hooked_directx9_reset;
+FD_HOOK_FWD(hooked_directx9_reset, basic_directx9_hook, basic_render_backend *);
+class hooked_directx9_present;
+FD_HOOK_FWD(hooked_directx9_present, basic_directx9_hook, basic_render_frame *);
 }

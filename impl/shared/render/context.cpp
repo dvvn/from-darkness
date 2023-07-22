@@ -28,9 +28,12 @@ class render_context final : public basic_render_context, public noncopyable
 
 #if defined(_DEBUG) || defined(IMGUI_DISABLE_DEFAULT_ALLOCATORS)
         ImGui::SetAllocatorFunctions(
-            [](size_t size, void *) { return operator new(size, std::nothrow); },
-            [](void *buff, void *) { operator delete(buff, std::nothrow); }
-        );
+            [](size_t size, void *) {
+                return operator new(size, std::nothrow);
+            },
+            [](void *buff, void *) {
+                operator delete(buff, std::nothrow);
+            });
 #endif
 
         ImGui::Initialize();
@@ -86,6 +89,5 @@ bool skip_scene() const
         return ImGui::GetDrawData();
     }
 };
-
 FD_OBJECT_IMPL(render_context);
 } // namespace fd

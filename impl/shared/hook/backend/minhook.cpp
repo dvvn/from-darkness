@@ -94,6 +94,5 @@ struct backend_minhook final : basic_hook_backend, noncopyable
         minhook_error::create(MH_DisableHook(target));
     }
 };
-
 FD_OBJECT_IMPL(backend_minhook);
 }

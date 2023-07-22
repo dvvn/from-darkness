@@ -128,13 +128,15 @@ void context()
     netvars->store(player.data_map.prediction());
 
     auto hook_backend = fd::make_object<fd::preferred_hook_backend>();
+
     fd::vtable const render_vtable(render_backend->native());
-    hook_backend->create(prepare_hook_ex<fd::hooked_wndproc>( //
-        system_backend->proc(), system_backend));
-    hook_backend->create(prepare_hook_ex<fd::hooked_dx9_reset>( //
-        render_vtable[&IDirect3DDevice9::Reset], render_backend));
-    hook_backend->create(prepare_hook_ex<fd::hooked_dx9_present>( //
-        render_vtable[&IDirect3DDevice9::Present], render_frame));
+
+    auto hk_wndproc = prepare_hook<fd::hooked_wndproc>(system_backend->proc(), system_backend);
+    hook_backend->create(hk_wndproc);
+    auto hk_dx9_reset = fd::prepare_hook<fd::hooked_directx9_reset>(render_vtable[&IDirect3DDevice9::Reset], render_backend);
+    hook_backend->create(hk_dx9_reset);
+    auto hk_dx9_present = prepare_hook<fd::hooked_directx9_present>(render_vtable[&IDirect3DDevice9::Present], render_frame);
+    hook_backend->create(hk_dx9_present);
 
 #ifndef FD_SPOOF_RETURN_ADDRESS
     fd::init_hook_callback<fd::hooked_verify_return_address>();

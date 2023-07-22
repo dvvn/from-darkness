@@ -227,7 +227,7 @@ struct member_func_invoker
 };
 
 template <call_type Call_T, class Ret, class T, typename... Args>
-requires(std::is_class_v<T> && forwarded<T>)
+requires(std::is_class_v<T> && !complete<T>)
 struct member_func_invoker<Call_T, Ret, T, Args...> : member_func_invoker<Call_T, Ret, void, Args...>
 {
     static_assert(sizeof(member_func_type<Call_T, Ret, T, Args...>) != sizeof(void *));

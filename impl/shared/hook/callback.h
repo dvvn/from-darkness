@@ -1,7 +1,9 @@
 ﻿#pragma once
 
 #include "basic_backend.h"
+#include "noncopyable.h"
 #include "functional/call_traits.h"
+#include "functional/cast.h"
 
 #include <source_location>
 
@@ -9,51 +11,8 @@ namespace fd
 {
 namespace detail
 {
-template <typename T>
-class non_default_constructible_hook_callback final : public noncopyable
-{
-    uint8_t buff_[sizeof(T)];
-
-  public:
-    non_default_constructible_hook_callback()
-    {
-        (void)buff_;
-    }
-
-    non_default_constructible_hook_callback(T &obj)
-    {
-        reinterpret_cast<T &&>(buff_) = obj;
-    }
-
-    non_default_constructible_hook_callback(T &&obj)
-    {
-        reinterpret_cast<T &&>(buff_) = static_cast<T &&>(obj);
-    }
-
-    operator T &()
-    {
-        return reinterpret_cast<T &>(buff_);
-    }
-
-    T *operator&()
-    {
-        return reinterpret_cast<T *>(&buff_);
-    }
-};
-
 template <typename Callback, size_t N>
 struct hook_callback_reference final : noncopyable
-{
-};
-
-template <typename Callback>
-struct hook_callback
-{
-    using type = Callback;
-};
-
-template <typename Callback, size_t N>
-struct hook_callback<detail::hook_callback_reference<Callback, N>> : hook_callback<Callback>
 {
 };
 
@@ -61,29 +20,57 @@ constexpr size_t hook_reference_index(std::source_location const &loc)
 {
     return loc.column() + loc.line();
 }
-
 } // namespace detail
 
 template <typename Callback, bool = std::is_default_constructible_v<Callback>>
 inline Callback unique_hook_callback;
 
 template <typename Callback>
-inline detail::non_default_constructible_hook_callback<Callback> unique_hook_callback<Callback, false>;
+inline uint8_t unique_hook_callback<Callback, false>[sizeof(Callback)];
 
 template <typename Callback>
 inline void *unique_hook_trampoline;
 
-template <typename Callback, size_t N, bool V>
-inline Callback &unique_hook_callback<detail::hook_callback_reference<Callback, N>, V> = unique_hook_callback<Callback>;
-
 template <typename Callback>
-using hook_callback_t = typename detail::hook_callback<Callback>::type;
-
-template <typename Callback>
-void init_hook_callback(Callback &callback)
+struct hook_callback_extractor
 {
-    static_assert(std::is_trivially_destructible_v<Callback>);
-    unique_hook_callback<Callback> = static_cast<Callback &&>(callback);
+    static constexpr bool native = std::is_default_constructible_v<Callback>;
+
+    using type      = Callback;
+    using unwrapped = Callback;
+
+    static unwrapped &get()
+    {
+        if constexpr (native)
+            return unique_hook_callback<type>;
+        else
+            return *unsafe_cast<unwrapped *>(&unique_hook_callback<type>);
+    }
+};
+
+template <typename Callback>
+struct hook_callback_extractor<Callback *>
+{
+    using type      = Callback *;
+    using unwrapped = Callback;
+
+    static unwrapped &get()
+    {
+        return *unique_hook_callback<type>;
+    }
+};
+
+template <typename Callback, size_t N>
+struct hook_callback_extractor<detail::hook_callback_reference<Callback, N>> : hook_callback_extractor<Callback>
+{
+};
+
+template <typename Callback>
+void init_hook_callback(Callback &&callback)
+{
+    using callback_t = std::decay_t<Callback>;
+    static_assert(std::is_trivially_destructible_v<callback_t>);
+    new (&unique_hook_callback<callback_t>) callback_t((std::forward<Callback>(callback)));
 }
 
 template <typename Callback, typename... Args>
@@ -137,12 +124,14 @@ template <class Callback, call_type Call_T, typename Ret, class Object, typename
 Ret invoke_hook_proxy(hook_proxy_member<Call_T, Ret, Object, Args...> *proxy, Args... args)
 {
     using original_proxy = object_proxy_member<Call_T, Ret, Object, Args...>;
-    using callback_type  = hook_callback_t<Callback>;
 
-    callback_type &callback = unique_hook_callback<Callback>;
+    using callback_extractor = hook_callback_extractor<Callback>;
+    using callback_t         = typename callback_extractor::unwrapped;
 
-    constexpr auto pass_original = std::invocable<callback_type, original_proxy &, Args...>;
-    constexpr auto pass_classptr = std::invocable<callback_type, Object *, Args...>;
+    callback_t &callback = callback_extractor::get();
+
+    constexpr auto pass_original = std::invocable<callback_t, original_proxy &, Args...>;
+    constexpr auto pass_classptr = std::invocable<callback_t, Object *, Args...>;
 
     if constexpr (pass_original)
     {
@@ -200,12 +189,14 @@ Ret invoke_hook_proxy(Args... args)
 {
     using original       = non_member_func_type<Call_T, Ret, Args...>;
     using original_proxy = object_proxy_non_member<Call_T, Ret, Args...>; // or std::bind
-    using callback_type  = hook_callback_t<Callback>;
 
-    callback_type &callback = unique_hook_callback<Callback>;
+    using callback_extractor = hook_callback_extractor<Callback>;
+    using callback_t         = typename callback_extractor::unwrapped;
 
-    constexpr auto pass_original       = std::invocable<callback_type, original, Args...>;
-    constexpr auto pass_original_proxy = std::invocable<callback_type, original_proxy &, Args...>;
+    callback_t &callback = callback_extractor::get();
+
+    constexpr auto pass_original       = std::invocable<callback_t, original, Args...>;
+    constexpr auto pass_original_proxy = std::invocable<callback_t, original_proxy &, Args...>;
 
     if constexpr (pass_original)
     {
@@ -307,13 +298,15 @@ prepared_hook_data prepare_hook(Ret(__thiscall *target)(Object *, Args...))
 template <typename Callback, HOOK_PROXY_SAMPLE class Proxy>
 prepared_hook_data prepare_hook(void *target)
 {
-    return prepare_hook<Callback, Proxy>(unsafe_cast<typename hook_callback_t<Callback>::function_type>(target));
+    using function_type = typename hook_callback_extractor<Callback>::unwrapped::function_type;
+    return prepare_hook<Callback, Proxy>(unsafe_cast<function_type>(target));
 }
 
 template <typename Callback>
 prepared_hook_data prepare_hook(void *target)
 {
-    return prepare_hook<Callback>(unsafe_cast<typename hook_callback_t<Callback>::function_type>(target));
+    using function_type = typename hook_callback_extractor<Callback>::unwrapped::function_type;
+    return prepare_hook<Callback>(unsafe_cast<function_type>(target));
 }
 
 template <
@@ -366,6 +359,7 @@ using hook_callback_ref = detail::hook_callback_reference<
     >;
 
 template <typename Callback>
+[[deprecated]]
 prepared_hook_data prepare_hook_ex(auto target, Callback callback)
 {
     init_hook_callback(std::move(callback));
@@ -373,6 +367,7 @@ prepared_hook_data prepare_hook_ex(auto target, Callback callback)
 }
 
 template <HOOK_PROXY_SAMPLE class Proxy, typename Callback>
+[[deprecated]]
 prepared_hook_data prepare_hook_ex(auto target, Callback callback)
 {
     init_hook_callback(std::move(callback));
@@ -380,6 +375,7 @@ prepared_hook_data prepare_hook_ex(auto target, Callback callback)
 }
 
 template <typename Callback, typename... Args>
+[[deprecated]]
 prepared_hook_data prepare_hook_ex(auto target, Args &&...args)
 {
     init_hook_callback<Callback>(std::forward<Args>(args)...);
@@ -387,6 +383,7 @@ prepared_hook_data prepare_hook_ex(auto target, Args &&...args)
 }
 
 template <HOOK_PROXY_SAMPLE class Proxy, typename Callback, typename... Args>
+[[deprecated]]
 prepared_hook_data prepare_hook_ex(auto target, Args &&...args)
 {
     init_hook_callback<Callback>(std::forward<Args>(args)...);
