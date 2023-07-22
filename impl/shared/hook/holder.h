@@ -11,17 +11,17 @@
         using wrapped = prepared_hook_data_abstract<wrapped>;                    \
         static wrapped construct(void *target, args_packed args_packed);         \
     };
-#define FD_HOOK_IMPL(_T_, ...)                                        \
-    auto object_info<_T_, false>::construct(                          \
-        void *target, /**/                                            \
-        args_packed packed_args)                                      \
-        ->wrapped                                                     \
-    {                                                                 \
-        using info_t  = object_info<_T_, true>;                       \
-        auto callback = info_t::construct(packed_args);               \
-        init_hook_callback(static_cast<info_t::unwrapped>(callback)); \
-        auto hook_data = prepare_hook<_T_, ##__VA_ARGS__>(target);    \
-        return {std::move(hook_data), std::move(callback)};           \
+#define FD_HOOK_IMPL(_T_, ...)                                                \
+    auto object_info<_T_, false>::construct(                                  \
+        void *target, /**/                                                    \
+        args_packed packed_args)                                              \
+        ->wrapped                                                             \
+    {                                                                         \
+        using info_t              = object_info<_T_, true>;                   \
+        auto hook_callback        = info_t::construct(packed_args);           \
+        unique_hook_callback<_T_> = hook_callback;                            \
+        auto hook_data            = prepare_hook<_T_, ##__VA_ARGS__>(target); \
+        return {std::move(hook_data), std::move(hook_callback)};              \
     }
 
 namespace fd

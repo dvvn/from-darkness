@@ -133,19 +133,22 @@ void context()
 
     auto hk_wndproc = prepare_hook<fd::hooked_wndproc>(system_backend->proc(), system_backend);
     hook_backend->create(hk_wndproc);
-    auto hk_dx9_reset = fd::prepare_hook<fd::hooked_directx9_reset>(render_vtable[&IDirect3DDevice9::Reset], render_backend);
+    auto hk_dx9_reset = fd::prepare_hook<fd::hooked_directx9_reset>(
+        render_vtable[&IDirect3DDevice9::Reset], render_backend);
     hook_backend->create(hk_dx9_reset);
-    auto hk_dx9_present = prepare_hook<fd::hooked_directx9_present>(render_vtable[&IDirect3DDevice9::Present], render_frame);
+    auto hk_dx9_present = prepare_hook<fd::hooked_directx9_present>(
+        render_vtable[&IDirect3DDevice9::Present], render_frame);
     hook_backend->create(hk_dx9_present);
 
+#if 0 // rewrite
 #ifndef FD_SPOOF_RETURN_ADDRESS
     fd::init_hook_callback<fd::hooked_verify_return_address>();
     hook_backend->create(fd::prepare_hook<fd::hook_callback_ref<fd::hooked_verify_return_address>>( //
         sources.client.return_address_checker()));
-
 #if 0
     hook_backend->create(fd::prepare_hook<hooked_verify_return_address_ref>( //
         sources.shaderapidx9.return_address_checker()));
+#endif
 #endif
 #endif
 

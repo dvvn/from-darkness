@@ -3,67 +3,21 @@
 #include "basic_backend.h"
 #include "noncopyable.h"
 #include "functional/call_traits.h"
-#include "functional/cast.h"
 
 namespace fd
 {
-template <typename Callback, bool = std::is_default_constructible_v<Callback>>
-inline Callback unique_hook_callback;
-
 template <typename Callback>
-inline uint8_t unique_hook_callback<Callback, false>[sizeof(Callback)];
+inline Callback *unique_hook_callback;
 
 template <typename Callback>
 inline void *unique_hook_trampoline;
 
-template <typename Callback>
-struct hook_callback_extractor
-{
-    static constexpr bool native = std::is_default_constructible_v<Callback>;
-
-    using type      = Callback;
-    using unwrapped = Callback;
-
-    static unwrapped &get()
-    {
-        if constexpr (native)
-            return unique_hook_callback<type>;
-        else
-            return *unsafe_cast<unwrapped *>(&unique_hook_callback<type>);
-    }
-};
-
-template <typename Callback>
-struct hook_callback_extractor<Callback *>
-{
-    using type      = Callback *;
-    using unwrapped = Callback;
-
-    static unwrapped &get()
-    {
-        return *unique_hook_callback<type>;
-    }
-};
-
-// template <typename Callback, size_t N>
-// struct hook_callback_extractor<detail::hook_callback_reference<Callback, N>> : hook_callback_extractor<Callback>
+// template <typename Callback, typename... Args>
+// void init_hook_callback(Args &&...args)
 //{
-// };
-
-template <typename Callback>
-void init_hook_callback(Callback &&callback)
-{
-    using callback_t = std::decay_t<Callback>;
-    static_assert(std::is_trivially_destructible_v<callback_t>);
-    new (&unique_hook_callback<callback_t>) callback_t((std::forward<Callback>(callback)));
-}
-
-template <typename Callback, typename... Args>
-void init_hook_callback(Args &&...args)
-{
-    static_assert(std::is_trivially_destructible_v<Callback>);
-    new (&unique_hook_callback<Callback>) Callback(std::forward<Args>(args)...);
-}
+//     static_assert(std::is_trivially_destructible_v<Callback>);
+//     new (&unique_hook_callback<Callback>) Callback(std::forward<Args>(args)...);
+// }
 
 template <call_type Call_T, typename Ret, class C, typename... Args>
 struct hook_proxy_member;
@@ -110,13 +64,10 @@ Ret invoke_hook_proxy(hook_proxy_member<Call_T, Ret, Object, Args...> *proxy, Ar
 {
     using original_proxy = object_proxy_member<Call_T, Ret, Object, Args...>;
 
-    using callback_extractor = hook_callback_extractor<Callback>;
-    using callback_t         = typename callback_extractor::unwrapped;
+    Callback &callback = *unique_hook_callback<Callback>;
 
-    callback_t &callback = callback_extractor::get();
-
-    constexpr auto pass_original = std::invocable<callback_t, original_proxy &, Args...>;
-    constexpr auto pass_classptr = std::invocable<callback_t, Object *, Args...>;
+    constexpr auto pass_original = std::invocable<Callback, original_proxy &, Args...>;
+    constexpr auto pass_classptr = std::invocable<Callback, Object *, Args...>;
 
     if constexpr (pass_original)
     {
@@ -175,13 +126,10 @@ Ret invoke_hook_proxy(Args... args)
     using original       = non_member_func_type<Call_T, Ret, Args...>;
     using original_proxy = object_proxy_non_member<Call_T, Ret, Args...>; // or std::bind
 
-    using callback_extractor = hook_callback_extractor<Callback>;
-    using callback_t         = typename callback_extractor::unwrapped;
+    Callback &callback = *unique_hook_callback<Callback>;
 
-    callback_t &callback = callback_extractor::get();
-
-    constexpr auto pass_original       = std::invocable<callback_t, original, Args...>;
-    constexpr auto pass_original_proxy = std::invocable<callback_t, original_proxy &, Args...>;
+    constexpr auto pass_original       = std::invocable<Callback, original, Args...>;
+    constexpr auto pass_original_proxy = std::invocable<Callback, original_proxy &, Args...>;
 
     if constexpr (pass_original)
     {
@@ -283,14 +231,14 @@ prepared_hook_data prepare_hook(Ret(__thiscall *target)(Object *, Args...))
 template <typename Callback, HOOK_PROXY_SAMPLE class Proxy>
 prepared_hook_data prepare_hook(void *target)
 {
-    using function_type = typename hook_callback_extractor<Callback>::unwrapped::function_type;
+    using function_type = typename Callback::function_type;
     return prepare_hook<Callback, Proxy>(unsafe_cast<function_type>(target));
 }
 
 template <typename Callback>
 prepared_hook_data prepare_hook(void *target)
 {
-    using function_type = typename hook_callback_extractor<Callback>::unwrapped::function_type;
+    using function_type = typename Callback::function_type;
     return prepare_hook<Callback>(unsafe_cast<function_type>(target));
 }
 
@@ -300,7 +248,7 @@ template <
 prepared_hook_data prepare_hook(void *target)
 {
     return {
-        (target), //
+        target, //
         extract_hook_proxy<Proxy<Call_T, Ret, Args...>>::template get<Callback>(),
         &unique_hook_trampoline<Callback> //
     };
@@ -329,40 +277,6 @@ template <
 prepared_hook_data prepare_hook(Fn abstract_fn)
 {
     return prepare_hook<Callback, Proxy>(abstract_fn.get());
-}
-
-//----
-
-template <typename Callback>
-[[deprecated]]
-prepared_hook_data prepare_hook_ex(auto target, Callback callback)
-{
-    init_hook_callback(std::move(callback));
-    return prepare_hook<Callback>(target);
-}
-
-template <HOOK_PROXY_SAMPLE class Proxy, typename Callback>
-[[deprecated]]
-prepared_hook_data prepare_hook_ex(auto target, Callback callback)
-{
-    init_hook_callback(std::move(callback));
-    return prepare_hook<Callback, Proxy>(target);
-}
-
-template <typename Callback, typename... Args>
-[[deprecated]]
-prepared_hook_data prepare_hook_ex(auto target, Args &&...args)
-{
-    init_hook_callback<Callback>(std::forward<Args>(args)...);
-    return prepare_hook<Callback>(target);
-}
-
-template <HOOK_PROXY_SAMPLE class Proxy, typename Callback, typename... Args>
-[[deprecated]]
-prepared_hook_data prepare_hook_ex(auto target, Args &&...args)
-{
-    init_hook_callback<Callback>(std::forward<Args>(args)...);
-    return prepare_hook<Callback, Proxy>(target);
 }
 
 #undef HOOK_PROXY_SAMPLE
