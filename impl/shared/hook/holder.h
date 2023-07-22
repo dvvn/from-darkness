@@ -8,14 +8,14 @@
     template <>                                                                  \
     struct object_info<_T_> final : incomplete_object_info<_IFC_, ##__VA_ARGS__> \
     {                                                                            \
-        using wrapped = prepared_hook_data_abstract<wrapped>;                    \
-        static wrapped construct(void *target, args_packed args_packed);         \
+        using hook_data = prepared_hook_data_abstract<wrapped>;                  \
+        static hook_data construct(void *target, args_packed args_packed);       \
     };
 #define FD_HOOK_IMPL(_T_, ...)                                                \
     auto object_info<_T_, false>::construct(                                  \
         void *target, /**/                                                    \
         args_packed packed_args)                                              \
-        ->wrapped                                                             \
+        ->hook_data                                                           \
     {                                                                         \
         using info_t              = object_info<_T_, true>;                   \
         auto hook_callback        = info_t::construct(packed_args);           \
@@ -33,14 +33,13 @@ struct prepared_hook_data_abstract : prepared_hook_data
 };
 
 template <typename Callback, typename... Args>
-auto prepare_hook(void *target, Args &&...args) -> typename object_info<Callback>::wrapped
+auto prepare_hook(void *target, Args &&...args)
 {
     return make_object<Callback>(target, args...);
 }
 
 template <typename Callback, typename... Args>
-auto prepare_hook(auto &&target, Args &&...args) -> typename object_info<Callback>::wrapped
-    requires requires { target.get(); }
+auto prepare_hook(auto &&target, Args &&...args) requires requires { target.get(); }
 {
     return prepare_hook<Callback>(target.get(), args...);
 }

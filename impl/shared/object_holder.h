@@ -188,7 +188,7 @@ auto pack_back(A &&, Args &&...args)
 } // namespace detail
 
 template <class T, typename... Args>
-auto make_object(Args &&...args) -> typename object_info<T>::wrapped
+auto make_object(Args &&...args)
 {
     using info_t      = object_info<T>;
     using args_packed = typename info_t::args_packed;
@@ -204,8 +204,8 @@ auto make_object(Args &&...args) -> typename object_info<T>::wrapped
         auto packed_args  = detail::pack_back<dont_pack, args_packed>(std::forward<Args>(args)...);
 
         return boost::hana::unpack(
-            std::move(front_packed),
-            [&packed_args]<typename... FrontArgs>(FrontArgs &&...front_args) -> typename info_t::wrapped {
+            std::move(front_packed), //
+            [&packed_args]<typename... FrontArgs>(FrontArgs &&...front_args) {
                 return info_t::construct(std::forward<FrontArgs>(front_args)..., std::move(packed_args));
             });
     }
