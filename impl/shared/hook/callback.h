@@ -5,23 +5,8 @@
 #include "functional/call_traits.h"
 #include "functional/cast.h"
 
-#include <source_location>
-
 namespace fd
 {
-namespace detail
-{
-template <typename Callback, size_t N>
-struct hook_callback_reference final : noncopyable
-{
-};
-
-constexpr size_t hook_reference_index(std::source_location const &loc)
-{
-    return loc.column() + loc.line();
-}
-} // namespace detail
-
 template <typename Callback, bool = std::is_default_constructible_v<Callback>>
 inline Callback unique_hook_callback;
 
@@ -60,10 +45,10 @@ struct hook_callback_extractor<Callback *>
     }
 };
 
-template <typename Callback, size_t N>
-struct hook_callback_extractor<detail::hook_callback_reference<Callback, N>> : hook_callback_extractor<Callback>
-{
-};
+// template <typename Callback, size_t N>
+// struct hook_callback_extractor<detail::hook_callback_reference<Callback, N>> : hook_callback_extractor<Callback>
+//{
+// };
 
 template <typename Callback>
 void init_hook_callback(Callback &&callback)
@@ -347,16 +332,6 @@ prepared_hook_data prepare_hook(Fn abstract_fn)
 }
 
 //----
-
-template <typename Callback>
-using hook_callback_ref = detail::hook_callback_reference<
-    Callback,
-#ifdef __RESHARPER__
-    0
-#else
-    detail::hook_reference_index(std::source_location::current())
-#endif
-    >;
 
 template <typename Callback>
 [[deprecated]]
