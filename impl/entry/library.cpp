@@ -2,6 +2,7 @@
 #include "object_holder.h"
 #include "debug/console.h"
 #include "debug/log.h"
+#include "functional/function_holder.h"
 #include "gui/menu.h"
 #include "hook/preferred_backend.h"
 #include "hooked/directx9.h"
@@ -100,14 +101,19 @@ void context()
 
     fd::native_sources const sources;
 
-    auto const menu           = fd::make_object<fd::menu>();
-    auto const vars_sample    = fd::make_object<fd::vars_sample>();
     auto const netvars        = fd::make_object<fd::netvar_storage>();
     auto const render_context = fd::make_object<fd::render_context>();
     auto const system_backend = fd::make_object<fd::native_win32_backend>();
     auto const render_backend = fd::make_object<fd::native_dx9_backend>(sources.shaderapidx9);
 
-    auto vars = join(vars_sample);
+    // todo: put mutex or something into hook callback
+    // lock/unlock inside proxy for safe unload
+    // also add macro to disable unload (and drop mutex usage)
+    constexpr fd::function_holder unload_handler(resume_thread, std::in_place_type<void>);
+
+    auto const menu        = fd::make_object<fd::menu>(&unload_handler);
+    auto const vars_sample = fd::make_object<fd::vars_sample>();
+    auto vars              = join(vars_sample);
 
     fd::native_client const client(sources.client);
     fd::native_engine const engine(sources.engine);

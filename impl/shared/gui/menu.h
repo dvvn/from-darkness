@@ -10,5 +10,5 @@ class basic_function;
 using unload_handler = basic_function<void>;
 
 class menu;
-FD_OBJECT_FWD(menu, basic_menu,unload_handler*);
+FD_OBJECT_FWD(menu, basic_menu, unload_handler const *);
 } // namespace fd

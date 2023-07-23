@@ -1,4 +1,5 @@
 #include "debug/log.h"
+#include "functional/bind.h"
 #include "functional/function_holder.h"
 #include "gui/menu.h"
 #include "render/backend/own/dx9.h"
@@ -20,10 +21,7 @@ int main(int argc, int *argv) noexcept
     auto const system_backend = fd::make_object<fd::own_win32_backend>();
     auto const render_backend = fd::make_object<fd::own_dx9_backend>();
 
-    fd::function_holder unload_handler([&system_backend] {
-        system_backend->close();
-
-    });
+    fd::function_holder unload_handler(bind(&fd::basic_own_win32_backend::close, system_backend));
 
     auto const vars_sample = fd::make_object<fd::vars_sample>();
     auto const menu        = fd::make_object<fd::menu>(&unload_handler);

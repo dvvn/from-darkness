@@ -40,10 +40,10 @@ class menu final : public basic_menu
     bool visible_;
     bool next_visible_;
 
-    unload_handler *unload_;
+    unload_handler const*unload_;
 
   public:
-    menu(unload_handler *unload)
+    menu(unload_handler const*unload)
         : visible_(false)
         , next_visible_(true)
         , unload_(unload)

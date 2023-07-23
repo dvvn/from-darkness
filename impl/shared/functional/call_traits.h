@@ -12,6 +12,8 @@
 
 #include <boost/hana/tuple.hpp>
 
+#include <functional>
+
 #undef thiscall
 #undef cdecl
 #undef fastcall
@@ -356,6 +358,16 @@ struct non_member_function_info : basic_function_info<Call_T, Ret>, function_inf
 
 template <typename Fn>
 struct function_info;
+
+#ifdef _MSC_VER
+template <typename Ret, typename Fn, typename... Args>
+struct function_info<std::_Binder<Ret, Fn, Args...>>;
+
+template <typename Fn, typename... Args>
+struct function_info<std::_Binder<std::_Unforced, Fn, Args...>> : function_info<Fn>
+{
+};
+#endif
 
 template <typename Obj>
 requires requires { &Obj::operator(); }
