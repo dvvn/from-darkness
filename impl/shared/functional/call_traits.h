@@ -298,6 +298,8 @@ struct function_args
 {
 };
 
+namespace detail
+{
 template <size_t Target, size_t Current, typename, typename... T>
 struct function_arg : function_arg<Target, Current + 1, T...>
 {
@@ -316,28 +318,40 @@ struct function_arg<Target, Current, function_args<T...>> : function_arg<Target,
 
 template <size_t Target, typename... T>
 using function_arg_t = typename function_arg<Target, 0, T...>::type;
+} // namespace detail
 
-template <call_type Call_T, typename Ret, typename T, typename... Args>
-struct member_function_info
+template <call_type Call_T, typename Ret>
+struct basic_function_info
 {
     static constexpr call_type_t<Call_T> call;
     using return_type = Ret;
-    using self_type   = T;
+};
 
+template <typename... Args>
+struct function_info_args
+{
     using args = function_args<Args...>;
     template <size_t I>
-    using arg = function_arg_t<I, Args...>;
+    using arg = detail::function_arg_t<I, Args...>;
+};
+
+template <>
+struct function_info_args<>
+{
+    using args = function_args<>;
+    template <size_t I>
+    using arg = void;
+};
+
+template <call_type Call_T, typename Ret, typename T, typename... Args>
+struct member_function_info : basic_function_info<Call_T, Ret>, function_info_args<Args...>
+{
+    using self_type = T;
 };
 
 template <call_type Call_T, typename Ret, typename... Args>
-struct non_member_function_info
+struct non_member_function_info : basic_function_info<Call_T, Ret>, function_info_args<Args...>
 {
-    static constexpr call_type_t<Call_T> call;
-    using return_type = Ret;
-
-    using args = function_args<Args...>;
-    template <size_t I>
-    using arg = function_arg_t<I, Args...>;
 };
 
 template <typename Fn>

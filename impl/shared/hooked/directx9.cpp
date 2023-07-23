@@ -1,6 +1,8 @@
 ﻿#include "directx9.h"
-#include "render/basic_frame.h"
-#include "render/basic_render_backend.h"
+#include "functional/vtable.h"
+#include "render/backend/basic_dx9.h"
+#include "render/basic_system_backend.h"
+#include "render/frame.h"
 
 #include <d3d9.h>
 
@@ -8,13 +10,17 @@ namespace fd
 {
 class hooked_directx9_reset final : public basic_directx9_hook
 {
-    basic_render_backend *render_ = nullptr;
+    basic_dx9_backend *render_;
 
   public:
-    using function_type = decltype(&IDirect3DDevice9::Reset);
+    auto target() const
+    {
+        vtable const native = render_->native();
+        return native[&IDirect3DDevice9::Reset];
+    }
 
-    hooked_directx9_reset(basic_render_backend *render)
-        : render_(render)
+    hooked_directx9_reset(basic_dx9_backend *render)
+        : render_((render))
     {
     }
 
@@ -27,21 +33,27 @@ class hooked_directx9_reset final : public basic_directx9_hook
 
 class hooked_directx9_present final : public basic_directx9_hook
 {
-    basic_render_frame *render_frame_;
+    render_frame frame_;
 
   public:
-    using function_type = decltype(&IDirect3DDevice9::Present);
-
-    hooked_directx9_present(basic_render_frame *render_frame)
-        : render_frame_(render_frame)
+    auto target() const
     {
+        vtable const native = static_cast<basic_dx9_backend *>(frame_.render_backend)->native();
+        return native[&IDirect3DDevice9::Present];
+    }
+
+    hooked_directx9_present(render_frame const &render_frame)
+        : frame_(render_frame)
+    {
+        assert(static_cast<basic_dx9_backend *>(frame_.render_backend));
     }
 
     HRESULT operator()(
         auto &original, //
-        RECT const *source_rect, RECT const *dest_rect, HWND dest_window_override, RGNDATA const *dirty_region)
+        RECT const *source_rect, RECT const *dest_rect, HWND dest_window_override, RGNDATA const *dirty_region) const
     {
-        render_frame_->render();
+        if (!frame_.system_backend->minimized())
+            frame_.render();
         return original(source_rect, dest_rect, dest_window_override, dirty_region);
     }
 };

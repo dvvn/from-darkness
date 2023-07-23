@@ -147,7 +147,7 @@ void *system_library_info::vtable(char const *name, size_t length) const
 
     auto const addr1 = search(
         rdata_begin, rdata_end, type_descriptor, //
-        search_stop_token([](uint8_t *found) -> bool {
+        make_search_stop_token([](uint8_t *found) -> bool {
             return *unsafe_cast<uint32_t *>(found - 0x8) == 0;
         }));
     if (!addr1)

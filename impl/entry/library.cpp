@@ -3,14 +3,11 @@
 #include "debug/console.h"
 #include "debug/log.h"
 #include "gui/menu.h"
-#include "hook/callback.h"
 #include "hook/preferred_backend.h"
 #include "hooked/directx9.h"
-#include "hooked/universal.h"
 #include "hooked/winapi.h"
 #include "native/client.h"
 #include "native/engine.h"
-#include "native/entity.h"
 #include "native/entity_list.h"
 #include "native/player.h"
 #include "netvar/netvar_storage.h"
@@ -110,11 +107,7 @@ void context()
     auto const system_backend = fd::make_object<fd::native_win32_backend>();
     auto const render_backend = fd::make_object<fd::native_dx9_backend>(sources.shaderapidx9);
 
-    auto vars         = join(vars_sample);
-    auto render_frame = fd::make_object<fd::render_frame_full>(
-        render_backend, system_backend, //
-        render_context,                 //
-        menu, data(vars), size(vars));
+    auto vars = join(vars_sample);
 
     fd::native_client const client(sources.client);
     fd::native_engine const engine(sources.engine);
@@ -129,24 +122,24 @@ void context()
 
     auto const hook_backend = fd::make_object<fd::preferred_hook_backend>();
 
-    fd::vtable const render_vtable(render_backend->native());
-
-    auto const hk_wndproc = prepare_hook<fd::hooked_wndproc>(system_backend->proc(), system_backend);
+    auto const hk_wndproc = make_object<fd::hooked_wndproc>(system_backend);
     hook_backend->create(hk_wndproc);
-    auto const hk_dx9_reset = fd::prepare_hook<fd::hooked_directx9_reset>(
-        render_vtable[&IDirect3DDevice9::Reset], render_backend);
+    auto const hk_dx9_reset = make_object<fd::hooked_directx9_reset>(render_backend);
     hook_backend->create(hk_dx9_reset);
-    auto const hk_dx9_present = prepare_hook<fd::hooked_directx9_present>(
-        render_vtable[&IDirect3DDevice9::Present], render_frame);
+    auto const hk_dx9_present = make_object<fd::hooked_directx9_present>( //
+        fd::render_frame(
+            render_backend, system_backend,
+            render_context, //
+            menu, data(vars), size(vars)));
     hook_backend->create(hk_dx9_present);
 
 #if 0 // rewrite
 #ifndef FD_SPOOF_RETURN_ADDRESS
     fd::init_hook_callback<fd::hooked_verify_return_address>();
-    hook_backend->create(fd::prepare_hook<fd::hook_callback_ref<fd::hooked_verify_return_address>>( //
+    hook_backend->create(fd::make_object<fd::hook_callback_ref<fd::hooked_verify_return_address>>( //
         sources.client.return_address_checker()));
 #if 0
-    hook_backend->create(fd::prepare_hook<hooked_verify_return_address_ref>( //
+    hook_backend->create(fd::make_object<hooked_verify_return_address_ref>( //
         sources.shaderapidx9.return_address_checker()));
 #endif
 #endif

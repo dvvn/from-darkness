@@ -192,6 +192,7 @@ auto make_object(Args &&...args)
 {
     using info_t      = object_info<T>;
     using args_packed = typename info_t::args_packed;
+
     if constexpr (std::is_void_v<args_packed>)
         return info_t::construct(std::forward<Args>(args)...);
     else if constexpr (sizeof...(Args) == info_t::args_count)

@@ -228,14 +228,17 @@ prepared_hook_data prepare_hook(Ret(__thiscall *target)(Object *, Args...))
     };
 }
 
-template <typename Callback, HOOK_PROXY_SAMPLE class Proxy>
+template <typename Callback>
+concept hook_callback_know_function = requires { typename Callback::function_type; };
+
+template <hook_callback_know_function Callback, HOOK_PROXY_SAMPLE class Proxy>
 prepared_hook_data prepare_hook(void *target)
 {
     using function_type = typename Callback::function_type;
     return prepare_hook<Callback, Proxy>(unsafe_cast<function_type>(target));
 }
 
-template <typename Callback>
+template <hook_callback_know_function Callback>
 prepared_hook_data prepare_hook(void *target)
 {
     using function_type = typename Callback::function_type;

@@ -1,8 +1,8 @@
 #include "basic_pattern.h"
-#include "basic_search_stop_token.h"
 #include "basic_xref.h"
 #include "find.h"
 #include "search.h"
+#include "search_stop_token.h"
 #include "container/array.h"
 #include "container/vector/dynamic.h"
 #include "diagnostics/fatal.h"
@@ -426,10 +426,10 @@ void *find(void *begin, void const *end, void const *from, void const *to)
     return scan_range(begin, end, from, to, target_length);
 }
 
-void *search(void *begin, void const *end, basic_pattern const &pattern, basic_search_stop_token const &token)
+void *search(void *begin, void const *end, basic_pattern const &pattern, search_stop_token const &token)
 {
     constexpr auto cache = cache_segments([]<size_t I>(std::in_place_index_t<I>) {
-        return select_search<I, basic_search_stop_token>;
+        return select_search<I, search_stop_token>;
     });
     void *found;
     if (auto const segments = pattern.segments(); segments < cache.size())
@@ -439,13 +439,13 @@ void *search(void *begin, void const *end, basic_pattern const &pattern, basic_s
     return found;
 }
 
-void *search(void *begin, void const *end, basic_xref const &xref, basic_search_stop_token const &token)
+void *search(void *begin, void const *end, basic_xref const &xref, search_stop_token const &token)
 {
     auto const ptr = xref.get();
     return scan_range(begin, end, ptr, ptr + 1, sizeof(basic_xref::value_type), token);
 }
 
-void *search(void *begin, void const *end, void const *from, void const *to, basic_search_stop_token const &token)
+void *search(void *begin, void const *end, void const *from, void const *to, search_stop_token const &token)
 {
     auto const target_length = distance(from, to);
     if (target_length == 1)

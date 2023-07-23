@@ -222,7 +222,7 @@ class own_win32_backend final : own_window_info_proxy, public basic_own_win32_ba
 
     void close() override
     {
-        assert(!closed_);
+        //assert(!closed_);
         closed_ = true;
     }
 

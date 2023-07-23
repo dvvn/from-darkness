@@ -10,7 +10,10 @@ class hooked_wndproc final : public basic_winapi_hook
     basic_win32_backend *backend_;
 
   public:
-    using function_type = WNDPROC;
+    auto target() const
+    {
+        return backend_->proc();
+    }
 
     hooked_wndproc(basic_win32_backend *backend)
         : backend_(backend)

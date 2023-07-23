@@ -1,4 +1,5 @@
 ﻿#include "menu.h"
+#include "functional/basic_function.h"
 #include "string/view.h"
 #include "vars/basic_group.h"
 
@@ -9,23 +10,26 @@
 namespace ImGui
 {
 // ReSharper disable once CppInconsistentNaming
-static bool BeginTabBar(void const *pid, ImGuiTabBarFlags flags = 0)
+static bool BeginTabBar(std::type_identity_t<ImGuiID> id, ImGuiTabBarFlags flags = 0)
 {
     auto &g     = *GImGui;
     auto window = g.CurrentWindow;
     /*if (window->SkipItems)
         return false;*/
 
-    auto id      = window->GetID(pid);
     auto tab_bar = g.TabBars.GetOrAddByKey(id);
     ImRect tab_bar_bb(
-        window->DC.CursorPos.x,
-        window->DC.CursorPos.y,
-        window->WorkRect.Max.x,
-        window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2
-    );
+        window->DC.CursorPos.x, window->DC.CursorPos.y, //
+        window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
     tab_bar->ID = id;
     return BeginTabBarEx(tab_bar, tab_bar_bb, flags | ImGuiTabBarFlags_IsFocused);
+}
+
+// ReSharper disable once CppInconsistentNaming
+static ImGuiID GetID(std::type_identity_t<int> n)
+{
+    ImGuiWindow *window = GImGui->CurrentWindow;
+    return window->GetID(n);
 }
 } // namespace ImGui
 
@@ -36,10 +40,13 @@ class menu final : public basic_menu
     bool visible_;
     bool next_visible_;
 
+    unload_handler *unload_;
+
   public:
-    menu()
+    menu(unload_handler *unload)
         : visible_(false)
         , next_visible_(true)
+        , unload_(unload)
     {
     }
 
@@ -65,7 +72,7 @@ class menu final : public basic_menu
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
         ImGui::ShowDemoWindow();
 #endif
-        return ImGui::Begin("WIP", &next_visible_);
+        return ImGui::Begin("WIP", &next_visible_, ImGuiWindowFlags_AlwaysAutoResize);
     }
 
     static void render_current(basic_variables_group *group)
@@ -83,7 +90,7 @@ class menu final : public basic_menu
 
     static void render_inner(basic_variables_group *group)
     {
-        if (group && ImGui::BeginTabBar(group))
+        if (group && ImGui::BeginTabBar(ImGui::GetID(group)))
         {
             render_current(group);
             ImGui::EndTabBar();
@@ -92,11 +99,19 @@ class menu final : public basic_menu
 
     void render(basic_variables_group *group) override
     {
-        if (ImGui::BeginTabBar(this))
+        ImGui::PushID(this);
+        if (ImGui::BeginTabBar(ImGui::GetID(__LINE__)))
         {
             render_current(group);
             ImGui::EndTabBar();
         }
+        if (ImGui::BeginChild(ImGui::GetID(__LINE__)))
+        {
+            if (ImGui::Button("Unload"))
+                std::invoke(*unload_);
+        }
+        ImGui::EndChild();
+        ImGui::PopID();
     }
 
     void end_scene() override
