@@ -59,12 +59,26 @@ class object_proxy_member
 
 #define HOOK_PROXY_SAMPLE template <call_type, typename...>
 
+class hook_callback_call;
+
+template <class Callback>
+decltype(auto) get_hook_callback()
+{
+    auto callback = unique_hook_callback<Callback>;
+    if constexpr (complete<hook_callback_call>)
+        return [call = hook_callback_call(callback)]<typename... Args>(Args &&...args) {
+            return (*static_cast<Callback const *>(call.get()))(std::forward<Args>(args)...);
+        };
+    else
+        return *callback;
+}
+
 template <class Callback, call_type Call_T, typename Ret, class Object, typename... Args>
 Ret invoke_hook_proxy(hook_proxy_member<Call_T, Ret, Object, Args...> *proxy, Args... args)
 {
     using original_proxy = object_proxy_member<Call_T, Ret, Object, Args...>;
 
-    Callback &callback = *unique_hook_callback<Callback>;
+    decltype(auto) callback = get_hook_callback<Callback>();
 
     constexpr auto pass_original = std::invocable<Callback, original_proxy &, Args...>;
     constexpr auto pass_classptr = std::invocable<Callback, Object *, Args...>;
@@ -126,7 +140,7 @@ Ret invoke_hook_proxy(Args... args)
     using original       = non_member_func_type<Call_T, Ret, Args...>;
     using original_proxy = object_proxy_non_member<Call_T, Ret, Args...>; // or std::bind
 
-    Callback &callback = *unique_hook_callback<Callback>;
+    decltype(auto) callback = get_hook_callback<Callback>();
 
     constexpr auto pass_original       = std::invocable<Callback, original, Args...>;
     constexpr auto pass_original_proxy = std::invocable<Callback, original_proxy &, Args...>;

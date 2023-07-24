@@ -16,12 +16,14 @@ int main(int argc, int *argv) noexcept
 #ifdef _DEBUG
     fd::log_activator log_activator;
 #endif
-
+    
     auto const render_context = fd::make_object<fd::render_context>();
     auto const system_backend = fd::make_object<fd::own_win32_backend>();
     auto const render_backend = fd::make_object<fd::own_dx9_backend>();
 
-    fd::function_holder unload_handler(bind(&fd::basic_own_win32_backend::close, system_backend));
+    fd::function_holder unload_handler([&] {
+        system_backend->close();
+    });
 
     auto const vars_sample = fd::make_object<fd::vars_sample>();
     auto const menu        = fd::make_object<fd::menu>(&unload_handler);

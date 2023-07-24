@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #include "basic_backend.h"
-#include "callback.h"
 #include "object_holder.h"
+#include "proxy.h"
 
 #define FD_HOOK_FWD(_T_, _IFC_, ...)                                             \
     template <>                                                                  \

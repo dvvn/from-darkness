@@ -45,7 +45,7 @@ class hooked_directx9_present final : public basic_directx9_hook
     hooked_directx9_present(render_frame const &render_frame)
         : frame_(render_frame)
     {
-        assert(static_cast<basic_dx9_backend *>(frame_.render_backend));
+        assert(dynamic_cast<basic_dx9_backend *>(frame_.render_backend));
     }
 
     HRESULT operator()(
