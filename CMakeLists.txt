@@ -88,38 +88,64 @@ include(FetchContent)
 set(GIT_SHALLOW true)
 set(FETCHCONTENT_QUIET off)
 set(FETCHCONTENT_BASE_DIR ${_FD_ROOT_DIR}/.deps1)
-set(FETCHCONTENT_FULLY_DISCONNECTED on)
 
 set(_GIT_DIR "C:/git" CACHE STRING "The repos storage")
 
 set(_FD_DEPS)
 set(_FD_DEPS_INCLUDE)
 
-function(Dependency_Load _owner _name)
+macro(FetchContent_Activate _name)
+    if(DEFINED ${_name}_fetch)
+        set(_previous_time ${${_name}_fetch})
+    else()
+        set(_previous_time 0)
+    endif()
+
+    string(TIMESTAMP _current_time "%d.%m.%Y")
+    if(${_current_time} STREQUAL ${_previous_time})
+        set(FETCHCONTENT_FULLY_DISCONNECTED on)
+    else()
+        set(FETCHCONTENT_FULLY_DISCONNECTED off)
+        set(${_name}_fetch_tmp ${_current_time})
+    endif()
+endmacro()
+
+macro(FetchContent_Finalize _name)
+    if(DEFINED ${_name}_fetch_tmp)
+        FetchContent_GetProperties(${_name})
+        if(${_name}_POPULATED)
+            set(${_name}_fetch ${${_name}_fetch_tmp} CACHE INTERNAL "" FORCE)
+        endif()
+    endif()
+endmacro()
+
+macro(Dependency_Load _owner _name)
     set(_path ${_owner}/${_name})
     set(_deps ${_FD_ROOT_DIR}/.deps/${_path})
     set(_proj ${_name})
 
-    set(_SOURCE_DIR "${_GIT_DIR}/${_path}")
-    set(_SUBBUILD_DIR "${_deps}/subbuild")
-    set(_BINARY_DIR "${_deps}/bin")
+    set(_source_dir "${_GIT_DIR}/${_path}")
+    set(_subbuild_dir "${_deps}/subbuild")
+    set(_binary_dir "${_deps}/bin")
 
+    FetchContent_Activate(${_proj})
     FetchContent_Declare(${_proj}        
-        SOURCE_DIR ${_SOURCE_DIR}
-        SUBBUILD_DIR ${_SUBBUILD_DIR}
-        BINARY_DIR ${_BINARY_DIR}
+        SOURCE_DIR ${_source_dir}
+        SUBBUILD_DIR ${_subbuild_dir}
+        BINARY_DIR ${_binary_dir}
         GIT_REPOSITORY https://github.com/${_path}.git
         GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
         ${ARGN}
     )
 
-    set(${_proj}_SOURCE_DIR ${_SOURCE_DIR} PARENT_SCOPE)
-    set(${_proj}_SUBBUILD_DIR ${_SUBBUILD_DIR} PARENT_SCOPE)
-    set(${_proj}_BINARY_DIR ${_BINARY_DIR} PARENT_SCOPE)
-endfunction()
+    set(${_proj}_SOURCE_DIR ${_source_dir})
+    set(${_proj}_SUBBUILD_DIR ${_subbuild_dir})
+    set(${_proj}_BINARY_DIR ${_binary_dir})
+endmacro()
 
 macro(Dependency_Use _name)
     FetchContent_MakeAvailable(${_name})
+    FetchContent_Finalize(${_name})
 
     if(TARGET ${_name}::${_name})
         set(_target ${_name}::${_name})
@@ -139,6 +165,8 @@ endmacro()
 
 macro(Dependency_Use_Boost)
     FetchContent_MakeAvailable(boost)
+    FetchContent_Finalize(boost)
+
     set(_boost_libs ${BOOST_INCLUDE_LIBRARIES})
     list(TRANSFORM _boost_libs PREPEND Boost::)
 
@@ -154,6 +182,8 @@ macro(Dependency_Use_Imgui)
         Dependency_Use(imgui)
     else()
         FetchContent_Populate(imgui)
+        FetchContent_Finalize(imgui)
+
         file(GLOB _IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
         if(TARGET freetype)
             list(APPEND _IMGUI_FILES
@@ -194,6 +224,8 @@ endmacro()
 
 macro(Dependency_Populate _name)
     FetchContent_Populate(${_name})
+    FetchContent_Finalize(${_name})
+
     set(_src_dir ${${_name}_SOURCE_DIR})
 
     if(EXISTS ${_src_dir}/include)
@@ -207,28 +239,6 @@ macro(Dependency_Populate _name)
     message(DEBUG "${_info} directory included")
     list(APPEND _FD_DEPS_INCLUDE ${_include})
 endmacro()
-
-set(BOOST_INCLUDE_LIBRARIES
-    #thread
-    algorithm
-    container
-    container_hash
-    filesystem
-    #json
-    sort
-    io
-    geometry
-    qvm
-    fusion
-    hana
-    static_string
-    unordered
-    nowide
-    lambda2)
-set(BOOST_RUNTIME_LINK static)
-#set(BOOST_ENABLE_MPI ON)
-Dependency_Load(boostorg boost)
-Dependency_Use_Boost()
 
 #[[
 set(XXHASH_BUILD_XXHSUM off)
@@ -318,8 +328,29 @@ Dependency_Use(freetype)
 Dependency_Load(ocornut imgui GIT_TAG features/string_view)
 Dependency_Use_Imgui()
 target_compile_definitions(imgui PUBLIC
-    IMGUI_USER_CONFIG="${_FD_SHARED_DIR}/render/config.h"
-)
+    IMGUI_USER_CONFIG="${_FD_SHARED_DIR}/render/config.h")
+
+set(BOOST_INCLUDE_LIBRARIES
+    #thread
+    algorithm
+    container
+    container_hash
+    filesystem
+    #json
+    sort
+    io
+    geometry
+    qvm
+    fusion
+    hana
+    static_string
+    unordered
+    nowide
+    lambda2)
+set(BOOST_RUNTIME_LINK static)
+#set(BOOST_ENABLE_MPI ON)
+Dependency_Load(boostorg boost)
+Dependency_Use_Boost()
 
 # -------------------
 
