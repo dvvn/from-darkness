@@ -63,6 +63,8 @@ struct native_data_map
         char pad_0024[24];
     }; // Size: 0x003C
 
+    using value_type = field;
+
     field *fields;
     uint32_t fields_count;
     char const *name;

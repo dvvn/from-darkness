@@ -37,6 +37,8 @@ struct native_recv_table
         char const *parent_array_name;
     };
 
+    using value_type = prop; // for compatibility
+
     prop *props;
     uint32_t props_count;
     void *decoder;

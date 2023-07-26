@@ -2,11 +2,12 @@
 
 #include "object.h"
 
-#include <cstddef>
+#include <cstdint>
 
 namespace fd
 {
 struct string_view;
+struct wstring_view;
 
 class basic_netvar_info
 {
@@ -33,7 +34,10 @@ struct native_data_map;
 struct basic_netvar_storage : basic_object
 {
     virtual basic_netvar_table *get(string_view name) = 0;
-    virtual void store(native_client_class *root)     = 0;
-    virtual void store(native_data_map *root)         = 0;
+    virtual void store(native_client_class const *root)     = 0;
+    virtual void store(native_data_map const *root)         = 0;
+
+    virtual void save(wstring_view directory) const            = 0;
+    virtual void load(wstring_view directory, uint8_t version) = 0;
 };
 }

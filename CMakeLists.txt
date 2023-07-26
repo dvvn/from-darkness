@@ -95,7 +95,7 @@ set(_FD_DEPS)
 set(_FD_DEPS_INCLUDE)
 
 macro(FetchContent_Activate _name)
-    if(DEFINED ${_name}_fetch)
+    if(DEFINED ${_name}_fetch AND ${_name}_fetch)
         set(_previous_time ${${_name}_fetch})
     else()
         set(_previous_time 0)
@@ -240,6 +240,28 @@ macro(Dependency_Populate _name)
     list(APPEND _FD_DEPS_INCLUDE ${_include})
 endmacro()
 
+set(BOOST_INCLUDE_LIBRARIES
+    #thread
+    algorithm
+    container
+    container_hash
+    filesystem
+    #json
+    sort
+    io
+    geometry
+    qvm
+    fusion
+    hana
+    static_string
+    unordered
+    nowide
+    lambda2)
+set(BOOST_RUNTIME_LINK static)
+#set(BOOST_ENABLE_MPI ON)
+Dependency_Load(boostorg boost)
+Dependency_Use_Boost()
+
 #[[
 set(XXHASH_BUILD_XXHSUM off)
 Dependency_Load(Cyan4973 xxHash GIT_TAG dev)
@@ -329,28 +351,6 @@ Dependency_Load(ocornut imgui GIT_TAG features/string_view)
 Dependency_Use_Imgui()
 target_compile_definitions(imgui PUBLIC
     IMGUI_USER_CONFIG="${_FD_SHARED_DIR}/render/config.h")
-
-set(BOOST_INCLUDE_LIBRARIES
-    #thread
-    algorithm
-    container
-    container_hash
-    filesystem
-    #json
-    sort
-    io
-    geometry
-    qvm
-    fusion
-    hana
-    static_string
-    unordered
-    nowide
-    lambda2)
-set(BOOST_RUNTIME_LINK static)
-#set(BOOST_ENABLE_MPI ON)
-Dependency_Load(boostorg boost)
-Dependency_Use_Boost()
 
 # -------------------
 
