@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="fd::netvar_info&lt;*&gt;">
+		<DisplayString>{{ name={pretty_name_} offset={offset_} type={type_} }}</DisplayString>
+		<Expand>
+			<ExpandedItem>source_</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="fd::netvar_table&lt;*&gt;">
+		<DisplayString>{{ name={source_->name} size={source_->props_count} }}</DisplayString>
+		<Expand>
+			<ExpandedItem>storage_</ExpandedItem>
+		</Expand>
+	</Type>
+	<Type Name="fd::netvar_tables_storage&lt;*&gt;">
+		<DisplayString>{storage_}</DisplayString>
+		<Expand>
+			<ExpandedItem>storage_</ExpandedItem>
+		</Expand>
+	</Type>
+</AutoVisualizer>

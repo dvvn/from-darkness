@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="fd::native_recv_table">
+		<DisplayString >{{ name={name} size={props_count}}}</DisplayString>
+		<Expand>
+			<ArrayItems>
+				<Size>props_count</Size>
+				<ValuePointer>props</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+	<!--<Type Name="fd::native_recv_table::prop">
+		<DisplayString >{{  }}</DisplayString>
+	</Type>-->
+	<Type Name="fd::native_data_map">
+		<DisplayString >{{ name={name} size={fields_count}}}</DisplayString>
+		<Expand>
+			<Item Name="[base]" ExcludeView="simple">{base}</Item>
+			<ArrayItems>
+				<Size>fields_count</Size>
+				<ValuePointer>fields</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+</AutoVisualizer>

@@ -3,7 +3,6 @@
 #include "basic_netvar_storage.h"
 #include "object_holder.h"
 
-
 namespace fd
 {
 class netvar_storage;

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="fd::unique_object&lt;*&gt;">
+		<!--<SmartPointer Usage="Minimal">object_</SmartPointer>-->
+		<DisplayString >{*object_}</DisplayString>
+		<Expand>
+			<ExpandedItem>object_</ExpandedItem>
+		</Expand>
+	</Type>
+</AutoVisualizer>
