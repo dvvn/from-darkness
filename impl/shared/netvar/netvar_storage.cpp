@@ -1152,8 +1152,8 @@ class netvar_types_cache final : public basic_netvar_types_cache
 template <bool Unwrap = true, class T>
 static auto find_helper(T &rng, auto fn)
 {
-    auto end = rng.end();
-    auto it  = find_if(rng.begin(), end, fn);
+    auto const end = rng.end();
+    auto const it  = find_if(rng.begin(), end, fn);
     if constexpr (Unwrap)
         return it == end ? nullptr : iterator_to_raw_pointer(it);
     else
@@ -1189,7 +1189,7 @@ class equal_name
     }
 };
 
-enum class netvar_tables_add_state
+enum class netvar_tables_add_state : uint8_t
 {
     nothing,
     unique,
@@ -1227,8 +1227,10 @@ class netvar_tables_storage
     template <bool RawName = true>
     const_pointer get(string_view name) const
     {
-        auto end   = storage_.end();
-        auto found = find_if(storage_.begin(), end, equal_name(name_fn<RawName>(), name));
+        auto const end   = storage_.end();
+        auto const found = find_if(
+            storage_.begin(), end, // S
+            equal_name(name_fn<RawName>(), name));
         return found == end ? nullptr : iterator_to_raw_pointer(found);
     }
 
@@ -1241,7 +1243,9 @@ class netvar_tables_storage
     template <bool RawName = true, typename N>
     bool contains(N name) const
     {
-        return any_of(storage_.begin(), storage_.end(), equal_name(name_fn<RawName>(), name));
+        return any_of(
+            storage_.begin(), storage_.end(), //
+            equal_name(name_fn<RawName>(), name));
     }
 
     template <netvar_tables_add_state State>
@@ -1251,8 +1255,10 @@ class netvar_tables_storage
         if constexpr (State != add_state::unique)
             if constexpr (State == add_state::merge)
             {
-                auto end         = storage_.end();
-                auto const found = find_if(storage_.begin(), end, equal_name(name_fn<true>(), item->name));
+                auto const end   = storage_.end();
+                auto const found = find_if(
+                    storage_.begin(), end, //
+                    equal_name(name_fn<true>(), item->name));
                 if (found != end)
                 {
                     found->parse(item, 0, true);
@@ -1324,30 +1330,30 @@ class netvar_storage final : public basic_netvar_storage
 
     void store(native_client_class const *root) override
     {
+        using state = netvar_tables_add_state;
+        using enum state;
+        auto const do_store = [&]<state State>(std::integral_constant<state, State>) {
+            for (; root != nullptr; root = root->next)
+                recv_tables_.add<State>(root->table);
+        };
         if (recv_tables_.empty())
-        {
-            for (; root != nullptr; root = root->next)
-                recv_tables_.add<netvar_tables_add_state::unique>(root->table);
-        }
+            do_store(std::integral_constant<state, unique>());
         else
-        {
-            for (; root != nullptr; root = root->next)
-                recv_tables_.add<netvar_tables_add_state::merge>(root->table);
-        }
+            do_store(std::integral_constant<state, merge>());
     }
 
     void store(native_data_map const *root) override
     {
+        using state = netvar_tables_add_state;
+        using enum state;
+        auto const do_store = [&]<state State>(std::integral_constant<state, State>) {
+            for (; root != nullptr; root = root->base)
+                data_maps_.add<State>(root);
+        };
         if (data_maps_.empty())
-        {
-            for (; root != nullptr; root = root->base)
-                data_maps_.add<netvar_tables_add_state::unique>(root);
-        }
+            do_store(std::integral_constant<state, unique>());
         else
-        {
-            for (; root != nullptr; root = root->base)
-                data_maps_.add<netvar_tables_add_state::merge>(root);
-        }
+            do_store(std::integral_constant<state, merge>());
     }
 
     void save(wstring_view directory) const override
