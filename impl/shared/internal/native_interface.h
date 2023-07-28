@@ -8,14 +8,12 @@
 
 namespace fd
 {
-
 struct native_function_tag
 {
 };
 
 namespace detail
 {
-
 #if defined(_DEBUG) || !defined(FD_SPOOF_RETURN_ADDRESS)
 template <class T>
 using native_vtable = vtable<T>;
@@ -28,9 +26,6 @@ struct native_vtable : vtable<T>
 };
 #endif
 
-/**
- * \tparam Index number or \code vfunc_index<X>
- */
 template <class T, auto Index, typename Ret, typename... Args>
 class native_function : public native_function_tag
 {

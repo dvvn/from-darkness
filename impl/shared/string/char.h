@@ -18,28 +18,28 @@ constexpr size_t strlen(wchar_t const (&)[S])
 
 namespace detail
 {
-constexpr bool is_betweet_two(char c, char left, char rigtht)
+constexpr bool is_betweet_two(char const c, char const left, char const rigtht)
 {
     return c >= left && c <= rigtht;
 }
 } // namespace detail
 
-constexpr bool islower(char c)
+constexpr bool islower(char const c)
 {
     return detail::is_betweet_two(c, 'a', 'z');
 }
 
-constexpr bool isupper(char c)
+constexpr bool isupper(char const c)
 {
     return detail::is_betweet_two(c, 'A', 'Z');
 }
 
-constexpr bool isdigit(char c)
+constexpr bool isdigit(char const c)
 {
     return detail::is_betweet_two(c, '0', '9');
 }
 
-constexpr bool isxdigit(char c)
+constexpr bool isxdigit(char const c)
 {
     return detail::is_betweet_two(c, '0', '9') || //
            detail::is_betweet_two(c, 'a', 'f') || //
