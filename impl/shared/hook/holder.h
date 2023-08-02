@@ -15,7 +15,7 @@
     auto object_info<_T_, false>::construct(args_packed packed_args)->hook_data          \
     {                                                                                    \
         auto callback             = object_info<_T_, true>::construct(packed_args);      \
-        unique_hook_callback<_T_> = callback;                                            \
+        unique_hook_callback<_T_> = static_cast<_T_*>(callback);                                           \
         auto target               = callback->target();                                  \
         auto hook_data            = prepare_hook<_T_, ##__VA_ARGS__>(std::move(target)); \
         return {std::move(hook_data), std::move(callback)};                              \

@@ -23,6 +23,9 @@
 
 #include <cassert>
 
+static void context();
+
+#if 1
 static HINSTANCE self_handle;
 static HANDLE thread;
 static DWORD thread_id;
@@ -36,30 +39,28 @@ static void exit_thread(bool const success)
 
 static bool pause_thread()
 {
-    return SuspendThread(thread) != -1;
+    return SuspendThread(thread) != static_cast<DWORD>(-1);
 }
 
 static bool resume_thread()
 {
-    return ResumeThread(thread) != -1;
+    return ResumeThread(thread) != static_cast<DWORD>(-1);
 }
 
-static void context();
-
 // ReSharper disable once CppInconsistentNaming
-BOOL WINAPI DllMain(HINSTANCE const handle, DWORD const reason, LPCVOID const reserved)
+BOOL WINAPI DllMain(HINSTANCE handle, DWORD const reason, LPCVOID const reserved)
 {
     switch (reason)
     {
     case DLL_PROCESS_ATTACH: {
         // Initialize once for each new process.
         // Return FALSE to fail DLL load.
-        thread = CreateThread(
+        self_handle = handle;
+        thread      = CreateThread(
             nullptr, 0,
-            [](LPVOID ptr) -> DWORD {
+            [](auto) -> DWORD {
                 try
                 {
-                    self_handle = static_cast<HINSTANCE>(ptr);
                     context();
                     exit_thread(true);
                 }
@@ -68,7 +69,7 @@ BOOL WINAPI DllMain(HINSTANCE const handle, DWORD const reason, LPCVOID const re
                     exit_thread(false);
                 }
             },
-            handle, 0, &thread_id);
+            nullptr, 0, &thread_id);
         if (!thread)
             return FALSE;
         break;
@@ -91,6 +92,20 @@ BOOL WINAPI DllMain(HINSTANCE const handle, DWORD const reason, LPCVOID const re
 
     return TRUE;
 }
+#endif
+
+static auto get_player_data_map(
+    fd::native_sources const &sources, //
+    fd::native_engine engine, fd::native_entity_list ents)
+{
+    fd::native_player player;
+    if (engine.in_game())
+        player = {ents.get_client_entity(engine.local_player_index())};
+    else
+        player = {sources.client};
+
+    return player.data_map;
+}
 
 void context()
 {
@@ -101,42 +116,39 @@ void context()
 
     fd::native_sources const sources;
 
-    auto const netvars        = fd::make_object<fd::netvar_storage>();
-    auto const render_context = fd::make_object<fd::render_context>();
-    auto const system_backend = fd::make_object<fd::native_win32_backend>();
-    auto const render_backend = fd::make_object<fd::native_dx9_backend>(sources.shaderapidx9);
+    using fd::make_object;
 
-    // todo: put mutex or something into hook callback
-    // lock/unlock inside proxy for safe unload
-    // also add macro to disable unload (and drop mutex usage)
+    auto const netvars        = make_object<fd::netvar_storage>();
+    auto const render_context = make_object<fd::render_context>();
+    auto const system_backend = make_object<fd::native_win32_backend>();
+    auto const render_backend = make_object<fd::native_dx9_backend>(sources.shaderapidx9);
+
+    // todo: add macro to disable unload (and drop mutex usage)
     constexpr fd::function_holder unload_handler(resume_thread, std::in_place_type<void>);
 
-    auto const menu        = fd::make_object<fd::menu>(&unload_handler);
-    auto const vars_sample = fd::make_object<fd::vars_sample>();
-    auto vars              = join(vars_sample);
+    auto const menu = make_object<fd::menu>(&unload_handler);
 
     fd::native_client const client(sources.client);
     fd::native_engine const engine(sources.engine);
     fd::native_entity_list const ents_list(sources.client);
 
-    auto const player = engine.in_game() ? fd::native_player(ents_list, engine.local_player_index())
-                                         : fd::native_player(sources.client);
+    auto const player_data_map = get_player_data_map(sources, engine, ents_list);
 
     netvars->store(client.all_classes());
-    netvars->store(player.data_map.description());
-    netvars->store(player.data_map.prediction());
+    netvars->store(player_data_map.description());
+    netvars->store(player_data_map.prediction());
+
+    fd::render_frame const render_frame(
+        {render_backend, system_backend, render_context, menu}, //
+        {nullptr, 0});
+
+    auto const hk_wndproc     = make_object<fd::hooked_wndproc>(system_backend);
+    auto const hk_dx9_reset   = make_object<fd::hooked_directx9_reset>(render_backend);
+    auto const hk_dx9_present = make_object<fd::hooked_directx9_present>(&render_frame);
 
     auto const hook_backend = fd::make_object<fd::preferred_hook_backend>();
-
-    auto const hk_wndproc = make_object<fd::hooked_wndproc>(system_backend);
     hook_backend->create(hk_wndproc);
-    auto const hk_dx9_reset = make_object<fd::hooked_directx9_reset>(render_backend);
     hook_backend->create(hk_dx9_reset);
-    auto const hk_dx9_present = make_object<fd::hooked_directx9_present>( //
-        fd::render_frame(
-            render_backend, system_backend,
-            render_context, //
-            menu, data(vars), size(vars)));
     hook_backend->create(hk_dx9_present);
 
 #if 0 // rewrite

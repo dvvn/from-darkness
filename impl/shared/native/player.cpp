@@ -4,6 +4,10 @@
 
 namespace fd
 {
+native_player::native_player()
+{
+    (void)this;
+}
 
 native_player::native_player(native_library_info info)
 {
@@ -13,5 +17,10 @@ native_player::native_player(native_library_info info)
 native_player::native_player(native_entity_list list, size_t index)
 {
     construct_at(this, list.get_client_entity(index));
+}
+
+native_player::native_player(void *native)
+{
+    construct_at(this, native);
 }
 }

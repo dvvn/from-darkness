@@ -73,7 +73,7 @@ class unique_object final : public noncopyable
         return std::exchange(object_, nullptr);
     }
 
-    operator T *() const
+    /*explicit*/ operator T *() const
     {
         return object_;
     }
@@ -87,6 +87,11 @@ class unique_object final : public noncopyable
     {
         return object_;
     }
+
+   /* T *get() const
+    {
+        return object_;
+    }*/
 };
 
 template <class T>
@@ -193,13 +198,15 @@ auto make_object(Args &&...args)
     using info_t      = object_info<T>;
     using args_packed = typename info_t::args_packed;
 
+    constexpr auto args_count = sizeof...(Args);
+
     if constexpr (std::is_void_v<args_packed>)
         return info_t::construct(std::forward<Args>(args)...);
-    else if constexpr (sizeof...(Args) == info_t::args_count)
+    else if constexpr (args_count == info_t::args_count)
         return info_t::construct(args_packed(std::forward<Args>(args)...));
     else
     {
-        constexpr auto dont_pack = sizeof...(Args) - info_t::args_count;
+        constexpr auto dont_pack = args_count - info_t::args_count;
 
         auto front_packed = detail::pack_front<dont_pack>(std::forward<Args>(args)...);
         auto packed_args  = detail::pack_back<dont_pack, args_packed>(std::forward<Args>(args)...);
@@ -211,4 +218,6 @@ auto make_object(Args &&...args)
             });
     }
 }
+
+
 } // namespace fd

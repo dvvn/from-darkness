@@ -136,7 +136,7 @@ class own_dx9_backend final : dx9_holder_proxy, public basic_own_dx9_backend
         assert(clear == D3D_OK);
 
         auto begin = device->BeginScene();
-        assert(begin == D3D_OK); 
+        assert(begin == D3D_OK);
 
         basic_dx9_backend::render(draw_data);
 
@@ -156,7 +156,7 @@ class own_dx9_backend final : dx9_holder_proxy, public basic_own_dx9_backend
             own_dx9_backend::reset();
     }
 
-    IDirect3DDevice9 *native() const override
+    void *native() const override
     {
         return dx9.get();
     }

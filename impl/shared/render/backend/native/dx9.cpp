@@ -62,7 +62,7 @@ class native_dx9_backend final : public basic_dx9_backend
         return {func, *device_};
     }*/
 
-    IDirect3DDevice9 *native() const override
+    void *native() const override
     {
         return *device_;
     }

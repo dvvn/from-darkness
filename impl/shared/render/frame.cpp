@@ -8,29 +8,63 @@
 #include <algorithm>
 #include <cassert>
 
-namespace fd
+namespace fd::detail
 {
-void render_frame::render() const
+using enum render_frame_menu_mode;
+
+static void render_menu(render_frame_data const &data, render_frame_menu_data<single> const &menu_data)
 {
-    assert(!system_backend->minimized());
+    data.menu->render(menu_data.items);
+}
 
-    system_backend->new_frame();
-    render_backend->new_frame();
-    menu->new_frame();
+static void render_menu(render_frame_data const &data, render_frame_menu_data<multi> const &menu_data)
+{
+    for (size_t i = 0; i != menu_data.items_count; ++i)
+        data.menu->render(menu_data.items[i]);
+}
 
-    render_context->begin_frame();
-    if (menu->visible())
+template <render_frame_menu_mode Mode>
+static void render_impl(render_frame_data const &data, render_frame_menu_data<Mode> const &menu_data)
+{
+    assert(!data.system_backend->minimized());
+
+    data.system_backend->new_frame();
+    data.render_backend->new_frame();
+    data.menu->new_frame();
+
+    data.render_context->begin_frame();
+    if (data.menu->visible())
     {
-        if (menu->begin_scene())
+        if (data.menu->begin_scene())
         {
-            std::for_each(
-                menu_data, menu_data + menu_data_length, //
-                bind_front(&basic_menu::render, menu));
+            render_menu(data, menu_data);
         }
-        menu->end_scene();
+        data.menu->end_scene();
     }
-    render_context->end_frame();
+    data.render_context->end_frame();
 
-    render_backend->render(render_context->data());
+    data.render_backend->render(data.render_context->data());
 }
+
+void render(render_frame_data const &data, render_frame_menu_data<single> const &menu_data)
+{
+    render_impl<single>(data, menu_data);
 }
+
+void render(render_frame_data const &data, render_frame_menu_data<multi> const &menu_data)
+{
+    render_impl<multi>(data, menu_data);
+}
+
+void render_if_shown(render_frame_data const &data, render_frame_menu_data<single> const &menu_data)
+{
+    if (!data.system_backend->minimized())
+        render(data, menu_data);
+}
+
+void render_if_shown(render_frame_data const &data, render_frame_menu_data<multi> const &menu_data)
+{
+    if (!data.system_backend->minimized())
+        render(data, menu_data);
+}
+} // namespace fd::detail

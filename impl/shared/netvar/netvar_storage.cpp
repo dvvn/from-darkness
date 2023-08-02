@@ -19,20 +19,6 @@
 
 #define FD_MERGE_NETVAR_TABLES
 
-using std::all_of;
-using std::copy;
-using std::find_if;
-using std::find_if_not;
-using std::for_each;
-using std::for_each_n;
-using std::stable_sort;
-
-using std::max;
-using std::min;
-
-using std::next;
-using std::prev;
-
 namespace fd
 {
 class basic_netvar_types_cache
@@ -52,7 +38,7 @@ template <size_t S>
 static bool equal(char const *buff, char const (&cmp)[S])
 {
 #if 1
-    return buff[S - 1] == '\0' && memcmp(buff, cmp, S - 1) == 0;
+    return buff[S - 1] == '\0' && std::equal(buff, buff + S - 1, cmp);
 #else
     return memcmp(buff, cmp, S) == 0;
 #endif
@@ -72,16 +58,16 @@ static size_t array_chars_count(string_view str)
         if (!str.ends_with(']'))
             return 0;
     }
-    auto const open_br = static_cast<string_view::difference_type>(str.rfind('['));
-    auto const start   = next(str.begin(), open_br);
+    auto const open_br = str.rfind('[');
+    auto const start   = std::next(str.begin(), open_br);
     if constexpr (Validate)
     {
-        if (*prev(start) == ']')
+        if (*std::prev(start) == ']')
             return 0;
     }
-    auto const num_start = next(start);
-    auto const num_end   = prev(str.end());
-    auto const length    = distance(num_start, num_end);
+    auto const num_start = std::next(start);
+    auto const num_end   = std::prev(str.end());
+    auto const length    = std::distance(num_start, num_end);
     if constexpr (Validate)
     {
         if (length == 1)
@@ -94,9 +80,9 @@ static size_t array_chars_count(string_view str)
 
 static size_t array_length(string_view const str, size_t const chars_count)
 {
-    auto const start = iterator_to_raw_pointer(prev(str.end(), chars_count + 1));
+    auto const start = iterator_to_raw_pointer(std::prev(str.end(), chars_count + 1));
     size_t num;
-    from_chars((start), next(start, chars_count), num);
+    from_chars((start), std::next(start, chars_count), num);
     return num + 1;
 }
 
@@ -107,7 +93,7 @@ static auto one_demension_array(string_view str)
     {
         if (!str.ends_with("[0]"))
             return false;
-        return *next(str.rbegin(), 3) != ']';
+        return *std::next(str.rbegin(), 3) != ']';
     }
     else
     {
@@ -130,7 +116,7 @@ static char const *recv_prop_name(native_recv_table::prop const *prop)
         return prop->parent_array_name;
     /*if (prop->type == recv_prop_type::array) //unreachable
         if (string_view(prop->name).ends_with(']'))
-            return prev(prop)->name;*/
+            return std::prev(prop)->name;*/
     return prop->name;
 }
 
@@ -196,12 +182,13 @@ class netvar_prefix
     {
         assert(operator bool());
 
-        auto const begin      = next(type_.begin(), basic_prefix_.length());
-        auto const abs_end    = type_.end();
-        auto const end        = max_length == std::numeric_limits<size_t>::max()
-                                    ? abs_end
-                                    : next(begin, min(distance(begin, abs_end), static_cast<ptrdiff_t>(max_length + 1)));
-        auto const prefix_end = find_if_not(begin, end, islower);
+        auto const begin   = std::next(type_.begin(), basic_prefix_.length());
+        auto const abs_end = type_.end();
+        auto const end =
+            max_length == std::numeric_limits<size_t>::max()
+                ? abs_end
+                : std::next(begin, std::min(std::distance(begin, abs_end), static_cast<ptrdiff_t>(max_length + 1)));
+        auto const prefix_end = std::find_if_not(begin, end, islower);
         if (prefix_end != end && isupper(*prefix_end))
             return {begin, prefix_end};
         return {};
@@ -354,7 +341,7 @@ static bool prop_have_char(
     native_recv_table::prop const *first, size_t const jump, //
     char const c, size_t const offset)
 {
-    auto const next_prop = next(first, jump);
+    auto const next_prop = std::next(first, jump);
     if constexpr (!Unsafe)
         if (first->proxy != next_prop->proxy)
             return false;
@@ -398,7 +385,7 @@ static char const *prop_type_float(native_recv_table::prop const *prop)
         {
             if (auto const offset = name.rfind('X'); offset != name.npos)
             {
-                auto length = chars_sequence(next(prop), 'Y', 'Z', offset) + 1;
+                auto length = chars_sequence(std::next(prop), 'Y', 'Z', offset) + 1;
                 if (length == 3 && prop_have_char<false>(prop, 4, 'W', offset))
                     ++length;
 
@@ -416,7 +403,7 @@ static char const *prop_type_float(native_recv_table::prop const *prop)
 
                     if (extracted == "vec")
                     {
-                        auto const length = chars_sequence(next(prop), '1', '2', num_start) + 1;
+                        auto const length = chars_sequence(std::next(prop), '1', '2', num_start) + 1;
                         if (auto const type = as_vector(length))
                             return type;
                     }
@@ -441,10 +428,10 @@ static char const *prop_type_vec2(native_recv_table::prop const *prop)
             auto const prop_name_length = string_view(unk_prefix).length();
 #if 1
             // this prop
-            // next prop[2]
+            // std::next prop[2]
             if (prop_have_char<true>(prop, 1, '2', prop_name_length + 1))
 #else
-            auto const next_prop = next(prop);
+            auto const next_prop = std::next(prop);
             if (string_view(next_prop->name + prop_name_length, 3) == "[2]")
 #endif
             {
@@ -661,8 +648,8 @@ static string netvar_info_type(native_recv_table::prop const *prop)
     string buffer;
     if (prop->type == recv_prop_type::array)
     {
-        // todo: say why prev prop?
-        auto const prev_prop = prev(prop);
+        // todo: say why std::prev prop?
+        auto const prev_prop = std::prev(prop);
         netvar_type_array(
             back_inserter(buffer), //
             netvar_type(prev_prop, recv_prop_array_info(prop->name, prop->element_stride)),
@@ -766,12 +753,12 @@ struct netvar_info final : basic_netvar_info
 #ifdef _DEBUG
         name_        = netvar_info_name(source_);
         pretty_name_ = netvar_info_pretty_name(source_, name_);
-        if (*next(&pretty_name_.back()) != '\0')
+        if (*std::next(&pretty_name_.back()) != '\0')
         {
             auto const length = pretty_name_.length();
             auto const buff   = new char[length + 1];
             buff[length]      = '\0';
-            copy(pretty_name_.begin(), pretty_name_.end(), buff);
+            std::copy(pretty_name_.begin(), pretty_name_.end(), buff);
             pretty_name_ = {buff, length};
         }
         offset_ = abs_offset();
@@ -875,7 +862,7 @@ static char const *netvar_table_name(native_data_map const *map)
 template <class T>
 static auto find_store_position(vector<netvar_info<T>> const &storage, size_t const offset)
 {
-    auto it = find_if(
+    auto it = std::find_if(
         storage.rbegin(), storage.rend(), //
         _1->*&netvar_info<T>::offset < offset);
     return it.base(); // position after it
@@ -929,7 +916,7 @@ static void netvar_table_parse(
         return;
 
     auto first_prop = as_const(table->props);
-    auto last_prop  = next(first_prop, table->props_count); // NOLINT(cppcoreguidelines-narrowing-conversions)
+    auto last_prop  = std::next(first_prop, table->props_count); // NOLINT(cppcoreguidelines-narrowing-conversions)
 
     if (first_prop->array_length_proxy || equal(first_prop->name, "lengthproxy"))
     {
@@ -957,7 +944,7 @@ static void netvar_table_parse(
         return;
     }
 
-    if (prev(last_prop)->name[0] == '\"')
+    if (std::prev(last_prop)->name[0] == '\"')
     {
         // DT_Team -> player_array_element
         last_prop -= 2;
@@ -1057,7 +1044,7 @@ struct netvar_table final : basic_netvar_table
 
     void sort()
     {
-        stable_sort(
+        std::stable_sort(
             storage_.begin(), storage_.end(), //
             _1->*&info_type::offset < _2->*&info_type::offset);
     }
@@ -1078,7 +1065,7 @@ struct netvar_table final : basic_netvar_table
     {
 #ifndef FD_MERGE_NETVAR_TABLES
         auto end = inner_.cend();
-        auto it  = find_if(inner_.cbegin(), end, _1->*&netvar_table::name == name);
+        auto it  = std::find_if(inner_.cbegin(), end, _1->*&netvar_table::name == name);
 
         if (it != end)
             return iterator_to_raw_pointer(it);
@@ -1095,7 +1082,7 @@ struct netvar_table final : basic_netvar_table
 #endif
         {
             auto const end = storage_.end();
-            auto const it  = find_if(
+            auto const it  = std::find_if(
                 storage_.begin(), end, //
                 _1->*&info_type::pretty_name == name);
             if (it != end)
@@ -1139,7 +1126,7 @@ class netvar_types_cache final : public basic_netvar_types_cache
     string_view get(key_type key) const override
     {
         auto const end = storage_.end();
-        auto const it  = find_if(storage_.begin(), end, _1->*&stored_value::key == key);
+        auto const it  = std::find_if(storage_.begin(), end, _1->*&stored_value::key == key);
         return it == end ? string_view() : it->view();
     }
 
@@ -1153,7 +1140,7 @@ template <bool Unwrap = true, class T>
 static auto find_helper(T &rng, auto fn)
 {
     auto const end = rng.end();
-    auto const it  = find_if(rng.begin(), end, fn);
+    auto const it  = std::find_if(rng.begin(), end, fn);
     if constexpr (Unwrap)
         return it == end ? nullptr : iterator_to_raw_pointer(it);
     else
@@ -1167,7 +1154,7 @@ static bool equal_name_compare(char const *ptr, char const *ptr2)
 
 static bool equal_name_compare(char const *ptr, string_view const str)
 {
-    return string_view::traits_type::compare(ptr, str.data(), str.length()) == 0;
+    return std::equal(str.begin(), str.end(), ptr);
 }
 
 template <typename Fn, typename T>
@@ -1228,7 +1215,7 @@ class netvar_tables_storage
     const_pointer get(string_view name) const
     {
         auto const end   = storage_.end();
-        auto const found = find_if(
+        auto const found = std::find_if(
             storage_.begin(), end, // S
             equal_name(name_fn<RawName>(), name));
         return found == end ? nullptr : iterator_to_raw_pointer(found);
@@ -1256,7 +1243,7 @@ class netvar_tables_storage
             if constexpr (State == add_state::merge)
             {
                 auto const end   = storage_.end();
-                auto const found = find_if(
+                auto const found = std::find_if(
                     storage_.begin(), end, //
                     equal_name(name_fn<true>(), item->name));
                 if (found != end)
@@ -1302,8 +1289,7 @@ class netvar_storage final : public basic_netvar_storage
             return recv_tables_.get(name);
 
 #if 1
-
-        constexpr auto name_offset   = max(datamap_prefix.length(), class_prefix.length());
+        constexpr auto name_offset   = std::max(datamap_prefix.length(), class_prefix.length());
         constexpr auto class_start   = name_offset - class_prefix.length();
         constexpr auto datamap_start = name_offset - datamap_prefix.length();
 
@@ -1311,12 +1297,12 @@ class netvar_storage final : public basic_netvar_storage
         //^^reserved   ^^always on same place
         //   for long prefix
         array<char, 128> buff;
-        auto const end = copy(name.begin(), name.end(), next(buff.begin(), name_offset));
+        auto const end = std::copy(name.begin(), name.end(), next(buff.begin(), name_offset));
 
-        auto it = copy(class_prefix.begin(), class_prefix.end(), next(buff.begin(), class_start));
+        auto it = std::copy(class_prefix.begin(), class_prefix.end(), next(buff.begin(), class_start));
         if (auto const ptr = data_maps_.get({it, end}))
             return ptr;
-        it = copy(datamap_prefix.begin(), datamap_prefix.end(), next(buff.begin(), datamap_start));
+        it = std::copy(datamap_prefix.begin(), datamap_prefix.end(), next(buff.begin(), datamap_start));
         if (auto const ptr = recv_tables_.get({it, end}))
             return ptr;
 #else
@@ -1344,16 +1330,15 @@ class netvar_storage final : public basic_netvar_storage
 
     void store(native_data_map const *root) override
     {
-        using state = netvar_tables_add_state;
-        using enum state;
+        using state         = netvar_tables_add_state;
         auto const do_store = [&]<state State>(std::integral_constant<state, State>) {
             for (; root != nullptr; root = root->base)
                 data_maps_.add<State>(root);
         };
         if (data_maps_.empty())
-            do_store(std::integral_constant<state, unique>());
+            do_store(std::integral_constant<state, state::unique>());
         else
-            do_store(std::integral_constant<state, merge>());
+            do_store(std::integral_constant<state, state::merge>());
     }
 
     void save(wstring_view directory) const override

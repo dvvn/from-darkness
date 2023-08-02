@@ -16,6 +16,5 @@ struct basic_dx9_backend : basic_render_backend
     void new_frame() override;
     void render(ImDrawData *draw_data) override;
     void reset() override;
-    virtual IDirect3DDevice9 *native() const = 0;
 };
 }

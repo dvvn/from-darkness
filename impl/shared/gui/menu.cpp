@@ -1,10 +1,12 @@
-﻿#include "menu.h"
+﻿#include "basic_menu_item.h"
+#include "menu.h"
 #include "functional/basic_function.h"
 #include "string/view.h"
-#include "vars/basic_group.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
+
+#include <algorithm>
 
 // ReSharper disable once CppInconsistentNaming
 namespace ImGui
@@ -12,13 +14,13 @@ namespace ImGui
 // ReSharper disable once CppInconsistentNaming
 static bool BeginTabBar(std::type_identity_t<ImGuiID> id, ImGuiTabBarFlags flags = 0)
 {
-    auto &g     = *GImGui;
-    auto window = g.CurrentWindow;
+    auto &g           = *GImGui;
+    auto const window = g.CurrentWindow;
     /*if (window->SkipItems)
         return false;*/
 
-    auto tab_bar = g.TabBars.GetOrAddByKey(id);
-    ImRect tab_bar_bb(
+    auto const tab_bar = g.TabBars.GetOrAddByKey(id);
+    ImRect const tab_bar_bb(
         window->DC.CursorPos.x, window->DC.CursorPos.y, //
         window->WorkRect.Max.x, window->DC.CursorPos.y + g.FontSize + g.Style.FramePadding.y * 2);
     tab_bar->ID = id;
@@ -40,10 +42,10 @@ class menu final : public basic_menu
     bool visible_;
     bool next_visible_;
 
-    unload_handler const*unload_;
+    unload_handler const *unload_;
 
   public:
-    menu(unload_handler const*unload)
+    menu(unload_handler const *unload)
         : visible_(false)
         , next_visible_(true)
         , unload_(unload)
@@ -75,48 +77,45 @@ class menu final : public basic_menu
         return ImGui::Begin("WIP", &next_visible_, ImGuiWindowFlags_AlwaysAutoResize);
     }
 
-    static void render_current(basic_variables_group *group)
+    void render(joined_menu_items const *items) override
     {
-        for (; group != nullptr; group = group->next())
-        {
-            if (ImGui::BeginTabItem(group->name()))
-            {
-                group->on_gui();
-                render_inner(group->inner());
-                ImGui::EndTabItem();
-            }
-        }
-    }
-
-    static void render_inner(basic_variables_group *group)
-    {
-        if (group && ImGui::BeginTabBar(ImGui::GetID(group)))
-        {
-            render_current(group);
-            ImGui::EndTabBar();
-        }
-    }
-
-    void render(basic_variables_group *group) override
-    {
-        ImGui::PushID(this);
+        ImGui::PushID(items);
         if (ImGui::BeginTabBar(ImGui::GetID(__LINE__)))
         {
-            render_current(group);
+            auto const end = items->end();
+            for (auto it = items->begin(); it != end; ++it)
+                render(it);
             ImGui::EndTabBar();
         }
+        ImGui::PopID();
+    }
+
+    void end_scene() override
+    {
+        render_internal();
+
+        ImGui::End();
+    }
+
+  private:
+    void render(basic_menu_item *item)
+    {
+        if (!ImGui::BeginTabItem(item->name()))
+            return;
+        if (auto const child = item->child())
+            render(child);
+        item->render();
+        ImGui::EndTabItem();
+    }
+
+    void render_internal()
+    {
         if (ImGui::BeginChild(ImGui::GetID(__LINE__)))
         {
             if (ImGui::Button("Unload"))
                 std::invoke(*unload_);
         }
         ImGui::EndChild();
-        ImGui::PopID();
-    }
-
-    void end_scene() override
-    {
-        ImGui::End();
     }
 };
 
