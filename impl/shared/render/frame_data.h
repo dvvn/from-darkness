@@ -9,7 +9,7 @@ struct basic_system_backend;
 struct basic_render_context;
 
 struct basic_menu;
-struct joined_menu_items;
+struct basic_joined_menu_items;
 
 struct render_frame_data
 {
@@ -32,13 +32,13 @@ struct render_frame_menu_data;
 template <>
 struct render_frame_menu_data<render_frame_menu_mode::single> final
 {
-    joined_menu_items const *items;
+    basic_joined_menu_items const *items;
 };
 
 template <>
 struct render_frame_menu_data<render_frame_menu_mode::multi> final
 {
-    joined_menu_items const **items;
+    basic_joined_menu_items const **items;
     size_t items_count;
 
     /*render_frame_menu_data(joined_menu_items const **items, size_t const items_count)

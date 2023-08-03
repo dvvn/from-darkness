@@ -4,6 +4,7 @@
 #include "debug/log.h"
 #include "functional/function_holder.h"
 #include "gui/menu.h"
+#include "gui/menu_item.h"
 #include "hook/preferred_backend.h"
 #include "hooked/directx9.h"
 #include "hooked/winapi.h"
@@ -11,12 +12,11 @@
 #include "native/engine.h"
 #include "native/entity_list.h"
 #include "native/player.h"
-#include "netvar/netvar_storage.h"
+#include "netvar/storage.h"
 #include "render/backend/native/dx9.h"
 #include "render/backend/native/win32.h"
 #include "render/context.h"
 #include "render/frame.h"
-#include "vars/sample.h"
 
 #include <Windows.h>
 #include <d3d9.h>
@@ -118,7 +118,7 @@ void context()
 
     using fd::make_object;
 
-    auto const netvars        = make_object<fd::netvar_storage>();
+    auto  netvars        = make_object<fd::netvar_storage>();
     auto const render_context = make_object<fd::render_context>();
     auto const system_backend = make_object<fd::native_win32_backend>();
     auto const render_backend = make_object<fd::native_dx9_backend>(sources.shaderapidx9);
@@ -138,9 +138,11 @@ void context()
     netvars->store(player_data_map.description());
     netvars->store(player_data_map.prediction());
 
+    fd::joined_menu_items const menu_items(fd::menu_item("Debug", netvars));
+
     fd::render_frame const render_frame(
         {render_backend, system_backend, render_context, menu}, //
-        {nullptr, 0});
+        {&menu_items});
 
     auto const hk_wndproc     = make_object<fd::hooked_wndproc>(system_backend);
     auto const hk_dx9_reset   = make_object<fd::hooked_directx9_reset>(render_backend);

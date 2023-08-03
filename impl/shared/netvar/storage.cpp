@@ -1,4 +1,4 @@
-﻿#include "netvar_storage.h"
+﻿#include "storage.h"
 #include "container/array.h"
 #include "container/vector/dynamic.h"
 #include "functional/cast.h"
@@ -13,6 +13,8 @@
 #include "string/view.h"
 
 #include <fmt/format.h>
+
+#include <imgui.h>
 
 #include <algorithm>
 #include <cassert>
@@ -1352,6 +1354,16 @@ class netvar_storage final : public basic_netvar_storage
     {
         ignore_unused(directory, version);
         unreachable();
+    }
+
+    string_view name() const override
+    {
+        return "Netvars";
+    }
+
+    void render() override
+    {
+        ImGui::TextUnformatted("Hello");
     }
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "object.h"
+#include "gui/basic_menu_item.h"
 
 #include <cstdint>
 
@@ -31,7 +32,7 @@ class basic_netvar_table
 struct native_client_class;
 struct native_data_map;
 
-struct basic_netvar_storage : basic_object
+struct basic_netvar_storage : basic_object, basic_menu_item
 {
     virtual basic_netvar_table const *get(string_view name) const = 0;
 

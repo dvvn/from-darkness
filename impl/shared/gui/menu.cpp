@@ -77,33 +77,51 @@ class menu final : public basic_menu
         return ImGui::Begin("WIP", &next_visible_, ImGuiWindowFlags_AlwaysAutoResize);
     }
 
-    void render(joined_menu_items const *items) override
+    void render(basic_joined_menu_items const *items) override
+    {
+        render_group(items);
+    }
+
+    void end_scene() override
+    {
+        render_internal();
+        ImGui::End();
+    }
+
+  private:
+    void render_child(basic_menu_item *item)
+    {
+        ImGui::PushID(item);
+        if (ImGui::BeginTabBar(ImGui::GetID(__LINE__)))
+        {
+            render(item);
+            ImGui::EndTabBar();
+        }
+        ImGui::PopID();
+    }
+
+    void render_group(basic_joined_menu_items const *items)
     {
         ImGui::PushID(items);
         if (ImGui::BeginTabBar(ImGui::GetID(__LINE__)))
         {
             auto const end = items->end();
             for (auto it = items->begin(); it != end; ++it)
-                render(it);
+                render(*it);
             ImGui::EndTabBar();
         }
         ImGui::PopID();
     }
 
-    void end_scene() override
-    {
-        render_internal();
-
-        ImGui::End();
-    }
-
-  private:
     void render(basic_menu_item *item)
     {
         if (!ImGui::BeginTabItem(item->name()))
             return;
         if (auto const child = item->child())
-            render(child);
+            render_child(child);
+        if (auto const child = item->child_joined())
+            render_group(child);
+
         item->render();
         ImGui::EndTabItem();
     }

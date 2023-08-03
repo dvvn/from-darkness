@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "basic_netvar_storage.h"
+#include "basic_storage.h"
 #include "object_holder.h"
 
 namespace fd
