@@ -1,6 +1,7 @@
 ﻿#include "storage.h"
 #include "container/array.h"
 #include "container/vector/dynamic.h"
+#include "functional/bind.h"
 #include "functional/cast.h"
 #include "functional/ignore.h"
 #include "functional/placeholders.h"
@@ -74,7 +75,7 @@ static size_t array_chars_count(string_view str)
     {
         if (length == 1)
             return isdigit(*num_start);
-        if (!all_of(num_start, num_end, isdigit))
+        if (!std::all_of(num_start, num_end, isdigit))
             return 0;
     }
     return length;
@@ -208,7 +209,7 @@ class netvar_prefix
             return {};
         //*prefix*
         auto const test_prefix = str.substr(0, length);
-        if (!all_of(test_prefix.begin(), test_prefix.end(), islower))
+        if (!std::all_of(test_prefix.begin(), test_prefix.end(), islower))
             return {};
         return test_prefix;
     }
@@ -445,13 +446,13 @@ static char const *prop_type_vec2(native_recv_table::prop const *prop)
     return "valve::vector2d";
 }
 
-struct recv_prop_array_info
+struct array_info
 {
     char const *name;
     size_t stride;
 };
 
-static char const *netvar_type_int32(char const *, recv_prop_array_info const &info)
+static char const *netvar_type_int32(char const *, array_info const &info)
 {
     return netvar_type_int32<true>(info.name, info.stride);
 }
@@ -461,7 +462,7 @@ static char const *netvar_type_int32(char const *name, nullptr_t)
     return netvar_type_int32<false>(name, 0);
 }
 
-static char const *prop_type_float(native_recv_table::prop const *prop, recv_prop_array_info const &info)
+static char const *prop_type_float(native_recv_table::prop const *prop, array_info const &info)
 {
     assert(info.stride == sizeof(float));
     return prop_type_float<true>(prop);
@@ -472,7 +473,7 @@ static char const *prop_type_float(native_recv_table::prop const *prop, nullptr_
     return prop_type_float<false>(prop);
 }
 
-static char const *netvar_type_vec3(char const *, recv_prop_array_info const &info)
+static char const *netvar_type_vec3(char const *, array_info const &info)
 {
     assert(info.stride == sizeof(float) * 3);
     return netvar_type_vec3(info.name);
@@ -643,6 +644,17 @@ static string_view netvar_info_pretty_name(native_data_map::field const *field, 
     return raw_name;
 }
 
+template <typename It>
+static void netvar_type_array(
+    It out, //
+    native_recv_table::prop const *first_prop, native_recv_table::prop const *array_prop)
+{
+    netvar_type_array(
+        out, //
+        netvar_type(first_prop, array_info(array_prop->name, array_prop->element_stride)),
+        array_prop->elements_count);
+}
+
 static string netvar_info_type(native_recv_table::prop const *prop)
 {
     using std::back_inserter;
@@ -650,18 +662,14 @@ static string netvar_info_type(native_recv_table::prop const *prop)
     string buffer;
     if (prop->type == recv_prop_type::array)
     {
-        // todo: say why std::prev prop?
         auto const prev_prop = std::prev(prop);
-        netvar_type_array(
-            back_inserter(buffer), //
-            netvar_type(prev_prop, recv_prop_array_info(prop->name, prop->element_stride)),
-            prop->elements_count);
+        netvar_type_array(back_inserter(buffer), prev_prop, prop);
     }
     else if (prop->name[0] == '0')
     {
         // todo: get parent table!
         size_t length = 1;
-        while (prop[length].parent_array_name == prop->parent_array_name)
+        while (std::next(prop, length)->parent_array_name == prop->parent_array_name)
             ++length;
 
         if (length == 1)
@@ -674,9 +682,16 @@ static string netvar_info_type(native_recv_table::prop const *prop)
         {
             netvar_type_array(
                 back_inserter(buffer),
-                netvar_type(prop, recv_prop_array_info(prop->parent_array_name, prop[1].offset - prop[0].offset)),
+                netvar_type(prop, array_info(prop->parent_array_name, std::next(prop)->offset - prop->offset)),
                 length);
         }
+    }
+    else if (auto const next_prop = std::next(prop); //
+             next_prop->type == recv_prop_type::array && next_prop->offset == 0 &&
+             string_view(prop->name).ends_with("[0]"))
+    {
+        assert(string_view(prop->name).starts_with(next_prop->name));
+        netvar_type_array(back_inserter(buffer), prop, next_prop);
     }
     else
     {
@@ -691,6 +706,50 @@ static string_view netvar_info_type(native_data_map::field const *field)
     return netvar_type(field);
 }
 
+struct integral_as_string
+{
+    using pointer   = char const *;
+    using iterator  = pointer;
+    using size_type = uint8_t;
+
+  private:
+    char buffer[std::numeric_limits<size_t>::digits10];
+    size_type length;
+
+  public:
+    integral_as_string()
+        : length(0)
+    {
+        ignore_unused(buffer);
+    }
+
+    integral_as_string(size_t const value)
+        : length(std::distance(buffer, fmt::detail::write<char>(buffer, value)))
+    {
+        ignore_unused(buffer);
+    }
+
+    pointer data() const
+    {
+        return buffer;
+    }
+
+    size_type size() const
+    {
+        return length;
+    }
+
+    iterator begin() const
+    {
+        return buffer;
+    }
+
+    iterator end() const
+    {
+        return begin() + length;
+    }
+};
+
 template <class T>
 struct netvar_info final : basic_netvar_info
 {
@@ -704,6 +763,7 @@ struct netvar_info final : basic_netvar_info
     char const *name_;
     string_view pretty_name_;
     size_t offset_;
+    integral_as_string offset_str_;
     decltype(netvar_info_type(std::declval<const_pointer>())) type_;
 #endif
     pointer source_;
@@ -763,8 +823,9 @@ struct netvar_info final : basic_netvar_info
             std::copy(pretty_name_.begin(), pretty_name_.end(), buff);
             pretty_name_ = {buff, length};
         }
-        offset_ = abs_offset();
-        type_   = netvar_info_type(source_);
+        offset_     = abs_offset();
+        offset_str_ = (offset_);
+        type_       = netvar_info_type(source_);
 
 #endif
     }
@@ -824,16 +885,31 @@ struct netvar_info final : basic_netvar_info
 #endif
     }
 #ifdef _DEBUG
-    string_view type() const
+    string_view type_self() const
     {
         return {type_.begin(), type_.end()};
     }
+
+    string_view offset_str() const
+    {
+        return {offset_str_.begin(), offset_str_.end()};
+    }
 #else
-    auto type() const
+    auto type_self() const
     {
         return netvar_info_type(source_);
     }
+
+    string offset_str() const
+    {
+        return integral_as_string(offset());
+    }
 #endif
+    auto type() const
+    {
+        return type_self();
+    }
+
     string_view type(basic_netvar_types_cache *cache) const
     {
         auto const key = key_for_cache(source_);
@@ -917,6 +993,9 @@ static void netvar_table_parse(
     if (table->props_count == 0)
         return;
 
+    if (equal(table->name, "DT_Drone"))
+        __debugbreak();
+
     auto first_prop = as_const(table->props);
     auto last_prop  = std::next(first_prop, table->props_count); // NOLINT(cppcoreguidelines-narrowing-conversions)
 
@@ -938,7 +1017,7 @@ static void netvar_table_parse(
         // calculate array length and skip it
 #ifdef FD_MERGE_NETVAR_TABLES
         if (!filter_duplicates || //
-            all_of(
+            std::all_of(
                 storage.cbegin(), storage.cend(), //
                 _1->*&netvar_info::name != first_prop->parent_array_name))
             store(storage, first_prop, abs_offset);
@@ -952,20 +1031,27 @@ static void netvar_table_parse(
         last_prop -= 2;
     }
 
-    auto const do_parse = [&storage, abs_offset]<bool Duplicates>(
-                              std::bool_constant<Duplicates>, //
+    auto const do_parse = [&storage, abs_offset]<bool Duplicates, bool SkipZero>(
+                              std::bool_constant<Duplicates>, std::bool_constant<SkipZero>, //
                               netvar_info::const_reference prop) {
         if (prop.type != recv_prop_type::data_table)
         {
+#if 0
             if (starts_with(prop.name, "move"))
             {
                 // move[parent/collide/...]
                 return;
             }
+#endif
+            if constexpr (SkipZero)
+            {
+                if (prop.offset == 0)
+                    return;
+            }
 
             if constexpr (Duplicates)
             {
-                if (any_of(
+                if (std::any_of(
                         storage.cbegin(), storage.cend(), //
                         _1->*&netvar_info::raw_name == prop.name))
                     return;
@@ -988,9 +1074,15 @@ static void netvar_table_parse(
     // when offset != 0
 
     if (!filter_duplicates)
-        for_each(first_prop, last_prop, bind_front(do_parse, std::false_type()));
+    {
+        do_parse(std::false_type(), std::false_type(), *first_prop);
+        std::for_each(first_prop + 1, last_prop, bind_front(do_parse, std::false_type(), std::true_type()));
+    }
     else
-        for_each(first_prop, last_prop, bind_front(do_parse, std::true_type()));
+    {
+        do_parse(std::true_type(), std::false_type(), *first_prop);
+        std::for_each(first_prop + 1, last_prop, bind_front(do_parse, std::true_type(), std::true_type()));
+    }
 }
 
 static void netvar_table_parse(
@@ -1013,7 +1105,7 @@ static void netvar_table_parse(
         }
         if constexpr (Duplicates)
         {
-            if (any_of(
+            if (std::any_of(
                     storage.cbegin(), storage.cend(), //
                     _1->*&netvar_info::raw_name == field.name))
                 return;
@@ -1022,9 +1114,9 @@ static void netvar_table_parse(
     };
 
     if (!filter_duplicates)
-        for_each_n(dmap->fields, dmap->fields_count, bind_front(do_parse, std::false_type()));
+        std::for_each_n(dmap->fields, dmap->fields_count, bind_front(do_parse, std::false_type()));
     else
-        for_each_n(dmap->fields, dmap->fields_count, bind_front(do_parse, std::true_type()));
+        std::for_each_n(dmap->fields, dmap->fields_count, bind_front(do_parse, std::true_type()));
 }
 
 template <class T>
@@ -1103,9 +1195,20 @@ struct netvar_table final : basic_netvar_table
         return netvar_table_name(source_);
     }
 
+    //---
     bool empty() const
     {
         return storage_.empty();
+    }
+
+    typename storage_type::const_iterator begin() const
+    {
+        return storage_.begin();
+    }
+
+    typename storage_type::const_iterator end() const
+    {
+        return storage_.end();
     }
 };
 
@@ -1232,7 +1335,7 @@ class netvar_tables_storage
     template <bool RawName = true, typename N>
     bool contains(N name) const
     {
-        return any_of(
+        return std::any_of(
             storage_.begin(), storage_.end(), //
             equal_name(name_fn<RawName>(), name));
     }
@@ -1274,6 +1377,58 @@ class netvar_tables_storage
     bool empty() const
     {
         return storage_.empty();
+    }
+
+    //-------
+
+    void render(string_view const str_id) const
+    {
+        constexpr auto column_count = 4;
+        constexpr auto table_flags  = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV |
+                                     ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_SizingFixedFit;
+
+        if (!ImGui::BeginTable(str_id, column_count, table_flags))
+            return;
+
+        constexpr auto column_flags = ImGuiTableColumnFlags_WidthFixed;
+
+        ImGui::TableSetupColumn("Source", column_flags);
+        ImGui::TableSetupColumn("Name", column_flags);
+        ImGui::TableSetupColumn("Offset", column_flags);
+        ImGui::TableSetupColumn("Type", column_flags);
+        ImGui::TableHeadersRow();
+
+        using info_type            = typename table_type::info_type;
+        constexpr auto render_text = []<class Str>(Str (info_type::*fn)() const, info_type const &info) {
+            ImGui::TextUnformatted(std::invoke(fn, info));
+        };
+
+        std::for_each(storage_.begin(), storage_.end(), [](table_type const &table) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+
+            constexpr auto node_flags = ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth;
+
+            if (!ImGui::TreeNodeEx(table.name(), node_flags))
+                return;
+
+            ImGui::TableNextRow();
+
+            if (ImGui::TableSetColumnIndex(1))
+                std::for_each(table.begin(), table.end(), bind_front(render_text, &info_type::pretty_name));
+
+            if (ImGui::TableSetColumnIndex(2))
+                std::for_each(table.begin(), table.end(), bind_front(render_text, &info_type::offset_str));
+
+            if (ImGui::TableSetColumnIndex(3))
+                std::for_each(table.begin(), table.end(), bind_front(render_text, &info_type::type_self));
+
+            // ReSharper disable once CppCompileTimeConstantCanBeReplacedWithBooleanConstant
+            if constexpr (!(node_flags & ImGuiTreeNodeFlags_NoTreePushOnOpen))
+                ImGui::TreePop();
+        });
+
+        ImGui::EndTable();
     }
 };
 
@@ -1363,7 +1518,8 @@ class netvar_storage final : public basic_netvar_storage
 
     void render() override
     {
-        ImGui::TextUnformatted("Hello");
+        recv_tables_.render("Client class");
+        data_maps_.render("Data map");
     }
 };
 

@@ -9,26 +9,27 @@ namespace fd
 basic_hook_callback::~basic_hook_callback()
 {
     // in_use_.wait(true, memory_order_relaxed);
-    while (in_use_.load(memory_order_relaxed))
+    do
     {
         // nothing here
     }
+    while (called_.load(memory_order_relaxed) != 0);
 }
 
 basic_hook_callback::basic_hook_callback()
-    : in_use_(false)
+    : called_(0)
 {
-    assert(in_use_.is_lock_free());
+    assert(called_.is_lock_free());
 }
 
 void basic_hook_callback::enter()
 {
-    in_use_.exchange(true, memory_order_relaxed);
+    ++called_;
 }
 
 void basic_hook_callback::exit()
 {
-    in_use_.exchange(false, memory_order_relaxed);
+    --called_;
     // in_use_.notify_one();
 }
 

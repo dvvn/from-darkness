@@ -118,7 +118,7 @@ void context()
 
     using fd::make_object;
 
-    auto  netvars        = make_object<fd::netvar_storage>();
+    auto netvars              = make_object<fd::netvar_storage>();
     auto const render_context = make_object<fd::render_context>();
     auto const system_backend = make_object<fd::native_win32_backend>();
     auto const render_backend = make_object<fd::native_dx9_backend>(sources.shaderapidx9);

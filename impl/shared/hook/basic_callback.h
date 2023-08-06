@@ -8,7 +8,7 @@ namespace fd
 {
 class basic_hook_callback : public basic_object
 {
-    std::atomic<bool> in_use_; 
+    std::atomic<size_t> called_; 
 
   public:
     ~basic_hook_callback() override;
