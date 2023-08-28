@@ -28,7 +28,7 @@ class render_context final : public basic_render_context, public noncopyable
 
 #if defined(_DEBUG) || defined(IMGUI_DISABLE_DEFAULT_ALLOCATORS)
         ImGui::SetAllocatorFunctions(
-            [](size_t size, void *) {
+            [](size_t const size, void *) {
                 return operator new(size, std::nothrow);
             },
             [](void *buff, void *) {

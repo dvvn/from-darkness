@@ -1,5 +1,5 @@
 ﻿#include "native.h"
-#include "pattern.h"
+#include "memory/pattern.h"
 #include "diagnostics/runtime_error.h"
 #include "functional/cast.h"
 #include "functional/ignore.h"

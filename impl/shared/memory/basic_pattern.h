@@ -13,16 +13,15 @@ using pattern_difference_type = ptrdiff_t;
 using pattern_size_type       = uint8_t;
 using pattern_difference_type = int8_t;
 #endif
-using pattern_segment_value_type = uint8_t;
-using pattern_segment_pointer    = uint8_t const *;
 } // namespace detail
 
 struct basic_pattern_segment
 {
     using size_type       = detail::pattern_size_type;
-    using value_type      = detail::pattern_segment_value_type;
-    using pointer         = detail::pattern_segment_pointer;
     using difference_type = detail::pattern_difference_type;
+
+    using value_type = uint8_t;
+    using pointer    = uint8_t const*;
 
   protected:
     ~basic_pattern_segment() = default;
@@ -36,9 +35,10 @@ struct basic_pattern_segment
 
 struct basic_pattern
 {
-    using size_type = detail::pattern_size_type;
+    using size_type       = detail::pattern_size_type;
+    using difference_type = detail::pattern_difference_type;
 
-    using iterator = basic_pattern_segment const *const *;
+    using iterator = basic_pattern_segment const* const*;
 
   protected:
     ~basic_pattern() = default;

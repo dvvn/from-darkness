@@ -1,7 +1,7 @@
 ﻿---
 BasedOnStyle: Microsoft
 Standard: Latest
-PointerAlignment: Right
+PointerAlignment: Left
 ReferenceAlignment: Pointer
 AlignConsecutiveAssignments: AcrossComments #Consecutive
 AlignConsecutiveMacros: AcrossComments

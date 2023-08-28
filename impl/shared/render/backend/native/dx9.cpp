@@ -1,8 +1,8 @@
 ﻿#include "dx9.h"
 #include "noncopyable.h"
-#include "pattern.h"
 #include "diagnostics/runtime_error.h"
 #include "library_info/system.h"
+#include "memory/pattern.h"
 #ifdef _DEBUG
 #include "string/view.h"
 #endif
@@ -15,7 +15,7 @@ namespace fd
 {
 class native_dx9_backend final : public basic_dx9_backend
 {
-    using pointer = IDirect3DDevice9 **;
+    using pointer = IDirect3DDevice9**;
 
     pointer device_;
 
@@ -37,7 +37,7 @@ class native_dx9_backend final : public basic_dx9_backend
             auto const addr = info.pattern("A1 ? ? ? ? 50 8B 08 FF 51 0C"_pat);
             if (!addr)
                 throw runtime_error("Unable to find DX9 device!");
-            return *reinterpret_cast<pointer *>(static_cast<uint8_t *>(addr) + 1);
+            return *reinterpret_cast<pointer*>(static_cast<uint8_t*>(addr) + 1);
         }())
     {
     }
@@ -48,7 +48,7 @@ class native_dx9_backend final : public basic_dx9_backend
             basic_dx9_backend::destroy();
     }
 
-    void render(ImDrawData *draw_data) override
+    void render(ImDrawData* draw_data) override
     {
         (void)(*device_)->BeginScene();
         basic_dx9_backend::render(draw_data);
@@ -62,7 +62,7 @@ class native_dx9_backend final : public basic_dx9_backend
         return {func, *device_};
     }*/
 
-    void *native() const override
+    void* native() const override
     {
         return *device_;
     }
