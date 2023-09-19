@@ -4,5 +4,5 @@
 
 namespace fd
 {
-using boost::noncopyable;
+using noncopyable = boost::noncopyable;
 } // namespace fd

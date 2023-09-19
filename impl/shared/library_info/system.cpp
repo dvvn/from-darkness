@@ -1,10 +1,10 @@
-﻿#include "pattern.h"
-#include "search_stop_token.h"
+﻿#include "search_stop_token.h"
 #include "system.h"
-#include "xref.h"
 #include "algorithm/find.h"
 #include "algorithm/search.h"
 #include "iterator/unwrap.h"
+#include "memory/pattern.h"
+#include "memory/xref.h"
 #include "string/view.h"
 
 #include <fmt/format.h>
@@ -44,33 +44,34 @@ class object_tag
 
 FMT_BEGIN_NAMESPACE
 FMT_FORMAT_AS(fd::object_tag, char);
+
 FMT_END_NAMESPACE
 
 namespace fd
 {
-void *system_library_info::function(char const *name, size_t length) const
+void* system_library_info::function(char const* name, size_t const length) const
 {
     union
     {
-        IMAGE_DOS_HEADER *dos_header;
-        uint8_t *base_address;
+        IMAGE_DOS_HEADER* dos_header;
+        uint8_t* base_address;
     };
 
-    base_address = static_cast<uint8_t *>(this->base());
+    base_address = static_cast<uint8_t*>(this->base());
 
     union
     {
-        IMAGE_EXPORT_DIRECTORY *export_dir;
-        uint8_t *virtual_addr_start;
+        IMAGE_EXPORT_DIRECTORY* export_dir;
+        uint8_t* virtual_addr_start;
     };
 
     auto const entry_export = this->directory(IMAGE_DIRECTORY_ENTRY_EXPORT);
     virtual_addr_start      = base_address + entry_export->VirtualAddress;
     // auto virtual_addr_end = virtual_addr_start + entry_export->Size;
 
-    auto const names = reinterpret_cast<uint32_t *>(base_address + export_dir->AddressOfNames);
-    auto const funcs = reinterpret_cast<uint32_t *>(base_address + export_dir->AddressOfFunctions);
-    auto const ords  = reinterpret_cast<uint16_t *>(base_address + export_dir->AddressOfNameOrdinals);
+    auto const names = reinterpret_cast<uint32_t*>(base_address + export_dir->AddressOfNames);
+    auto const funcs = reinterpret_cast<uint32_t*>(base_address + export_dir->AddressOfFunctions);
+    auto const ords  = reinterpret_cast<uint16_t*>(base_address + export_dir->AddressOfNameOrdinals);
 
     //----
 
@@ -83,7 +84,7 @@ void *system_library_info::function(char const *name, size_t length) const
         if (memcmp(fn_name, name, length) != 0)
             continue;
 
-        void *fn = base_address + funcs[ords[offset]];
+        void* fn = base_address + funcs[ords[offset]];
         // assert(fn > virtual_addr_start && fn < virtual_addr_end); // fwd export not implemented
         return fn;
     }
@@ -91,18 +92,19 @@ void *system_library_info::function(char const *name, size_t length) const
     return nullptr;
 }
 
-void *system_library_info::pattern(basic_pattern const &pattern) const
+void* system_library_info::pattern(basic_pattern const& pattern) const
 {
-    auto const base = static_cast<uint8_t *>(this->image_base());
+    auto const base = static_cast<uint8_t*>(this->image_base());
     return find(base, base + this->length(), pattern);
 }
 
-static void *find_rtti_descriptor(string_view const name, void *image_base, void const *image_end)
+static void* find_rtti_descriptor(string_view const name, void* image_base, void const* image_end)
 {
+    void* ret;
     if (auto const space = name.find(' '); space == name.npos)
     {
         auto const pat = make_pattern(".?A", 1, name, "@@");
-        return find(image_base, image_end, pat);
+        ret            = find(image_base, image_end, pat);
     }
     else
     {
@@ -112,20 +114,21 @@ static void *find_rtti_descriptor(string_view const name, void *image_base, void
         array<char, 64> buff;
         auto const buff_end = fmt::format_to(buff.begin(), ".?A{}{}@@", info, class_name);
 
-        return find(image_base, image_end, data(buff), iterator_to_raw_pointer(buff_end));
+        ret = find(image_base, image_end, data(buff), iterator_to_raw_pointer(buff_end));
     }
+    return ret;
 }
 
-void *system_library_info::vtable(char const *name, size_t length) const
+void* system_library_info::vtable(char const* name, size_t length) const
 {
     union
     {
         uintptr_t rtti_descriptor_address;
-        void *rtti_descriptor;
-        char const *rtti_descriptor_view;
+        void* rtti_descriptor;
+        char const* rtti_descriptor_view;
     };
 
-    auto const image_base = static_cast<uint8_t *>(this->image_base());
+    auto const image_base = static_cast<uint8_t*>(this->image_base());
     auto const image_end  = (image_base) + this->length();
 
     rtti_descriptor = find_rtti_descriptor({name, length}, image_base, image_end);
@@ -147,13 +150,13 @@ void *system_library_info::vtable(char const *name, size_t length) const
 
     auto const addr1 = search(
         rdata_begin, rdata_end, type_descriptor, //
-        make_search_stop_token([](uint8_t *found) -> bool {
-            return *unsafe_cast<uint32_t *>(found - 0x8) == 0;
+        make_search_stop_token([](uint8_t* found) -> bool {
+            return *unsafe_cast<uint32_t*>(found - 0x8) == 0;
         }));
     if (!addr1)
         return nullptr;
 
-    auto const addr2 = find(rdata_begin, rdata_end, xref(safe_cast<uint8_t *>(addr1) - 0xC));
+    auto const addr2 = find(rdata_begin, rdata_end, xref(safe_cast<uint8_t*>(addr1) - 0xC));
     if (!addr2)
         return nullptr;
 

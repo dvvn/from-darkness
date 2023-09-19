@@ -220,7 +220,7 @@ class dirty_pattern
 #ifdef _DEBUG
     using iterator = typename storage_type::const_iterator;
 #else
-    using iterator     = pointer;
+    using iterator = pointer;
 #endif
     using reference = segment const&;
 
@@ -616,12 +616,12 @@ constexpr auto make_pattern(T const&... args) requires(sizeof...(T) > 1)
         detail::pattern_args_to_segments(boost::hana::tuple(), args...),
         []<pattern_size_type... S>(pattern_segment_info<S>... segment) {
             // ReSharper disable once CppRedundantParentheses
-            return pattern<(S ? S - 1 : 0)...>(segment.get()...);
+            return pattern<(S != 0 ? S - 1 : 0)...>(segment.get()...);
         });
 }
 
 template <pattern_string Pattern>
-constexpr auto cached_pattern = make_pattern<Pattern>();
+inline constexpr auto cached_pattern = make_pattern<Pattern>();
 } // namespace detail
 
 inline namespace literals
@@ -629,10 +629,12 @@ inline namespace literals
 template <detail::pattern_string Pattern>
 constexpr auto operator""_pat()
 {
-    // ReSharper disable once IfStdIsConstantEvaluatedCanBeReplaced
-    return std::is_constant_evaluated() //
-               ? detail::make_pattern<Pattern>()
-               : detail::cached_pattern<Pattern>;
+#ifdef __cpp_if_consteval
+    if consteval
+        return detail::make_pattern<Pattern>();
+    else
+#endif
+        return detail::cached_pattern<Pattern>;
 }
 } // namespace literals
 

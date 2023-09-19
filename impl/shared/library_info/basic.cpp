@@ -6,22 +6,22 @@
 
 #include <cassert>
 
-static wchar_t const *data(UNICODE_STRING const &ustr)
+static wchar_t const* data(UNICODE_STRING const& ustr)
 {
     return ustr.Buffer;
 }
 
-static size_t size(UNICODE_STRING const &ustr)
+static size_t size(UNICODE_STRING const& ustr)
 {
     return ustr.Length / sizeof(wchar_t);
 }
 
-static wchar_t const *begin(UNICODE_STRING const &ustr)
+static wchar_t const* begin(UNICODE_STRING const& ustr)
 {
     return ustr.Buffer;
 }
 
-static wchar_t const *end(UNICODE_STRING const &ustr)
+static wchar_t const* end(UNICODE_STRING const& ustr)
 {
     return ustr.Buffer + size(ustr);
 }
@@ -49,25 +49,25 @@ struct _LDR_DATA_TABLE_ENTRY_FULL
 
 // ReSharper restore CppInconsistentNaming
 
-static bool operator!(UNICODE_STRING const &ustr)
+static bool operator!(UNICODE_STRING const& ustr)
 {
     return ustr.Buffer == nullptr;
 }
 
-static bool equal(wchar_t const *str, size_t const length, UNICODE_STRING const &ustr)
+static bool equal(wchar_t const* str, size_t const length, UNICODE_STRING const& ustr)
 {
     return length == size(ustr) && memcmp(str, data(ustr), length) == 0;
 }
 
 namespace fd
 {
-basic_library_info::basic_library_info(char_type const *name, size_t const length)
+basic_library_info::basic_library_info(char_type const* name, size_t const length)
 {
 #ifdef _WIN64
     auto mem = NtCurrentTeb();
     auto ldr = mem->ProcessEnvironmentBlock->Ldr;
 #else
-    auto mem = reinterpret_cast<PEB *>(__readfsdword(0x30));
+    auto mem = reinterpret_cast<PEB*>(__readfsdword(0x30));
     auto ldr = mem->Ldr;
 #endif
     auto const root_list = &ldr->InMemoryOrderModuleList;
@@ -89,21 +89,21 @@ basic_library_info::basic_library_info(char_type const *name, size_t const lengt
 #endif
 }
 
-void *basic_library_info::base() const
+void* basic_library_info::base() const
 {
     return entry_full_->DllBase;
 }
 
-#define DOS_NT                                                                                   \
-    auto dos = entry_full_->DosHeader;                                                           \
-    assert(dos->e_magic == IMAGE_DOS_SIGNATURE);                                                 \
-    auto nt = reinterpret_cast<IMAGE_NT_HEADERS *>(entry_full_->DllBaseAddress + dos->e_lfanew); \
+#define DOS_NT                                                                                        \
+    auto const dos = entry_full_->DosHeader;                                                          \
+    assert(dos->e_magic == IMAGE_DOS_SIGNATURE);                                                      \
+    auto const nt = reinterpret_cast<IMAGE_NT_HEADERS*>(entry_full_->DllBaseAddress + dos->e_lfanew); \
     assert(nt->Signature == IMAGE_NT_SIGNATURE);
 
-void *basic_library_info::image_base() const
+void* basic_library_info::image_base() const
 {
     DOS_NT;
-    return reinterpret_cast<void *>(nt->OptionalHeader.ImageBase);
+    return reinterpret_cast<void*>(nt->OptionalHeader.ImageBase);
 }
 
 size_t basic_library_info::length() const
@@ -113,24 +113,26 @@ size_t basic_library_info::length() const
 
 auto basic_library_info::name() const -> string_type
 {
-    auto const buff = entry_full_->BaseDllName;
+    auto const& buff = entry_full_->BaseDllName;
     return {begin(buff), end(buff)};
 }
 
 auto basic_library_info::path() const -> string_type
 {
-    auto const buff = entry_full_->FullDllName;
+    auto const& buff = entry_full_->FullDllName;
     return {begin(buff), end(buff)};
 }
 
-IMAGE_DATA_DIRECTORY *basic_library_info::directory(uint8_t const index) const
+IMAGE_DATA_DIRECTORY* basic_library_info::directory(uint8_t const index) const
 {
     DOS_NT;
     return nt->OptionalHeader.DataDirectory + index;
 }
 
-IMAGE_SECTION_HEADER *basic_library_info::section(char const *name, uint8_t const length) const
+IMAGE_SECTION_HEADER* basic_library_info::section(char const* name, uint8_t const length) const
 {
+    assert(length <= sizeof(IMAGE_SECTION_HEADER::Name));
+
     DOS_NT;
 
     auto begin     = IMAGE_FIRST_SECTION(nt);
@@ -138,9 +140,11 @@ IMAGE_SECTION_HEADER *basic_library_info::section(char const *name, uint8_t cons
 
     for (; begin != end; ++begin)
     {
-        if (begin->Name[length] == '\0' && // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
-            memcmp(begin->Name, name, length) == 0)
-            return begin;
+        if (begin->Name[length] != '\0') // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+            continue;
+        if (memcmp(begin->Name, name, length) != 0)
+            continue;
+        return begin;
     }
 
     return nullptr;

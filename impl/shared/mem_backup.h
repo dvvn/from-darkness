@@ -11,8 +11,8 @@ template <typename T>
 struct mem_backup : noncopyable
 {
     using value_type = T;
-    using pointer    = T *;
-    using reference  = T const &;
+    using pointer    = T*;
+    using reference  = T const&;
 
   private:
     value_type value_;
@@ -30,13 +30,13 @@ struct mem_backup : noncopyable
             restore_impl();
     }
 
-    mem_backup(mem_backup &&other) noexcept
+    mem_backup(mem_backup&& other) noexcept
         : value_(std::move(other.value_))
         , owner_(std::exchange(other.owner_, nullptr))
     {
     }
 
-    mem_backup &operator=(mem_backup &&other) noexcept
+    mem_backup& operator=(mem_backup&& other) noexcept
     {
         using std::swap;
         swap(value_, other.value_);
@@ -46,7 +46,7 @@ struct mem_backup : noncopyable
 
     mem_backup() = default;
 
-    mem_backup(T &from)
+    mem_backup(T& from)
         : value_(from)
         , owner_(&from)
     {
@@ -88,20 +88,20 @@ struct mem_backup : noncopyable
 template <typename T>
 struct mem_backup<T const>
 {
-    mem_backup(auto &&...) = delete;
+    mem_backup(auto&&...) = delete;
 };
 
 template <typename T>
-mem_backup(T &) -> mem_backup<T>;
+mem_backup(T&) -> mem_backup<T>;
 
 template <typename T>
-auto make_mem_backup(T &value) -> mem_backup<T>
+auto make_mem_backup(T& value) -> mem_backup<T>
 {
     return value;
 }
 
 template <typename T, typename Q>
-auto make_mem_backup(T &value, Q &&replace) -> mem_backup<T>
+auto make_mem_backup(T& value, Q&& replace) -> mem_backup<T>
 {
     mem_backup<T> backup(value);
 

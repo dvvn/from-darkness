@@ -6,7 +6,6 @@
 #include "diagnostics/fatal.h"
 #include "functional/cast.h"
 #include "functional/ignore.h"
-#include "iterator/unwrap.h"
 #include "memory/basic_xref.h"
 #include "memory/pattern_allocator.h"
 
@@ -238,6 +237,7 @@ struct basic_pattern_view
         {
         case 0:
             unreachable();
+            // ReSharper disable once CppUnreachableCode
             break;
         case 1:
             abs_length_ = begin()->abs_length();
@@ -350,7 +350,7 @@ static void* search_pattern(void* begin, void const* end, pattern_view<SegmentCo
         auto const first_match = search_segment<false>(b_begin, end, first_segment[0]);
         if (first_match)
         {
-            bool pass;
+            bool compared;
 
             auto match        = first_match + first_segment_abs_length;
             auto next_segment = first_segment + 1;
@@ -358,18 +358,18 @@ static void* search_pattern(void* begin, void const* end, pattern_view<SegmentCo
             {
                 if (memcmp(match, next_segment->data(), next_segment->length()) != 0)
                 {
-                    pass = false;
+                    compared = false;
                     break;
                 }
                 if (next_segment + 1 == last_segment)
                 {
-                    pass = true;
+                    compared = true;
                     break;
                 }
                 match += next_segment->abs_length();
                 ++next_segment;
             }
-            if (!pass)
+            if (!compared)
             {
                 b_begin = first_match + first_segment_length;
                 continue;

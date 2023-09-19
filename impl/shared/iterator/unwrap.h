@@ -17,16 +17,16 @@ namespace movelib
 namespace detail
 {
 template <class Iterator>
-requires(std::_Unwrappable_v<Iterator>)
-typename iterator_to_element_ptr<Iterator>::type iterator_to_pointer(Iterator const &i)
+    requires(std::_Unwrappable_v<Iterator>)
+typename iterator_to_element_ptr<Iterator>::type iterator_to_pointer(Iterator const& i)
 {
     return iterator_to_pointer(std::_Get_unwrapped(i));
 }
 } // namespace detail
 
 template <class Iterator>
-requires(std::_Unwrappable_v<Iterator>)
-typename detail::iterator_to_element_ptr<Iterator>::type iterator_to_raw_pointer(Iterator const &i)
+    requires(std::_Unwrappable_v<Iterator>)
+typename detail::iterator_to_element_ptr<Iterator>::type iterator_to_raw_pointer(Iterator const& i)
 {
     return iterator_to_raw_pointer(std::_Get_unwrapped(i));
 }
