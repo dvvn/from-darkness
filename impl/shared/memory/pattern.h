@@ -2,6 +2,7 @@
 
 #include "basic_pattern.h"
 #include "pattern_allocator.h"
+#include "preprocessor.h"
 #include "container/array.h"
 #include "container/span.h"
 #include "container/vector/dynamic.h"
@@ -111,7 +112,7 @@ constexpr pattern_size_type pattern_to_segments(
     pattern_size_type segments_ignore)
 {
 #ifdef _DEBUG
-    constexpr auto split = std::views::lazy_split;
+    FD_CONSTEXPR_OPT auto split = std::views::lazy_split;
 #else
     using std::views::split;
 #endif
@@ -142,13 +143,13 @@ constexpr pattern_size_type pattern_to_segments(
             ++segments_count;
         }
 
-        auto part_begin = &*it;
-        auto part_end   = part_begin + distance(part);
+        auto const part_begin = &*it;
+        auto const part_end   = part_begin + distance(part);
 
         basic_pattern_segment::value_type value;
 
         [[maybe_unused]] //
-        auto result = from_chars(part_begin, part_end, value, 16);
+        auto const result = from_chars(part_begin, part_end, value, 16);
 #ifndef _DEBUG
         if (result.ec != std::errc())
             unreachable();
@@ -234,8 +235,11 @@ class dirty_pattern
   public:
     constexpr dirty_pattern(char const (&pattern)[Length], size_type ignore = 0)
         : segments_()
-        , segments_count_(
-              pattern_to_segments(std::begin(segments_), pattern, Length - (*std::rbegin(pattern) == '\0'), ignore))
+        , segments_count_(pattern_to_segments(
+              std::begin(segments_), //
+              pattern,               //
+              Length - (*std::rbegin(pattern) == '\0'),
+              ignore))
     {
     }
 
@@ -446,12 +450,13 @@ class dynamic_pattern final : public basic_pattern
 template <detail::pattern_size_type... SegmentLength>
 class pattern final : public basic_pattern
 {
+#ifdef _DEBUG
     static constexpr bool tuple_store_elements_as_is()
     {
         boost::hana::tuple<char, char> tpl(10, 8);
         return &at_c<0>(tpl) + 1 == &at_c<1>(tpl);
     }
-#ifdef _DEBUG
+
     // non-std tuple because std's one store elements back-to-front
     static_assert(tuple_store_elements_as_is());
 #endif
@@ -520,10 +525,10 @@ template <pattern_string Pattern>
 constexpr auto make_pattern()
 {
     constexpr dirty_pattern pat(Pattern.buff);
-    constexpr auto convert_segments = []<pattern_size_type... I>(std::integer_sequence<pattern_size_type, I...>) {
+    FD_CONSTEXPR_OPT auto result = []<pattern_size_type... I>(std::integer_sequence<pattern_size_type, I...>) {
         return pattern<pat[I].length()...>(pat[I].extract()...);
-    };
-    return convert_segments(std::make_integer_sequence<pattern_size_type, pat.count()>());
+    }(std::make_integer_sequence<pattern_size_type, pat.count()>());
+    return result;
 }
 
 template <pattern_size_type S>
@@ -619,9 +624,6 @@ constexpr auto make_pattern(T const&... args) requires(sizeof...(T) > 1)
             return pattern<(S != 0 ? S - 1 : 0)...>(segment.get()...);
         });
 }
-
-template <pattern_string Pattern>
-inline constexpr auto cached_pattern = make_pattern<Pattern>();
 } // namespace detail
 
 inline namespace literals
@@ -629,12 +631,8 @@ inline namespace literals
 template <detail::pattern_string Pattern>
 constexpr auto operator""_pat()
 {
-#ifdef __cpp_if_consteval
-    if consteval
-        return detail::make_pattern<Pattern>();
-    else
-#endif
-        return detail::cached_pattern<Pattern>;
+    FD_CONSTEXPR_OPT auto result = detail::make_pattern<Pattern>();
+    return result;
 }
 } // namespace literals
 
