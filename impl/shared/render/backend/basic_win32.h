@@ -32,14 +32,14 @@ struct basic_win32_backend : basic_system_backend
         response_type result_;
 
       public:
-        update_result(LRESULT value, response_type result)
+        update_result(LRESULT const value, response_type const result)
             : value_(value)
             , result_(result)
         {
         }
 
         template <typename Fn>
-        LRESULT finish(Fn &&on_non_lock, HWND window, UINT message, WPARAM wparam, LPARAM lparam) const
+        LRESULT finish(Fn&& on_non_lock, HWND window, UINT message, WPARAM wparam, LPARAM lparam) const
         {
             if constexpr (!std::invocable<Fn, HWND, UINT, WPARAM, LPARAM>)
                 return value_;
@@ -57,7 +57,7 @@ struct basic_win32_backend : basic_system_backend
         }
 
         template <typename Idle, typename Upd>
-        LRESULT finish(Idle &&on_idle, Upd &&on_update, HWND window, UINT message, WPARAM wparam, LPARAM lparam) const
+        LRESULT finish(Idle&& on_idle, Upd&& on_update, HWND window, UINT message, WPARAM wparam, LPARAM lparam) const
         {
             switch (result_)
             {
@@ -84,7 +84,7 @@ struct basic_win32_backend : basic_system_backend
 
         window_size();
         window_size(LPARAM lparam);
-        window_size(RECT const &rect);
+        window_size(RECT const& rect);
     };
 
   protected:

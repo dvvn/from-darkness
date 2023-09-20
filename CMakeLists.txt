@@ -110,10 +110,11 @@ macro(FetchContent_Activate _name)
     endif()
 endmacro()
 
-macro(FetchContent_Finalize _name)
+macro(FetchContent_Activate_Save _name)
     if(DEFINED ${_name}_fetch_tmp)
         FetchContent_GetProperties(${_name})
-        if(${_name}_POPULATED)
+        string(TOLOWER ${_name} _name_lower)
+        if(${_name_lower}_POPULATED)
             set(${_name}_fetch ${${_name}_fetch_tmp} CACHE INTERNAL "" FORCE)
         endif()
     endif()
@@ -145,7 +146,7 @@ endmacro()
 
 macro(Dependency_Use _name)
     FetchContent_MakeAvailable(${_name})
-    FetchContent_Finalize(${_name})
+    FetchContent_Activate_Save(${_name})
 
     if(TARGET ${_name}::${_name})
         set(_target ${_name}::${_name})
@@ -165,7 +166,7 @@ endmacro()
 
 macro(Dependency_Use_Boost)
     FetchContent_MakeAvailable(boost)
-    FetchContent_Finalize(boost)
+    FetchContent_Activate_Save(boost)
 
     set(_boost_libs ${BOOST_INCLUDE_LIBRARIES})
     list(TRANSFORM _boost_libs PREPEND Boost::)
@@ -182,7 +183,7 @@ macro(Dependency_Use_Imgui)
         Dependency_Use(imgui)
     else()
         FetchContent_Populate(imgui)
-        FetchContent_Finalize(imgui)
+        FetchContent_Activate_Save(imgui)
 
         file(GLOB _IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
         if(TARGET freetype)
@@ -209,8 +210,8 @@ macro(Dependency_Use_Imgui)
         )
         
         if(TARGET freetype)
-            target_link_libraries(imgui PRIVATE freetype)
-            target_compile_definitions(imgui PRIVATE IMGUI_ENABLE_FREETYPE)
+            target_link_libraries(imgui PUBLIC freetype)
+            target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_FREETYPE)
         endif()
         target_include_directories(imgui PUBLIC
             ${imgui_SOURCE_DIR}
@@ -224,7 +225,7 @@ endmacro()
 
 macro(Dependency_Populate _name)
     FetchContent_Populate(${_name})
-    FetchContent_Finalize(${_name})
+    FetchContent_Activate_Save(${_name})
 
     set(_src_dir ${${_name}_SOURCE_DIR})
 

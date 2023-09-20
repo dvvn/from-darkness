@@ -1,10 +1,9 @@
 #include "basic_win32.h"
 #include "diagnostics/runtime_error.h"
 
+#include <Windows.h>
 #include <imgui_impl_win32.h>
 #include <imgui_internal.h>
-
-#include <Windows.h>
 
 // ReSharper disable CppInconsistentNaming
 
@@ -20,13 +19,13 @@ basic_win32_backend::window_size::window_size()
 {
 }
 
-basic_win32_backend::window_size::window_size(LPARAM lparam)
+basic_win32_backend::window_size::window_size(LPARAM const lparam)
     : w(LOWORD(lparam))
     , h(HIWORD(lparam))
 {
 }
 
-basic_win32_backend::window_size::window_size(RECT const &rect)
+basic_win32_backend::window_size::window_size(RECT const& rect)
     : w(rect.right - rect.left)
     , h(rect.bottom - rect.top)
 {
@@ -48,14 +47,14 @@ void basic_win32_backend::new_frame()
     ImGui_ImplWin32_NewFrame();
 }
 
-auto basic_win32_backend::update(HWND window, UINT message, WPARAM wparam, LPARAM lparam) -> update_result
+auto basic_win32_backend::update(HWND window, UINT const message, WPARAM const wparam, LPARAM const lparam) -> update_result
 {
     assert(message != WM_DESTROY);
 
-    auto ctx = ImGui::GetCurrentContext();
+    auto const ctx = ImGui::GetCurrentContext();
 
-    auto &events       = ctx->InputEventsQueue;
-    auto events_stored = events.size();
+    auto const& events       = GImGui->InputEventsQueue;
+    auto const events_stored = events.size();
 
     auto value = ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam);
     response_type response;
@@ -70,4 +69,4 @@ auto basic_win32_backend::update(HWND window, UINT message, WPARAM wparam, LPARA
     return {value, response};
 }
 
-}
+} // namespace fd

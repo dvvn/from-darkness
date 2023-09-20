@@ -23,6 +23,6 @@ using LPARAM  = LONG_PTR;
 using LRESULT = LONG_PTR;
 using HRESULT = long;
 
-using HWND    = struct HWND__ *;
+using HWND    = struct HWND__ *;  // NOLINT(clang-diagnostic-reserved-identifier)
 using WNDPROC = LRESULT(__stdcall *)(HWND, UINT, WPARAM, LPARAM);
 using RECT    = struct tagRECT;

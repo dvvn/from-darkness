@@ -587,7 +587,7 @@ pattern_segment_info(S, pattern_size_type) -> pattern_segment_info<0>;
 template <class T, typename A1>
 constexpr auto pattern_args_to_segments(T&& tpl, A1& arg1)
 {
-    return boost::hana::append(tpl, pattern_segment_info(arg1));
+    return boost::hana::append(std::forward<T>(tpl), pattern_segment_info(arg1));
 }
 
 template <class T, typename A1, typename A2, typename... Args>
