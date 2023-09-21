@@ -1,32 +1,17 @@
 ﻿#pragma once
-
-#include "concepts.h"
-#include "noncopyable.h"
-#include "object.h"
 #ifdef _DEBUG
 #include "diagnostics/fatal.h"
 #endif
+#include "concepts.h"
+#include "noncopyable.h"
+#include "object.h"
+#include "preprocessor.h"
+#include "functional/call_traits.h"
 
-#include <boost/hana/append.hpp>
-#include <boost/hana/tuple.hpp>
+#include <utility>
 
 namespace fd
 {
-// basic_object
-namespace detail
-{
-template <typename>
-void init_once()
-{
-#ifdef _DEBUG
-    static auto used = false;
-    if (used)
-        unreachable();
-    used = true;
-#endif
-}
-} // namespace detail
-
 template <class T>
 class unique_object final : public noncopyable
 {
@@ -95,130 +80,65 @@ class unique_object final : public noncopyable
 };
 
 template <class T>
+class unique_object<T*>;
+
+template <class T>
 unique_object<T> const* operator&(unique_object<T> const&) = delete;
 
 template <class T>
 unique_object<T>* operator&(unique_object<T>&) = delete;
 
-template <typename... Args>
-using object_args_packed = boost::hana::tuple<Args...>;
+template <class T>
+struct make_incomplete_object;
 
-template <class T, bool = complete<T>>
-struct object_info;
-
+namespace detail
+{
 template <class T>
 inline uint8_t object_info_buffer[sizeof(T)];
 
 template <class T>
-struct object_info<T, true>
+void validate_object()
 {
-    using base        = T;
-    using args_packed = void;
-    using wrapped     = std::conditional_t<std::is_trivially_destructible_v<T>, T*, unique_object<T>>;
-    using unwrapped   = T*;
+#ifdef _DEBUG
+    static_assert(std::derived_from<T, basic_object>);
+    static auto used = false;
+    if (used)
+        unreachable();
+    used = true;
+#endif
+}
 
-    template <typename... Args>
-    static wrapped construct(Args&&... args)
-    {
-        static_assert(std::derived_from<T, basic_object>);
-        detail::init_once<T>();
-        return new (&object_info_buffer<T>) T(std::forward<Args>(args)...);
-    }
-
-    static wrapped construct(object_args_packed<>)
-    {
-        return construct();
-    }
-
-    template <typename... Args>
-    static wrapped construct(object_args_packed<Args...>& args_packed)
-    {
-        return boost::hana::unpack(std::move(args_packed), [](Args... args) -> wrapped {
-            return construct(static_cast<Args>(args)...);
-        });
-    }
+template <class T>
+struct rewrap_incomplete_object : std::type_identity<unique_object<T>>
+{
 };
 
-template <class AbstractT, typename... ConstructArgs>
-struct incomplete_object_info
-{
-    static constexpr size_t args_count = sizeof...(ConstructArgs);
+template <class T>
+using rewrap_incomplete_object_t = typename rewrap_incomplete_object<T>::type;
 
-    using base        = AbstractT;
-    using args_packed = object_args_packed<ConstructArgs...>;
-    using wrapped     = unique_object<AbstractT>;
+template <class T>
+struct rewrap_incomplete_object<T*> : std::type_identity<unique_object<T>>
+{
 };
-
-#define FD_OBJECT_FN(_T_) wrapped_object<_T_> make_object(std::type_identity<_T_>, object_construct_args<_T_> args)
-
-#define FD_OBJECT_FWD(_T_, _IFC_, ...)                                           \
-    template <>                                                                  \
-    struct object_info<_T_> final : incomplete_object_info<_IFC_, ##__VA_ARGS__> \
-    {                                                                            \
-        static wrapped construct(args_packed args_packed);                       \
-    };
-#define FD_OBJECT_IMPL(_T_)                                                     \
-    auto object_info<_T_, false>::construct(args_packed packed_args) -> wrapped \
-    {                                                                           \
-        return object_info<_T_, true>::construct(packed_args);                  \
-    }
-
-namespace detail
-{
-template <size_t N, size_t Level, class Tpl, typename A, typename... Args>
-auto pack_front_impl(Tpl&& tpl, A&& arg1, Args&&... args)
-{
-    auto new_tpl = boost::hana::append(tpl, std::forward<A>(arg1));
-    if constexpr (N == 1)
-        return new_tpl;
-    else
-        return pack_front_impl<N - 1, Level + 1>(new_tpl, std::forward<Args>(args)...);
-}
-
-template <size_t N, typename... Args>
-auto pack_front(Args&&... args)
-{
-    return pack_front_impl<N, 1>(boost::hana::tuple(), std::forward<Args>(args)...);
-}
-
-template <size_t N, class Tpl = void, typename A, typename... Args>
-auto pack_back(A&&, Args&&... args)
-{
-    if constexpr (N != 1)
-        return pack_back<N - 1, Tpl>(std::forward<Args>(args)...);
-    else if constexpr (std::is_void_v<Tpl>)
-        return boost::hana::tuple(std::forward<Args>(args)...);
-    else
-        return Tpl(std::forward<Args>(args)...);
-}
-
 } // namespace detail
 
-template <class T, typename... Args>
-auto make_object(Args&&... args)
-{
-    using info_t      = object_info<T>;
-    using args_packed = typename info_t::args_packed;
+template <typename T, bool = complete<T>>
+inline FD_CONSTEXPR_OPT auto make_object = nullptr;
 
-    constexpr auto args_count = sizeof...(Args);
+template <typename T>
+inline FD_CONSTEXPR_OPT auto make_object<T, true> = []<typename... Args>(Args&&... args)
+    -> std::conditional_t<
+        std::is_trivially_destructible_v<T> || complete<make_incomplete_object<T>>, //
+        T*, unique_object<T>> {
+    detail::validate_object<T>();
+    return new (&detail::object_info_buffer<T>) T(std::forward<Args>(args)...);
+};
 
-    if constexpr (std::is_void_v<args_packed>)
-        return info_t::construct(std::forward<Args>(args)...);
-    else if constexpr (args_count == info_t::args_count)
-        return info_t::construct(args_packed(std::forward<Args>(args)...));
-    else
-    {
-        constexpr auto dont_pack = args_count - info_t::args_count;
-
-        auto front_packed = detail::pack_front<dont_pack>(std::forward<Args>(args)...);
-        auto packed_args  = detail::pack_back<dont_pack, args_packed>(std::forward<Args>(args)...);
-
-        return boost::hana::unpack(
-            std::move(front_packed), //
-            [&packed_args]<typename... FrontArgs>(FrontArgs&&... front_args) {
-                return info_t::construct(std::forward<FrontArgs>(front_args)..., std::move(packed_args));
-            });
-    }
-}
-
+template <typename T>
+inline FD_CONSTEXPR_OPT auto make_object<T, false> = []<typename... Args>(Args&&... args) {
+    using impl_ret = typename function_info<make_incomplete_object<T>>::return_type;
+    using ret_t    = detail::rewrap_incomplete_object_t<impl_ret>;
+    FD_CONSTEXPR_OPT make_incomplete_object<T> impl;
+    return std::invoke_r<ret_t>(impl, std::forward<Args>(args)...);
+};
 } // namespace fd

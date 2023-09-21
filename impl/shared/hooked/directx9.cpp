@@ -61,6 +61,15 @@ class hooked_directx9_present final : public basic_directx9_hook
     }
 };
 
-FD_HOOK_IMPL(hooked_directx9_reset);
-FD_HOOK_IMPL(hooked_directx9_present);
+prepared_hook_data_full<basic_directx9_hook*> make_incomplete_object<hooked_directx9_reset>::operator()(
+    basic_dx9_backend* backend) const
+{
+    return prepare_hook_wrapped<hooked_directx9_reset>(backend);
+}
+
+prepared_hook_data_full<basic_directx9_hook*> make_incomplete_object<hooked_directx9_present>::operator()(
+    basic_render_frame const* render) const
+{
+    return prepare_hook_wrapped<hooked_directx9_present>(render);
+}
 } // namespace fd

@@ -1,5 +1,6 @@
 ﻿#include "dx9.h"
 #include "noncopyable.h"
+#include "object_holder.h"
 #include "diagnostics/runtime_error.h"
 #include "library_info/system.h"
 #include "memory/pattern.h"
@@ -13,7 +14,7 @@
 
 namespace fd
 {
-class native_dx9_backend final : public basic_dx9_backend
+class native_dx9_backend final : public basic_dx9_backend, public noncopyable
 {
     using pointer = IDirect3DDevice9**;
 
@@ -68,5 +69,8 @@ class native_dx9_backend final : public basic_dx9_backend
     }
 };
 
-FD_OBJECT_IMPL(native_dx9_backend);
+basic_dx9_backend* make_incomplete_object<native_dx9_backend>::operator()(system_library_info info) const
+{
+    return make_object<native_dx9_backend>(info);
+}
 } // namespace fd

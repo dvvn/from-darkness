@@ -6,29 +6,38 @@
 #include "proxy.h"
 // ReSharper restore CppUnusedIncludeDirective
 
-#define FD_HOOK_FWD(_T_, _IFC_, ...)                                             \
-    template <>                                                                  \
-    struct object_info<_T_> final : incomplete_object_info<_IFC_, ##__VA_ARGS__> \
-    {                                                                            \
-        using hook_data = prepared_hook_data_abstract<wrapped>;                  \
-        static hook_data construct(args_packed packed_args);                     \
-    };
-#define FD_HOOK_IMPL(_T_, ...)                                                      \
-    auto object_info<_T_, false>::construct(args_packed packed_args) -> hook_data   \
-    {                                                                               \
-        using std::move;                                                            \
-        auto callback             = object_info<_T_, true>::construct(packed_args); \
-        unique_hook_callback<_T_> = static_cast<_T_*>(callback);                    \
-        auto target               = callback->target();                             \
-        auto hook_data            = prepare_hook<_T_, ##__VA_ARGS__>(move(target)); \
-        return {move(hook_data), move(callback)};                                   \
-    }
-
 namespace fd
 {
 template <typename CallbackWrapped>
-struct prepared_hook_data_abstract : prepared_hook_data
+struct prepared_hook_data_full : prepared_hook_data
 {
     CallbackWrapped callback;
+
+    template <typename T>
+    prepared_hook_data_full(prepared_hook_data const& data, T&& callback)
+        : prepared_hook_data(data)
+        , callback(std::forward<T>(callback))
+    {
+    }
+
+    template <std::convertible_to<CallbackWrapped> T>
+    prepared_hook_data_full(prepared_hook_data_full<T>&& other)
+        : prepared_hook_data(static_cast<prepared_hook_data&&>(other))
+        , callback(std::move(other.callback))
+    {
+    }
 };
+
+template <class T>
+struct detail::rewrap_incomplete_object<prepared_hook_data_full<T>>
+    : std::type_identity<prepared_hook_data_full<rewrap_incomplete_object_t<T>>>
+{
+};
+
+template <class Callback, typename... Args>
+auto prepare_hook_wrapped(Args&&... args) -> prepared_hook_data_full<Callback*>
+{
+    auto const callback = unique_hook_callback<Callback> = make_object<Callback>(std::forward<Args>(args)...);
+    return {prepare_hook<Callback>(callback->target()), callback};
+}
 } // namespace fd

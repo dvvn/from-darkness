@@ -5,8 +5,15 @@
 
 namespace fd
 {
-struct basic_win32_backend;
+template <class T>
+struct make_incomplete_object;
 
+struct basic_win32_backend;
 class hooked_wndproc;
-FD_HOOK_FWD(hooked_wndproc, basic_winapi_hook, basic_win32_backend *);
+
+template <>
+struct make_incomplete_object<hooked_wndproc> final
+{
+    prepared_hook_data_full<basic_winapi_hook*> operator()(basic_win32_backend* backend) const;
+};
 } // namespace fd

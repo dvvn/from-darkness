@@ -1,14 +1,17 @@
 ﻿#pragma once
 #include "basic_menu.h"
-#include "object_holder.h"
 
 namespace fd
 {
-template <typename Ret, typename... Args>
-class basic_function;
-
 using unload_handler = basic_function<void>;
 
+template <class T>
+struct make_incomplete_object;
 class menu;
-FD_OBJECT_FWD(menu, basic_menu, unload_handler const *);
+
+template <>
+struct make_incomplete_object<menu> final
+{
+    basic_menu* operator()(unload_handler const* handler) const;
+};
 } // namespace fd

@@ -6,18 +6,6 @@ namespace fd
 struct basic_menu_item;
 struct string_view;
 
-struct basic_joined_menu_items
-{
-    using iterator = basic_menu_item *const *;
-
-  protected:
-    ~basic_joined_menu_items() = default;
-
-  public:
-    virtual iterator begin() const = 0;
-    virtual iterator end() const   = 0;
-};
-
 struct basic_menu_item : basic_named_object
 {
   protected:
@@ -26,12 +14,7 @@ struct basic_menu_item : basic_named_object
   public:
     virtual void render() = 0;
 
-    virtual basic_joined_menu_items *child_joined() const
-    {
-        return nullptr;
-    }
-
-    virtual basic_menu_item *child() const
+    virtual basic_menu_item* child()
     {
         return nullptr;
     }

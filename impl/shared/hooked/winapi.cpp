@@ -7,7 +7,7 @@ namespace fd
 {
 class hooked_wndproc final : public basic_winapi_hook
 {
-    basic_win32_backend *backend_;
+    basic_win32_backend* backend_;
 
   public:
     auto target() const
@@ -15,13 +15,13 @@ class hooked_wndproc final : public basic_winapi_hook
         return backend_->proc();
     }
 
-    hooked_wndproc(basic_win32_backend *backend)
+    hooked_wndproc(basic_win32_backend* backend)
         : backend_(backend)
     {
     }
 
     template <typename Fn>
-    LRESULT operator()(Fn &original, HWND window, UINT message, WPARAM wparam, LPARAM lparam) const noexcept
+    LRESULT operator()(Fn& original, HWND window, UINT message, WPARAM wparam, LPARAM lparam) const noexcept
     {
         // todo: check are unput must be blocked before update
         // if not, always call original
@@ -35,5 +35,9 @@ class hooked_wndproc final : public basic_winapi_hook
     }
 };
 
-FD_HOOK_IMPL(hooked_wndproc);
+prepared_hook_data_full<basic_winapi_hook*> make_incomplete_object<hooked_wndproc>::operator()(
+    basic_win32_backend* backend) const
+{
+    return prepare_hook_wrapped<hooked_wndproc>(backend);
+}
 }

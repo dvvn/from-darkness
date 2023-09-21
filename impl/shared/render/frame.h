@@ -6,6 +6,7 @@
 
 namespace fd
 {
+#if 0
 namespace detail
 {
 void render(render_frame_data const &data, render_frame_menu_data<render_frame_menu_mode::single> const &menu_data);
@@ -50,5 +51,5 @@ render_frame(render_frame_data, render_frame_menu_data<render_frame_menu_mode::s
     -> render_frame<render_frame_menu_mode::single>;
 render_frame(render_frame_data, render_frame_menu_data<render_frame_menu_mode::multi>)
     -> render_frame<render_frame_menu_mode::multi>;
-
+#endif
 } // namespace fd

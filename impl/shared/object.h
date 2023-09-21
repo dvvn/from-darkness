@@ -8,9 +8,8 @@ class basic_stack_object
     ~basic_stack_object() = default;
 };
 
-class basic_object : public basic_stack_object
+struct basic_object : basic_stack_object
 {
-  public:
     virtual ~basic_object() = default;
 };
 

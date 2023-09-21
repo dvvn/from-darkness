@@ -8,10 +8,9 @@
 #include <algorithm>
 #include <cassert>
 
+#if 0
 namespace fd::detail
 {
-using enum render_frame_menu_mode;
-
 static void render_menu(render_frame_data const &data, render_frame_menu_data<single> const &menu_data)
 {
     data.menu->render(menu_data.items);
@@ -68,3 +67,4 @@ void render_if_shown(render_frame_data const &data, render_frame_menu_data<multi
         render(data, menu_data);
 }
 } // namespace fd::detail
+#endif

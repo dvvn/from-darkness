@@ -4,11 +4,24 @@
 
 namespace fd
 {
-struct basic_dx9_backend;
-struct basic_render_frame;
+template <class T>
+struct make_incomplete_object;
 
+struct basic_dx9_backend;
 class hooked_directx9_reset;
-FD_HOOK_FWD(hooked_directx9_reset, basic_directx9_hook, basic_dx9_backend *);
+
+template <>
+struct make_incomplete_object<hooked_directx9_reset> final
+{
+    prepared_hook_data_full<basic_directx9_hook*> operator()(basic_dx9_backend* backend) const;
+};
+
+struct basic_render_frame;
 class hooked_directx9_present;
-FD_HOOK_FWD(hooked_directx9_present, basic_directx9_hook, basic_render_frame const*);
-}
+
+template <>
+struct make_incomplete_object<hooked_directx9_present> final
+{
+    prepared_hook_data_full<basic_directx9_hook*> operator()(basic_render_frame const* render) const;
+};
+} // namespace fd

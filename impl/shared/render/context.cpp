@@ -1,5 +1,6 @@
 #include "context.h"
 #include "noncopyable.h"
+#include "object_holder.h"
 #include "functional/ignore.h"
 
 #include <imgui_internal.h>
@@ -28,10 +29,10 @@ class render_context final : public basic_render_context, public noncopyable
 
 #if defined(_DEBUG) || defined(IMGUI_DISABLE_DEFAULT_ALLOCATORS)
         ImGui::SetAllocatorFunctions(
-            [](size_t const size, void *) {
+            [](size_t const size, void*) {
                 return operator new(size, std::nothrow);
             },
-            [](void *buff, void *) {
+            [](void* buff, void*) {
                 operator delete(buff, std::nothrow);
             });
 #endif
@@ -84,10 +85,14 @@ bool skip_scene() const
         // backend call
     }
 
-    ImDrawData *data() override
+    ImDrawData* data() override
     {
         return ImGui::GetDrawData();
     }
 };
-FD_OBJECT_IMPL(render_context);
+
+basic_render_context* make_incomplete_object<render_context>::operator()() const
+{
+    return make_object<render_context>();
+}
 } // namespace fd

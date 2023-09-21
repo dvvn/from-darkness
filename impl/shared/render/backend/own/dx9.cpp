@@ -2,6 +2,7 @@
 #include "dx9.h"
 #include "name.h"
 #include "noncopyable.h"
+#include "object_holder.h"
 #include "diagnostics/system_error.h"
 
 #include <d3d9.h>
@@ -16,7 +17,7 @@ namespace fd
 struct dx9_holder : noncopyable
 {
     using value_type = IDirect3DDevice9;
-    using pointer    = value_type *;
+    using pointer    = value_type*;
 
   private:
     comptr<IDirect3D9> d3d_;
@@ -64,12 +65,12 @@ struct dx9_holder : noncopyable
     bool resize(UINT w, UINT h)
     {
         auto ret = false;
-        if (auto &w_old = params_.BackBufferWidth; w_old != w)
+        if (auto& w_old = params_.BackBufferWidth; w_old != w)
         {
             ret   = true;
             w_old = w;
         }
-        if (auto &h_old = params_.BackBufferHeight; h_old != h)
+        if (auto& h_old = params_.BackBufferHeight; h_old != h)
         {
             h_old = h;
             ret   = true;
@@ -129,7 +130,7 @@ class own_dx9_backend final : dx9_holder_proxy, public basic_own_dx9_backend
     {
     }
 
-    void render(ImDrawData *draw_data) override
+    void render(ImDrawData* draw_data) override
     {
         auto device = dx9.get();
         auto clear  = device->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
@@ -156,11 +157,14 @@ class own_dx9_backend final : dx9_holder_proxy, public basic_own_dx9_backend
             own_dx9_backend::reset();
     }
 
-    void *native() const override
+    void* native() const override
     {
         return dx9.get();
     }
 };
 
-FD_OBJECT_IMPL(own_dx9_backend);
+basic_own_dx9_backend* make_incomplete_object<own_dx9_backend>::operator()() const
+{
+    return make_object<own_dx9_backend>();
+}
 } // namespace fd

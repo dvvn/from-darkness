@@ -5,6 +5,9 @@
 
 namespace fd
 {
+template <class T>
+struct make_incomplete_object;
+
 struct basic_own_win32_backend : basic_win32_backend
 {
     using basic_win32_backend::basic_win32_backend;
@@ -15,5 +18,10 @@ struct basic_own_win32_backend : basic_win32_backend
 };
 
 class own_win32_backend;
-FD_OBJECT_FWD(own_win32_backend, basic_own_win32_backend);
+
+template <>
+struct make_incomplete_object<own_win32_backend> final
+{
+    basic_own_win32_backend* operator()() const;
+};
 }

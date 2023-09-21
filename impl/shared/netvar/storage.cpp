@@ -1,4 +1,5 @@
-﻿#include "preprocessor.h"
+﻿#include "object_holder.h"
+#include "preprocessor.h"
 #include "storage.h"
 #include "container/array.h"
 #include "container/vector/dynamic.h"
@@ -39,7 +40,6 @@ static T* next(T* ptr, size_t diff = 1)
 
 static string_view::iterator prev(string_view::iterator it, size_t diff = 1)
 {
-
     return it - diff;
 }
 
@@ -1595,5 +1595,8 @@ class netvar_storage final : public basic_netvar_storage
     }
 };
 
-FD_OBJECT_IMPL(netvar_storage);
+basic_netvar_storage* make_incomplete_object<netvar_storage>::operator()() const
+{
+    return make_object<netvar_storage>();
+}
 } // namespace fd

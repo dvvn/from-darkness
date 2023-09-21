@@ -4,6 +4,15 @@
 
 namespace fd
 {
+template <class T>
+struct make_incomplete_object;
+
 struct backend_minhook;
-FD_OBJECT_FWD(backend_minhook, basic_hook_backend);
+
+template <>
+struct make_incomplete_object<backend_minhook> final
+{
+    basic_hook_backend* operator()() const;
+};
+
 } // namespace fd

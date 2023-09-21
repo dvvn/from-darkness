@@ -1,11 +1,13 @@
 ﻿#pragma once
 
-#include "object_holder.h"
 #include "internal/winapi.h"
 #include "render/backend/basic_dx9.h"
 
 namespace fd
 {
+template <class T>
+struct make_incomplete_object;
+
 struct basic_own_dx9_backend : basic_dx9_backend
 {
     using basic_dx9_backend::basic_dx9_backend;
@@ -14,5 +16,11 @@ struct basic_own_dx9_backend : basic_dx9_backend
 };
 
 class own_dx9_backend;
-FD_OBJECT_FWD(own_dx9_backend, basic_own_dx9_backend);
+
+template <>
+struct make_incomplete_object<own_dx9_backend> final
+{
+    basic_own_dx9_backend* operator()() const;
+};
+
 } // namespace fd

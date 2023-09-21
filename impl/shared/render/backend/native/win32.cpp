@@ -1,10 +1,10 @@
-﻿#include "win32.h"
-#include "noncopyable.h"
+﻿#include "noncopyable.h"
+#include "object_holder.h"
+#include "win32.h"
 #include "diagnostics/system_error.h"
 
-#include <imgui_impl_win32.h>
-
 #include <Windows.h>
+#include <imgui_impl_win32.h>
 #include <tchar.h>
 
 namespace fd
@@ -12,7 +12,7 @@ namespace fd
 template <bool Validate>
 static HWND find_game_window() noexcept(!Validate)
 {
-    auto window = FindWindow(_T("Valve001"), nullptr);
+    auto const window = FindWindow(_T("Valve001"), nullptr);
     if constexpr (Validate)
         if (!window)
             throw system_error("Game window not found!");
@@ -72,11 +72,14 @@ class native_win32_backend final : public basic_win32_backend, public noncopyabl
     window_size size() const override
     {
         RECT rect;
-        auto rect_get = GetWindowRect(window_, &rect);
+        auto const rect_get = GetWindowRect(window_, &rect);
         assert(rect_get);
         return rect;
     }
 };
 
-FD_OBJECT_IMPL(native_win32_backend);
+basic_win32_backend* make_incomplete_object<native_win32_backend>::operator()() const
+{
+    return make_object<native_win32_backend>();
+}
 } // namespace fd

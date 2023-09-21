@@ -13,7 +13,7 @@ DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT message, WPAR
     union
     {
         LONG_PTR user_data;
-        basic_own_win32_backend *backend;
+        basic_own_win32_backend* backend;
     };
 
     user_data = GetWindowLongPtr(window, GWLP_USERDATA);
@@ -90,7 +90,7 @@ class own_window_info : public noncopyable
             .lpfnWndProc   = wnd_proc,
             .hInstance     = handle,
             .lpszClassName = own_backend_class_name};
-        auto class_atom = RegisterClassEx(&info_);
+        auto const class_atom = RegisterClassEx(&info_);
         if (class_atom == INVALID_ATOM)
             throw system_error("Unable to register class!");
 
@@ -104,8 +104,8 @@ class own_window_info : public noncopyable
 
 #pragma warning(push)
 #pragma warning(disable : 4244)
-            float w = parent_rect.right - parent_rect.left;
-            float h = parent_rect.bottom - parent_rect.top;
+            float const w = parent_rect.right - parent_rect.left;
+            float const h = parent_rect.bottom - parent_rect.top;
             x       = w * 0.1f / 2.f;
             y       = h * 0.1f / 2.f;
             width   = w * 0.9f;
@@ -175,7 +175,7 @@ class own_win32_backend final : own_window_info_proxy, public basic_own_win32_ba
         : own_window_info_proxy(_T("") __TIMESTAMP__, GetModuleHandle(nullptr), parent)
         , basic_own_win32_backend(info.handle())
     {
-        auto window = info.handle();
+        auto const window = info.handle();
 
         RECT rect;
         if (!GetWindowRect(window, &rect))
@@ -185,7 +185,7 @@ class own_win32_backend final : own_window_info_proxy, public basic_own_win32_ba
         minimized_ = false;
         size_      = rect;
 
-        SetWindowLongPtr(window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(static_cast<basic_win32_backend *>(this)));
+        SetWindowLongPtr(window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(static_cast<basic_win32_backend*>(this)));
         ShowWindow(window, SW_SHOWDEFAULT);
         UpdateWindow(window);
     }
@@ -222,7 +222,7 @@ class own_win32_backend final : own_window_info_proxy, public basic_own_win32_ba
 
     void close() override
     {
-        //assert(!closed_);
+        // assert(!closed_);
         closed_ = true;
     }
 
@@ -232,5 +232,8 @@ class own_win32_backend final : own_window_info_proxy, public basic_own_win32_ba
     }
 };
 
-FD_OBJECT_IMPL(own_win32_backend);
+basic_own_win32_backend* make_incomplete_object<own_win32_backend>::operator()() const
+{
+    return make_object<own_win32_backend>();
+}
 } // namespace fd
