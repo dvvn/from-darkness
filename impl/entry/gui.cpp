@@ -6,7 +6,27 @@
 #include "render/backend/own/win32.h"
 #include "render/context.h"
 #include "render/frame.h"
-#include "vars/sample.h"
+
+//
+#include "string/view.h"
+
+#include <imgui.h>
+
+namespace fd
+{
+struct dummy_menu_item final : basic_menu_item
+{
+    string_view name() const override
+    {
+        return "Dummy";
+    }
+
+    void render() const override
+    {
+        ImGui::TextUnformatted("Test");
+    }
+};
+} // namespace fd
 
 int main(int argc, int* argv) noexcept
 {
@@ -20,15 +40,14 @@ int main(int argc, int* argv) noexcept
     auto const system_backend = fd::make_object<fd::own_win32_backend>();
     auto const render_backend = fd::make_object<fd::own_dx9_backend>();
 
-    fd::function_holder unload_handler([bk = static_cast<fd::basic_own_win32_backend*>(system_backend)] {
+    fd::function_holder unload_handler([bk = system_backend.get()] {
         bk->close();
     });
 
     auto const menu = fd::make_object<fd::menu>(&unload_handler);
-
-    //fd::render_frame const render_frame(
-    //    {render_backend, system_backend, render_context, menu}, //
-    //    {nullptr, 0});
+    fd::dummy_menu_item menu_item;
+    fd::menu_items_packed const menu_items(&menu_item);
+    fd::render_frame const render_frame{render_backend, system_backend, render_context, menu, &menu_items};
 
     for (;;)
     {
@@ -41,7 +60,6 @@ int main(int argc, int* argv) noexcept
 
         auto const windows_size = system_backend->size();
         render_backend->resize(windows_size.w, windows_size.h);
-
-        //render_frame.render();
+        render_frame.render();
     }
 }

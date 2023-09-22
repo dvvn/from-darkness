@@ -12,7 +12,7 @@ struct basic_menu_item : basic_named_object
     ~basic_menu_item() = default;
 
   public:
-    virtual void render() = 0;
+    virtual void render() const = 0;
 
     virtual basic_menu_item* child()
     {

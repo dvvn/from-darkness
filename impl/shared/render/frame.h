@@ -1,55 +1,38 @@
 ﻿#pragma once
-#include "basic_frame.h"
-#include "frame_data.h"
-
-#include <utility>
+#include "gui/basic_menu.h"
+#include "render/basic_context.h"
+#include "render/basic_render_backend.h"
+#include "render/basic_system_backend.h"
 
 namespace fd
 {
-#if 0
-namespace detail
+struct render_frame
 {
-void render(render_frame_data const &data, render_frame_menu_data<render_frame_menu_mode::single> const &menu_data);
-void render(render_frame_data const &data, render_frame_menu_data<render_frame_menu_mode::multi> const &menu_data);
+    basic_render_backend* render_backend;
+    basic_system_backend* system_backend;
+    basic_render_context* render_context;
 
-void render_if_shown(
-    render_frame_data const &data, render_frame_menu_data<render_frame_menu_mode::single> const &menu_data);
-void render_if_shown(
-    render_frame_data const &data, render_frame_menu_data<render_frame_menu_mode::multi> const &menu_data);
-} // namespace detail
+    basic_menu* menu;
+    menu_item_getter const* menu_items;
 
-template <render_frame_menu_mode Mode>
-class render_frame final : public basic_render_frame
-{
-    render_frame_data data_;
-    render_frame_menu_data<Mode> menu_data_;
-
-  public:
-    render_frame(render_frame_data data, render_frame_menu_data<Mode> menu_data)
-        : data_(std::move(data))
-        , menu_data_(std::move(menu_data))
+    void render() const
     {
-    }
+        system_backend->new_frame();
+        render_backend->new_frame();
+        menu->new_frame();
 
-    void render() const override
-    {
-        detail::render(data_, menu_data_);
-    }
+        render_context->begin_frame();
+        if (menu->visible())
+        {
+            if (menu->begin_scene())
+            {
+                menu->render(menu_items);
+            }
+            menu->end_scene();
+        }
+        render_context->end_frame();
 
-    void render_if_shown() const override
-    {
-        detail::render_if_shown(data_, menu_data_);
-    }
-
-    void *native_render() const override
-    {
-        return data_.render_backend->native();
+        render_backend->render(render_context->data());
     }
 };
-
-render_frame(render_frame_data, render_frame_menu_data<render_frame_menu_mode::single>)
-    -> render_frame<render_frame_menu_mode::single>;
-render_frame(render_frame_data, render_frame_menu_data<render_frame_menu_mode::multi>)
-    -> render_frame<render_frame_menu_mode::multi>;
-#endif
 } // namespace fd

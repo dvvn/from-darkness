@@ -24,11 +24,11 @@ BinPackParameters: true
 ExperimentalAutoDetectBinPacking: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AlwaysBreakTemplateDeclarations: Yes
-PenaltyBreakAssignment: 100
+PenaltyBreakAssignment: 160
 PenaltyBreakBeforeFirstCallParameter: 40
 PenaltyBreakFirstLessLess: 50
 PenaltyBreakOpenParenthesis: 60
-#ColumnLimit: 180
+ColumnLimit: 160
 BreakBeforeBraces: Custom
 BraceWrapping:
   BeforeElse: true

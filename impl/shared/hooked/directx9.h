@@ -16,12 +16,12 @@ struct make_incomplete_object<hooked_directx9_reset> final
     prepared_hook_data_full<basic_directx9_hook*> operator()(basic_dx9_backend* backend) const;
 };
 
-struct basic_render_frame;
+struct render_frame;
 class hooked_directx9_present;
 
 template <>
 struct make_incomplete_object<hooked_directx9_present> final
 {
-    prepared_hook_data_full<basic_directx9_hook*> operator()(basic_render_frame const* render) const;
+    prepared_hook_data_full<basic_directx9_hook*> operator()(render_frame const* render) const;
 };
 } // namespace fd

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "basic_menu.h"
+#include "menu_items_packed.h"
 
 namespace fd
 {

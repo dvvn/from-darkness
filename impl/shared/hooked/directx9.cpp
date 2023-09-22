@@ -38,16 +38,16 @@ class hooked_directx9_reset final : public basic_directx9_hook
 
 class hooked_directx9_present final : public basic_directx9_hook
 {
-    basic_render_frame const* frame_;
+    render_frame const* frame_;
 
   public:
     auto target() const
     {
-        native_vtable const native(frame_->native_render());
+        native_vtable const native(frame_->render_backend->native());
         return native[&IDirect3DDevice9::Present];
     }
 
-    hooked_directx9_present(basic_render_frame const* render_frame)
+    hooked_directx9_present(render_frame const* render_frame)
         : frame_(render_frame)
     {
     }
@@ -56,19 +56,18 @@ class hooked_directx9_present final : public basic_directx9_hook
         auto& original, //
         RECT const* source_rect, RECT const* dest_rect, HWND dest_window_override, RGNDATA const* dirty_region) const
     {
-        frame_->render_if_shown();
+        if (!frame_->system_backend->minimized())
+            frame_->render();
         return original(source_rect, dest_rect, dest_window_override, dirty_region);
     }
 };
 
-prepared_hook_data_full<basic_directx9_hook*> make_incomplete_object<hooked_directx9_reset>::operator()(
-    basic_dx9_backend* backend) const
+prepared_hook_data_full<basic_directx9_hook*> make_incomplete_object<hooked_directx9_reset>::operator()(basic_dx9_backend* backend) const
 {
     return prepare_hook_wrapped<hooked_directx9_reset>(backend);
 }
 
-prepared_hook_data_full<basic_directx9_hook*> make_incomplete_object<hooked_directx9_present>::operator()(
-    basic_render_frame const* render) const
+prepared_hook_data_full<basic_directx9_hook*> make_incomplete_object<hooked_directx9_present>::operator()(render_frame const* render) const
 {
     return prepare_hook_wrapped<hooked_directx9_present>(render);
 }

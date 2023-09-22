@@ -87,14 +87,14 @@ class menu final : public basic_menu
         // ImGui::PopID();
     }
 
-    void render(menu_item_getter* getter) override
+    void render(menu_item_getter const* items) override
     {
-        ImGui::PushID(getter);
+        ImGui::PushID(items);
         if (ImGui::BeginTabBar(ImGui::GetID(__LINE__)))
         {
-            for (;;)
+            for (size_t item_num = 0;;)
             {
-                auto const item = std::invoke(*getter);
+                auto const item = std::invoke(*items, item_num);
                 if (!item)
                     break;
                 render_item(item);

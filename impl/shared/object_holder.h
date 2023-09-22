@@ -53,30 +53,39 @@ class unique_object final : public noncopyable
         return *this;
     }
 
+    //--
+
     T* release()
     {
         return std::exchange(object_, nullptr);
     }
 
-    /*explicit*/ operator T*() const
+    T* get() const
     {
         return object_;
+    }
+
+    //--
+
+    operator T*() const&
+    {
+        return get();
+    }
+
+    operator T*() &&
+    {
+        return release();
     }
 
     T& operator*() const
     {
-        return *object_;
+        return *get();
     }
 
     T* operator->() const
     {
-        return object_;
+        return get();
     }
-
-    /* T *get() const
-     {
-         return object_;
-     }*/
 };
 
 template <class T>
@@ -123,13 +132,11 @@ struct rewrap_incomplete_object<T*> : std::type_identity<unique_object<T>>
 } // namespace detail
 
 template <typename T, bool = complete<T>>
-inline FD_CONSTEXPR_OPT auto make_object = nullptr;
+inline FD_CONSTEXPR_OPT uint8_t make_object = 0;
 
 template <typename T>
-inline FD_CONSTEXPR_OPT auto make_object<T, true> = []<typename... Args>(Args&&... args)
-    -> std::conditional_t<
-        std::is_trivially_destructible_v<T> || complete<make_incomplete_object<T>>, //
-        T*, unique_object<T>> {
+inline FD_CONSTEXPR_OPT auto make_object<T, true> =
+    []<typename... Args>(Args&&... args) -> std::conditional_t<std::is_trivially_destructible_v<T>, T*, unique_object<T>> {
     detail::validate_object<T>();
     return new (&detail::object_info_buffer<T>) T(std::forward<Args>(args)...);
 };
@@ -138,7 +145,6 @@ template <typename T>
 inline FD_CONSTEXPR_OPT auto make_object<T, false> = []<typename... Args>(Args&&... args) {
     using impl_ret = typename function_info<make_incomplete_object<T>>::return_type;
     using ret_t    = detail::rewrap_incomplete_object_t<impl_ret>;
-    FD_CONSTEXPR_OPT make_incomplete_object<T> impl;
-    return std::invoke_r<ret_t>(impl, std::forward<Args>(args)...);
+    return std::invoke_r<ret_t>(make_incomplete_object<T>(), std::forward<Args>(args)...);
 };
 } // namespace fd

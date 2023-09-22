@@ -38,12 +38,12 @@ static T* next(T* ptr, size_t diff = 1)
     return ptr + diff;
 }
 
-static string_view::iterator prev(string_view::iterator it, size_t diff = 1)
+static string_view::iterator prev(string_view::iterator it, size_t const diff = 1)
 {
     return it - diff;
 }
 
-static string_view::iterator next(string_view::iterator it, size_t diff = 1)
+static string_view::iterator next(string_view::iterator it, size_t const diff = 1)
 {
     return it + diff;
 }
@@ -188,9 +188,6 @@ class universal_name
     }
 };
 
-using placeholders::_1;
-using placeholders::_2;
-
 static char const* recv_prop_name(native_recv_table::prop const* prop)
 {
     if (isdigit(prop->name[0]))
@@ -263,12 +260,11 @@ class netvar_prefix
     {
         assert(operator bool());
 
-        auto const begin   = next(type_.begin(), basic_prefix_.length());
-        auto const abs_end = type_.end();
-        auto const end =
-            max_length == std::numeric_limits<size_t>::max()
-                ? abs_end
-                : next(begin, std::min(std::distance(begin, abs_end), static_cast<ptrdiff_t>(max_length + 1)));
+        auto const begin      = next(type_.begin(), basic_prefix_.length());
+        auto const abs_end    = type_.end();
+        auto const end        = max_length == std::numeric_limits<size_t>::max()
+                                    ? abs_end
+                                    : next(begin, std::min(std::distance(begin, abs_end), static_cast<ptrdiff_t>(max_length + 1)));
         auto const prefix_end = std::find_if_not(begin, end, islower);
         if (prefix_end != end && isupper(*prefix_end))
             return {begin, prefix_end};
@@ -758,15 +754,11 @@ static string netvar_info_type(native_recv_table::prop const* prop)
         }
         else
         {
-            netvar_type_array(
-                back_inserter(buffer),
-                netvar_type(prop, array_info(prop->parent_array_name, next(prop)->offset - prop->offset)),
-                length);
+            netvar_type_array(back_inserter(buffer), netvar_type(prop, array_info(prop->parent_array_name, next(prop)->offset - prop->offset)), length);
         }
     }
     else if (auto const next_prop = next(prop); //
-             next_prop->type == recv_prop_type::array && next_prop->offset == 0 &&
-             string_view(prop->name).ends_with("[0]"))
+             next_prop->type == recv_prop_type::array && next_prop->offset == 0 && string_view(prop->name).ends_with("[0]"))
     {
         assert(string_view(prop->name).starts_with(next_prop->name));
         netvar_type_array(back_inserter(buffer), prop, next_prop);
@@ -1020,7 +1012,7 @@ static auto find_store_position(vector<netvar_info<T>> const& storage, size_t co
 {
     auto it = std::find_if(
         storage.rbegin(), storage.rend(), //
-        _1->*&netvar_info<T>::offset < offset);
+        placeholders::_1->*&netvar_info<T>::offset < offset);
     return it.base(); // position after it
 }
 
@@ -1097,7 +1089,7 @@ static void netvar_table_parse(
         if (!filter_duplicates || //
             std::all_of(
                 storage.cbegin(), storage.cend(), //
-                _1->*&netvar_info::name != first_prop->parent_array_name))
+                placeholders::_1->*&netvar_info::name != first_prop->parent_array_name))
             store(storage, first_prop, abs_offset);
 #endif
         return;
@@ -1131,7 +1123,7 @@ static void netvar_table_parse(
             {
                 if (std::any_of(
                         storage.cbegin(), storage.cend(), //
-                        _1->*&netvar_info::raw_name == prop.name))
+                        placeholders::_1->*&netvar_info::raw_name == prop.name))
                     return;
             }
 
@@ -1185,7 +1177,7 @@ static void netvar_table_parse(
         {
             if (std::any_of(
                     storage.cbegin(), storage.cend(), //
-                    _1->*&netvar_info::raw_name == field.name))
+                    placeholders::_1->*&netvar_info::raw_name == field.name))
                 return;
         }
         store(storage, &field, abs_offset);
@@ -1218,7 +1210,7 @@ struct netvar_table final : basic_netvar_table
     {
         std::stable_sort(
             storage_.begin(), storage_.end(), //
-            _1->*&info_type::offset < _2->*&info_type::offset);
+            placeholders::_1->*&info_type::offset < placeholders::_2->*&info_type::offset);
     }
 
   public:
@@ -1256,7 +1248,7 @@ struct netvar_table final : basic_netvar_table
             auto const end = storage_.end();
             auto const it  = std::find_if(
                 storage_.begin(), end, //
-                _1->*&info_type::pretty_name == name);
+                placeholders::_1->*&info_type::pretty_name == name);
             if (it != end)
                 return iterator_to_raw_pointer(it);
         }
@@ -1309,7 +1301,7 @@ class netvar_types_cache final : public basic_netvar_types_cache
     string_view get(key_type key) const override
     {
         auto const end = storage_.end();
-        auto const it  = std::find_if(storage_.begin(), end, _1->*&stored_value::key == key);
+        auto const it  = std::find_if(storage_.begin(), end, placeholders::_1->*&stored_value::key == key);
         return it == end ? string_view() : it->view();
     }
 
@@ -1462,8 +1454,8 @@ class netvar_tables_storage
     void render(string_view const str_id) const
     {
         FD_CONSTEXPR_OPT auto column_count = 4;
-        FD_CONSTEXPR_OPT auto table_flags  = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV |
-                                            ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_SizingFixedFit;
+        FD_CONSTEXPR_OPT auto table_flags  = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoSavedSettings |
+                                            ImGuiTableFlags_SizingFixedFit;
 
         if (!ImGui::BeginTable(str_id, column_count, table_flags))
             return;
@@ -1588,7 +1580,7 @@ class netvar_storage final : public basic_netvar_storage
         return "Netvars";
     }
 
-    void render() override
+    void render() const override
     {
         recv_tables_.render("Client class");
         data_maps_.render("Data map");
