@@ -6,6 +6,7 @@
 #include "render/backend/own/win32.h"
 #include "render/context.h"
 #include "render/frame.h"
+#include "gui/menu_tab.h"
 
 //
 #include "string/view.h"

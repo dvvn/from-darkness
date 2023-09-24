@@ -78,13 +78,13 @@ class menu final : public basic_menu
 
     void render(basic_menu_item* item) override
     {
-        // ImGui::PushID(item);
+        ImGui::PushID(item);
         if (ImGui::BeginTabBar(ImGui::GetID(__LINE__)))
         {
             render_item(item);
             ImGui::EndTabBar();
         }
-        // ImGui::PopID();
+        ImGui::PopID();
     }
 
     void render(menu_item_getter const* items) override
@@ -117,15 +117,8 @@ class menu final : public basic_menu
             return;
         item->render();
         if (auto const child = item->child())
-            render_child(child);
+            render(child);
         ImGui::EndTabItem();
-    }
-
-    void render_child(basic_menu_item* item)
-    {
-        ImGui::PushID(item);
-        render(item);
-        ImGui::PopID();
     }
 
     void render_internal()
