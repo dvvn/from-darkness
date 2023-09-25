@@ -78,29 +78,13 @@ class menu final : public basic_menu
 
     void render(basic_menu_item* item) override
     {
-        ImGui::PushID(item);
-        if (ImGui::BeginTabBar(ImGui::GetID(__LINE__)))
-        {
-            render_item(item);
-            ImGui::EndTabBar();
-        }
-        ImGui::PopID();
+        item->render();
     }
 
     void render(menu_item_getter const* items) override
     {
         ImGui::PushID(items);
-        if (ImGui::BeginTabBar(ImGui::GetID(__LINE__)))
-        {
-            for (size_t item_num = 0;;)
-            {
-                auto const item = std::invoke(*items, item_num);
-                if (!item)
-                    break;
-                render_item(item);
-            }
-            ImGui::EndTabBar();
-        }
+        apply(*items);
         ImGui::PopID();
     }
 
@@ -111,7 +95,7 @@ class menu final : public basic_menu
     }
 
   private:
-    void render_item(basic_menu_item* item)
+    /*void render_item(basic_menu_item* item)
     {
         if (!ImGui::BeginTabItem(item->name()))
             return;
@@ -119,7 +103,7 @@ class menu final : public basic_menu
         if (auto const child = item->child())
             render(child);
         ImGui::EndTabItem();
-    }
+    }*/
 
     void render_internal()
     {

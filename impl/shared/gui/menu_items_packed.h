@@ -2,27 +2,48 @@
 
 #include "menu_item_getter.h"
 #include "container/array.h"
+#include "functional/call_traits.h"
+
+#include <algorithm>
+#include <cassert>
 
 namespace fd
 {
 template <size_t Count>
 class menu_items_packed final : public menu_item_getter
 {
-    array<basic_menu_item*, Count> items_;
+    using pointer = function_info<menu_item_getter>::return_type;
+
+    array<pointer, Count> items_;
 
   public:
-    menu_items_packed(auto*... items)
+    template <std::convertible_to<pointer>... T>
+    menu_items_packed(T&&... items)
         : items_{items...}
     {
+        if constexpr (Count == 1)
+        {
+            assert(items_[0] != nullptr);
+        }
+        else
+        {
+            namespace rn = std::ranges;
+            assert(!rn::contains(items_, nullptr));
+            assert(rn::all_of(items_, [&](auto* p) {
+                return rn::count(items_, p) == 1;
+            }));
+        }
     }
 
-    basic_menu_item* operator()(size_t& counter) const override
+    pointer operator()(size_t& counter) const override
     {
         return counter == Count ? nullptr : items_[counter++];
     }
 };
 
-template <typename... T>
-menu_items_packed(T...) -> menu_items_packed<sizeof...(T)>;
+template <>
+class menu_items_packed<0>;
 
+template <typename... T>
+menu_items_packed(T&&...) -> menu_items_packed<sizeof...(T)>;
 } // namespace fd
