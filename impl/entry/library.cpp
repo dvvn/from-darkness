@@ -4,7 +4,6 @@
 #include "debug/log.h"
 #include "functional/function_holder.h"
 #include "gui/menu.h"
-#include "gui/menu_item.h"
 #include "hook/preferred_backend.h"
 #include "hooked/directx9.h"
 #include "hooked/winapi.h"
@@ -138,11 +137,7 @@ void context()
     netvars->store(player_data_map.description());
     netvars->store(player_data_map.prediction());
 
-    fd::joined_menu_items const menu_items(fd::menu_item("Debug", netvars));
-
-    fd::render_frame const render_frame(
-        {render_backend, system_backend, render_context, menu}, //
-        {&menu_items});
+    fd::render_frame const render_frame(render_backend, system_backend, render_context, menu, nullptr);
 
     auto const hk_wndproc     = make_object<fd::hooked_wndproc>(system_backend);
     auto const hk_dx9_reset   = make_object<fd::hooked_directx9_reset>(render_backend);
