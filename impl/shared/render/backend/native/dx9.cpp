@@ -20,16 +20,16 @@ class native_dx9_backend final : public basic_dx9_backend, public noncopyable
 
     pointer device_;
 
-    native_dx9_backend(pointer device)
-        : basic_dx9_backend(*device)
-        , device_(device)
-    {
-    }
-
   public:
     ~native_dx9_backend() override
     {
         native_dx9_backend::destroy();
+    }
+
+    native_dx9_backend(pointer device)
+        : device_(device)
+    {
+        basic_dx9_backend::setup(*device);
     }
 
     native_dx9_backend(system_library_info info)

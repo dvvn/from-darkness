@@ -4,8 +4,8 @@ namespace fd
 {
 void render_frame::render() const
 {
-    system_backend->new_frame();
     render_backend->new_frame();
+    system_backend->new_frame();
     menu->new_frame();
 
     render_context->begin_frame();

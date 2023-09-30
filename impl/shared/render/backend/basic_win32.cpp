@@ -13,25 +13,72 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 
 namespace fd
 {
-basic_win32_backend::window_size::window_size()
-    : w(0)
-    , h(0)
+simple_win32_window_size::simple_win32_window_size()
+    : w(CW_USEDEFAULT)
+    , h(CW_USEDEFAULT)
 {
 }
 
-basic_win32_backend::window_size::window_size(LPARAM const lparam)
-    : w(LOWORD(lparam))
-    , h(HIWORD(lparam))
-{
-}
-
-basic_win32_backend::window_size::window_size(RECT const& rect)
+simple_win32_window_size::simple_win32_window_size(RECT const& rect)
     : w(rect.right - rect.left)
     , h(rect.bottom - rect.top)
 {
 }
 
-basic_win32_backend::basic_win32_backend(HWND window)
+win32_window_size::win32_window_size()
+    : x(CW_USEDEFAULT)
+    , y(CW_USEDEFAULT)
+{
+}
+
+win32_window_size::win32_window_size(RECT const& rect)
+    : simple_win32_window_size(rect)
+    , x(rect.top)
+    , y(rect.left)
+{
+}
+
+win32_window_size& win32_window_size::operator=(simple_win32_window_size const& parent_size)
+{
+    simple_win32_window_size::operator=(parent_size);
+    return *this;
+}
+
+WNDPROC win32_backend_info::proc() const
+{
+    return reinterpret_cast<WNDPROC>(GetWindowLongPtr(id, GWL_WNDPROC));
+}
+
+win32_window_size win32_backend_info::size() const
+{
+    RECT rect;
+    /*GetWindowRect*/ GetClientRect(id, &rect);
+    return rect;
+}
+
+bool win32_backend_info::minimized() const
+{
+    return IsIconic(id);
+}
+
+static_win32_backend_info::static_win32_backend_info(HWND id)
+    : static_win32_backend_info([&] {
+        win32_backend_info info;
+        info.id = id;
+        return info;
+    }())
+{
+}
+
+static_win32_backend_info::static_win32_backend_info(win32_backend_info info)
+    : dynamic(std::move(info))
+    , proc(dynamic.proc())
+    , size(dynamic.size())
+    , minimized(dynamic.minimized())
+{
+}
+
+void basic_win32_backend::setup(HWND window)
 {
     if (!ImGui_ImplWin32_Init(window))
         throw runtime_error("Unable to init ImGui_ImplWin32!");
@@ -51,8 +98,6 @@ auto basic_win32_backend::update(HWND window, UINT const message, WPARAM const w
 {
     assert(message != WM_DESTROY);
 
-    auto const ctx = ImGui::GetCurrentContext();
-
     auto const& events       = GImGui->InputEventsQueue;
     auto const events_stored = events.size();
 
@@ -67,6 +112,13 @@ auto basic_win32_backend::update(HWND window, UINT const message, WPARAM const w
         response = skipped;
 
     return {value, response};
+}
+
+void basic_win32_backend::update(basic_system_backend_info* backend_info) const
+{
+    auto const backend_info2 = dynamic_cast<win32_backend_info*>(backend_info);
+    assert(backend_info2 != nullptr);
+    update(backend_info2);
 }
 
 } // namespace fd

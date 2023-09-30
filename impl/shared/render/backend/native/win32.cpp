@@ -23,16 +23,16 @@ class native_win32_backend final : public basic_win32_backend, public noncopyabl
 {
     HWND window_;
 
-    native_win32_backend(HWND window)
-        : basic_win32_backend(window)
-        , window_(window)
-    {
-    }
-
   public:
     ~native_win32_backend() override
     {
         native_win32_backend::destroy();
+    }
+
+    native_win32_backend(HWND window)
+        : window_(window)
+    {
+        basic_win32_backend::setup(window);
     }
 
     native_win32_backend()
@@ -54,27 +54,9 @@ class native_win32_backend final : public basic_win32_backend, public noncopyabl
     }
 #endif
 
-    WNDPROC proc() const override
+    void update(win32_backend_info* backend_info) const override
     {
-        return reinterpret_cast<WNDPROC>(GetWindowLongPtr(window_, GWL_WNDPROC));
-    }
-
-    HWND id() const override
-    {
-        return window_;
-    }
-
-    bool minimized() const override
-    {
-        return IsIconic(window_);
-    }
-
-    window_size size() const override
-    {
-        RECT rect;
-        auto const rect_get = GetWindowRect(window_, &rect);
-        assert(rect_get);
-        return rect;
+        backend_info->id = window_;
     }
 };
 

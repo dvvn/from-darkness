@@ -10,9 +10,11 @@ class hooked_wndproc final : public basic_winapi_hook
     basic_win32_backend* backend_;
 
   public:
-    auto target() const
+    WNDPROC target() const
     {
-        return backend_->proc();
+        win32_backend_info info;
+        backend_->update(&info);
+        return info.proc();
     }
 
     hooked_wndproc(basic_win32_backend* backend)
@@ -35,8 +37,7 @@ class hooked_wndproc final : public basic_winapi_hook
     }
 };
 
-prepared_hook_data_full<basic_winapi_hook*> make_incomplete_object<hooked_wndproc>::operator()(
-    basic_win32_backend* backend) const
+prepared_hook_data_full<basic_winapi_hook*> make_incomplete_object<hooked_wndproc>::operator()(basic_win32_backend* backend) const
 {
     return prepare_hook_wrapped<hooked_wndproc>(backend);
 }

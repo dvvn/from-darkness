@@ -50,8 +50,8 @@ QualifierOrder:
   - friend
   - inline
   - static
-  - constexpr
   - type
+  - constexpr
   - const
 UseTab: Never
 IncludeBlocks: Regroup

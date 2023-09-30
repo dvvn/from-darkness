@@ -8,6 +8,51 @@
 
 namespace fd
 {
+struct simple_win32_window_size
+{
+    LONG w;
+    LONG h;
+
+    simple_win32_window_size();
+    simple_win32_window_size(RECT const& rect);
+};
+
+struct win32_window_size : simple_win32_window_size
+{
+    LONG x;
+    LONG y;
+
+    win32_window_size();
+    win32_window_size(RECT const& rect);
+
+    win32_window_size& operator=(simple_win32_window_size const& parent_size);
+};
+
+struct win32_backend_info final : basic_system_backend_info
+{
+    HWND id;
+
+    WNDPROC proc() const;
+    win32_window_size size() const;
+    bool minimized() const override;
+};
+
+struct static_win32_backend_info
+{
+    union
+    {
+        HWND id;
+        win32_backend_info dynamic;
+    };
+
+    WNDPROC proc;
+    win32_window_size size;
+    bool minimized;
+
+    static_win32_backend_info(HWND id);
+    static_win32_backend_info(win32_backend_info info);
+};
+
 struct basic_win32_backend : basic_system_backend
 {
     enum response_type : uint8_t
@@ -77,26 +122,12 @@ struct basic_win32_backend : basic_system_backend
         }
     };
 
-    struct window_size
-    {
-        UINT w;
-        UINT h;
-
-        window_size();
-        window_size(LPARAM lparam);
-        window_size(RECT const& rect);
-    };
-
-  protected:
-    basic_win32_backend(HWND window);
-
-  public:
+    virtual void setup(HWND window);
     void destroy() override;
     void new_frame() override;
     virtual update_result update(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 
-    virtual WNDPROC proc() const     = 0;
-    virtual HWND id() const          = 0;
-    virtual window_size size() const = 0;
+    virtual void update(win32_backend_info* backend_info) const = 0;
+    void update(basic_system_backend_info* backend_info) const override;
 };
 } // namespace fd

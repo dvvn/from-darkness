@@ -1,6 +1,7 @@
 ﻿#include "directx9.h"
 #include "functional/vtable.h"
 #include "render/backend/basic_dx9.h"
+#include "render/backend/basic_win32.h"
 #include "render/frame.h"
 
 #include <d3d9.h>
@@ -40,6 +41,8 @@ class hooked_directx9_present final : public basic_directx9_hook
 {
     render_frame const* frame_;
 
+    win32_backend_info system_backend_info_;
+
   public:
     auto target() const
     {
@@ -50,13 +53,14 @@ class hooked_directx9_present final : public basic_directx9_hook
     hooked_directx9_present(render_frame const* render_frame)
         : frame_(render_frame)
     {
+        frame_->system_backend->update(&system_backend_info_);
     }
 
     HRESULT operator()(
         auto& original, //
         RECT const* source_rect, RECT const* dest_rect, HWND dest_window_override, RGNDATA const* dirty_region) const
     {
-        if (!frame_->system_backend->minimized())
+        if (!system_backend_info_.minimized())
             frame_->render();
         return original(source_rect, dest_rect, dest_window_override, dirty_region);
     }

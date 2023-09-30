@@ -1,5 +1,4 @@
-﻿#include "name.h"
-#include "noncopyable.h"
+﻿#include "noncopyable.h"
 #include "win32.h"
 #include "diagnostics/system_error.h"
 
@@ -8,15 +7,34 @@
 
 namespace fd
 {
-DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+union packed_backend
 {
-    union
-    {
-        LONG_PTR user_data;
-        basic_own_win32_backend* backend;
-    };
+    using pointer = basic_own_win32_backend*;
 
-    user_data = GetWindowLongPtr(window, GWLP_USERDATA);
+  private:
+    LONG_PTR user_data_;
+    pointer backend_;
+
+  public:
+    packed_backend(HWND window)
+        : user_data_(GetWindowLongPtr(window, GWLP_USERDATA))
+    {
+    }
+
+    explicit operator bool() const
+    {
+        return backend_ != nullptr;
+    }
+
+    pointer operator->() const
+    {
+        return backend_;
+    }
+};
+
+DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT const message, WPARAM wparam, LPARAM lparam) noexcept
+{
+    packed_backend const backend(window);
 
     if (!backend)
         return DefWindowProc(window, message, wparam, lparam);
@@ -69,89 +87,13 @@ DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT message, WPAR
 #endif
 }
 
-class own_window_info : public noncopyable
+class own_win32_backend final : public basic_own_win32_backend, public noncopyable
 {
     WNDCLASSEX info_;
     HWND hwnd_;
 
-  public:
-    ~own_window_info()
-    {
-        UnregisterClass(info_.lpszClassName, info_.hInstance);
-        DestroyWindow(hwnd_);
-    }
-
-    own_window_info(LPCTSTR name, HMODULE handle, HWND parent)
-    {
-        // memset(&info_, 0, sizeof info_);
-        info_ = {
-            .cbSize        = sizeof info_,
-            .style         = CS_CLASSDC,
-            .lpfnWndProc   = wnd_proc,
-            .hInstance     = handle,
-            .lpszClassName = own_backend_class_name};
-        auto const class_atom = RegisterClassEx(&info_);
-        if (class_atom == INVALID_ATOM)
-            throw system_error("Unable to register class!");
-
-        RECT parent_rect;
-        int x, y, width, height; // NOLINT(readability-isolate-declaration)
-        if (parent && GetWindowRect(parent, &parent_rect))
-        {
-            // ReSharper disable CppClangTidyClangDiagnosticFloatConversion
-            // ReSharper disable CppClangTidyBugproneNarrowingConversions
-            // ReSharper disable CppClangTidyClangDiagnosticImplicitIntFloatConversion
-
-#pragma warning(push)
-#pragma warning(disable : 4244)
-            float const w = parent_rect.right - parent_rect.left;
-            float const h = parent_rect.bottom - parent_rect.top;
-            x       = w * 0.1f / 2.f;
-            y       = h * 0.1f / 2.f;
-            width   = w * 0.9f;
-            height  = h * 0.9f;
-#pragma warning(pop)
-        }
-        else
-        {
-            x = y = width = height = CW_USEDEFAULT;
-        }
-
-        hwnd_ = CreateWindow(
-            MAKEINTATOM(class_atom), name, WS_OVERLAPPEDWINDOW, x, y, width, height, parent, nullptr, handle, nullptr);
-
-        if (!hwnd_)
-            throw system_error("Window not created!");
-    }
-
-    WNDPROC wndproc() const
-    {
-        return info_.lpfnWndProc;
-    }
-
-    HWND handle() const
-    {
-        return hwnd_;
-    }
-};
-
-struct own_window_info_proxy
-{
-    own_window_info info;
-
-    own_window_info_proxy(LPCTSTR name, HMODULE handle, HWND parent)
-        : info(name, handle, parent)
-    {
-    }
-};
-
-class own_win32_backend final : own_window_info_proxy, public basic_own_win32_backend
-{
-    bool closed_;
-    bool minimized_;
-    window_size size_;
-
-    update_result update(HWND window, UINT message, WPARAM wparam, LPARAM lparam) override
+#if 0
+    update_result update(HWND window, UINT const message, WPARAM const wparam, LPARAM const lparam) override
     {
         if (message == WM_SIZE)
         {
@@ -164,71 +106,84 @@ class own_win32_backend final : own_window_info_proxy, public basic_own_win32_ba
 
         // return DefWindowProc(window, message, wparam, lparam);
     }
+#endif
 
   public:
     ~own_win32_backend() override
     {
         basic_win32_backend::destroy();
+        UnregisterClass(info_.lpszClassName, info_.hInstance);
+        DestroyWindow(hwnd_);
     }
 
-    own_win32_backend(HWND parent = GetDesktopWindow())
-        : own_window_info_proxy(_T("") __TIMESTAMP__, GetModuleHandle(nullptr), parent)
-        , basic_own_win32_backend(info.handle())
+    own_win32_backend()
     {
-        auto const window = info.handle();
+        auto constexpr window_name = _T("") __TIMESTAMP__;
+        auto constexpr class_name  = _T("") __TIME__;
 
-        RECT rect;
-        if (!GetWindowRect(window, &rect))
-            throw system_error("Unable to get window rect");
+#ifndef _DEBUG
+        memset(&info_, 0, sizeof(WNDCLASSEX));
+#endif
+        info_ = {
+            .cbSize        = sizeof(WNDCLASSEX), //
+            .style         = CS_CLASSDC,
+            .lpfnWndProc   = wnd_proc,
+            .hInstance     = GetModuleHandle(nullptr),
+            .lpszClassName = class_name};
 
-        closed_    = false;
-        minimized_ = false;
-        size_      = rect;
+        auto const class_atom = RegisterClassEx(&info_);
+        if (class_atom == INVALID_ATOM)
+            throw system_error("Unable to register window class!");
 
-        SetWindowLongPtr(window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(static_cast<basic_win32_backend*>(this)));
-        ShowWindow(window, SW_SHOWDEFAULT);
-        UpdateWindow(window);
+        win32_window_size size;
+        auto const parent = GetDesktopWindow();
+        if (RECT parent_rect; parent && GetWindowRect(parent, &parent_rect))
+        {
+            simple_win32_window_size const parent_size(parent_rect);
+            size.x = parent_rect.bottom * 0.05;
+            size.y = parent_rect.right * 0.05;
+            size.w = parent_size.w * 0.8;
+            size.h = parent_size.h * 0.8;
+        }
+
+        hwnd_ = CreateWindow(
+            MAKEINTATOM(class_atom), window_name, WS_OVERLAPPEDWINDOW, //
+            size.x, size.y, size.w, size.h,                            //
+            parent, nullptr, info_.hInstance, nullptr);
+        if (!hwnd_)
+            throw system_error("Window not created!");
+        /*RECT rect;
+        if (!GetWindowRect(hwnd_, &rect))
+            throw system_error("Unable to get window rect");*/
+
+        SetWindowLongPtr(hwnd_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(static_cast<basic_win32_backend*>(this)));
+        ShowWindow(hwnd_, SW_SHOWDEFAULT);
+        UpdateWindow(hwnd_);
+
+        basic_win32_backend::setup(hwnd_);
     }
 
-    void peek() override
+    bool peek() override
     {
         MSG msg;
-        while (PeekMessage(&msg, info.handle(), 0U, 0U, PM_REMOVE))
+        while (PeekMessage(&msg, hwnd_, 0U, 0U, PM_REMOVE))
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-    }
 
-    WNDPROC proc() const override
-    {
-        return info.wndproc();
-    }
-
-    HWND id() const override
-    {
-        return info.handle();
-    }
-
-    bool minimized() const override
-    {
-        return minimized_; // IsIconic
-    }
-
-    window_size size() const override
-    {
-        return size_; // GetWindowRect
+        return static_cast<bool>(packed_backend(hwnd_));
     }
 
     void close() override
     {
-        // assert(!closed_);
-        closed_ = true;
+        SetWindowLongPtr(hwnd_, GWLP_USERDATA, NULL);
     }
 
-    bool closed() const override
+    void update(win32_backend_info* info) const override
     {
-        return closed_;
+        // info->proc = wnd_proc;
+        info->id = hwnd_;
     }
 };
 

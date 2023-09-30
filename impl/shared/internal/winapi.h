@@ -17,6 +17,7 @@ using UINT_PTR = unsigned int;
 
 using UINT  = unsigned int;
 using DWORD = unsigned long;
+using LONG  = long;
 
 using WPARAM  = UINT_PTR;
 using LPARAM  = LONG_PTR;
