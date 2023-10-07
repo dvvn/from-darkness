@@ -8,30 +8,30 @@
 
 namespace fd
 {
-template <size_t Count>
-struct menu_tab : basic_menu_tab, menu_item_data<Count>
+template <class Items>
+struct menu_tab : /*basic_menu_tab,*/ menu_item_data<Items>
 {
-    using menu_item_data<Count>::menu_item_data;
+    using menu_item_data<Items>::menu_item_data;
 
-    string_view name() const override
+    string_view name() const
     {
-        return menu_item_data<Count>::name;
+        return menu_item_data<Items>::name;
     }
 
-    void render() const override
+    void render() const
     {
         if (!ImGui::BeginTabBar(ImGui::GetID(this)))
             return;
-        apply(menu_item_data<Count>::items, [](basic_menu_item const* item) {
-            if (!ImGui::BeginTabItem(item->name()))
+        apply(menu_item_data<Items>::items, [](auto& item) {
+            if (!ImGui::BeginTabItem(item.name()))
                 return;
-            item->render();
+            item.render();
             ImGui::EndTabItem();
         });
         ImGui::EndTabBar();
     }
 };
 
-template <size_t Count>
-menu_tab(string_view, menu_items_packed<Count>) -> menu_tab<Count>;
+template <class Items>
+menu_tab(string_view, Items) -> menu_tab<Items>;
 }

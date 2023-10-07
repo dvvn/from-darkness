@@ -1,10 +1,7 @@
 ﻿#include "comptr.h"
 #include "dx9.h"
-#include "noncopyable.h"
-#include "object_holder.h"
 #include "diagnostics/system_error.h"
 
-#include <d3d9.h>
 #include <tchar.h>
 
 #include <cassert>
@@ -13,34 +10,16 @@
 
 namespace fd
 {
-class own_dx9_backend final : public basic_own_dx9_backend, public noncopyable
+
+own_dx9_backend_data::own_dx9_backend_data(HWND hwnd)
 {
-    comptr<IDirect3D9> d3d_;
-    comptr<IDirect3DDevice9> device_;
-    D3DPRESENT_PARAMETERS params_;
+    auto const d3d = Direct3DCreate9(D3D_SDK_VERSION);
+    if (!d3d)
+        throw system_error("D3D device not created!");
 
-    void reset() override
-    {
-        basic_dx9_backend::reset();
-        auto hr = device_->Reset(&params_);
-        assert(hr != D3DERR_INVALIDCALL);
-    }
-
-  public:
-    ~own_dx9_backend() override
-    {
-        basic_dx9_backend::destroy();
-    }
-
-    own_dx9_backend(HWND hwnd)
-    {
-        auto d3d = Direct3DCreate9(D3D_SDK_VERSION);
-        if (!d3d)
-            throw system_error("D3D device not created!");
-
-        d3d_.Attach(d3d);
+    d3d_.Attach(d3d);
 #ifndef _DEBUG
-        memset(&params_, 0, sizeof(D3DPRESENT_PARAMETERS));
+    memset(&params_, 0, sizeof(D3DPRESENT_PARAMETERS));
 #endif
 #if 0
         RECT windowRect;
@@ -52,78 +31,84 @@ class own_dx9_backend final : public basic_own_dx9_backend, public noncopyable
         UINT width  = windowRect.right - windowRect.left;
         UINT height = windowRect.bottom - windowRect.top;
 #endif
-        params_ = {
-            //.BackBufferWidth        = width,
-            //.BackBufferHeight       = height,
-            .BackBufferFormat       = D3DFMT_UNKNOWN, // Need to use an explicit format with alpha if needing per-pixel alpha composition.
-            .SwapEffect             = D3DSWAPEFFECT_DISCARD,
-            //.hDeviceWindow          = hwnd,
-            .Windowed               = TRUE,
-            .EnableAutoDepthStencil = TRUE,
-            .AutoDepthStencilFormat = D3DFMT_D16,
-            .PresentationInterval   = D3DPRESENT_INTERVAL_ONE // vsync on
-            //.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE // vsync off
-        };
+    params_ = {
+        //.BackBufferWidth        = width,
+        //.BackBufferHeight       = height,
+        .BackBufferFormat       = D3DFMT_UNKNOWN, // Need to use an explicit format with alpha if needing per-pixel alpha composition.
+        .SwapEffect             = D3DSWAPEFFECT_DISCARD,
+        //.hDeviceWindow          = hwnd,
+        .Windowed               = TRUE,
+        .EnableAutoDepthStencil = TRUE,
+        .AutoDepthStencilFormat = D3DFMT_D16,
+        .PresentationInterval   = D3DPRESENT_INTERVAL_ONE // vsync on
+        //.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE // vsync off
+    };
 
-        auto result = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, device_);
+    auto const result = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, device_);
 
-        if (FAILED(result))
-            throw system_error(result, "D3D device create error");
-        basic_dx9_backend::setup(device_);
-    }
+    if (FAILED(result))
+        throw system_error(result, "D3D device create error");
+}
 
-    void render(ImDrawData* draw_data) override
-    {
-        device_->SetRenderState(D3DRS_ZENABLE, FALSE);
-        device_->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-        device_->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-        auto const clear = device_->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
-        assert(clear == D3D_OK);
-
-        auto const begin = device_->BeginScene();
-        assert(begin == D3D_OK);
-
-        basic_dx9_backend::render(draw_data);
-
-        auto const end = device_->EndScene();
-        assert(end == D3D_OK);
-
-        auto const present = device_->Present(nullptr, nullptr, nullptr, nullptr);
-        if (present == D3DERR_DEVICELOST && device_->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
-            own_dx9_backend::reset();
-        else
-            assert(present == D3D_OK);
-    }
-
-    void resize(UINT w, UINT h) override
-    {
-#ifdef _DEBUG
-        auto last_w = params_.BackBufferWidth;
-        auto last_h = params_.BackBufferHeight;
-#endif
-        auto do_reset = false;
-        if (auto& w_old = params_.BackBufferWidth; w_old != w)
-        {
-            w_old    = w;
-            do_reset = true;
-        }
-        if (auto& h_old = params_.BackBufferHeight; h_old != h)
-        {
-            h_old    = h;
-            do_reset = true;
-        }
-        if (do_reset)
-            own_dx9_backend::reset();
-    }
-
-    void* native() const override
-    {
-        return device_.Get();
-    }
-};
-
-basic_own_dx9_backend* make_incomplete_object<own_dx9_backend>::operator()(HWND hwnd) const
+void own_dx9_backend::reset()
 {
-    return make_object<own_dx9_backend>(hwnd);
+    basic_dx9_backend::reset();
+    auto const hr = device_->Reset(&params_);
+    assert(hr != D3DERR_INVALIDCALL);
+}
+
+own_dx9_backend::own_dx9_backend(HWND hwnd)
+    : own_dx9_backend_data(hwnd)
+    , basic_dx9_backend(device_)
+{
+}
+
+void own_dx9_backend::render(ImDrawData* draw_data)
+{
+    device_->SetRenderState(D3DRS_ZENABLE, FALSE);
+    device_->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+    device_->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+    auto const clear = device_->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+    assert(clear == D3D_OK);
+
+    auto const begin = device_->BeginScene();
+    assert(begin == D3D_OK);
+
+    basic_dx9_backend::render(draw_data);
+
+    auto const end = device_->EndScene();
+    assert(end == D3D_OK);
+
+    auto const present = device_->Present(nullptr, nullptr, nullptr, nullptr);
+    if (present == D3DERR_DEVICELOST && device_->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
+        own_dx9_backend::reset();
+    else
+        assert(present == D3D_OK);
+}
+
+void own_dx9_backend::resize(UINT w, UINT h)
+{
+#ifdef _DEBUG
+    [[maybe_unused]] auto last_w = params_.BackBufferWidth;
+    [[maybe_unused]] auto last_h = params_.BackBufferHeight;
+#endif
+    auto do_reset = false;
+    if (auto& w_old = params_.BackBufferWidth; w_old != w)
+    {
+        w_old    = w;
+        do_reset = true;
+    }
+    if (auto& h_old = params_.BackBufferHeight; h_old != h)
+    {
+        h_old    = h;
+        do_reset = true;
+    }
+    if (do_reset)
+        own_dx9_backend::reset();
+}
+
+void* own_dx9_backend::native() const
+{
+    return device_.Get();
 }
 } // namespace fd

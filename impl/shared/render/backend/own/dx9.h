@@ -1,23 +1,34 @@
 ﻿#pragma once
 
-#include "internal/winapi.h"
+#include "comptr.h"
+#include "noncopyable.h"
 #include "render/backend/basic_dx9.h"
+
+#include <d3d9.h>
 
 namespace fd
 {
-template <class T>
-struct make_incomplete_object;
-
-struct basic_own_dx9_backend : basic_dx9_backend
+class own_dx9_backend_data : public noncopyable
 {
-    virtual void resize(UINT w, UINT h) = 0;
+    friend class own_dx9_backend;
+
+    comptr<IDirect3D9> d3d_;
+    comptr<IDirect3DDevice9> device_;
+    D3DPRESENT_PARAMETERS params_;
+
+    own_dx9_backend_data(HWND hwnd);
 };
 
-class own_dx9_backend;
-
-template <>
-struct make_incomplete_object<own_dx9_backend> final
+class own_dx9_backend final : own_dx9_backend_data, public basic_dx9_backend
 {
-    basic_own_dx9_backend* operator()(HWND hwnd) const;
+    void reset();
+
+  public:
+    own_dx9_backend(HWND hwnd);
+
+    using basic_dx9_backend::new_frame;
+    void render(ImDrawData* draw_data);
+    void resize(UINT w, UINT h);
+    void* native() const;
 };
 } // namespace fd

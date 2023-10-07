@@ -5,15 +5,15 @@
 
 namespace fd
 {
-void basic_dx9_backend::setup(IDirect3DDevice9* device)
+basic_dx9_backend::~basic_dx9_backend()
+{
+    ImGui_ImplDX9_Shutdown();
+}
+
+basic_dx9_backend::basic_dx9_backend(IDirect3DDevice9* device)
 {
     if (!ImGui_ImplDX9_Init(device))
         throw system_error("Unable to init ImGui_ImplDX9!");
-}
-
-void basic_dx9_backend::destroy()
-{
-    ImGui_ImplDX9_Shutdown();
 }
 
 void basic_dx9_backend::new_frame()

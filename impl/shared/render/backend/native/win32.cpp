@@ -1,5 +1,4 @@
 ﻿#include "noncopyable.h"
-#include "object_holder.h"
 #include "win32.h"
 #include "diagnostics/system_error.h"
 
@@ -9,59 +8,41 @@
 
 namespace fd
 {
-template <bool Validate>
-static HWND find_game_window() noexcept(!Validate)
+HWND native_win32_backend::find_game_window()
 {
-    auto const window = FindWindow(_T("Valve001"), nullptr);
-    if constexpr (Validate)
-        if (!window)
-            throw system_error("Game window not found!");
+    HWND window;
+    auto const found = EnumWindows(
+        [](HWND current_window, LPARAM const lparam) {
+            if (GetWindow(current_window, GW_OWNER))
+                return TRUE;
+            if (!IsWindowVisible(current_window))
+                return TRUE;
+#ifdef _DEBUG
+            if (current_window == GetConsoleWindow())
+                return TRUE;
+#endif
+            DWORD process_id;
+            GetWindowThreadProcessId(current_window, &process_id);
+            if (GetCurrentProcessId() != process_id)
+                return TRUE;
+
+            *reinterpret_cast<HWND*>(lparam) = current_window;
+            return FALSE;
+        },
+        reinterpret_cast<LPARAM>(&window));
+    if (!found)
+        throw system_error("Unable to find game window!");
     return window;
 }
 
-class native_win32_backend final : public basic_win32_backend, public noncopyable
+native_win32_backend::native_win32_backend(HWND window)
+    : basic_win32_backend(window)
+    , window_(window)
 {
-    HWND window_;
+}
 
-  public:
-    ~native_win32_backend() override
-    {
-        native_win32_backend::destroy();
-    }
-
-    native_win32_backend(HWND window)
-        : window_(window)
-    {
-        basic_win32_backend::setup(window);
-    }
-
-    native_win32_backend()
-        : native_win32_backend(find_game_window<true>())
-    {
-    }
-
-    void destroy() override
-    {
-        if (IsWindow(window_))
-            basic_win32_backend::destroy();
-    }
-
-#ifdef _DEBUG
-    update_result update(HWND window, UINT message, WPARAM wparam, LPARAM lparam) override
-    {
-        assert(window_ == window);
-        return basic_win32_backend::update(window, message, wparam, lparam);
-    }
-#endif
-
-    void update(win32_backend_info* backend_info) const override
-    {
-        backend_info->id = window_;
-    }
-};
-
-basic_win32_backend* make_incomplete_object<native_win32_backend>::operator()() const
+void native_win32_backend::fill(win32_backend_info* backend_info) const
 {
-    return make_object<native_win32_backend>();
+    backend_info->id = window_;
 }
 } // namespace fd

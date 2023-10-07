@@ -1,20 +1,27 @@
 ﻿#pragma once
-#include "gui/basic_menu.h"
-#include "render/basic_context.h"
-#include "render/basic_render_backend.h"
-#include "render/basic_system_backend.h"
 
 namespace fd
 {
-struct render_frame
+template <class RenderB, class SystemB, class RenderContext, class Menu>
+struct render_frame final
 {
-    basic_render_backend* render_backend;
-    basic_system_backend* system_backend;
-    basic_render_context* render_context;
+    RenderB* render_backend;
+    SystemB* system_backend;
+    RenderContext* render_context;
+    Menu* menu;
 
-    basic_menu* menu;
-    menu_item_getter const* menu_items;
+    void render() const
+    {
+        render_backend->new_frame();
+        system_backend->new_frame();
+        menu->new_frame();
 
-    void render() const;
+        render_context->begin_frame();
+        if (menu->visible())
+            menu->render();
+        render_context->end_frame();
+
+        render_backend->render(render_context->data());
+    }
 };
 } // namespace fd

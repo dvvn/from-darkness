@@ -1,17 +1,22 @@
 ﻿#pragma once
-#include "render/basic_render_backend.h"
+// ReSharper disable CppInconsistentNaming
 
-// ReSharper disable once CppInconsistentNaming
+struct ImDrawData;
 struct IDirect3DDevice9;
+
+// ReSharper restore CppInconsistentNaming
 
 namespace fd
 {
-struct basic_dx9_backend : basic_render_backend
+class basic_dx9_backend
 {
-    virtual void setup(IDirect3DDevice9* device);
-    void destroy() override;
-    void new_frame() override;
-    void render(ImDrawData* draw_data) override;
-    void reset() override;
+  protected:
+    ~basic_dx9_backend();
+    basic_dx9_backend(IDirect3DDevice9* device);
+    
+  public:
+    void new_frame();
+    void render(ImDrawData* draw_data);
+    void reset();
 };
 }

@@ -1,7 +1,6 @@
 #include "basic_win32.h"
 #include "diagnostics/runtime_error.h"
 
-#include <Windows.h>
 #include <imgui_impl_win32.h>
 #include <imgui_internal.h>
 
@@ -78,15 +77,15 @@ static_win32_backend_info::static_win32_backend_info(win32_backend_info info)
 {
 }
 
-void basic_win32_backend::setup(HWND window)
+basic_win32_backend::~basic_win32_backend()
+{
+    ImGui_ImplWin32_Shutdown();
+}
+
+basic_win32_backend::basic_win32_backend(HWND window)
 {
     if (!ImGui_ImplWin32_Init(window))
         throw runtime_error("Unable to init ImGui_ImplWin32!");
-}
-
-void basic_win32_backend::destroy()
-{
-    ImGui_ImplWin32_Shutdown();
 }
 
 void basic_win32_backend::new_frame()
@@ -94,7 +93,7 @@ void basic_win32_backend::new_frame()
     ImGui_ImplWin32_NewFrame();
 }
 
-auto basic_win32_backend::update(HWND window, UINT const message, WPARAM const wparam, LPARAM const lparam) -> update_result
+win32_backend_update_finish basic_win32_backend::update(HWND window, UINT const message, WPARAM const wparam, LPARAM const lparam)
 {
     assert(message != WM_DESTROY);
 
@@ -102,23 +101,16 @@ auto basic_win32_backend::update(HWND window, UINT const message, WPARAM const w
     auto const events_stored = events.size();
 
     auto value = ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam);
-    response_type response;
+    win32_backend_update_response response;
 
     if (value != 0)
-        response = locked;
+        response = win32_backend_update_response::locked;
     else if (events_stored != events.size())
-        response = updated;
+        response = win32_backend_update_response::updated;
     else
-        response = skipped;
+        response = win32_backend_update_response::skipped;
 
-    return {value, response};
-}
-
-void basic_win32_backend::update(basic_system_backend_info* backend_info) const
-{
-    auto const backend_info2 = dynamic_cast<win32_backend_info*>(backend_info);
-    assert(backend_info2 != nullptr);
-    update(backend_info2);
+    return {response, window, message, wparam, lparam, value};
 }
 
 } // namespace fd

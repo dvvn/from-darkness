@@ -4,19 +4,17 @@
 
 namespace fd
 {
-template <size_t Count>
-struct menu_item_data
+template <class Items>
+class menu_item_data
 {
-    using items_packed = menu_items_packed<Count>;
-
   protected:
     string_view name;
-    items_packed items;
+    Items items;
 
   public:
-    menu_item_data(string_view const name, items_packed const items)
+    menu_item_data(string_view const name, Items items)
         : name(name)
-        , items(items)
+        , items(std::move(items))
     {
     }
 

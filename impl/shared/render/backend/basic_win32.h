@@ -1,10 +1,11 @@
 ﻿#pragma once
 
 #include "diagnostics/fatal.h"
-#include "internal/winapi.h"
-#include "render/basic_system_backend.h"
+#include "functional/overload.h"
 
-#include <concepts>
+#include <Windows.h>
+
+#include <utility>
 
 namespace fd
 {
@@ -28,13 +29,13 @@ struct win32_window_size : simple_win32_window_size
     win32_window_size& operator=(simple_win32_window_size const& parent_size);
 };
 
-struct win32_backend_info final : basic_system_backend_info
+struct win32_backend_info final
 {
     HWND id;
 
     WNDPROC proc() const;
     win32_window_size size() const;
-    bool minimized() const override;
+    bool minimized() const;
 };
 
 struct static_win32_backend_info
@@ -53,81 +54,149 @@ struct static_win32_backend_info
     static_win32_backend_info(win32_backend_info info);
 };
 
-struct basic_win32_backend : basic_system_backend
+enum class win32_backend_update_response : uint8_t
 {
-    enum response_type : uint8_t
+    /**
+     * \brief system backend does nothing
+     */
+    skipped = 1 << 0,
+    /**
+     * \brief system backend does something
+     */
+    updated = 1 << 1,
+    /**
+     * \copydoc updated, message processing blocked
+     */
+    locked  = 1 << 2,
+};
+
+template <win32_backend_update_response Response, typename Fn>
+struct win32_backend_update_callback final : overload_t<Fn>
+{
+    constexpr static win32_backend_update_response value = Response;
+    using overload_t<Fn>::operator();
+    using overload_t<Fn>::overload_t;
+};
+
+struct win32_backend_update_unchanged
+{
+    LRESULT operator()(LRESULT const original) const
     {
-        /**
-         * \brief system backend does nothing
-         */
-        skipped,
-        /**
-         * \brief system backend does something
-         */
-        updated,
-        /**
-         * \copydoc updated, message processing blocked
-         */
-        locked
-    };
+        return original;
+    }
+};
 
-    class update_result
+struct win32_backend_update_override
+{
+    LRESULT value;
+
+    LRESULT operator()() const
     {
-        LRESULT value_;
-        response_type result_;
+        return value;
+    }
+};
 
-      public:
-        update_result(LRESULT const value, response_type const result)
-            : value_(value)
-            , result_(result)
-        {
-        }
+template <win32_backend_update_response Response, typename Fn>
+constexpr auto make_win32_backend_update_response(Fn fn) -> win32_backend_update_callback<Response, Fn>
+{
+    return win32_backend_update_callback<Response, Fn>{std::move(fn)};
+}
 
-        template <typename Fn>
-        LRESULT finish(Fn&& on_non_lock, HWND window, UINT message, WPARAM wparam, LPARAM lparam) const
+template <win32_backend_update_response Response>
+constexpr auto make_win32_backend_update_response(win32_backend_update_unchanged) -> win32_backend_update_callback<Response, win32_backend_update_unchanged>
+{
+    return {};
+}
+
+class win32_backend_update_finish
+{
+    using raw_response = std::underlying_type_t<win32_backend_update_response>;
+    using response     = win32_backend_update_response;
+
+    template <class... Args>
+    constexpr static bool know_response(response const current_response)
+    {
+        return ((std::to_underlying(current_response) | std::to_underlying(Args::value)) || ...);
+    }
+
+    constexpr static bool know_response(response const left, response const right)
+    {
+        return std::to_underlying(left) | std::to_underlying(right);
+    }
+
+    response response_;
+
+    HWND window_;
+    UINT message_;
+    WPARAM wparam_;
+    LPARAM lparam_;
+
+    LRESULT original_;
+
+    template <response CurrentResponse, class Fn, class... Next>
+    LRESULT select_callback(Fn& callback, Next&... next_callback) const
+    {
+        if constexpr (know_response<Fn>(CurrentResponse))
         {
-            if constexpr (!std::invocable<Fn, HWND, UINT, WPARAM, LPARAM>)
-                return value_;
+            if constexpr (std::invocable<Fn, HWND, UINT, WPARAM, LPARAM, LRESULT>)
+                return callback(window_, message_, wparam_, lparam_, original_);
+            else if constexpr (std::invocable<Fn, HWND, UINT, WPARAM, LPARAM>)
+                return callback(window_, message_, wparam_, lparam_);
+            else if constexpr (std::invocable<Fn, LRESULT>)
+                return callback(original_);
+            else if constexpr (std::invocable<Fn>)
+                return callback();
             else
-                switch (result_)
-                {
-                case skipped:
-                case updated:
-                    return on_non_lock(window, message, wparam, lparam);
-                case locked:
-                    return value_;
-                default:
-                    unreachable();
-                }
-        }
-
-        template <typename Idle, typename Upd>
-        LRESULT finish(Idle&& on_idle, Upd&& on_update, HWND window, UINT message, WPARAM wparam, LPARAM lparam) const
-        {
-            switch (result_)
-            {
-            case skipped:
-                if constexpr (std::invocable<Idle, HWND, UINT, WPARAM, LPARAM>)
-                    return on_idle(window, message, wparam, lparam);
-                return value_;
-            case updated:
-                if constexpr (std::invocable<Upd, HWND, UINT, WPARAM, LPARAM>)
-                    return on_update(window, message, wparam, lparam);
-                return value_;
-            case locked:
-                return value_;
-            default:
                 unreachable();
-            }
         }
-    };
+        else if constexpr (sizeof...(Next) != 0)
+            return select_callback<CurrentResponse>(next_callback...);
+        else
+            unreachable();
+    }
 
-    virtual void setup(HWND window);
-    void destroy() override;
-    void new_frame() override;
-    virtual update_result update(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
+  public:
+    win32_backend_update_finish(
+        response const response,                                                   //
+        HWND window, UINT const message, WPARAM const wparam, LPARAM const lparam, //
+        LRESULT const return_value)
+        : response_(response)
+        , window_(window)
+        , message_(message)
+        , wparam_(wparam)
+        , lparam_(lparam)
+        , original_(return_value)
+    {
+    }
 
-    virtual void update(win32_backend_info* backend_info) const = 0;
-    void update(basic_system_backend_info* backend_info) const override;
+    template <class... Args>
+    LRESULT operator()(Args... callback) const
+    {
+#define CHECK_VALUE(_V_)                       \
+    if constexpr (know_response<Args...>(_V_)) \
+        if (know_response(response_, _V_))     \
+            return select_callback<_V_>(callback...);
+
+        CHECK_VALUE(response::skipped);
+        CHECK_VALUE(response::updated);
+        CHECK_VALUE(response::locked);
+
+#undef CHECK_VALUE
+
+        unreachable();
+    }
+};
+
+class basic_win32_backend
+{
+  protected:
+    ~basic_win32_backend();
+
+    basic_win32_backend(HWND window);
+
+  public:
+    void new_frame();
+
+    win32_backend_update_finish update(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 };
 } // namespace fd

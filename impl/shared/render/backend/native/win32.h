@@ -3,15 +3,15 @@
 
 namespace fd
 {
-template <class T>
-struct make_incomplete_object;
-
-class native_win32_backend;
-
-template <>
-struct make_incomplete_object<native_win32_backend> final
+class native_win32_backend final : public basic_win32_backend, public noncopyable
 {
-    basic_win32_backend* operator()() const;
-};
+    HWND window_;
 
+    static HWND find_game_window();
+
+  public:
+    native_win32_backend(HWND window = find_game_window());
+
+    void fill(win32_backend_info* backend_info) const;
+};
 } // namespace fd

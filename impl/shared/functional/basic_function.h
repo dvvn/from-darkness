@@ -3,8 +3,10 @@
 namespace fd
 {
 template <typename Ret, typename... Args>
-class basic_function
+struct basic_function
 {
+    using return_type = Ret;
+
   protected:
     ~basic_function() = default;
 

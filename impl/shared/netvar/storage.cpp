@@ -1,5 +1,4 @@
-﻿#include "object_holder.h"
-#include "preprocessor.h"
+﻿#include "preprocessor.h"
 #include "storage.h"
 #include "container/array.h"
 #include "container/vector/dynamic.h"
@@ -1586,9 +1585,4 @@ class netvar_storage final : public basic_netvar_storage
         data_maps_.render("Data map");
     }
 };
-
-basic_netvar_storage* make_incomplete_object<netvar_storage>::operator()() const
-{
-    return make_object<netvar_storage>();
-}
 } // namespace fd

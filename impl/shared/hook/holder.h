@@ -1,14 +1,11 @@
 ﻿#pragma once
 
 #include "basic_backend.h"
-// ReSharper disable CppUnusedIncludeDirective
-#include "object_holder.h"
 #include "proxy.h"
-
-// ReSharper restore CppUnusedIncludeDirective
 
 namespace fd
 {
+#if 0
 template <typename CallbackWrapped>
 struct prepared_hook_data_full : prepared_hook_data
 {
@@ -29,11 +26,6 @@ struct prepared_hook_data_full : prepared_hook_data
     }
 };
 
-template <class T>
-struct detail::rewrap_incomplete_object<prepared_hook_data_full<T>> : std::type_identity<prepared_hook_data_full<rewrap_incomplete_object_t<T>>>
-{
-};
-
 template <class Callback, typename... Args>
 auto prepare_hook_wrapped(Args&&... args) -> prepared_hook_data_full<Callback*>
 {
@@ -42,4 +34,5 @@ auto prepare_hook_wrapped(Args&&... args) -> prepared_hook_data_full<Callback*>
     auto target                    = callback->target();
     return {prepare_hook<Callback>(target), std::move(callback)};
 }
+#endif
 } // namespace fd

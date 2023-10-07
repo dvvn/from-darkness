@@ -1,29 +1,35 @@
 #include "winapi.h"
+#include "basic/winapi.h"
 #include "render/backend/basic_win32.h"
 
 #include <Windows.h>
 
 namespace fd
 {
+template <class Backend>
 class hooked_wndproc final : public basic_winapi_hook
 {
-    basic_win32_backend* backend_;
+    Backend* backend_;
+    win32_backend_info* system_backend_info_;
 
   public:
     WNDPROC target() const
     {
         win32_backend_info info;
-        backend_->update(&info);
+        backend_->fill(&info);
         return info.proc();
     }
 
-    hooked_wndproc(basic_win32_backend* backend)
+    hooked_wndproc(Backend* backend, win32_backend_info* system_backend_info)
         : backend_(backend)
+        , system_backend_info_(system_backend_info)
     {
     }
 
     template <typename Fn>
-    LRESULT operator()(Fn& original, HWND window, UINT message, WPARAM wparam, LPARAM lparam) const noexcept
+    LRESULT operator()(
+        Fn& original, //
+        HWND window, UINT message, WPARAM wparam, LPARAM lparam) const noexcept
     {
         // todo: check are unput must be blocked before update
         // if not, always call original
@@ -31,14 +37,11 @@ class hooked_wndproc final : public basic_winapi_hook
 
         // if (backend_->minimized())
         // return original(window, message, wparam, lparam);
-
-        auto result = backend_->update(window, message, wparam, lparam);
-        return result.finish(original, DefWindowProc, window, message, wparam, lparam);
+        using enum win32_backend_update_response;
+        return backend_->update(window, message, wparam, lparam)(
+            make_win32_backend_update_response<skipped>(original),
+            make_win32_backend_update_response<updated>(DefWindowProc),
+            make_win32_backend_update_response<locked>(win32_backend_update_unchanged()));
     }
 };
-
-prepared_hook_data_full<basic_winapi_hook*> make_incomplete_object<hooked_wndproc>::operator()(basic_win32_backend* backend) const
-{
-    return prepare_hook_wrapped<hooked_wndproc>(backend);
-}
 }

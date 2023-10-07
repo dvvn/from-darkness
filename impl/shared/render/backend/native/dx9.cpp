@@ -1,6 +1,5 @@
 ﻿#include "dx9.h"
 #include "noncopyable.h"
-#include "object_holder.h"
 #include "diagnostics/runtime_error.h"
 #include "library_info/system.h"
 #include "memory/pattern.h"
@@ -9,27 +8,30 @@
 #endif
 
 #include <d3d9.h>
+#include <imgui.h>
 
 #include <cassert>
 
 namespace fd
 {
-class native_dx9_backend final : public basic_dx9_backend, public noncopyable
+struct native_dx9_backend_protector
 {
+    ~native_dx9_backend_protector();
+};
+
+class native_dx9_backend final : basic_dx9_backend, public native_dx9_backend_protector, public noncopyable
+{
+    friend struct native_dx9_backend_protector;
+
     using pointer = IDirect3DDevice9**;
 
     pointer device_;
 
   public:
-    ~native_dx9_backend() override
-    {
-        native_dx9_backend::destroy();
-    }
-
     native_dx9_backend(pointer device)
-        : device_(device)
+        : basic_dx9_backend(*device)
+        , device_(device)
     {
-        basic_dx9_backend::setup(*device);
     }
 
     native_dx9_backend(system_library_info info)
@@ -43,13 +45,9 @@ class native_dx9_backend final : public basic_dx9_backend, public noncopyable
     {
     }
 
-    void destroy() override
-    {
-        if (*device_)
-            basic_dx9_backend::destroy();
-    }
+    using basic_dx9_backend::new_frame;
 
-    void render(ImDrawData* draw_data) override
+    void render(ImDrawData* draw_data)
     {
         (void)(*device_)->BeginScene();
         basic_dx9_backend::render(draw_data);
@@ -63,14 +61,24 @@ class native_dx9_backend final : public basic_dx9_backend, public noncopyable
         return {func, *device_};
     }*/
 
-    void* native() const override
+    IDirect3DDevice9* native() const
     {
         return *device_;
     }
 };
 
-basic_dx9_backend* make_incomplete_object<native_dx9_backend>::operator()(system_library_info info) const
+namespace detail
 {
-    return make_object<native_dx9_backend>(info);
+struct simple_imgui_dx9_data
+{
+    IDirect3DDevice9* device;
+};
+} // namespace detail
+
+native_dx9_backend_protector::~native_dx9_backend_protector()
+{
+    if (*static_cast<native_dx9_backend*>(this)->device_ == nullptr) // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+        static_cast<detail::simple_imgui_dx9_data*>(ImGui::GetIO().BackendRendererUserData)->device = nullptr;
 }
+
 } // namespace fd

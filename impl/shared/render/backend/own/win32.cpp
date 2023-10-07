@@ -9,7 +9,7 @@ namespace fd
 {
 union packed_backend
 {
-    using pointer = basic_own_win32_backend*;
+    using pointer = own_win32_backend*;
 
   private:
     LONG_PTR user_data_;
@@ -45,8 +45,12 @@ DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT const message
         backend->close();
         return NULL;
     }
+    using enum win32_backend_update_response;
 
-    return backend->update(window, message, wparam, lparam).finish(DefWindowProc, window, message, wparam, lparam);
+    return backend->update(window, message, wparam, lparam)(
+        make_win32_backend_update_response<skipped>(DefWindowProc),
+        make_win32_backend_update_response<updated>(DefWindowProc),
+        make_win32_backend_update_response<locked>(win32_backend_update_unchanged()));
 #if 0
     switch (msg) // NOLINT(hicpp-multiway-paths-covered)
     {
@@ -87,108 +91,82 @@ DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT const message
 #endif
 }
 
-class own_win32_backend final : public basic_own_win32_backend, public noncopyable
+own_win32_backend_data::~own_win32_backend_data()
 {
-    WNDCLASSEX info_;
-    HWND hwnd_;
+    UnregisterClass(info_.lpszClassName, info_.hInstance);
+    DestroyWindow(hwnd_);
+}
 
-#if 0
-    update_result update(HWND window, UINT const message, WPARAM const wparam, LPARAM const lparam) override
-    {
-        if (message == WM_SIZE)
-        {
-            minimized_ = wparam == SIZE_MINIMIZED;
-            if (!minimized_)
-                size_ = lparam;
-        }
-
-        return basic_win32_backend::update(window, message, wparam, lparam);
-
-        // return DefWindowProc(window, message, wparam, lparam);
-    }
-#endif
-
-  public:
-    ~own_win32_backend() override
-    {
-        basic_win32_backend::destroy();
-        UnregisterClass(info_.lpszClassName, info_.hInstance);
-        DestroyWindow(hwnd_);
-    }
-
-    own_win32_backend()
-    {
-        auto constexpr window_name = _T("") __TIMESTAMP__;
-        auto constexpr class_name  = _T("") __TIME__;
+own_win32_backend_data::own_win32_backend_data()
+{
+    constexpr auto window_name = _T("") __TIMESTAMP__;
+    constexpr auto class_name  = _T("") __TIME__;
 
 #ifndef _DEBUG
-        memset(&info_, 0, sizeof(WNDCLASSEX));
+    memset(&info_, 0, sizeof(WNDCLASSEX));
 #endif
-        info_ = {
-            .cbSize        = sizeof(WNDCLASSEX), //
-            .style         = CS_CLASSDC,
-            .lpfnWndProc   = wnd_proc,
-            .hInstance     = GetModuleHandle(nullptr),
-            .lpszClassName = class_name};
+    info_ = {
+        .cbSize        = sizeof(WNDCLASSEX), //
+        .style         = CS_CLASSDC,
+        .lpfnWndProc   = wnd_proc,
+        .hInstance     = GetModuleHandle(nullptr),
+        .lpszClassName = class_name};
 
-        auto const class_atom = RegisterClassEx(&info_);
-        if (class_atom == INVALID_ATOM)
-            throw system_error("Unable to register window class!");
+    auto const class_atom = RegisterClassEx(&info_);
+    if (class_atom == INVALID_ATOM)
+        throw system_error("Unable to register window class!");
 
-        win32_window_size size;
-        auto const parent = GetDesktopWindow();
-        if (RECT parent_rect; parent && GetWindowRect(parent, &parent_rect))
-        {
-            simple_win32_window_size const parent_size(parent_rect);
-            size.x = parent_rect.bottom * 0.05;
-            size.y = parent_rect.right * 0.05;
-            size.w = parent_size.w * 0.8;
-            size.h = parent_size.h * 0.8;
-        }
-
-        hwnd_ = CreateWindow(
-            MAKEINTATOM(class_atom), window_name, WS_OVERLAPPEDWINDOW, //
-            size.x, size.y, size.w, size.h,                            //
-            parent, nullptr, info_.hInstance, nullptr);
-        if (!hwnd_)
-            throw system_error("Window not created!");
-        /*RECT rect;
-        if (!GetWindowRect(hwnd_, &rect))
-            throw system_error("Unable to get window rect");*/
-
-        SetWindowLongPtr(hwnd_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(static_cast<basic_win32_backend*>(this)));
-        ShowWindow(hwnd_, SW_SHOWDEFAULT);
-        UpdateWindow(hwnd_);
-
-        basic_win32_backend::setup(hwnd_);
-    }
-
-    bool peek() override
+    win32_window_size size;
+    auto const parent = GetDesktopWindow();
+    if (RECT parent_rect; parent && GetWindowRect(parent, &parent_rect))
     {
-        MSG msg;
-        while (PeekMessage(&msg, hwnd_, 0U, 0U, PM_REMOVE))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-
-        return static_cast<bool>(packed_backend(hwnd_));
+        simple_win32_window_size const parent_size(parent_rect);
+        size.x = parent_rect.bottom * 0.05;
+        size.y = parent_rect.right * 0.05;
+        size.w = parent_size.w * 0.8;
+        size.h = parent_size.h * 0.8;
     }
 
-    void close() override
-    {
-        SetWindowLongPtr(hwnd_, GWLP_USERDATA, NULL);
-    }
+    hwnd_ = CreateWindow(
+        MAKEINTATOM(class_atom), window_name, WS_OVERLAPPEDWINDOW, //
+        size.x, size.y, size.w, size.h,                            //
+        parent, nullptr, info_.hInstance, nullptr);
+    if (!hwnd_)
+        throw system_error("Window not created!");
+    /*RECT rect;
+    if (!GetWindowRect(hwnd_, &rect))
+        throw system_error("Unable to get window rect");*/
 
-    void update(win32_backend_info* info) const override
-    {
-        // info->proc = wnd_proc;
-        info->id = hwnd_;
-    }
-};
+    SetWindowLongPtr(hwnd_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>((this)));
+    ShowWindow(hwnd_, SW_SHOWDEFAULT);
+    UpdateWindow(hwnd_);
+}
 
-basic_own_win32_backend* make_incomplete_object<own_win32_backend>::operator()() const
+own_win32_backend::own_win32_backend()
+    : basic_win32_backend(hwnd_)
 {
-    return make_object<own_win32_backend>();
+}
+
+bool own_win32_backend::update()
+{
+    MSG msg;
+    while (PeekMessage(&msg, hwnd_, 0U, 0U, PM_REMOVE))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    return static_cast<bool>(packed_backend(hwnd_));
+}
+
+void own_win32_backend::close()
+{
+    SetWindowLongPtr(hwnd_, GWLP_USERDATA, NULL);
+}
+
+void own_win32_backend::fill(win32_backend_info* info) const
+{
+    // info->proc = wnd_proc;
+    info->id = hwnd_;
 }
 } // namespace fd
