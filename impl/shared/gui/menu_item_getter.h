@@ -41,7 +41,7 @@ void apply(menu_item_getter_new<T...> const& items, Fn invoker)
         boost::hana::for_each(items, invoker);
     else
         boost::hana::for_each(items, [&invoker]<class C>(C& value) {
-            if constexpr (std::is_pointer_v<C> && !std::invocable<Fn, C*>)
+            if constexpr (std::is_pointer_v<C> && !std::invocable<Fn, C>)
                 invoker(*value);
             else
                 invoker(value);
