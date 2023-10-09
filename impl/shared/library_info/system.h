@@ -4,48 +4,42 @@
 namespace fd
 {
 struct basic_pattern;
+template <size_t... SegmentsBytesCount>
+struct pattern;
 
 class system_library_info : public basic_library_info
 {
   public:
     using basic_library_info::basic_library_info;
 
-    void *pattern(basic_pattern const &pattern) const;
+    void* pattern(basic_pattern const& pattern) const;
 
-    void *function(char const *name, size_t length) const;
+    template <size_t... SegmentsBytesCount>
+    void* pattern(struct pattern<SegmentsBytesCount...> const& pattern) const
+    {
+        return 0; // WIP
+    }
+
+    void* function(char const* name, size_t length) const;
 
     template <size_t Length>
-    void *function(char const (&name)[Length]) const
+    void* function(char const (&name)[Length]) const
     {
         return function(name, Length - 1);
     }
 
-    void *vtable(char const *name, size_t length) const;
+    void* vtable(char const* name, size_t length) const;
 
     template <size_t Length>
-    void *vtable(char const (&name)[Length]) const
+    void* vtable(char const (&name)[Length]) const
     {
         return vtable(name, Length - 1);
     }
 
-    template <class T>
+    /*template <class T>
     void *vtable(char const *name = __rscpp_type_name<T>()) const
     {
         return vtable(name, __builtin_strlen(name));
-    }
-};
-
-template <library_tag Tag>
-struct system_library : system_library_info
-{
-    system_library()
-        : system_library_info(Tag)
-    {
-    }
-
-    system_library(system_library_info info)
-        : system_library_info(info)
-    {
-    }
+    }*/
 };
 } // namespace fd

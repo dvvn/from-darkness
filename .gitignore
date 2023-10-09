@@ -5,7 +5,7 @@
 /.deps
 /.dumps
 /_ReSharper.Caches
-*/netvars_generated/
+/impl/default.nat*
 
 *.pdb
 *.tmp

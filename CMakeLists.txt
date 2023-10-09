@@ -93,6 +93,7 @@ set(_GIT_DIR "C:/git" CACHE STRING "The repos storage")
 
 set(_FD_DEPS)
 set(_FD_DEPS_INCLUDE)
+set(_FD_DEPS_DIRS)
 
 macro(FetchContent_Activate _name)
     if(DEFINED ${_name}_fetch AND ${_name}_fetch)
@@ -123,14 +124,13 @@ endmacro()
 macro(Dependency_Load _owner _name)
     set(_path ${_owner}/${_name})
     set(_deps ${_FD_ROOT_DIR}/.deps/${_path})
-    set(_proj ${_name})
 
     set(_source_dir "${_GIT_DIR}/${_path}")
     set(_subbuild_dir "${_deps}/subbuild")
     set(_binary_dir "${_deps}/bin")
 
-    FetchContent_Activate(${_proj})
-    FetchContent_Declare(${_proj}        
+    FetchContent_Activate(${_name})
+    FetchContent_Declare(${_name}        
         SOURCE_DIR ${_source_dir}
         SUBBUILD_DIR ${_subbuild_dir}
         BINARY_DIR ${_binary_dir}
@@ -139,9 +139,11 @@ macro(Dependency_Load _owner _name)
         ${ARGN}
     )
 
-    set(${_proj}_SOURCE_DIR ${_source_dir})
-    set(${_proj}_SUBBUILD_DIR ${_subbuild_dir})
-    set(${_proj}_BINARY_DIR ${_binary_dir})
+    set(${_name}_SOURCE_DIR ${_source_dir})
+    set(${_name}_SUBBUILD_DIR ${_subbuild_dir})
+    set(${_name}_BINARY_DIR ${_binary_dir})
+
+    list(APPEND _FD_DEPS_DIRS ${_source_dir})
 endmacro()
 
 macro(Dependency_Use _name)
@@ -160,8 +162,6 @@ macro(Dependency_Use _name)
     else()
         message(DEBUG "${_name} isn't a target name")
     endif()
-
-    list(APPEND _FD_DEPS ${_target})
 endmacro()
 
 macro(Dependency_Use_Boost)
@@ -355,8 +355,14 @@ target_compile_definitions(imgui PUBLIC
 
 # -------------------
 
+foreach(_lib ${_FD_DEPS_DIRS})
+    string(REPLACE "/" "\\" _correct_lib ${_lib})
+    set(_NATVIS_SKIP_DATA "${_NATVIS_SKIP_DATA}<File Name=\"${_correct_lib}\\*\" />")
+endforeach()
+configure_file(${_FD_IMPL_DIR}/default_natjmc ${_FD_IMPL_DIR}/default.natjmc)
+
 file(GLOB_RECURSE _sources ${_FD_SHARED_DIR}/*.cpp)
-file(GLOB_RECURSE _visualizers ${_FD_SHARED_DIR}/*.nat*)
+file(GLOB_RECURSE _visualizers ${_FD_IMPL_DIR}/*.nat*)
 add_library(FD ${_sources} ${_visualizers})
 target_link_libraries(FD PUBLIC ${_FD_DEPS})
 target_include_directories(FD PUBLIC ${_FD_SHARED_DIR}/ ${_FD_DEPS_INCLUDE})

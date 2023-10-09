@@ -179,7 +179,7 @@ void* native_library_info::interface(char const* name, size_t const length) cons
 {
     auto const root = root_interface(function("CreateInterface"));
     native_interface_holder const* found;
-    constexpr auto last = nullptr;
+    auto constexpr last = nullptr;
 
     if (isdigit(name[length - 1]))
     {
@@ -201,6 +201,7 @@ void* native_library_info::interface(char const* name, size_t const length) cons
 
 void* native_library_info::return_address_checker() const
 {
-    return this->pattern("55 8B EC 56 8B F1 33 C0 57 8B 7D 08 8B 8E"_pat);
+    auto unused="55 8B EC 56 8B F1 33 C0 57 8B 7D 08 8B 8E"_pat;
+    return 0;//this->pattern("55 8B EC 56 8B F1 33 C0 57 8B 7D 08 8B 8E"_pat);
 }
 } // namespace fd

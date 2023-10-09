@@ -1,14 +1,13 @@
 ﻿#pragma once
 
-#include "internal/wrapper.h"
-
 #include <string_view>
 
 namespace fd
 {
-using std::basic_string_view;
+template <typename Chr>
+using basic_string_view = std::basic_string_view<Chr>;
 
-FD_WRAP_TOOL(string_view, std::string_view);
-FD_WRAP_TOOL(u8string_view, std::u8string_view);
-FD_WRAP_TOOL(wstring_view, std::wstring_view);
+using string_view   = std::string_view;
+using u8string_view = std::u8string_view;
+using wstring_view  = std::wstring_view;
 } // namespace fd

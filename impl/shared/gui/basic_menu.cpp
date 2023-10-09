@@ -1,5 +1,1 @@
-﻿#include "basic_menu.h"
-
-namespace fd
-{
-}
+﻿//DELETE THIS FILE

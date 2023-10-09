@@ -1,5 +1,6 @@
 ﻿#include "preprocessor.h"
 #include "storage.h"
+#include "variant.h"
 #include "container/array.h"
 #include "container/vector/dynamic.h"
 #include "functional/bind.h"
@@ -130,9 +131,9 @@ static auto one_demension_array(string_view str)
 using recv_prop_type  = native_recv_table::prop_type;
 using dmap_field_type = native_data_map::field_type;
 
-static FD_CONSTEXPR_OPT string_view class_prefix   = "C_";
-static FD_CONSTEXPR_OPT string_view datamap_prefix = "DT_";
-static FD_CONSTEXPR_OPT auto prefix_offset         = std::max(datamap_prefix.length(), class_prefix.length());
+static constexpr string_view class_prefix   = "C_";
+static constexpr string_view datamap_prefix = "DT_";
+static constexpr auto prefix_offset         = std::max(datamap_prefix.length(), class_prefix.length());
 
 class universal_name
 {
@@ -442,7 +443,7 @@ static size_t chars_sequence(native_recv_table::prop const* prop, char c, char c
 template <bool Raw>
 static char const* prop_type_float(native_recv_table::prop const* prop)
 {
-    FD_CONSTEXPR_OPT auto as_vector = [](size_t const length) -> char const* {
+    constexpr auto as_vector = [](size_t const length) -> char const* {
         switch (length)
         {
         case 2:
@@ -820,7 +821,7 @@ struct integral_as_string
 };
 
 template <class T>
-struct netvar_info final : basic_netvar_info
+struct netvar_info final
 {
     using const_pointer   = T const*;
     using pointer         = const_pointer;
@@ -945,7 +946,7 @@ struct netvar_info final : basic_netvar_info
 #endif
     }
 
-    size_t offset() const override
+    size_t offset() const
     {
 #ifdef _DEBUG
         return offset_;
@@ -1062,8 +1063,8 @@ static void netvar_table_parse(
     if (table->props_count == 0)
         return;
 
-    if (equal(table->name, "DT_Drone"))
-        __debugbreak();
+    /*if (equal(table->name, "DT_Drone"))
+        __debugbreak();*/
 
     auto first_prop = as_const(table->props);
     auto last_prop  = next(first_prop, table->props_count); // NOLINT(cppcoreguidelines-narrowing-conversions)
@@ -1189,20 +1190,26 @@ static void netvar_table_parse(
 }
 
 template <class T>
-struct netvar_table final : basic_netvar_table
+struct netvar_table final
 {
     friend class netvar_storage;
 
-    using pointer = T const*;
+    using raw_pointer = T const*;
 
     using info_type    = netvar_info<typename T::value_type>;
-    using storage_type = vector<info_type>;
+    using info_pointer = info_type const*;
+
+    using storage_type     = vector<info_type>;
+    using storage_iterator = typename storage_type::const_iterator;
+
+    using inner_pointer = netvar_table const*;
+    using inner_storage = vector<netvar_table>;
 
   private:
-    pointer source_;
+    raw_pointer source_;
     storage_type storage_;
 #ifndef FD_MERGE_NETVAR_TABLES
-    vector<netvar_table> inner_;
+    inner_storage inner_;
 #endif
 
     void sort()
@@ -1213,18 +1220,18 @@ struct netvar_table final : basic_netvar_table
     }
 
   public:
-    netvar_table(pointer const source)
+    netvar_table(raw_pointer const source)
         : source_(source)
     {
         netvar_table_parse(storage_, source, 0u, false);
     }
 
-    void parse(pointer item, size_t offset, bool filter_duplicates = false)
+    void parse(raw_pointer item, size_t offset, bool filter_duplicates = false)
     {
         netvar_table_parse(storage_, item, offset, filter_duplicates);
     }
 
-    basic_netvar_table const* inner(string_view name) const override
+    inner_pointer inner(string_view name) const
     {
 #ifndef FD_MERGE_NETVAR_TABLES
         auto end = inner_.cend();
@@ -1238,7 +1245,7 @@ struct netvar_table final : basic_netvar_table
         return nullptr;
     }
 
-    basic_netvar_info const* get(string_view name) const override
+    info_pointer get(string_view name) const
     {
 #ifdef _DEBUG
         if (!storage_.empty())
@@ -1270,12 +1277,12 @@ struct netvar_table final : basic_netvar_table
         return storage_.empty();
     }
 
-    typename storage_type::const_iterator begin() const
+    storage_iterator begin() const
     {
         return storage_.begin();
     }
 
-    typename storage_type::const_iterator end() const
+    storage_iterator end() const
     {
         return storage_.end();
     }
@@ -1297,14 +1304,14 @@ class netvar_types_cache final : public basic_netvar_types_cache
     vector<stored_value> storage_;
 
   public:
-    string_view get(key_type key) const override
+    string_view get(key_type key) const
     {
         auto const end = storage_.end();
         auto const it  = std::find_if(storage_.begin(), end, placeholders::_1->*&stored_value::key == key);
         return it == end ? string_view() : it->view();
     }
 
-    string_view store(key_type key, buffer_type&& value) override
+    string_view store(key_type key, buffer_type&& value)
     {
         return storage_.emplace_back(key, std::move(value)).view();
     }
@@ -1410,7 +1417,7 @@ class netvar_tables_storage
     }
 
     template <netvar_tables_add_state State>
-    void add(typename table_type::pointer item)
+    void add(typename table_type::raw_pointer item)
     {
         using add_state = netvar_tables_add_state;
         if constexpr (State != add_state::unique)
@@ -1452,14 +1459,13 @@ class netvar_tables_storage
 
     void render(string_view const str_id) const
     {
-        FD_CONSTEXPR_OPT auto column_count = 4;
-        FD_CONSTEXPR_OPT auto table_flags  = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoSavedSettings |
-                                            ImGuiTableFlags_SizingFixedFit;
+        constexpr auto column_count = 4;
+        constexpr auto table_flags = ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_SizingFixedFit;
 
         if (!ImGui::BeginTable(str_id, column_count, table_flags))
             return;
 
-        FD_CONSTEXPR_OPT auto column_flags = ImGuiTableColumnFlags_WidthFixed;
+        constexpr auto column_flags = ImGuiTableColumnFlags_WidthFixed;
 
         ImGui::TableSetupColumn("Source", column_flags);
         ImGui::TableSetupColumn("Name", column_flags);
@@ -1467,19 +1473,19 @@ class netvar_tables_storage
         ImGui::TableSetupColumn("Type", column_flags);
         ImGui::TableHeadersRow();
 
-        using info_type                   = typename table_type::info_type;
-        FD_CONSTEXPR_OPT auto render_text = []<class Str>(Str (info_type::*fn)() const, info_type const& info) {
+        using info_type            = typename table_type::info_type;
+        constexpr auto render_text = []<class Str>(Str (info_type::*fn)() const, info_type const& info) {
             ImGui::TextUnformatted(std::invoke(fn, info));
         };
-        FD_CONSTEXPR_OPT auto pretty_name_fn = bind_front(render_text, &info_type::pretty_name);
-        FD_CONSTEXPR_OPT auto offset_str_fn  = bind_front(render_text, &info_type::offset_str);
-        FD_CONSTEXPR_OPT auto type_self_fn   = bind_front(render_text, &info_type::type_self);
+        constexpr auto pretty_name_fn = bind_front(render_text, &info_type::pretty_name);
+        constexpr auto offset_str_fn  = bind_front(render_text, &info_type::offset_str);
+        constexpr auto type_self_fn   = bind_front(render_text, &info_type::type_self);
 
         std::for_each(storage_.begin(), storage_.end(), [&](table_type const& table) {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
 
-            FD_CONSTEXPR_OPT auto node_flags = ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth;
+            constexpr auto node_flags = ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanFullWidth;
 
             if (!ImGui::TreeNodeEx(table.name(), node_flags))
                 return;
@@ -1504,13 +1510,43 @@ class netvar_tables_storage
     }
 };
 
-class netvar_storage final : public basic_netvar_storage
+class abstract_netvar_table : variant<std::monostate, netvar_table<native_recv_table> const*, netvar_table<native_data_map> const*>
+{
+  public:
+    using variant::variant;
+
+    size_t offset(string_view name) const
+    {
+        return visit(
+            [&]<typename T>(T table) -> size_t {
+                if constexpr (std::is_pointer_v<T>)
+                    return table->get(name)->offset();
+                else
+                    return -1;
+            },
+            *static_cast<variant const*>(this));
+    }
+
+    abstract_netvar_table inner(string_view name) const
+    {
+        return visit(
+            [&]<typename T>(T table) -> abstract_netvar_table {
+                if constexpr (std::is_pointer_v<T>)
+                    return table->inner(name);
+                else
+                    return std::monostate();
+            },
+            *static_cast<variant const*>(this));
+    }
+};
+
+class netvar_storage final
 {
     netvar_tables_storage<native_recv_table> recv_tables_;
     netvar_tables_storage<native_data_map> data_maps_;
 
   public:
-    basic_netvar_table const* get(string_view const name) const override
+    abstract_netvar_table get(string_view const name) const
     {
         if (name.starts_with(class_prefix))
             return data_maps_.get(name);
@@ -1518,7 +1554,6 @@ class netvar_storage final : public basic_netvar_storage
             return recv_tables_.get(name);
 
 #if 1
-
         universal_name name_buff(name);
 
         if (auto const ptr = data_maps_.get(name_buff.client_class()))
@@ -1531,10 +1566,10 @@ class netvar_storage final : public basic_netvar_storage
         if (auto ptr = recv_tables_.get<false>(name))
             return ptr;
 #endif
-        return nullptr;
+        return std::monostate();
     }
 
-    void store(native_client_class const* root) override
+    void store(native_client_class const* root)
     {
         using state = netvar_tables_add_state;
         using enum state;
@@ -1548,7 +1583,7 @@ class netvar_storage final : public basic_netvar_storage
             do_store(std::integral_constant<state, merge>());
     }
 
-    void store(native_data_map const* root) override
+    void store(native_data_map const* root)
     {
         using state         = netvar_tables_add_state;
         auto const do_store = [&]<state State>(std::integral_constant<state, State>) {
@@ -1561,25 +1596,27 @@ class netvar_storage final : public basic_netvar_storage
             do_store(std::integral_constant<state, state::merge>());
     }
 
-    void save(wstring_view directory) const override
+    //----
+
+    void save(wstring_view directory) const
     {
         // todo: sort if not debug
         ignore_unused(directory);
         unreachable();
     }
 
-    void load(wstring_view directory, uint8_t version) override
+    void load(wstring_view directory, uint8_t version)
     {
         ignore_unused(directory, version);
         unreachable();
     }
 
-    string_view name() const override
+    string_view name() const
     {
         return "Netvars";
     }
 
-    void render() const override
+    void render() const
     {
         recv_tables_.render("Client class");
         data_maps_.render("Data map");

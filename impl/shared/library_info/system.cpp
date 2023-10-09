@@ -103,7 +103,7 @@ static void* find_rtti_descriptor(string_view const name, void* image_base, void
     void* ret;
     if (auto const space = name.find(' '); space == name.npos)
     {
-        auto const pat = make_pattern(".?A", 1, name, "@@");
+        auto const pat = make_pattern(".?A", 1, "name, \"@@\""); // todo: FIX ME!!!
         ret            = find(image_base, image_end, pat);
     }
     else
@@ -150,7 +150,7 @@ void* system_library_info::vtable(char const* name, size_t length) const
 
     auto const addr1 = search(
         rdata_begin, rdata_end, type_descriptor, //
-        make_search_stop_token([](uint8_t* found) -> bool {
+        make_search_stop_token([](uint8_t const* found) -> bool {
             return *unsafe_cast<uint32_t*>(found - 0x8) == 0;
         }));
     if (!addr1)

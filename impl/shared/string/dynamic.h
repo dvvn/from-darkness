@@ -1,14 +1,13 @@
 ﻿#pragma once
 
-#include "internal/wrapper.h"
-
 #include <string>
 
 namespace fd
 {
-using std::basic_string;
+template <typename Chr>
+using basic_string = std::basic_string<Chr>;
 
-FD_WRAP_TOOL(string, std::string);
-FD_WRAP_TOOL(u8string, std::u8string);
-FD_WRAP_TOOL(wstring, std::wstring);
+using string   = std::string;
+using u8string = std::u8string;
+using wstring  = std::wstring;
 } // namespace fd

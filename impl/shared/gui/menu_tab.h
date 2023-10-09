@@ -1,37 +1,59 @@
 #pragma once
 
-#include "basic_menu_tab.h"
 #include "menu_item_data.h"
 #include "render/backend/imgui/helpers.h"
 #include "render/backend/imgui/widgets.h"
-#include "string/view.h"
 
 namespace fd
 {
 template <class Items>
-struct menu_tab : /*basic_menu_tab,*/ menu_item_data<Items>
+class menu_tab
 {
-    using menu_item_data<Items>::menu_item_data;
+    Items items_;
 
-    string_view name() const
+  public:
+    constexpr menu_tab(Items items)
+        : items_(std::move(items))
     {
-        return menu_item_data<Items>::name;
     }
 
     void render() const
     {
         if (!ImGui::BeginTabBar(ImGui::GetID(this)))
             return;
-        apply(menu_item_data<Items>::items, [](auto& item) {
-            if (!ImGui::BeginTabItem(item.name()))
-                return;
-            item.render();
-            ImGui::EndTabItem();
-        });
+        apply(items_);
         ImGui::EndTabBar();
     }
 };
 
-template <class Items>
-menu_tab(string_view, Items) -> menu_tab<Items>;
+template <class Name, class Items>
+class menu_tab_item
+{
+    Name name_;
+    Items items_;
+
+  public:
+    menu_tab_item(Name name, Items items)
+        : name_(std::move(name))
+        , items_(std::move(items))
+    {
+    }
+
+    void render() const
+    {
+        if (!ImGui::BeginTabItem(name_))
+            return;
+        apply(items_);
+        ImGui::EndTabItem();
+    }
+};
+
+template <class Name, class Items>
+menu_tab_item(Name&&, Items) -> menu_tab_item<Name, Items>;
+
+template <class Name, class Items>
+void apply(menu_tab_item<Name, Items> const& item)
+{
+    item.render();
+}
 }

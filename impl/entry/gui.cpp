@@ -12,14 +12,14 @@
 
 namespace fd
 {
-struct dummy_menu_item final : basic_menu_item
+struct dummy_menu_item final
 {
-    string_view name() const override
+    /*string_view name() const
     {
         return "Dummy";
-    }
+    }*/
 
-    void render() const override
+    void render() const
     {
         ImGui::TextUnformatted("Test");
     }
@@ -41,7 +41,7 @@ int main(int argc, int* argv) noexcept
     system_backend.fill(&system_backend_info);
     fd::own_dx9_backend render_backend(system_backend_info.id);
 
-    fd::menu menu(fd::menu_items_packed_new(fd::menu_tab("Test", fd::menu_items_packed_new(fd::dummy_menu_item()))), [&system_backend] {
+    fd::menu menu(fd::menu_items_packed(fd::menu_tab(fd::menu_tab_item("Tab1", fd::menu_items_packed(fd::dummy_menu_item())))), [&system_backend] {
         system_backend.close();
     });
 

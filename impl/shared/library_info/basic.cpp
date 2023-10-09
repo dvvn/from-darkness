@@ -1,8 +1,4 @@
 ﻿#include "basic.h"
-#include "string/view.h"
-
-#include <windows.h>
-#include <winternl.h>
 
 #include <cassert>
 
@@ -25,29 +21,6 @@ static wchar_t const* end(UNICODE_STRING const& ustr)
 {
     return ustr.Buffer + size(ustr);
 }
-
-// ReSharper disable CppInconsistentNaming
-struct _LDR_DATA_TABLE_ENTRY_FULL
-{
-    LIST_ENTRY InLoadOrderLinks;
-    LIST_ENTRY InMemoryOrderLinks;
-    LIST_ENTRY InInitializationOrderLinks;
-
-    union
-    {
-        PVOID DllBase;
-        PIMAGE_DOS_HEADER DosHeader;
-        ULONG_PTR DllBaseAddress;
-    };
-
-    PVOID EntryPoint;
-
-    ULONG SizeOfImage;
-    UNICODE_STRING FullDllName;
-    UNICODE_STRING BaseDllName;
-};
-
-// ReSharper restore CppInconsistentNaming
 
 static bool operator!(UNICODE_STRING const& ustr)
 {
@@ -94,15 +67,18 @@ void* basic_library_info::base() const
     return entry_full_->DllBase;
 }
 
-#define DOS_NT                                                                                        \
-    auto const dos = entry_full_->DosHeader;                                                          \
-    assert(dos->e_magic == IMAGE_DOS_SIGNATURE);                                                      \
+#define SET_DOS                              \
+    auto const dos = entry_full_->DosHeader; \
+    assert(dos->e_magic == IMAGE_DOS_SIGNATURE);
+
+#define SET_NT                                                                                        \
+    SET_DOS;                                                                                          \
     auto const nt = reinterpret_cast<IMAGE_NT_HEADERS*>(entry_full_->DllBaseAddress + dos->e_lfanew); \
     assert(nt->Signature == IMAGE_NT_SIGNATURE);
 
 void* basic_library_info::image_base() const
 {
-    DOS_NT;
+    SET_NT;
     return reinterpret_cast<void*>(nt->OptionalHeader.ImageBase);
 }
 
@@ -125,15 +101,15 @@ auto basic_library_info::path() const -> string_type
 
 IMAGE_DATA_DIRECTORY* basic_library_info::directory(uint8_t const index) const
 {
-    DOS_NT;
+    SET_NT;
     return nt->OptionalHeader.DataDirectory + index;
 }
 
 IMAGE_SECTION_HEADER* basic_library_info::section(char const* name, uint8_t const length) const
 {
-    assert(length <= sizeof(IMAGE_SECTION_HEADER::Name));
+    assert(length < sizeof(IMAGE_SECTION_HEADER::Name));
 
-    DOS_NT;
+    SET_NT;
 
     auto begin     = IMAGE_FIRST_SECTION(nt);
     auto const end = begin + nt->FileHeader.NumberOfSections;
