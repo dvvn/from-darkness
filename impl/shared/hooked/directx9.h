@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "basic/directx9.h"
+#include "hook/basic_callback.h"
 #include "functional/vtable.h"
 #include "render/backend/basic_dx9.h"
 #include "render/backend/basic_win32.h"
@@ -15,10 +15,10 @@ using native_dx9_vtable = vtable<IDirect3DDevice9>;
 using native_dx9_vtable = vtable<void>;
 #endif
 
-template <class Backend>
-class hooked_directx9_reset final : public basic_directx9_hook
+template <class SystemBackend>
+class hooked_directx9_reset final : public basic_hook_callback
 {
-    Backend* render_;
+    SystemBackend* render_;
 
   public:
     auto target() const
@@ -27,10 +27,12 @@ class hooked_directx9_reset final : public basic_directx9_hook
         return native[&IDirect3DDevice9::Reset];
     }
 
-    hooked_directx9_reset(Backend* render)
+    hooked_directx9_reset(SystemBackend* render)
         : render_(render)
     {
-        static_assert(std::derived_from<Backend, basic_dx9_backend>);
+#ifdef _DEBUG
+        static_assert(std::derived_from<SystemBackend, basic_dx9_backend>);
+#endif
     }
 
     HRESULT operator()(auto& original, D3DPRESENT_PARAMETERS* params) const

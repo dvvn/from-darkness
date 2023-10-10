@@ -1,11 +1,12 @@
 #pragma once
-// ReSharper disable once CppUnusedIncludeDirective
+#ifndef __RESHARPER__
 #include <boost/core/ignore_unused.hpp>
+#endif
 
 namespace fd
 {
 #ifdef __RESHARPER__
-constexpr void ignore_unused(auto &&...)
+constexpr void ignore_unused(auto&&...)
 {
 }
 #else

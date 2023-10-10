@@ -95,6 +95,7 @@ set(_FD_DEPS)
 set(_FD_DEPS_INCLUDE)
 set(_FD_DEPS_DIRS)
 
+string(TIMESTAMP _current_time "%d.%m.%Y")
 macro(FetchContent_Activate _name)
     if(DEFINED ${_name}_fetch AND ${_name}_fetch)
         set(_previous_time ${${_name}_fetch})
@@ -102,7 +103,6 @@ macro(FetchContent_Activate _name)
         set(_previous_time 0)
     endif()
 
-    string(TIMESTAMP _current_time "%d.%m.%Y")
     if(${_current_time} STREQUAL ${_previous_time})
         set(FETCHCONTENT_FULLY_DISCONNECTED on)
     else()
@@ -355,15 +355,17 @@ target_compile_definitions(imgui PUBLIC
 
 # -------------------
 
+set(_nat_name fd_deps)
 foreach(_lib ${_FD_DEPS_DIRS})
-    string(REPLACE "/" "\\" _correct_lib ${_lib})
-    set(_NATVIS_SKIP_DATA "${_NATVIS_SKIP_DATA}<File Name=\"${_correct_lib}\\*\" />")
+    string(REPLACE "/" "\\" _natjmc_lib \"${_lib}*\")
+    set(_NATJMC_DATA "${_NATJMC_DATA}<File Name=${_natjmc_lib} />")
 endforeach()
-configure_file(${_FD_IMPL_DIR}/default_natjmc ${_FD_IMPL_DIR}/default.natjmc)
+configure_file(${_FD_IMPL_DIR}/${_nat_name}_natjmc ${_FD_IMPL_DIR}/${_nat_name}.natjmc)
+#configure_file(${_FD_IMPL_DIR}/${_nat_name}_natstepfilter ${_FD_IMPL_DIR}/${_nat_name}.natstepfilter)
 
-file(GLOB_RECURSE _sources ${_FD_SHARED_DIR}/*.cpp)
+file(GLOB_RECURSE _shared_src ${_FD_SHARED_DIR}/*.cpp)
 file(GLOB_RECURSE _visualizers ${_FD_IMPL_DIR}/*.nat*)
-add_library(FD ${_sources} ${_visualizers})
+add_library(FD ${_shared_src} ${_visualizers})
 target_link_libraries(FD PUBLIC ${_FD_DEPS})
 target_include_directories(FD PUBLIC ${_FD_SHARED_DIR}/ ${_FD_DEPS_INCLUDE})
 

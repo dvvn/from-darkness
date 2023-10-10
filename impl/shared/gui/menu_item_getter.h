@@ -1,35 +1,35 @@
 #pragma once
 
+#include "functional/invoke.h"
+
 #include <boost/hana/for_each.hpp>
 #include <boost/hana/tuple.hpp>
-
-#include <concepts>
 
 namespace fd
 {
 template <class... T>
 using menu_item_getter = boost::hana::tuple<T...>;
 
-template <class... T, typename Fn>
-void apply(menu_item_getter<T...> const& items, Fn invoker)
-{
-    if constexpr ((std::invocable<Fn, T&> && ...))
-        boost::hana::for_each(items, invoker);
+inline constexpr auto render_menu_item = []<class T>(T& item) -> void {
+    using raw_t = std::remove_pointer_t<T>;
+    using std::invoke;
+    if constexpr (std::invocable<raw_t>)
+        invoke(item);
+    else if constexpr (std::is_member_pointer_v<decltype(&raw_t::render)>)
+        invoke(&raw_t::render, item);
     else
-        boost::hana::for_each(items, [&invoker]<class C>(C& value) {
-            if constexpr (std::is_pointer_v<C> && !std::invocable<Fn, C>)
-                std::invoke(invoker, *value);
-            else
-                std::invoke(invoker, value);
-        });
-}
+        invoke(&raw_t::render);
+};
 
 template <class... T>
 void apply(menu_item_getter<T...> const& items)
 {
-    boost::hana::for_each(items, []<class C>(C& item) {
-        using raw_t = std::remove_pointer_t<C>;
-        std::invoke(&raw_t::render, item);
-    });
+    boost::hana::for_each(items, render_menu_item);
+}
+
+template <class... T>
+void apply(menu_item_getter<T...>& items)
+{
+    boost::hana::for_each(items, render_menu_item);
 }
 }

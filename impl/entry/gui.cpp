@@ -8,8 +8,6 @@
 #include "render/frame.h"
 #include "string/view.h"
 
-#include <imgui.h>
-
 namespace fd
 {
 struct dummy_menu_item final
@@ -19,9 +17,9 @@ struct dummy_menu_item final
         return "Dummy";
     }*/
 
-    void render() const
+    void operator()() const
     {
-        ImGui::TextUnformatted("Test");
+        ImGui::TextUnformatted("Result");
     }
 };
 } // namespace fd
@@ -40,10 +38,10 @@ int main(int argc, int* argv) noexcept
     fd::win32_backend_info system_backend_info;
     system_backend.fill(&system_backend_info);
     fd::own_dx9_backend render_backend(system_backend_info.id);
-
-    fd::menu menu(fd::menu_items_packed(fd::menu_tab(fd::menu_tab_item("Tab1", fd::menu_items_packed(fd::dummy_menu_item())))), [&system_backend] {
-        system_backend.close();
-    });
+    auto menu_item = fd::dummy_menu_item();
+    fd::menu menu(
+        fd::menu_items_packed(fd::menu_tab(fd::menu_tab_item("Tab1", fd::menu_items_packed(&menu_item)))),
+        bind(&fd::own_win32_backend::close, &system_backend));
 
     fd::render_frame const render_frame(&render_backend, &system_backend, &render_context, &menu);
 
