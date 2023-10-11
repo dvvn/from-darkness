@@ -1,23 +1,21 @@
 #pragma once
 
-#include "internal/wrapper.h"
-
 #include <optional>
 
 namespace fd
 {
 template <typename T>
-FD_WRAP_TOOL(optional, std::optional<T>);
+using optional = std::optional<T>;
 
+#if 0
 using std::make_optional;
 
 template <
-    typename T,
-    bool =
-        requires(T val) {
-            !val;
-            T{};
-        }>
+    typename T, bool =
+                    requires(T val) {
+                        !val;
+                        T{};
+                    }>
 struct as_optional;
 
 template <typename T>
@@ -41,9 +39,6 @@ constexpr bool is_optional = false;
 template <typename T>
 constexpr bool is_optional<optional<T>> = true;
 
-template <typename T>
-constexpr bool is_optional<std::optional<T>> = true;
-
 // template <typename T>
 // struct as_optional<T, is_optional<T>>
 //{
@@ -51,10 +46,9 @@ constexpr bool is_optional<std::optional<T>> = true;
 // };
 
 template <class T>
-requires(is_optional<T>)
-constexpr auto to_raw_pointer(T &obj)
+constexpr auto to_raw_pointer(T& obj) requires(is_optional<T>)
 {
     return obj.operator->();
 }
-
+#endif
 } // namespace fd

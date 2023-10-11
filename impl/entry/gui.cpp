@@ -1,5 +1,6 @@
 #include "debug/log.h"
 #include "functional/bind.h"
+#include "functional/invoke_on.h"
 #include "gui/menu.h"
 #include "gui/menu/items_packed.h"
 #include "gui/menu/tab.h"
