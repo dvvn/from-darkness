@@ -1,6 +1,6 @@
 #pragma once
 
-#include "menu_item_getter.h"
+#include "item_getter.h"
 #include "container/array.h"
 
 #ifdef _DEBUG

@@ -7,36 +7,17 @@
 
 namespace fd
 {
-union packed_backend
-{
-    using pointer = own_win32_backend*;
-
-  private:
-    LONG_PTR user_data_;
-    pointer backend_;
-
-  public:
-    packed_backend(HWND window)
-        : user_data_(GetWindowLongPtr(window, GWLP_USERDATA))
-    {
-    }
-
-    explicit operator bool() const
-    {
-        return backend_ != nullptr;
-    }
-
-    pointer operator->() const
-    {
-        return backend_;
-    }
-};
-
 DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT const message, WPARAM wparam, LPARAM lparam) noexcept
 {
-    packed_backend const backend(window);
+    union
+    {
+        own_win32_backend* backend;
+        LONG_PTR window_user_data;
+    };
 
-    if (!backend)
+    window_user_data = GetWindowLongPtr(window, GWLP_USERDATA);
+
+    if (!window_user_data)
         return DefWindowProc(window, message, wparam, lparam);
 
     if (message == WM_DESTROY)
@@ -47,7 +28,7 @@ DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT const message
     }
     using enum win32_backend_update_response;
 
-    return backend->update(window, message, wparam, lparam)(
+    return std::invoke(&basic_win32_backend::update, backend, window, message, wparam, lparam)(
         make_win32_backend_update_response<skipped>(DefWindowProc),
         make_win32_backend_update_response<updated>(DefWindowProc),
         make_win32_backend_update_response<locked>(win32_backend_update_unchanged()));
@@ -137,13 +118,14 @@ own_win32_backend_data::own_win32_backend_data()
     if (!GetWindowRect(hwnd_, &rect))
         throw system_error("Unable to get window rect");*/
 
-    SetWindowLongPtr(hwnd_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>((this)));
+    SetWindowLongPtr(hwnd_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
     ShowWindow(hwnd_, SW_SHOWDEFAULT);
     UpdateWindow(hwnd_);
 }
 
 own_win32_backend::own_win32_backend()
     : basic_win32_backend(hwnd_)
+    , active_(true)
 {
 }
 
@@ -156,17 +138,18 @@ bool own_win32_backend::update()
         DispatchMessage(&msg);
     }
 
-    return static_cast<bool>(packed_backend(hwnd_));
+    return active_;
 }
 
 void own_win32_backend::close()
 {
-    SetWindowLongPtr(hwnd_, GWLP_USERDATA, NULL);
+    assert(active_ == true);
+    active_ = false;
+    // SetWindowLongPtr(hwnd_, GWLP_USERDATA, NULL);
 }
 
-void own_win32_backend::fill(win32_backend_info* info) const
+win32_backend_info own_win32_backend::info() const
 {
-    // info->proc = wnd_proc;
-    info->id = hwnd_;
+    return {hwnd_};
 }
 } // namespace fd

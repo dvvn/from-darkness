@@ -13,6 +13,7 @@ using menu_item_getter = boost::hana::tuple<T...>;
 inline constexpr auto render_menu_item = []<class T>(T& item) -> void {
     using raw_t = std::remove_pointer_t<T>;
     using std::invoke;
+    using fd::invoke;
     if constexpr (std::invocable<raw_t>)
         invoke(item);
     else if constexpr (std::is_member_pointer_v<decltype(&raw_t::render)>)

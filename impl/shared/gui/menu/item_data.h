@@ -1,17 +1,16 @@
 #pragma once
 #include "menu_items_packed.h"
-#include "string/view.h"
 
 namespace fd
 {
-template <class Items>
+template <class Name, class Items>
 struct menu_item_data
 {
-    string_view name;
+    Name name;
     Items items;
 
-    menu_item_data(string_view const name, Items items)
-        : name(name)
+    constexpr menu_item_data(Name name, Items items)
+        : name(std::move(name))
         , items(std::move(items))
     {
     }
@@ -24,6 +23,6 @@ struct menu_item_data
     }*/
 };
 
-// template <typename... T>
-// menu_item_data(string_view, T*...)->menu_items_packed<sizeof...(T)>;
+template <class Name, class Items>
+menu_item_data(Name&&, Items) -> menu_item_data<Name, Items>;
 }

@@ -5,5 +5,5 @@
 namespace ImGui::inline ex
 {
 // ReSharper disable once CppInconsistentNaming
-bool BeginTabBar(std::type_identity_t<ImGuiID> id, ImGuiTabBarFlags flags = 0);
+bool BeginTabBar(ImGuiID id, ImGuiTabBarFlags flags = ImGuiTabBarFlags_None);
 }

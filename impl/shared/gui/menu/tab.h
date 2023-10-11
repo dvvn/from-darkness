@@ -1,7 +1,5 @@
 #pragma once
 
-#include "menu_item_data.h"
-#include "render/backend/imgui/helpers.h"
 #include "render/backend/imgui/widgets.h"
 
 namespace fd
@@ -33,7 +31,7 @@ class menu_tab_item
     Items items_;
 
   public:
-    menu_tab_item(Name name, Items items)
+    constexpr menu_tab_item(Name name, Items items)
         : name_(std::move(name))
         , items_(std::move(items))
     {
@@ -54,6 +52,6 @@ menu_tab_item(Name&&, Items) -> menu_tab_item<Name, Items>;
 template <class Name, class Items>
 void apply(menu_tab_item<Name, Items> const& item)
 {
-    item.render();
+    render_menu_item(item);
 }
 }

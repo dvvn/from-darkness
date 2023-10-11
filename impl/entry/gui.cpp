@@ -1,28 +1,12 @@
 #include "debug/log.h"
 #include "functional/bind.h"
 #include "gui/menu.h"
-#include "gui/menu_tab.h"
+#include "gui/menu/items_packed.h"
+#include "gui/menu/tab.h"
 #include "render/backend/own/dx9.h"
 #include "render/backend/own/win32.h"
 #include "render/context.h"
 #include "render/frame.h"
-#include "string/view.h"
-
-namespace fd
-{
-struct dummy_menu_item final
-{
-    /*string_view name() const
-    {
-        return "Dummy";
-    }*/
-
-    void operator()() const
-    {
-        ImGui::TextUnformatted("Result");
-    }
-};
-} // namespace fd
 
 int main(int argc, int* argv) noexcept
 {
@@ -32,15 +16,12 @@ int main(int argc, int* argv) noexcept
 #ifdef _DEBUG
     fd::log_activator log_activator;
 #endif
-
     fd::render_context render_context;
     fd::own_win32_backend system_backend;
-    fd::win32_backend_info system_backend_info;
-    system_backend.fill(&system_backend_info);
+    auto const system_backend_info = system_backend.info();
     fd::own_dx9_backend render_backend(system_backend_info.id);
-    auto menu_item = fd::dummy_menu_item();
     fd::menu menu(
-        fd::menu_items_packed(fd::menu_tab(fd::menu_tab_item("Tab1", fd::menu_items_packed(&menu_item)))),
+        fd::menu_items_packed(fd::menu_tab(fd::menu_tab_item("Tab1", fd::menu_items_packed(fd::bind(ImGui::TextUnformatted, "Text"))))),
         bind(&fd::own_win32_backend::close, &system_backend));
 
     fd::render_frame const render_frame(&render_backend, &system_backend, &render_context, &menu);
