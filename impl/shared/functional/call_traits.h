@@ -4,7 +4,8 @@
 
 #include "concepts.h"
 #include "diagnostics/fatal.h"
-#include "functional/cast.h"
+//
+#include "cast.h"
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
 #include <x86RetSpoof.h>
@@ -119,12 +120,12 @@ template <call_type Call_T, typename Ret, typename... Args>
 struct return_address_spoofer;
 
 template <call_type Call_T, typename Ret, class Object, typename... Args>
-decltype(auto) try_spoof_member_return_address(void *function, Object *instance, Args... args)
+decltype(auto) try_spoof_member_return_address(void* function, Object* instance, Args... args)
 {
-    using spoofer = return_address_spoofer<Call_T, Ret, Object *, Args...>;
+    using spoofer = return_address_spoofer<Call_T, Ret, Object*, Args...>;
 
     constexpr auto can_spoof  = valid_return_address_gadget<Object>;
-    constexpr auto can_invoke = std::invocable<spoofer, uintptr_t, void *, Object *, Args...>;
+    constexpr auto can_invoke = std::invocable<spoofer, uintptr_t, void*, Object*, Args...>;
 
     if constexpr (can_spoof && can_invoke)
     {
@@ -135,14 +136,14 @@ decltype(auto) try_spoof_member_return_address(void *function, Object *instance,
     {
         using obj_t = std::conditional_t<forwarded<Object>, dummy_class, Object>;
         using fn_t  = member_func_type<Call_T, Ret, obj_t, Args...>;
-        return std::invoke(unsafe_cast<fn_t>(function), unsafe_cast<obj_t *>(instance), args...);
+        return std::invoke(unsafe_cast<fn_t>(function), unsafe_cast<obj_t*>(instance), args...);
     }
 }
 
 template <typename Ret, typename... Args>
 struct return_address_spoofer<call_type::cdecl_, Ret, Args...>
 {
-    Ret operator()(uintptr_t gadget, void *function, Args... args) const
+    Ret operator()(uintptr_t gadget, void* function, Args... args) const
     {
         assert(gadget != 0);
         return x86RetSpoof::invokeCdecl<Ret, Args...>(reinterpret_cast<uintptr_t>(function), gadget, args...);
@@ -152,7 +153,7 @@ struct return_address_spoofer<call_type::cdecl_, Ret, Args...>
 template <typename Ret, typename... Args>
 struct return_address_spoofer<call_type::stdcall_, Ret, Args...>
 {
-    Ret operator()(uintptr_t gadget, void *function, Args... args) const
+    Ret operator()(uintptr_t gadget, void* function, Args... args) const
     {
         assert(gadget != 0);
         return x86RetSpoof::invokeStdcall<Ret, Args...>(reinterpret_cast<uintptr_t>(function), gadget, args...);
@@ -160,16 +161,15 @@ struct return_address_spoofer<call_type::stdcall_, Ret, Args...>
 };
 
 template <typename Ret, class Object, typename... Args>
-struct return_address_spoofer<call_type::thiscall_, Ret, Object *, Args...>
+struct return_address_spoofer<call_type::thiscall_, Ret, Object*, Args...>
 {
-    Ret operator()(uintptr_t gadget, void *function, Object *instance, Args... args) const
+    Ret operator()(uintptr_t gadget, void* function, Object* instance, Args... args) const
     {
         assert(gadget != 0);
-        return x86RetSpoof::invokeThiscall<Ret, Args...>(
-            reinterpret_cast<uintptr_t>(instance), reinterpret_cast<uintptr_t>(function), gadget, args...);
+        return x86RetSpoof::invokeThiscall<Ret, Args...>(reinterpret_cast<uintptr_t>(instance), reinterpret_cast<uintptr_t>(function), gadget, args...);
     }
 
-    Ret operator()(void *function, Object *instance, Args... args) const requires(valid_return_address_gadget<Object>)
+    Ret operator()(void* function, Object* instance, Args... args) const requires(valid_return_address_gadget<Object>)
     {
         return operator()(return_address_gadget<Object>::address, function, instance, args...);
     }
@@ -192,7 +192,7 @@ struct non_member_func_invoker
         return std::invoke(function, args...);
     }
 
-    Ret operator()(void *function, Args... args) const
+    Ret operator()(void* function, Args... args) const
     {
         return operator()(unsafe_cast<type>(function), args...);
     }
@@ -213,12 +213,12 @@ struct member_func_invoker
 {
     using function_type = member_func_type<Call_T, Ret, T, Args...>;
 
-    Ret operator()(function_type function, T *instance, Args... args) const
+    Ret operator()(function_type function, T* instance, Args... args) const
     {
         return std::invoke(function, instance, args...);
     }
 
-    Ret operator()(void *function, T *instance, Args... args) const
+    Ret operator()(void* function, T* instance, Args... args) const
     {
 #ifdef FD_SPOOF_RETURN_ADDRESS
         return try_spoof_member_return_address<Call_T, Ret>(function, instance, args...);
@@ -232,12 +232,11 @@ template <call_type Call_T, class Ret, class T, typename... Args>
 requires(std::is_class_v<T> && !complete<T>)
 struct member_func_invoker<Call_T, Ret, T, Args...> : member_func_invoker<Call_T, Ret, void, Args...>
 {
-    static_assert(sizeof(member_func_type<Call_T, Ret, T, Args...>) != sizeof(void *));
+    static_assert(sizeof(member_func_type<Call_T, Ret, T, Args...>) != sizeof(void*));
 };
 
 template <class Ret, typename... Args>
-struct member_func_invoker<call_type::thiscall_, Ret, void, Args...>
-    : non_member_func_invoker<call_type::thiscall_, Ret, void *, Args...>
+struct member_func_invoker<call_type::thiscall_, Ret, void, Args...> : non_member_func_invoker<call_type::thiscall_, Ret, void*, Args...>
 {
 };
 
@@ -246,12 +245,12 @@ struct member_func_invoker<Call_T, Ret, void, Args...>
 {
     using function_type = member_func_type<Call_T, Ret, dummy_class, Args...>;
 
-    Ret operator()(function_type function, void *instance, Args... args) const
+    Ret operator()(function_type function, void* instance, Args... args) const
     {
-        return std::invoke(function, static_cast<dummy_class *>(instance), args...);
+        return std::invoke(function, static_cast<dummy_class*>(instance), args...);
     }
 
-    Ret operator()(void *function, void *instance, Args... args) const
+    Ret operator()(void* function, void* instance, Args... args) const
     {
         return operator()(unsafe_cast<function_type>(function), instance, args...);
     }
@@ -261,7 +260,7 @@ struct member_func_invoker<Call_T, Ret, void, Args...>
     template <typename Ret, typename... Args>              \
     struct non_member_func_type_impl<call__, Ret, Args...> \
     {                                                      \
-        using type = Ret(__call *)(Args...);               \
+        using type = Ret(__call*)(Args...);                \
     };
 
 X86_CALL_MEMBER(NON_MEMBER_FN_TYPE)
@@ -272,13 +271,13 @@ class member_func_return_type_resolver
 {
     using args_packed = boost::hana::tuple<Args...>;
 
-    void *function_;
-    T *instance_;
+    void* function_;
+    T* instance_;
     [[no_unique_address]] //
     args_packed args_;
 
   public:
-    member_func_return_type_resolver(void *function, T *instance, Args... args)
+    member_func_return_type_resolver(void* function, T* instance, Args... args)
         : function_(function)
         , instance_(instance)
         , args_(args...)
@@ -376,7 +375,7 @@ struct function_info<Obj> : function_info<decltype(&Obj::operator())>
 };
 
 template <typename Ret, typename T, typename... Args>
-struct function_info<Ret(__thiscall *)(T *, Args...)> : member_function_info<call_type::thiscall_, Ret, T, Args...>
+struct function_info<Ret(__thiscall*)(T*, Args...)> : member_function_info<call_type::thiscall_, Ret, T, Args...>
 {
 };
 
@@ -399,10 +398,10 @@ struct function_info<Ret(__thiscall *)(T *, Args...)> : member_function_info<cal
 X86_CALL_MEMBER(FN_INFO_MEMBER)
 #undef FN_INFO_MEMBER
 
-#define FN_INFO_NON_MEMEBER(call__, __call, _call_)                                               \
-    template <typename Ret, typename... Args>                                                     \
-    struct function_info<Ret(__call *)(Args...)> : non_member_function_info<call__, Ret, Args...> \
-    {                                                                                             \
+#define FN_INFO_NON_MEMEBER(call__, __call, _call_)                                              \
+    template <typename Ret, typename... Args>                                                    \
+    struct function_info<Ret(__call*)(Args...)> : non_member_function_info<call__, Ret, Args...> \
+    {                                                                                            \
     };
 X86_CALL(FN_INFO_NON_MEMEBER)
 #undef FN_INFO_NON_MEMEBER

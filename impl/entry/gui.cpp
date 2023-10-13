@@ -1,8 +1,6 @@
 #include "debug/log.h"
 #include "functional/bind.h"
-#include "functional/invoke_on.h"
 #include "gui/menu.h"
-#include "gui/menu/items_packed.h"
 #include "gui/menu/tab.h"
 #include "render/backend/own/dx9.h"
 #include "render/backend/own/win32.h"
@@ -13,16 +11,17 @@ int main(int argc, int* argv) noexcept
 {
     (void)argc;
     (void)argv;
-
 #ifdef _DEBUG
     fd::log_activator log_activator;
 #endif
+
     fd::render_context render_context;
     fd::own_win32_backend system_backend;
     auto const system_backend_info = system_backend.info();
     fd::own_dx9_backend render_backend(system_backend_info.id);
+    using namespace fd::string_view_literals;
     fd::menu menu(
-        fd::menu_items_packed(fd::menu_tab(fd::menu_tab_item("Tab1", fd::menu_items_packed(fd::bind(ImGui::TextUnformatted, "Text"))))),
+        bind(fd::menu_tab1, "Tab1"sv, fd::menu_tab_item1("One", bind(ImGui::TextUnformatted, "Text"sv))), //
         bind(&fd::own_win32_backend::close, &system_backend));
 
     fd::render_frame const render_frame(&render_backend, &system_backend, &render_context, &menu);

@@ -1,57 +1,63 @@
 #pragma once
 
-#include "render/backend/imgui/widgets.h"
+#include "item_id.h"
+#include "string/view.h"
+
+namespace ImGui::inline ex
+{
+// ReSharper disable once CppInconsistentNaming
+bool BeginTabBar(ImGuiID id, ImGuiTabBarFlags flags = ImGuiTabBarFlags_None);
+} // namespace ImGui::inline ex
 
 namespace fd
 {
-template <class Items>
-class menu_tab
+template <typename Fn>
+#ifdef _DEBUG
+requires(std::invocable<std::remove_pointer_t<Fn>>)
+#endif
+struct menu_tab_item1 : std::pair<string_view, Fn>
 {
-    Items items_;
+    using std::pair<string_view, Fn>::pair;
+};
 
-  public:
-    constexpr menu_tab(Items items)
-        : items_(std::move(items))
+template <typename Fn>
+menu_tab_item1(string_view, Fn) -> menu_tab_item1<Fn>;
+
+namespace detail
+{
+inline constexpr class
+{
+    static void render(auto& item)
     {
+        using std::get;
+        using std::invoke;
+        if (ImGui::BeginTabItem(get<0>(item)))
+        {
+            invoke(get<1>(item));
+            ImGui::EndTabItem();
+        }
     }
 
-    void render() const
+  public:
+    template <typename Fn>
+    void operator()(menu_tab_item1<Fn>& item) const
     {
-        if (!ImGui::BeginTabBar(ImGui::GetID(this)))
-            return;
-        apply(items_);
+        render(item);
+    }
+
+    template <typename Fn>
+    void operator()(menu_tab_item1<Fn> const& item) const
+    {
+        render(item);
+    }
+} render_menu_tab_item;
+} // namespace detail
+
+inline constexpr auto menu_tab1 = []<typename... I>(menu_item_id const id, I&&... items) {
+    if (ImGui::BeginTabBar(id))
+    {
+        (detail::render_menu_tab_item(std::forward<I>(items)), ...);
         ImGui::EndTabBar();
     }
 };
-
-template <class Name, class Items>
-class menu_tab_item
-{
-    Name name_;
-    Items items_;
-
-  public:
-    constexpr menu_tab_item(Name name, Items items)
-        : name_(std::move(name))
-        , items_(std::move(items))
-    {
-    }
-
-    void render() const
-    {
-        if (!ImGui::BeginTabItem(name_))
-            return;
-        apply(items_);
-        ImGui::EndTabItem();
-    }
-};
-
-template <class Name, class Items>
-menu_tab_item(Name&&, Items) -> menu_tab_item<Name, Items>;
-
-template <class Name, class Items>
-void apply(menu_tab_item<Name, Items> const& item)
-{
-    render_menu_item(item);
-}
 }

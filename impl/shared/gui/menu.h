@@ -1,27 +1,27 @@
 ﻿#pragma once
 #include "noncopyable.h"
-#include "render/backend/imgui/helpers.h"
+#include "menu/item_id.h"
 
 #include <imgui.h>
 
 namespace fd
 {
-template <class Items, class UnloadHandler>
+template <class Callback, class UnloadHandler>
 class menu final : public noncopyable
 {
     bool visible_;
     bool next_visible_;
 
     [[no_unique_address]] //
-    Items items_;
+    Callback callback_;
     [[no_unique_address]] //
     UnloadHandler unload_;
 
   public:
-    menu(Items items, UnloadHandler unload)
+    menu(Callback callback, UnloadHandler unload)
         : visible_(false)
         , next_visible_(true)
-        , items_(std::move(items))
+        , callback_(std::move(callback))
         , unload_(std::move(unload))
     {
     }
@@ -47,15 +47,15 @@ class menu final : public noncopyable
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
         ImGui::ShowDemoWindow();
 #endif
+        using std::invoke;
         if (ImGui::Begin("WIP", &next_visible_, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            apply(items_);
+            (callback_());
 
-            if (ImGui::BeginChild(ImGui::GetID(__LINE__)))
+            if (ImGui::BeginChild(menu_item_id(__LINE__)))
             {
                 if (ImGui::Button("Unload"))
                 {
-                    using std::invoke;
                     invoke(unload_);
                 }
             }
