@@ -48,11 +48,16 @@ if(MSVC)
   add_link_options("$<$<NOT:$<CONFIG:Debug>>:/LTCG>")
     
   add_compile_options(
-      /Zc:preprocessor /Zc:__cplusplus /Zc:lambda /permissive-
+      /Zc:__STDC__ /Zc:__cplusplus
+      /Zc:preprocessor /Zc:lambda /permissive- /Zc:inline /Zc:templateScope /Zc:threadSafeInit-
       /wd5103 /wd4291 /wd4250 /wd5104
-      /MP${_CPUS} /EHsc)
+      /MP${_CPUS}
+      /EHsc
+      #/GR- #disable RTTI
+  )
   add_link_options(/SAFESEH:NO)
   add_compile_definitions(
+      #_HAS_EXCEPTIONS=0 #disable exceptions
       UNICODE
       _UNICODE
       NOMINMAX
