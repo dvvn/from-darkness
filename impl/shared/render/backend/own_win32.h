@@ -29,6 +29,6 @@ class own_win32_backend final : public own_win32_backend_data, public basic_win3
     bool update();
     void close();
 
-    win32_backend_info info() const;
+    win32_window_info info() const;
 };
 }

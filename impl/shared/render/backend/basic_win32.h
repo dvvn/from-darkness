@@ -29,7 +29,7 @@ struct win32_window_size : simple_win32_window_size
     win32_window_size& operator=(simple_win32_window_size const& parent_size);
 };
 
-struct win32_backend_info final
+struct win32_window_info final
 {
     HWND id;
 
@@ -38,23 +38,23 @@ struct win32_backend_info final
     bool minimized() const;
 };
 
-struct static_win32_backend_info
+struct static_win32_window_info
 {
     union
     {
         HWND id;
-        win32_backend_info dynamic;
+        win32_window_info dynamic;
     };
 
     WNDPROC proc;
     win32_window_size size;
     bool minimized;
 
-    static_win32_backend_info(HWND id);
-    static_win32_backend_info(win32_backend_info info);
+    static_win32_window_info(HWND id);
+    static_win32_window_info(win32_window_info info);
 };
 
-enum class win32_backend_update_response : uint8_t
+enum win32_backend_update_response : uint8_t
 {
     /**
      * \brief system backend does nothing
@@ -73,7 +73,7 @@ enum class win32_backend_update_response : uint8_t
 template <win32_backend_update_response Response, typename Fn>
 struct win32_backend_update_callback final : overload_t<Fn>
 {
-    constexpr static win32_backend_update_response value = Response;
+    static constexpr win32_backend_update_response value = Response;
     using overload_t<Fn>::operator();
     using overload_t<Fn>::overload_t;
 };
@@ -110,19 +110,7 @@ constexpr auto make_win32_backend_update_response(win32_backend_update_unchanged
 
 class win32_backend_update_finish
 {
-    using raw_response = std::underlying_type_t<win32_backend_update_response>;
-    using response     = win32_backend_update_response;
-
-    template <class... Args>
-    constexpr static bool know_response(response const current_response)
-    {
-        return ((std::to_underlying(current_response) | std::to_underlying(Args::value)) || ...);
-    }
-
-    constexpr static bool know_response(response const left, response const right)
-    {
-        return std::to_underlying(left) | std::to_underlying(right);
-    }
+    using response = win32_backend_update_response;
 
     response response_;
 
@@ -133,26 +121,24 @@ class win32_backend_update_finish
 
     LRESULT original_;
 
-    template <response CurrentResponse, class Fn, class... Next>
-    LRESULT select_callback(Fn& callback, Next&... next_callback) const
+    template <response CurrentResponse, class ResponseCallback, class... NextResponseCallback>
+    LRESULT select_callback(ResponseCallback& callback, NextResponseCallback&... next_callback) const
     {
-        if constexpr (know_response<Fn>(CurrentResponse))
+        if constexpr (CurrentResponse & ResponseCallback::value)
         {
-            if constexpr (std::invocable<Fn, HWND, UINT, WPARAM, LPARAM, LRESULT>)
+            if constexpr (std::invocable<ResponseCallback, HWND, UINT, WPARAM, LPARAM, LRESULT>)
                 return callback(window_, message_, wparam_, lparam_, original_);
-            else if constexpr (std::invocable<Fn, HWND, UINT, WPARAM, LPARAM>)
+            else if constexpr (std::invocable<ResponseCallback, HWND, UINT, WPARAM, LPARAM>)
                 return callback(window_, message_, wparam_, lparam_);
-            else if constexpr (std::invocable<Fn, LRESULT>)
+            else if constexpr (std::invocable<ResponseCallback, LRESULT>)
                 return callback(original_);
-            else if constexpr (std::invocable<Fn>)
+            else if constexpr (std::invocable<ResponseCallback>)
                 return callback();
-            else
-                unreachable();
         }
-        else if constexpr (sizeof...(Next) != 0)
+        else if constexpr (sizeof...(NextResponseCallback) != 0)
             return select_callback<CurrentResponse>(next_callback...);
-        else
-            unreachable();
+
+        unreachable();
     }
 
   public:
@@ -169,12 +155,12 @@ class win32_backend_update_finish
     {
     }
 
-    template <class... Args>
-    LRESULT operator()(Args... callback) const
+    template <class... ResponseCallback>
+    LRESULT operator()(ResponseCallback... callback) const
     {
-#define CHECK_VALUE(_V_)                       \
-    if constexpr (know_response<Args...>(_V_)) \
-        if (know_response(response_, _V_))     \
+#define CHECK_VALUE(_V_)                                 \
+    if constexpr (_V_ & (ResponseCallback::value | ...)) \
+        if (_V_ & response_)                             \
             return select_callback<_V_>(callback...);
 
         CHECK_VALUE(response::skipped);
@@ -195,8 +181,8 @@ class basic_win32_backend
     basic_win32_backend(HWND window);
 
   public:
-    void new_frame();
+    static void new_frame();
 
-    win32_backend_update_finish update(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
+    static win32_backend_update_finish update(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 };
 } // namespace fd

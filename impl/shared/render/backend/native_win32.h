@@ -14,6 +14,6 @@ class native_win32_backend final : public basic_win32_backend, public noncopyabl
   public:
     native_win32_backend(HWND window = find_game_window());
 
-    void fill(win32_backend_info* backend_info) const;
+    void fill(win32_window_info* backend_info) const;
 };
 } // namespace fd

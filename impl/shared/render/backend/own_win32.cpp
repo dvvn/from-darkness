@@ -26,9 +26,10 @@ DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT const message
         backend->close();
         return NULL;
     }
+
     using enum win32_backend_update_response;
 
-    return std::invoke(&basic_win32_backend::update, backend, window, message, wparam, lparam)(
+    return static_cast<basic_win32_backend*>(backend)->update(window, message, wparam, lparam)(
         make_win32_backend_update_response<skipped>(DefWindowProc),
         make_win32_backend_update_response<updated>(DefWindowProc),
         make_win32_backend_update_response<locked>(win32_backend_update_unchanged()));
@@ -74,8 +75,8 @@ DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT const message
 
 own_win32_backend_data::~own_win32_backend_data()
 {
-    UnregisterClass(info_.lpszClassName, info_.hInstance);
     DestroyWindow(hwnd_);
+    UnregisterClass(info_.lpszClassName, info_.hInstance);
 }
 
 own_win32_backend_data::own_win32_backend_data()
@@ -143,12 +144,12 @@ bool own_win32_backend::update()
 
 void own_win32_backend::close()
 {
-    assert(active_ == true);
+    //assert(active_ == true);
     active_ = false;
     // SetWindowLongPtr(hwnd_, GWLP_USERDATA, NULL);
 }
 
-win32_backend_info own_win32_backend::info() const
+win32_window_info own_win32_backend::info() const
 {
     return {hwnd_};
 }

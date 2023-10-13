@@ -4,6 +4,7 @@
 
 #include <imgui_impl_win32.h>
 #include <imgui_internal.h>
+
 // ReSharper disable CppInconsistentNaming
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
@@ -43,33 +44,29 @@ win32_window_size& win32_window_size::operator=(simple_win32_window_size const& 
     return *this;
 }
 
-WNDPROC win32_backend_info::proc() const
+WNDPROC win32_window_info::proc() const
 {
     return reinterpret_cast<WNDPROC>(GetWindowLongPtr(id, GWL_WNDPROC));
 }
 
-win32_window_size win32_backend_info::size() const
+win32_window_size win32_window_info::size() const
 {
     RECT rect;
     /*GetWindowRect*/ GetClientRect(id, &rect);
     return rect;
 }
 
-bool win32_backend_info::minimized() const
+bool win32_window_info::minimized() const
 {
     return IsIconic(id);
 }
 
-static_win32_backend_info::static_win32_backend_info(HWND id)
-    : static_win32_backend_info([&] {
-        win32_backend_info info;
-        info.id = id;
-        return info;
-    }())
+static_win32_window_info::static_win32_window_info(HWND id)
+    : static_win32_window_info(win32_window_info(id))
 {
 }
 
-static_win32_backend_info::static_win32_backend_info(win32_backend_info info)
+static_win32_window_info::static_win32_window_info(win32_window_info info)
     : dynamic(std::move(info))
     , proc(dynamic.proc())
     , size(dynamic.size())
@@ -103,12 +100,13 @@ win32_backend_update_finish basic_win32_backend::update(HWND window, UINT const 
     auto value = ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam);
     win32_backend_update_response response;
 
+    using enum win32_backend_update_response;
     if (value != 0)
-        response = win32_backend_update_response::locked;
+        response = locked;
     else if (events_stored != events.size())
-        response = win32_backend_update_response::updated;
+        response = updated;
     else
-        response = win32_backend_update_response::skipped;
+        response = skipped;
 
     return {response, window, message, wparam, lparam, value};
 }

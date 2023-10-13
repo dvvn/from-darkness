@@ -41,7 +41,7 @@ native_win32_backend::native_win32_backend(HWND window)
 {
 }
 
-void native_win32_backend::fill(win32_backend_info* backend_info) const
+void native_win32_backend::fill(win32_window_info* backend_info) const
 {
     backend_info->id = window_;
 }
