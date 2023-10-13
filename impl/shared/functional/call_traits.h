@@ -78,7 +78,7 @@ decltype(auto) apply(call_type info, Args... args)
     switch (info)
     {
         X86_CALL_MEMBER(INFO_CASE);
-    default:
+    default:  // NOLINT(clang-diagnostic-covered-switch-default)
         unreachable();
     }
 
@@ -95,7 +95,7 @@ decltype(auto) apply(Fn fn, call_type info, Args... args)
     switch (info)
     {
         X86_CALL_MEMBER(INFO_CASE);
-    default:
+    default:  // NOLINT(clang-diagnostic-covered-switch-default)
         unreachable();
     }
 

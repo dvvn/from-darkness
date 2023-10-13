@@ -1,12 +1,11 @@
-﻿#include "comptr.h"
-#include "dx9.h"
+﻿#include "own_dx9.h"
+//
+#include "comptr.h"
 #include "diagnostics/system_error.h"
 
 #include <tchar.h>
 
 #include <cassert>
-
-// #pragma comment(lib, "d3d9.lib")
 
 namespace fd
 {

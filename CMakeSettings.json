@@ -1,38 +1,38 @@
 ﻿{
   "configurations": [
     {
-      "buildCommandArgs": "",
-      "buildRoot": "${projectDir}\\.out\\build\\${name}",
-      "cmakeCommandArgs": "",
+      "name": "x86-Debug",
+      "generator": "Visual Studio 17 2022",
       "configurationType": "Debug",
-      "ctestCommandArgs": "",
-      "generator": "Visual Studio 17 2022",
-      "inheritEnvironments": [ "msvc_x86_x64" ],
+      "buildRoot": "${projectDir}\\.out\\build\\${name}",
       "installRoot": "${projectDir}\\.out\\install\\${name}",
+      "inheritEnvironments": [
+        "msvc_x86_x64"
+      ],
       "intelliSenseMode": "windows-msvc-x86",
-      "name": "x86-Debug"
+      "variables": [
+        {
+          "name": "_FD_TARGET",
+          "value": "CSGO"
+        }
+      ]
     },
     {
-      "name": "x86-Release",
-      "generator": "Visual Studio 17 2022",
-      "configurationType": "Release",
+      "name": "x64-Debug",
+      "generator": "Visual Studio 17 2022 Win64",
+      "configurationType": "Debug",
       "buildRoot": "${projectDir}\\.out\\build\\${name}",
       "installRoot": "${projectDir}\\.out\\install\\${name}",
-      "cmakeCommandArgs": "",
-      "buildCommandArgs": "",
-      "ctestCommandArgs": "",
-      "inheritEnvironments": [ "msvc_x86_x64" ],
-      "intelliSenseMode": "windows-msvc-x86"
-    },
-    {
-      "name": "x86-Release-WithDebInfo",
-      "generator": "Visual Studio 17 2022",
-      "configurationType": "RelWithDebInfo",
-      "buildRoot": "${projectDir}\\.out\\build\\${name}",
-      "installRoot": "${projectDir}\\.out\\install\\${name}",
-      "buildCommandArgs": "",
-      "ctestCommandArgs": "",
-      "inheritEnvironments": [ "msvc_x86_x64" ]
+      "inheritEnvironments": [
+        "msvc_x64_x64"
+      ],
+      "intelliSenseMode": "windows-msvc-x64",
+      "variables": [
+        {
+          "name": "_FD_TARGET",
+          "value": "CS2"
+        }
+      ]
     }
   ]
 }

@@ -1,9 +1,9 @@
 #include "basic_win32.h"
+//
 #include "diagnostics/runtime_error.h"
 
 #include <imgui_impl_win32.h>
 #include <imgui_internal.h>
-
 // ReSharper disable CppInconsistentNaming
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wParam, LPARAM lParam);

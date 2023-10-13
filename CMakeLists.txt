@@ -14,22 +14,29 @@ set(CMAKE_C_STANDARD_REQUIRED on)
 
 project(from-datkness CXX)
 
-if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE MATCHES "")
+#[[if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE MATCHES "")
     set(CMAKE_BUILD_TYPE ${CMAKE_CONFIGURATION_TYPES})
-endif()
+endif()]]
 
-if(CMAKE_BUILD_TYPE MATCHES Debug)
+#[[if(CMAKE_BUILD_TYPE MATCHES Debug)
     set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 else()
     set(CMAKE_MESSAGE_LOG_LEVEL WARNING)
+endif()]]
+
+message(DEBUG ${FD_TARGET})
+
+if(NOT CMAKE_MESSAGE_LOG_LEVEL)
+    set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 endif()
 
 set(_FD_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(_FD_IMPL_DIR ${_FD_ROOT_DIR}/impl)
-set(_FD_OUT_DIR ${_FD_ROOT_DIR}/.out/${CMAKE_BUILD_TYPE})
+#set(_FD_OUT_DIR ${_FD_ROOT_DIR}/.out/${CMAKE_BUILD_TYPE})
 
 set(_FD_SHARED_DIR ${_FD_IMPL_DIR}/shared)
-set(_FD_ENTRY_DIR ${_FD_IMPL_DIR}/entry)
+set(_FD_PROJECT_DIR ${_FD_IMPL_DIR}/${_FD_TARGET})
+set(_FD_PROJECT_IMPL_DIR ${_FD_IMPL_DIR}/${_FD_TARGET}_IMPL)
 
 include(ProcessorCount)
 ProcessorCount(_CPUS)
@@ -37,13 +44,9 @@ message(DEBUG "Cpu's count: ${_CPUS}")
 
 if(MSVC)
   # Whole program optimization
-  if(NOT CMAKE_BUILD_TYPE MATCHES Debug)
-    add_compile_options(/GL
-        /Qpar /Qvec-report:1 /Qpar-report:1)
-    add_link_options(/LTCG)
-  else()
+  add_compile_options("$<$<NOT:$<CONFIG:Debug>>:/GL /Qpar /Qvec-report:1 /Qpar-report:1>")
+  add_link_options("$<$<NOT:$<CONFIG:Debug>>:/LTCG>")
     
-  endif()
   add_compile_options(
       /Zc:preprocessor /Zc:__cplusplus /Zc:lambda /permissive-
       /wd5103 /wd4291 /wd4250 /wd5104
@@ -364,12 +367,28 @@ configure_file(${_FD_IMPL_DIR}/${_nat_name}_natjmc ${_FD_IMPL_DIR}/${_nat_name}.
 #configure_file(${_FD_IMPL_DIR}/${_nat_name}_natstepfilter ${_FD_IMPL_DIR}/${_nat_name}.natstepfilter)
 
 file(GLOB_RECURSE _shared_src ${_FD_SHARED_DIR}/*.cpp)
-file(GLOB_RECURSE _visualizers ${_FD_IMPL_DIR}/*.nat*)
-add_library(FD ${_shared_src} ${_visualizers})
-target_link_libraries(FD PUBLIC ${_FD_DEPS})
-target_include_directories(FD PUBLIC ${_FD_SHARED_DIR}/ ${_FD_DEPS_INCLUDE})
+file(GLOB _root_visualizers ${_FD_IMPL_DIR}/*.nat*)
+file(GLOB_RECURSE _shared_visualizers ${_FD_SHARED_DIR}/*.nat*)
+add_library(FD_SHARED ${_shared_src} ${_root_visualizers} ${_shared_visualizers})
+target_link_libraries(FD_SHARED PUBLIC ${_FD_DEPS})
+target_include_directories(FD_SHARED PUBLIC ${_FD_SHARED_DIR}/ ${_FD_DEPS_INCLUDE})
 
-add_library(FDLIB SHARED ${_FD_ENTRY_DIR}/library.cpp)
-target_link_libraries(FDLIB PUBLIC FD)
-add_executable(FDLIB_GUI ${_FD_ENTRY_DIR}/gui.cpp)
-target_link_libraries(FDLIB_GUI PUBLIC FD d3d9.lib)
+file(GLOB_RECURSE _project_src ${_FD_PROJECT_IMPL_DIR}/*.cpp)
+file(GLOB_RECURSE _project_visualizers ${_FD_PROJECT_IMPL_DIR}/*.nat*)
+add_library(FD_${_FD_TARGET}_IMPL ${_project_src} ${_project_visualizers})
+target_link_libraries(FD_${_FD_TARGET}_IMPL PUBLIC FD_SHARED)
+target_include_directories(FD_${_FD_TARGET}_IMPL PUBLIC ${_FD_PROJECT_IMPL_DIR}/)
+
+macro(Finalize_project _name)
+    target_link_libraries(${_name} PUBLIC FD_${_FD_TARGET}_IMPL)
+    target_include_directories(${_name} PUBLIC ${_FD_PROJECT_DIR}/)
+endmacro()
+
+if(EXISTS ${_FD_PROJECT_DIR}/main.cpp)
+    add_library(FD_${_FD_TARGET} SHARED ${_FD_PROJECT_DIR}/main.cpp)
+    Finalize_project(FD_${_FD_TARGET})
+endif()
+if(EXISTS ${_FD_PROJECT_DIR}/gui.cpp)
+    add_executable(FD_${_FD_TARGET}_GUI ${_FD_PROJECT_DIR}/gui.cpp)
+    Finalize_project(FD_${_FD_TARGET}_GUI)
+endif()

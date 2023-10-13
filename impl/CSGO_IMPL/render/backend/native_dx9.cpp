@@ -1,4 +1,5 @@
-﻿#include "dx9.h"
+﻿#include "native_dx9.h"
+//
 #include "noncopyable.h"
 #include "diagnostics/runtime_error.h"
 #include "library_info/system.h"

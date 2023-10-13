@@ -2,8 +2,8 @@
 #include "functional/bind.h"
 #include "gui/menu.h"
 #include "gui/menu/tab.h"
-#include "render/backend/own/dx9.h"
-#include "render/backend/own/win32.h"
+#include "render/backend/own_dx9.h"
+#include "render/backend/own_win32.h"
 #include "render/context.h"
 #include "render/frame.h"
 
