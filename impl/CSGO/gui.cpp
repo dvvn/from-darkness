@@ -21,7 +21,7 @@ int main(int argc, int* argv) noexcept
     fd::own_dx9_backend render_backend(system_backend_info.id);
     using namespace fd::string_view_literals;
     fd::menu menu(
-        bind(fd::menu_tab1, "Tab1"sv, fd::menu_tab_item1("One", bind(ImGui::TextUnformatted, "Text"sv))), //
+        bind(fd::menu_tab, "Tab1"sv, fd::menu_tab_item("One", bind(ImGui::TextUnformatted, "Text"sv))), //
         bind(&fd::own_win32_backend::close, &system_backend));
 
     fd::render_frame const render_frame(&render_backend, &system_backend, &render_context, &menu);
