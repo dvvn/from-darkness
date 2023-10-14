@@ -14,20 +14,19 @@ set(CMAKE_C_STANDARD_REQUIRED on)
 
 project(from-datkness CXX)
 
-#[[if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE MATCHES "")
+list(LENGTH CMAKE_CONFIGURATION_TYPES _cfgs_count)
+if(NOT _cfgs_count EQUAL 1)
+    message(FATAL_ERROR "Unsupported CMAKE_CONFIGURATION_TYPES")
+endif()
+
+if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE MATCHES "")
     set(CMAKE_BUILD_TYPE ${CMAKE_CONFIGURATION_TYPES})
-endif()]]
+endif()
 
-#[[if(CMAKE_BUILD_TYPE MATCHES Debug)
+if(CMAKE_BUILD_TYPE MATCHES Debug)
     set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
-else()
+elseif(NOT CMAKE_MESSAGE_LOG_LEVEL)
     set(CMAKE_MESSAGE_LOG_LEVEL WARNING)
-endif()]]
-
-message(DEBUG ${FD_TARGET})
-
-if(NOT CMAKE_MESSAGE_LOG_LEVEL)
-    set(CMAKE_MESSAGE_LOG_LEVEL DEBUG)
 endif()
 
 set(_FD_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
@@ -37,6 +36,18 @@ set(_FD_IMPL_DIR ${_FD_ROOT_DIR}/impl)
 set(_FD_SHARED_DIR ${_FD_IMPL_DIR}/shared)
 set(_FD_PROJECT_DIR ${_FD_IMPL_DIR}/${_FD_TARGET})
 set(_FD_PROJECT_IMPL_DIR ${_FD_IMPL_DIR}/${_FD_TARGET}_IMPL)
+
+#[[file(
+    DOWNLOAD
+    https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/CPM.cmake
+    ${_FD_ROOT_DIR}/.out/CPM.cmake
+)
+include(${_FD_ROOT_DIR}/.out/CPM.cmake)]]
+
+find_package(Git)
+if(NOT Git_FOUND)
+  message(FATAL_ERROR "Git not found")
+endif()
 
 include(ProcessorCount)
 ProcessorCount(_CPUS)
@@ -92,125 +103,130 @@ endif()
 
 #------------------------
 
-include(FetchContent)
-set(GIT_SHALLOW true)
-set(FETCHCONTENT_QUIET off)
-set(FETCHCONTENT_BASE_DIR ${_FD_ROOT_DIR}/.deps1)
-
 set(_GIT_DIR "C:/git" CACHE STRING "The repos storage")
 
 set(_FD_DEPS)
 set(_FD_DEPS_INCLUDE)
 set(_FD_DEPS_DIRS)
 
-string(TIMESTAMP _current_time "%d.%m.%Y")
-macro(FetchContent_Activate _name)
-    if(DEFINED ${_name}_fetch AND ${_name}_fetch)
-        set(_previous_time ${${_name}_fetch})
-    else()
-        set(_previous_time 0)
-    endif()
-
-    if(${_current_time} STREQUAL ${_previous_time})
-        set(FETCHCONTENT_FULLY_DISCONNECTED on)
-    else()
-        set(FETCHCONTENT_FULLY_DISCONNECTED off)
-        set(${_name}_fetch_tmp ${_current_time})
-    endif()
-endmacro()
-
-macro(FetchContent_Activate_Save _name)
-    if(DEFINED ${_name}_fetch_tmp)
-        FetchContent_GetProperties(${_name})
-        string(TOLOWER ${_name} _name_lower)
-        if(${_name_lower}_POPULATED)
-            set(${_name}_fetch ${${_name}_fetch_tmp} CACHE INTERNAL "" FORCE)
-        endif()
-    endif()
-endmacro()
+string(TIMESTAMP _current_date "%d.%m.%Y")
 
 macro(Dependency_Load _owner _name)
-    set(_path ${_owner}/${_name})
-    set(_deps ${_FD_ROOT_DIR}/.deps/${_path})
+    set(_abs_name ${_owner}_${_name})
+    set(_update true)
+    if(DEFINED ${_abs_name}_updated)
+        if(${_current_date} STREQUAL ${${_abs_name}_updated})
+            set(_update false)
+            set(_git_result 0)
+        endif()
+    endif()
 
-    set(_source_dir "${_GIT_DIR}/${_path}")
-    set(_subbuild_dir "${_deps}/subbuild")
-    set(_binary_dir "${_deps}/bin")
-
-    FetchContent_Activate(${_name})
-    FetchContent_Declare(${_name}        
-        SOURCE_DIR ${_source_dir}
-        SUBBUILD_DIR ${_subbuild_dir}
-        BINARY_DIR ${_binary_dir}
-        GIT_REPOSITORY https://github.com/${_path}.git
-        GIT_REMOTE_UPDATE_STRATEGY CHECKOUT
-        ${ARGN}
-    )
+    set(_subdir ${_owner}/${_name})
+    set(_source_dir ${_GIT_DIR}/${_subdir})
+    set(_binary_dir ${CMAKE_BINARY_DIR}/${_subdir})
+    set(_url https://github.com/${_subdir}.git)
 
     set(${_name}_SOURCE_DIR ${_source_dir})
-    set(${_name}_SUBBUILD_DIR ${_subbuild_dir})
-    set(${_name}_BINARY_DIR ${_binary_dir})
+
+    set(_git_args --verbose --jobs=${_CPUS} --recurse-submodules --depth 1)
+
+    if(NOT EXISTS ${_source_dir} OR NOT EXISTS ${_source_dir}/.git)
+        set(_update true)
+        execute_process(
+            COMMAND             ${GIT_EXECUTABLE} clone ${ARGN} ${_git_args} --single-branch ${_url} ${_subdir}
+            WORKING_DIRECTORY   ${_GIT_DIR}
+            RESULT_VARIABLE     _git_result
+            OUTPUT_VARIABLE     _git_output
+        )
+        if(NOT _git_result EQUAL 0)
+            file(REMOVE_RECURSE ${_source_dir})
+        endif()
+    elseif(_update)
+        execute_process(
+            COMMAND             ${GIT_EXECUTABLE} pull ${_git_args}
+            WORKING_DIRECTORY   ${_source_dir}
+            RESULT_VARIABLE     _git_result
+            OUTPUT_VARIABLE     _git_output)
+    endif()
+    
+    if(NOT _git_result EQUAL 0)
+        message(FATAL_ERROR "git error: ${_git_output}")
+    endif()
+
+    if(${_update} OR NOT DEFINED ${_abs_name}_updated)
+        set(${_abs_name}_updated ${_current_date} CACHE INTERNAL "" FORCE) #todo: store it globally for all configs
+    endif()
+
+    if(EXISTS ${_source_dir}/CMakeLists.txt)
+        add_subdirectory(${_source_dir} ${_binary_dir})
+
+        if(TARGET ${_name}::${_name})
+            set(_target ${_name}::${_name})
+        elseif(TARGET ${_name})
+            set(_target ${_name})
+        else()
+            unset(_target)    
+        endif()
+
+        if(_target)
+            list(APPEND _FD_DEPS ${_target})
+            message(DEBUG "target ${_target} added")
+        else()
+            message(DEBUG "${_name} isn't a target name")
+        endif()
+    else()
+        if(EXISTS ${_source_dir}/include)
+            set(_include ${_source_dir}/include)
+            set(_info ${_name}/include)
+        else()
+            set(_include ${_source_dir})
+            set(_info ${_name}/)
+        endif()
+
+        message(DEBUG "${_info} directory included")
+        list(APPEND _FD_DEPS_INCLUDE ${_include})
+    endif()
 
     list(APPEND _FD_DEPS_DIRS ${_source_dir})
 endmacro()
 
-macro(Dependency_Use _name)
-    FetchContent_MakeAvailable(${_name})
-    FetchContent_Activate_Save(${_name})
+macro(Dependency_Load_Boost)
+    list(APPEND BOOST_INCLUDE_LIBRARIES ${ARGN})
 
-    if(TARGET ${_name}::${_name})
-        set(_target ${_name}::${_name})
-    elseif(TARGET ${_name})
-        set(_target ${_name})
-    endif()
-
-    if(_target)
-        list(APPEND _FD_DEPS ${_target})
-        message(DEBUG "target ${_target} added")
-    else()
-        message(DEBUG "${_name} isn't a target name")
-    endif()
-endmacro()
-
-macro(Dependency_Use_Boost)
-    FetchContent_MakeAvailable(boost)
-    FetchContent_Activate_Save(boost)
+    Dependency_Load(boostorg boost)
 
     set(_boost_libs ${BOOST_INCLUDE_LIBRARIES})
     list(TRANSFORM _boost_libs PREPEND Boost::)
 
     foreach(_lib ${_boost_libs})
-         message(DEBUG "target ${_lib} added")
-    endforeach()
-
-    list(APPEND _FD_DEPS ${_boost_libs})
+        message(DEBUG "target ${_lib} added")
+        list(APPEND _FD_DEPS ${_lib})
+    endforeach()       
 endmacro()
 
-macro(Dependency_Use_Imgui)
-    if(EXISTS "${imgui_SOURCE_DIR}/CMakeLists.txt")
-        Dependency_Use(imgui)
-    else()
-        FetchContent_Populate(imgui)
-        FetchContent_Activate_Save(imgui)
+macro(Dependency_Load_Imgui)
+    Dependency_Load(ocornut imgui --branch features/string_view)
 
-        file(GLOB _IMGUI_FILES ${imgui_SOURCE_DIR}/*.cpp)
-        if(TARGET freetype)
-            list(APPEND _IMGUI_FILES
-                ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp
-            )
+    if(NOT EXISTS ${imgui_SOURCE_DIR}/CMakeLists.txt)
+        if(${_FD_TARGET} STREQUAL CSGO)
+            set(_dx_version 9)
+        elseif(${_FD_TARGET} STREQUAL CS2)
+            set(_dx_version 11)
         endif()
-        
-        list(APPEND _IMGUI_FILES
-            ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
-            ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp
-        )      
-        add_library(imgui ${_IMGUI_FILES})
-        add_library(imgui::imgui ALIAS imgui)             
 
-        target_sources(imgui PUBLIC
-            ${imgui_SOURCE_DIR}/misc/debuggers/imgui.natvis
-            ${imgui_SOURCE_DIR}/misc/debuggers/imgui.natstepfilter
-        )
+        file(GLOB _sources ${imgui_SOURCE_DIR}/*.cpp)
+        file(GLOB _nat_files ${imgui_SOURCE_DIR}/misc/debuggers/*.nat*)
+      
+        if(TARGET freetype)
+            list(APPEND _sources ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp)
+        endif()        
+        list(APPEND _sources 
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_dx${_dx_version}.cpp
+        )                  
+
+        add_library(imgui ${_sources} ${_nat_files})
+        add_library(imgui::imgui ALIAS imgui)     
 
         target_compile_definitions(imgui PRIVATE 
             IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
@@ -229,27 +245,15 @@ macro(Dependency_Use_Imgui)
         list(APPEND _FD_DEPS "imgui::imgui")
         message(DEBUG "target imgui::imgui added")
     endif()
+
+    target_compile_definitions(imgui PUBLIC
+        IMGUI_USER_CONFIG="${_FD_SHARED_DIR}/render/config.h"
+    )
 endmacro()
 
-macro(Dependency_Populate _name)
-    FetchContent_Populate(${_name})
-    FetchContent_Activate_Save(${_name})
-
-    set(_src_dir ${${_name}_SOURCE_DIR})
-
-    if(EXISTS ${_src_dir}/include)
-        set(_include ${_src_dir}/include)
-        set(_info ${_name}/include)
-    else()
-        set(_include ${_src_dir})
-        set(_info ${_name}/)
-    endif()
-
-    message(DEBUG "${_info} directory included")
-    list(APPEND _FD_DEPS_INCLUDE ${_include})
-endmacro()
-
-set(BOOST_INCLUDE_LIBRARIES
+set(BOOST_RUNTIME_LINK static)
+#set(BOOST_ENABLE_MPI ON)
+Dependency_Load_Boost(
     #thread
     algorithm
     container
@@ -265,15 +269,12 @@ set(BOOST_INCLUDE_LIBRARIES
     static_string
     unordered
     nowide
-    lambda2)
-set(BOOST_RUNTIME_LINK static)
-#set(BOOST_ENABLE_MPI ON)
-Dependency_Load(boostorg boost)
-Dependency_Use_Boost()
+    lambda2
+)
 
 #[[
 set(XXHASH_BUILD_XXHSUM off)
-Dependency_Load(Cyan4973 xxHash GIT_TAG dev)
+Dependency_Load(Cyan4973 xxHash --branch dev)
 Dependency_Populate(xxHash)
 add_subdirectory(${xxHash_SOURCE_DIR}/cmake_unofficial ${xxHash_BINARY_DIR})
 target_compile_definitions(xxhash PUBLIC XXH_NO_LONG_LONG=1)
@@ -290,7 +291,7 @@ Dependency_Use(json)
 ]]
 
 #unable to use it now, because it change compiler flags and break the project
-#Dependency_Load(stephenberry glaze GIT_TAG main)
+#Dependency_Load(stephenberry glaze --branch main)
 #Dependency_Use(glaze)
 
 #Dependency_Load(martinus robin-hood-hashing)
@@ -300,7 +301,6 @@ Dependency_Use(json)
 #Dependency_Populate(atomic_queue)
 
 Dependency_Load(fmtlib fmt)
-Dependency_Use(fmt)
 target_compile_definitions(fmt PUBLIC FMT_USE_FULL_CACHE_DRAGONBOX=1)
 
 #[[
@@ -311,12 +311,10 @@ Dependency_Load(Zeex subhook)
 Dependency_Use(subhook)
 ]]
 
-#Dependency_Load(m417z minhook GIT_TAG multihook)
+#Dependency_Load(m417z minhook --branch multihook)
 Dependency_Load(TsudaKageyu minhook)
-Dependency_Use(minhook)
 
 Dependency_Load(Neargye magic_enum)
-Dependency_Use(magic_enum)
 
 #[[
 set(SPDLOG_BUILD_EXAMPLE off)
@@ -328,7 +326,7 @@ set(SPDLOG_WCHAR_FILENAMES on)
 set(SPDLOG_NO_ATOMIC_LEVELS on)
 set(SPDLOG_NO_TLS on)
 set(SPDLOG_NO_THREAD_ID on)
-Dependency_Load(gabime spdlog GIT_TAG v1.x)
+Dependency_Load(gabime spdlog --branch v1.x)
 Dependency_Use(spdlog)
 target_compile_definitions(spdlog PUBLIC basic_runtime=runtime_format_string)
 ]]
@@ -338,7 +336,7 @@ set(SIGMATCH_DEV_MODE off)
 set(SIGMATCH_BUILD_EXAMPLES off)
 set(SIGMATCH_BUILD_BENCHMARKS off)
 set(SIGMATCH_BUILD_TESTS off)
-Dependency_Load(SpriteOvO sigmatch GIT_TAG dev)
+Dependency_Load(SpriteOvO sigmatch --branch dev)
 Dependency_Use(sigmatch)
 ]]
 
@@ -346,7 +344,6 @@ Dependency_Use(sigmatch)
 #Dependency_Populate(lazy_importer)
 
 Dependency_Load(danielkrupinski x86RetSpoof)
-Dependency_Populate(x86RetSpoof)
 
 set(FT_DISABLE_ZLIB on)
 set(FT_DISABLE_BZIP2 on)
@@ -354,12 +351,9 @@ set(FT_DISABLE_PNG on)
 set(FT_DISABLE_HARFBUZZ on)
 set(FT_DISABLE_BROTLI on)
 Dependency_Load(freetype freetype)
-Dependency_Use(freetype)
 
-Dependency_Load(ocornut imgui GIT_TAG features/string_view)
-Dependency_Use_Imgui()
-target_compile_definitions(imgui PUBLIC
-    IMGUI_USER_CONFIG="${_FD_SHARED_DIR}/render/config.h")
+Dependency_Load_Imgui()
+
 
 # -------------------
 
