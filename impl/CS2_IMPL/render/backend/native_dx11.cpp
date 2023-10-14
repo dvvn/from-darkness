@@ -8,13 +8,14 @@
 #include "string/view.h"
 #endif
 
-#include <d3d9.h>
+#include <d3d11.h>
 #include <imgui.h>
 
 #include <cassert>
 
 namespace fd
 {
+#if 0
 struct native_dx11_backend_protector
 {
     ~native_dx11_backend_protector();
@@ -81,5 +82,5 @@ native_dx11_backend_protector::~native_dx11_backend_protector()
     if (*static_cast<native_dx11_backend*>(this)->device_ == nullptr) // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
         static_cast<detail::simple_imgui_dx11_data*>(ImGui::GetIO().BackendRendererUserData)->device = nullptr;
 }
-
+#endif
 } // namespace fd

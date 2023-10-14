@@ -46,7 +46,7 @@ win32_window_size& win32_window_size::operator=(simple_win32_window_size const& 
 
 WNDPROC win32_window_info::proc() const
 {
-    return reinterpret_cast<WNDPROC>(GetWindowLongPtr(id, GWL_WNDPROC));
+    return reinterpret_cast<WNDPROC>(GetWindowLongPtr(id, GWLP_WNDPROC));
 }
 
 win32_window_size win32_window_info::size() const

@@ -13,11 +13,11 @@ class own_dx11_backend_data : public noncopyable
 {
     friend class own_dx11_backend;
 
-    comptr<IDirect3D9> d3d_;
+    /*comptr<IDirect3D9> d3d_;
     comptr<IDirect3DDevice9> device_;
     D3DPRESENT_PARAMETERS params_;
 
-    own_dx11_backend_data(HWND hwnd);
+    own_dx11_backend_data(HWND hwnd);*/
 };
 
 class own_dx11_backend final : own_dx11_backend_data, public basic_dx11_backend

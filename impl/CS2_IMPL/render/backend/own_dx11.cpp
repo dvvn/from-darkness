@@ -9,9 +9,10 @@
 
 namespace fd
 {
-
+#if 0
 own_dx11_backend_data::own_dx11_backend_data(HWND hwnd)
 {
+
     auto const d3d = Direct3DCreate9(D3D_SDK_VERSION);
     if (!d3d)
         throw system_error("D3D device not created!");
@@ -110,4 +111,5 @@ void* own_dx11_backend::native() const
 {
     return device_.Get();
 }
+#endif
 } // namespace fd

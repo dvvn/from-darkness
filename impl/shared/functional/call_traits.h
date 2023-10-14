@@ -2,10 +2,10 @@
 
 // #define FD_SPOOF_RETURN_ADDRESS
 
+#include "cast.h"
+//
 #include "concepts.h"
 #include "diagnostics/fatal.h"
-//
-#include "cast.h"
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
 #include <x86RetSpoof.h>
@@ -25,11 +25,13 @@ namespace fd
 {
 enum class call_type : uint8_t
 {
-    // ReSharper disable CppInconsistentNaming
+// ReSharper disable CppInconsistentNaming
+#if INTPTR_MAX == INT32_MAX
     thiscall_,
-    cdecl_,
     fastcall_,
     stdcall_,
+#endif
+    cdecl_,
     vectorcall_,
     // ReSharper restore CppInconsistentNaming
 };
@@ -59,6 +61,7 @@ struct dummy_class final
 
 #define _X86_CALL_PROXY(_PROXY_, _T_) _PROXY_(call_type::_T_##_, __##_T_, ##_T_)
 
+#if INTPTR_MAX == INT32_MAX
 #define X86_CALL(_PROXY_)              \
     _X86_CALL_PROXY(_PROXY_, cdecl)    \
     _X86_CALL_PROXY(_PROXY_, fastcall) \
@@ -67,6 +70,12 @@ struct dummy_class final
 #define X86_CALL_MEMBER(_PROXY_)       \
     _X86_CALL_PROXY(_PROXY_, thiscall) \
     X86_CALL(_PROXY_)
+#elif INTPTR_MAX == INT64_MAX
+#define X86_CALL(_PROXY_)           \
+    _X86_CALL_PROXY(_PROXY_, cdecl) \
+    _X86_CALL_PROXY(_PROXY_, vectorcall)
+#define X86_CALL_MEMBER X86_CALL
+#endif
 
 template <template <call_type Call_T> class Q, typename... Args>
 decltype(auto) apply(call_type info, Args... args)
@@ -78,7 +87,7 @@ decltype(auto) apply(call_type info, Args... args)
     switch (info)
     {
         X86_CALL_MEMBER(INFO_CASE);
-    default:  // NOLINT(clang-diagnostic-covered-switch-default)
+    default: // NOLINT(clang-diagnostic-covered-switch-default)
         unreachable();
     }
 
@@ -95,7 +104,7 @@ decltype(auto) apply(Fn fn, call_type info, Args... args)
     switch (info)
     {
         X86_CALL_MEMBER(INFO_CASE);
-    default:  // NOLINT(clang-diagnostic-covered-switch-default)
+    default: // NOLINT(clang-diagnostic-covered-switch-default)
         unreachable();
     }
 
@@ -235,11 +244,12 @@ struct member_func_invoker<Call_T, Ret, T, Args...> : member_func_invoker<Call_T
     static_assert(sizeof(member_func_type<Call_T, Ret, T, Args...>) != sizeof(void*));
 };
 
+#if INTPTR_MAX == INT32_MAX
 template <class Ret, typename... Args>
 struct member_func_invoker<call_type::thiscall_, Ret, void, Args...> : non_member_func_invoker<call_type::thiscall_, Ret, void*, Args...>
 {
 };
-
+#endif
 template <call_type Call_T, class Ret, typename... Args>
 struct member_func_invoker<Call_T, Ret, void, Args...>
 {
@@ -374,11 +384,12 @@ struct function_info<Obj> : function_info<decltype(&Obj::operator())>
 {
 };
 
+#if INTPTR_MAX == INT32_MAX
 template <typename Ret, typename T, typename... Args>
 struct function_info<Ret(__thiscall*)(T*, Args...)> : member_function_info<call_type::thiscall_, Ret, T, Args...>
 {
 };
-
+#endif
 // template <typename Ret, typename T, typename... Args>
 // struct non_member_function_info<call_type::thiscall_, Ret, T, Args...>
 //     : member_function_info<call_type::thiscall_, Ret, T, Args...>
