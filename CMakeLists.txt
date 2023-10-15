@@ -14,12 +14,11 @@ set(CMAKE_C_STANDARD_REQUIRED on)
 
 project(from-datkness CXX)
 
-list(LENGTH CMAKE_CONFIGURATION_TYPES _cfgs_count)
-if(NOT _cfgs_count EQUAL 1)
-    message(FATAL_ERROR "Unsupported CMAKE_CONFIGURATION_TYPES")
-endif()
-
 if (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE MATCHES "")
+    list(LENGTH CMAKE_CONFIGURATION_TYPES _cfgs_count)
+    if(NOT _cfgs_count EQUAL 1)
+        message(FATAL_ERROR "Unsupported CMAKE_CONFIGURATION_TYPES")
+    endif()
     set(CMAKE_BUILD_TYPE ${CMAKE_CONFIGURATION_TYPES})
 endif()
 
@@ -31,18 +30,11 @@ endif()
 
 set(_FD_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(_FD_IMPL_DIR ${_FD_ROOT_DIR}/impl)
-#set(_FD_OUT_DIR ${_FD_ROOT_DIR}/.out/${CMAKE_BUILD_TYPE})
+set(_FD_OUT_DIR ${_FD_ROOT_DIR}/.out)
 
 set(_FD_SHARED_DIR ${_FD_IMPL_DIR}/shared)
 set(_FD_PROJECT_DIR ${_FD_IMPL_DIR}/${_FD_TARGET})
 set(_FD_PROJECT_IMPL_DIR ${_FD_IMPL_DIR}/${_FD_TARGET}_IMPL)
-
-#[[file(
-    DOWNLOAD
-    https://github.com/cpm-cmake/CPM.cmake/releases/latest/download/CPM.cmake
-    ${_FD_ROOT_DIR}/.out/CPM.cmake
-)
-include(${_FD_ROOT_DIR}/.out/CPM.cmake)]]
 
 find_package(Git)
 if(NOT Git_FOUND)
@@ -103,105 +95,172 @@ endif()
 
 #------------------------
 
+#todo: current drive name
 set(_GIT_DIR "C:/git" CACHE STRING "The repos storage")
 
 set(_FD_DEPS)
-set(_FD_DEPS_INCLUDE)
-set(_FD_DEPS_DIRS)
+macro(FD_append_dep)
+    foreach(_dep_append ${ARGN})
+        list(APPEND _FD_DEPS ${_dep_append})
+        if(TARGET ${_dep_append})
+            message(DEBUG "target ${_dep_append} added")
+        endif()
+    endforeach()
+endmacro()
 
-string(TIMESTAMP _current_date "%d.%m.%Y")
+set(_FD_DEPS_INCLUDE)
+macro(FD_append_dep_include _inc_append)
+    list(APPEND _FD_DEPS_INCLUDE ${_inc_append})
+    message(DEBUG "${_inc_append} directory included")
+endmacro()
+
+set(_FD_DEPS_DIRS)
+macro(FD_append_dep_dir _dir_append)
+    list(APPEND _FD_DEPS_DIRS ${_dir_append})
+endmacro()
+
+macro(Run_git _work_dir)
+    execute_process(
+            COMMAND             ${GIT_EXECUTABLE} ${ARGN}
+            WORKING_DIRECTORY   ${_work_dir}
+            RESULT_VARIABLE     _git_result
+            ECHO_ERROR_VARIABLE
+    )
+    if(_git_result EQUAL 0)
+        set(_GIT_ERROR false #[[PARENT_SCOPE]])
+    else()
+        set(_GIT_ERROR true #[[PARENT_SCOPE]])
+    endif()
+    set(_GIT_RESULT ${_git_result} #[[PARENT_SCOPE]])
+endmacro()
+
+macro(Print_git_error_message)
+    message(FATAL_ERROR "git error: ${_GIT_RESULT}")
+endmacro()
+
+macro(Check_directory_empty _check_dir)
+    set(_DIR_EMPTY true #[[PARENT_SCOPE]])
+    if(EXISTS ${_check_dir})
+        file(GLOB _items ${_check_dir}/*)
+        list(LENGTH _items _items_count)
+        if(_items_count)
+            set(_DIR_EMPTY false #[[PARENT_SCOPE]])       
+        endif()
+    endif()
+endmacro()
+
+macro(Set_variable _var_name _var_postfix _default_value)    
+    string(TOUPPER ${_var_postfix} _var_postfix_UP)
+    set(_var_name_full ${_var_name}_${_var_postfix_UP})
+    set(_out_var _${_var_postfix})
+    if(NOT DEFINED ${_var_name_full})
+        set(${_out_var} ${_default_value})
+    else()
+        set(_stored_value ${${_var_name_full}})
+        if(DEFINED ${_stored_value})
+            set(${_out_var} ${${_stored_value}})
+        else()
+            set(${_out_var} ${_stored_value})
+        endif()
+    endif()
+endmacro()
+
+set(_ADD_TARGET_DEP 1)
+set(_ADD_TARGET 2)
+string(TIMESTAMP _CURRENT_DATE "%d.%m.%Y")
 
 macro(Dependency_Load _owner _name)
     set(_abs_name ${_owner}_${_name})
-    set(_update true)
-    if(DEFINED ${_abs_name}_updated)
-        if(${_current_date} STREQUAL ${${_abs_name}_updated})
-            set(_update false)
-            set(_git_result 0)
-        endif()
-    endif()
+    set(_update_holder ${_FD_OUT_DIR}/git/${_abs_name}_updated.txt)   
+    set(_updated false)
 
     set(_subdir ${_owner}/${_name})
     set(_source_dir ${_GIT_DIR}/${_subdir})
     set(_binary_dir ${CMAKE_BINARY_DIR}/${_subdir})
     set(_url https://github.com/${_subdir}.git)
 
-    set(${_name}_SOURCE_DIR ${_source_dir})
+    set(${_name}_SOURCE_DIR ${_source_dir} #[[PARENT_SCOPE]])
 
-    set(_git_args --verbose --jobs=${_CPUS} --recurse-submodules --depth 1)
+    set(_git_args --verbose --jobs=${_CPUS} --recurse-submodules)
 
-    if(NOT EXISTS ${_source_dir} OR NOT EXISTS ${_source_dir}/.git)
-        set(_update true)
-        execute_process(
-            COMMAND             ${GIT_EXECUTABLE} clone ${ARGN} ${_git_args} --single-branch ${_url} ${_subdir}
-            WORKING_DIRECTORY   ${_GIT_DIR}
-            RESULT_VARIABLE     _git_result
-            OUTPUT_VARIABLE     _git_output
-        )
-        if(NOT _git_result EQUAL 0)
+    Check_directory_empty(${_source_dir})
+    if(_DIR_EMPTY)
+        Run_git(${_GIT_DIR} clone ${ARGN} ${_git_args} ${_url} ${_subdir})
+        if(_GIT_ERROR)
             file(REMOVE_RECURSE ${_source_dir})
-        endif()
-    elseif(_update)
-        execute_process(
-            COMMAND             ${GIT_EXECUTABLE} pull ${_git_args}
-            WORKING_DIRECTORY   ${_source_dir}
-            RESULT_VARIABLE     _git_result
-            OUTPUT_VARIABLE     _git_output)
-    endif()
-    
-    if(NOT _git_result EQUAL 0)
-        message(FATAL_ERROR "git error: ${_git_output}")
-    endif()
-
-    if(${_update} OR NOT DEFINED ${_abs_name}_updated)
-        set(${_abs_name}_updated ${_current_date} CACHE INTERNAL "" FORCE) #todo: store it globally for all configs
-    endif()
-
-    if(EXISTS ${_source_dir}/CMakeLists.txt)
-        add_subdirectory(${_source_dir} ${_binary_dir})
-
-        if(TARGET ${_name}::${_name})
-            set(_target ${_name}::${_name})
-        elseif(TARGET ${_name})
-            set(_target ${_name})
+            Print_git_error_message()
         else()
-            unset(_target)    
+            set(_updated true)
+        endif()        
+    else()        
+        if(EXISTS ${_update_holder})
+            file(READ ${_update_holder} _update_date)
+        else()
+            set(_update_date "")
         endif()
 
-        if(_target)
-            list(APPEND _FD_DEPS ${_target})
-            message(DEBUG "target ${_target} added")
-        else()
-            message(DEBUG "${_name} isn't a target name")
+        if(NOT _CURRENT_DATE EQUAL _update_date)
+            Run_git(${_source_dir} pull ${_git_args})
+            if(_GIT_ERROR)
+                Print_git_error_message()
+            else()
+                set(_updated true)
+            endif()   
         endif()
+    endif()
+        
+    if(_updated)
+        file(WRITE ${_update_holder} ${_CURRENT_DATE})
+    endif()
+       
+    if(NOT EXISTS ${_source_dir}/CMakeLists.txt)
+        set(_add_target 0)
     else()
-        if(EXISTS ${_source_dir}/include)
-            set(_include ${_source_dir}/include)
-            set(_info ${_name}/include)
-        else()
-            set(_include ${_source_dir})
-            set(_info ${_name}/)
+        Set_variable(${_name} add_target 2)
+
+        if(_add_target GREATER 0)
+            add_subdirectory(${_source_dir} ${_binary_dir})
         endif()
 
-        message(DEBUG "${_info} directory included")
-        list(APPEND _FD_DEPS_INCLUDE ${_include})
+        if(_add_target GREATER 1)
+            if(TARGET ${_name}::${_name})
+                FD_append_dep(${_name}::${_name})
+            elseif(TARGET ${_name})
+                FD_append_dep(${_name})
+            else()
+                message(FATAL_ERROR "${_subdir}: no targets found!")
+            endif()
+        endif()
     endif()
 
-    list(APPEND _FD_DEPS_DIRS ${_source_dir})
+    if(_add_target GREATER 1)
+        set(_add_include false)
+    else()
+        Set_variable(${_name} add_include true)
+    endif()
+
+    if(_add_include)
+        if(EXISTS ${_source_dir}/include)
+            FD_append_dep_include(${_source_dir}/include)
+        else()
+            FD_append_dep_include(${_source_dir})
+        endif()
+    endif()
+
+    FD_append_dep_dir(${_source_dir})
 endmacro()
 
 macro(Dependency_Load_Boost)
     list(APPEND BOOST_INCLUDE_LIBRARIES ${ARGN})
 
+    set(boost_ADD_TARGET _ADD_TARGET_DEP)
+    set(boost_ADD_INCLUDE false)
     Dependency_Load(boostorg boost)
 
     set(_boost_libs ${BOOST_INCLUDE_LIBRARIES})
     list(TRANSFORM _boost_libs PREPEND Boost::)
 
-    foreach(_lib ${_boost_libs})
-        message(DEBUG "target ${_lib} added")
-        list(APPEND _FD_DEPS ${_lib})
-    endforeach()       
+    FD_append_dep(${_boost_libs})     
 endmacro()
 
 macro(Dependency_Load_Imgui)
@@ -209,9 +268,9 @@ macro(Dependency_Load_Imgui)
 
     if(NOT EXISTS ${imgui_SOURCE_DIR}/CMakeLists.txt)
         if(${_FD_TARGET} STREQUAL CSGO)
-            set(_dx_version 9)
+            set(_directx_version 9)
         elseif(${_FD_TARGET} STREQUAL CS2)
-            set(_dx_version 11)
+            set(_directx_version 11)
         endif()
 
         file(GLOB _sources ${imgui_SOURCE_DIR}/*.cpp)
@@ -222,16 +281,16 @@ macro(Dependency_Load_Imgui)
         endif()        
         list(APPEND _sources 
             ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
-            ${imgui_SOURCE_DIR}/backends/imgui_impl_dx${_dx_version}.cpp
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_dx${_directx_version}.cpp
         )                  
 
         add_library(imgui ${_sources} ${_nat_files})
         add_library(imgui::imgui ALIAS imgui)     
 
-        target_compile_definitions(imgui PRIVATE 
-            IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
-            IMGUI_USE_BGRA_PACKED_COLOR #d3d9 only
-        )
+        target_compile_definitions(imgui PRIVATE IMGUI_IMPL_WIN32_DISABLE_GAMEPAD)
+        if(_directx_version EQUAL 9)
+            target_compile_definitions(imgui PRIVATE IMGUI_USE_BGRA_PACKED_COLOR)
+        endif()
         
         if(TARGET freetype)
             target_link_libraries(imgui PUBLIC freetype)
@@ -242,8 +301,7 @@ macro(Dependency_Load_Imgui)
             ${imgui_SOURCE_DIR}/backends
         )
 
-        list(APPEND _FD_DEPS "imgui::imgui")
-        message(DEBUG "target imgui::imgui added")
+        FD_append_dep("imgui::imgui")
     endif()
 
     target_compile_definitions(imgui PUBLIC
@@ -257,14 +315,13 @@ Dependency_Load_Boost(
     #thread
     algorithm
     container
-    container_hash
     filesystem
     #json
-    sort
-    io
-    geometry
-    qvm
-    fusion
+    #sort
+    #io
+    #geometry
+    #qvm
+    #fusion
     hana
     static_string
     unordered
@@ -314,7 +371,7 @@ Dependency_Use(subhook)
 #Dependency_Load(m417z minhook --branch multihook)
 Dependency_Load(TsudaKageyu minhook)
 
-Dependency_Load(Neargye magic_enum)
+#Dependency_Load(Neargye magic_enum)
 
 #[[
 set(SPDLOG_BUILD_EXAMPLE off)
@@ -343,17 +400,21 @@ Dependency_Use(sigmatch)
 #Dependency_Load(JustasMasiulis lazy_importer)
 #Dependency_Populate(lazy_importer)
 
-Dependency_Load(danielkrupinski x86RetSpoof)
+if(${_FD_TARGET} STREQUAL CSGO)
+    set(x86RetSpoof_ADD_TARGET 0)
+    Dependency_Load(danielkrupinski x86RetSpoof)
+endif()
 
 set(FT_DISABLE_ZLIB on)
 set(FT_DISABLE_BZIP2 on)
 set(FT_DISABLE_PNG on)
 set(FT_DISABLE_HARFBUZZ on)
 set(FT_DISABLE_BROTLI on)
+set(freetype_ADD_TARGET _ADD_TARGET_DEP)
+set(freetype_ADD_INCLUDE false)
 Dependency_Load(freetype freetype)
 
 Dependency_Load_Imgui()
-
 
 # -------------------
 
@@ -362,11 +423,12 @@ foreach(_lib ${_FD_DEPS_DIRS})
     string(REPLACE "/" "\\" _natjmc_lib \"${_lib}*\")
     set(_NATJMC_DATA "${_NATJMC_DATA}<File Name=${_natjmc_lib} />")
 endforeach()
-configure_file(${_FD_IMPL_DIR}/${_nat_name}_natjmc ${_FD_IMPL_DIR}/${_nat_name}.natjmc)
-#configure_file(${_FD_IMPL_DIR}/${_nat_name}_natstepfilter ${_FD_IMPL_DIR}/${_nat_name}.natstepfilter)
+set(_DEBUG_OUT_DIR ${_FD_OUT_DIR}/debug/)
+configure_file(${_FD_IMPL_DIR}/${_nat_name}_natjmc ${_DEBUG_OUT_DIR}/${_nat_name}.natjmc)
+#configure_file(${_FD_IMPL_DIR}/${_nat_name}_natstepfilter ${_DEBUG_OUT_DIR}/${_nat_name}.natstepfilter)
 
 file(GLOB_RECURSE _shared_src ${_FD_SHARED_DIR}/*.cpp)
-file(GLOB _root_visualizers ${_FD_IMPL_DIR}/*.nat*)
+file(GLOB _root_visualizers ${_DEBUG_OUT_DIR}/*.nat*)
 file(GLOB_RECURSE _shared_visualizers ${_FD_SHARED_DIR}/*.nat*)
 add_library(FD_SHARED ${_shared_src} ${_root_visualizers} ${_shared_visualizers})
 target_link_libraries(FD_SHARED PUBLIC ${_FD_DEPS})
