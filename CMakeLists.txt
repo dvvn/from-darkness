@@ -267,11 +267,11 @@ macro(Dependency_Load_Imgui)
     Dependency_Load(ocornut imgui --branch features/string_view)
 
     if(NOT EXISTS ${imgui_SOURCE_DIR}/CMakeLists.txt)
-        if(${_FD_TARGET} STREQUAL CSGO)
+        #[[if(${_FD_TARGET} STREQUAL CSGO)
             set(_directx_version 9)
         elseif(${_FD_TARGET} STREQUAL CS2)
             set(_directx_version 11)
-        endif()
+        endif()]]
 
         file(GLOB _sources ${imgui_SOURCE_DIR}/*.cpp)
         file(GLOB _nat_files ${imgui_SOURCE_DIR}/misc/debuggers/*.nat*)
@@ -281,16 +281,20 @@ macro(Dependency_Load_Imgui)
         endif()        
         list(APPEND _sources 
             ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
-            ${imgui_SOURCE_DIR}/backends/imgui_impl_dx${_directx_version}.cpp
+            #${imgui_SOURCE_DIR}/backends/imgui_impl_dx${_directx_version}.cpp
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp
+            ${imgui_SOURCE_DIR}/backends/imgui_impl_dx11.cpp
         )                  
 
         add_library(imgui ${_sources} ${_nat_files})
         add_library(imgui::imgui ALIAS imgui)     
 
-        target_compile_definitions(imgui PRIVATE IMGUI_IMPL_WIN32_DISABLE_GAMEPAD)
-        if(_directx_version EQUAL 9)
+        target_compile_definitions(imgui PRIVATE
+            IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
+        )
+        #[[if(_directx_version EQUAL 9)
             target_compile_definitions(imgui PRIVATE IMGUI_USE_BGRA_PACKED_COLOR)
-        endif()
+        endif()]]
         
         if(TARGET freetype)
             target_link_libraries(imgui PUBLIC freetype)
@@ -436,12 +440,19 @@ target_include_directories(FD_SHARED PUBLIC ${_FD_SHARED_DIR}/ ${_FD_DEPS_INCLUD
 
 file(GLOB_RECURSE _project_src ${_FD_PROJECT_IMPL_DIR}/*.cpp)
 file(GLOB_RECURSE _project_visualizers ${_FD_PROJECT_IMPL_DIR}/*.nat*)
-add_library(FD_${_FD_TARGET}_IMPL ${_project_src} ${_project_visualizers})
-target_link_libraries(FD_${_FD_TARGET}_IMPL PUBLIC FD_SHARED)
-target_include_directories(FD_${_FD_TARGET}_IMPL PUBLIC ${_FD_PROJECT_IMPL_DIR}/)
+set(_project_src_all ${_project_src} ${_project_visualizers})
+if(NOT _project_src_all)
+    set(_FD_IMPL FD_SHARED)
+    target_include_directories(${_FD_IMPL} INTERFACE ${_FD_PROJECT_IMPL_DIR}/)
+else()
+    set(_FD_IMPL FD_${_FD_TARGET}_IMPL)
+    add_library(${_FD_IMPL} ${_project_src_all})
+    target_link_libraries(${_FD_IMPL} PUBLIC FD_SHARED)
+    target_include_directories(${_FD_IMPL} PUBLIC ${_FD_PROJECT_IMPL_DIR}/)
+endif()
 
 macro(Finalize_project _name)
-    target_link_libraries(${_name} PUBLIC FD_${_FD_TARGET}_IMPL)
+    target_link_libraries(${_name} PUBLIC ${_FD_IMPL})
     target_include_directories(${_name} PUBLIC ${_FD_PROJECT_DIR}/)
 endmacro()
 

@@ -27,13 +27,8 @@
 #define ImDrawIdx uint32_t
 #endif
 
-#ifdef _DEBUG
-#ifdef _WIN32
-struct IDirect3DTexture9;
-#define ImTextureID IDirect3DTexture9*
-#else
-// reserved
-#endif
+#ifdef IMGUI_USE_BGRA_PACKED_COLOR
+#define IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT struct ImDrawVert { ImVec2 pos; float z; ImU32 col; ImVec2 uv; }
 #endif
 
 #ifdef IMGUI_DISABLE_DEFAULT_MATH_FUNCTIONS

@@ -25,6 +25,22 @@ simple_win32_window_size::simple_win32_window_size(RECT const& rect)
 {
 }
 
+simple_win32_window_size::simple_win32_window_size(LONG w, LONG h)
+    : w(w)
+    , h(h)
+{
+}
+
+bool simple_win32_window_size::operator==(simple_win32_window_size const& other) const
+{
+#if LONG_MAX == INT_MAX
+    if constexpr (sizeof(simple_win32_window_size) == sizeof(uint64_t))
+        return *reinterpret_cast<uint64_t const*>(this) == reinterpret_cast<uint64_t const&>(other);
+    else
+#endif
+        return w == other.w && h == other.h;
+}
+
 win32_window_size::win32_window_size()
     : x(CW_USEDEFAULT)
     , y(CW_USEDEFAULT)

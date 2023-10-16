@@ -16,6 +16,9 @@ struct simple_win32_window_size
 
     simple_win32_window_size();
     simple_win32_window_size(RECT const& rect);
+    simple_win32_window_size(LONG w, LONG h);
+
+    bool operator==(simple_win32_window_size const& other) const;
 };
 
 struct win32_window_size : simple_win32_window_size

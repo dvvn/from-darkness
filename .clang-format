@@ -69,7 +69,7 @@ IncludeCategories:
     Priority: 3
   - Regex: '<windows\.h>'
     Priority: 4
-  - Regex: '<[^\\\/]*\.h.*>'
+  - Regex: '<.*/.*\.h.*>'
     Priority: 4
     SortPriority: 5
 ...

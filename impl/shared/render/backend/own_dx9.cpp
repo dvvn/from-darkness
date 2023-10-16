@@ -1,23 +1,20 @@
-﻿#include "own_dx11.h"
+﻿#include "own_dx9.h"
 //
 #include "comptr.h"
 #include "diagnostics/system_error.h"
 
-#include <tchar.h>
-
 #include <cassert>
+#include <tchar.h>
 
 namespace fd
 {
-#if 0
-own_dx11_backend_data::own_dx11_backend_data(HWND hwnd)
-{
 
+own_dx9_backend_data::own_dx9_backend_data(HWND hwnd)
+{
     auto const d3d = Direct3DCreate9(D3D_SDK_VERSION);
     if (!d3d)
         throw system_error("D3D device not created!");
-
-    d3d_.Attach(d3d);
+    d3d_ = (d3d);
 #ifndef _DEBUG
     memset(&params_, 0, sizeof(D3DPRESENT_PARAMETERS));
 #endif
@@ -44,26 +41,26 @@ own_dx11_backend_data::own_dx11_backend_data(HWND hwnd)
         //.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE // vsync off
     };
 
-    auto const result = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, device_);
+    auto const result = d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &params_, &device_);
 
     if (FAILED(result))
         throw system_error(result, "D3D device create error");
 }
 
-void own_dx11_backend::reset()
+void own_dx9_backend::reset()
 {
-    basic_dx11_backend::reset();
+    basic_dx9_backend::reset();
     auto const hr = device_->Reset(&params_);
     assert(hr != D3DERR_INVALIDCALL);
 }
 
-own_dx11_backend::own_dx11_backend(HWND hwnd)
-    : own_dx11_backend_data(hwnd)
-    , basic_dx11_backend(device_)
+own_dx9_backend::own_dx9_backend(HWND hwnd)
+    : own_dx9_backend_data(hwnd)
+    , basic_dx9_backend(device_)
 {
 }
 
-void own_dx11_backend::render(ImDrawData* draw_data)
+void own_dx9_backend::render(ImDrawData* draw_data)
 {
     device_->SetRenderState(D3DRS_ZENABLE, FALSE);
     device_->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
@@ -74,42 +71,31 @@ void own_dx11_backend::render(ImDrawData* draw_data)
     auto const begin = device_->BeginScene();
     assert(begin == D3D_OK);
 
-    basic_dx11_backend::render(draw_data);
+    basic_dx9_backend::render(draw_data);
 
     auto const end = device_->EndScene();
     assert(end == D3D_OK);
 
     auto const present = device_->Present(nullptr, nullptr, nullptr, nullptr);
     if (present == D3DERR_DEVICELOST && device_->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
-        own_dx11_backend::reset();
+        own_dx9_backend::reset();
     else
         assert(present == D3D_OK);
 }
 
-void own_dx11_backend::resize(UINT w, UINT h)
+void own_dx9_backend::resize(simple_win32_window_size const& size)
 {
+#if INT_MAX == LONG_MAX
 #ifdef _DEBUG
-    [[maybe_unused]] auto last_w = params_.BackBufferWidth;
-    [[maybe_unused]] auto last_h = params_.BackBufferHeight;
+    [[maybe_unused]] //
+    std::pair const last(params_.BackBufferWidth, params_.BackBufferHeight);
 #endif
-    auto do_reset = false;
-    if (auto& w_old = params_.BackBufferWidth; w_old != w)
-    {
-        w_old    = w;
-        do_reset = true;
-    }
-    if (auto& h_old = params_.BackBufferHeight; h_old != h)
-    {
-        h_old    = h;
-        do_reset = true;
-    }
-    if (do_reset)
-        own_dx11_backend::reset();
-}
+    auto const& current = reinterpret_cast<simple_win32_window_size&>(params_.BackBufferWidth);
+#else
+    simple_win32_window_size const current(params_.BackBufferWidth, params_.BackBufferHeight);
+#endif
 
-void* own_dx11_backend::native() const
-{
-    return device_.Get();
+    if (current != size)
+        own_dx9_backend::reset();
 }
-#endif
 } // namespace fd

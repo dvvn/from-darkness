@@ -2,12 +2,12 @@
 
 namespace fd
 {
-template <class RenderB, class SystemB, class RenderContext, class Menu>
+template <class RenderB, class SystemB, class RenderCtx, class Menu>
 struct render_frame final
 {
     RenderB* render_backend;
     SystemB* system_backend;
-    RenderContext* render_context;
+    RenderCtx* render_context;
     Menu* menu;
 
     void render() const

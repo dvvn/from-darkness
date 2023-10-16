@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "basic_dx9.h"
-//
+#include "basic_win32.h"
 #include "comptr.h"
 #include "noncopyable.h"
 
@@ -29,7 +29,6 @@ class own_dx9_backend final : own_dx9_backend_data, public basic_dx9_backend
 
     using basic_dx9_backend::new_frame;
     void render(ImDrawData* draw_data);
-    void resize(UINT w, UINT h);
-    void* native() const;
+    void resize(simple_win32_window_size const& size);
 };
 } // namespace fd
