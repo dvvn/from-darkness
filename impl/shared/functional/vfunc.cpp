@@ -51,5 +51,5 @@ X86_CALL_MEMBER(GET_VFUNC_IDX_IMPL);
     {                                                                 \
         BOOST_PP_REPEAT(BOOST_PP_LIMIT_REPEAT, GET_INDEX_FN, __call); \
     };
-X86_CALL_MEMBER(VFUNC_INDEX_RESOLVER); // NOLINT(cppcoreguidelines-virtual-class-destructor)
+X86_CALL_MEMBER(VFUNC_INDEX_RESOLVER); // NOLINT(cppcoreguidelines-virtual-class-destructor, clang-diagnostic-extra-semi)
 }
