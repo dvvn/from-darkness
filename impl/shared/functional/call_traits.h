@@ -376,6 +376,20 @@ template <typename Fn, typename... Args>
 struct function_info<std::_Binder<std::_Unforced, Fn, Args...>> : function_info<Fn>
 {
 };
+
+#ifdef __cpp_lib_bind_front
+template <typename Fn, typename... Args>
+struct function_info<std::_Front_binder<Fn, Args...>> : function_info<Fn>
+{
+};
+#endif
+
+#ifdef __cpp_lib_bind_back
+template <typename Fn, typename... Args>
+struct function_info<std::_Back_binder<Fn, Args...>> : function_info<Fn>
+{
+};
+#endif
 #endif
 
 template <typename Obj>

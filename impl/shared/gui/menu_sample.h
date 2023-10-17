@@ -25,8 +25,9 @@ bool menu_sample()
     auto const window = system_bk.info();
     render_backend render_bk(window.id);
     using namespace fd::string_view_literals;
+
     menu menu_holder(
-        bind(menu_tab, "Tab1"sv, menu_tab_item("One", bind(ImGui::TextUnformatted, "Text"sv))), //
+        bind(menu_tab, "Tab1"sv, bind_front(menu_tab_item, "One"sv, bind(ImGui::TextUnformatted, "Text"sv))), //
         bind(&own_win32_backend::close, &system_bk));
 
     render_frame const render_frame(&render_bk, &system_bk, &render_ctx, &menu_holder);

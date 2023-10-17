@@ -3,6 +3,8 @@
 #include "item_id.h"
 #include "string/view.h"
 
+#include <functional>
+
 namespace ImGui::inline ex
 {
 // ReSharper disable once CppInconsistentNaming
@@ -11,53 +13,19 @@ bool BeginTabBar(ImGuiID id, ImGuiTabBarFlags flags = ImGuiTabBarFlags_None);
 
 namespace fd
 {
-template <typename Fn>
-#ifdef _DEBUG
-requires(std::invocable<std::remove_pointer_t<Fn>>)
-#endif
-struct menu_tab_item : std::pair<string_view, Fn>
-{
-    using std::pair<string_view, Fn>::pair;
+inline constexpr auto menu_tab_item = []<typename Fn>(string_view const name, Fn&& callback) -> void {
+    if (!ImGui::BeginTabItem(name))
+        return;
+
+    (std::invoke(std::forward<Fn>(callback)));
+    ImGui::EndTabItem();
 };
 
-template <typename Fn>
-menu_tab_item(string_view, Fn) -> menu_tab_item<Fn>;
+inline constexpr auto menu_tab = []<typename... I>(menu_item_id const id, I&&... items) -> void {
+    if (!ImGui::BeginTabBar(id))
+        return;
 
-namespace detail
-{
-inline constexpr class
-{
-    static void render(auto& item)
-    {
-        using std::get;
-        using std::invoke;
-        if (ImGui::BeginTabItem(get<0>(item)))
-        {
-            invoke(get<1>(item));
-            ImGui::EndTabItem();
-        }
-    }
-
-  public:
-    template <typename Fn>
-    void operator()(menu_tab_item<Fn>& item) const
-    {
-        render(item);
-    }
-
-    template <typename Fn>
-    void operator()(menu_tab_item<Fn> const& item) const
-    {
-        render(item);
-    }
-} render_menu_tab_item;
-} // namespace detail
-
-inline constexpr auto menu_tab = []<typename... I>(menu_item_id const id, I&&... items) {
-    if (ImGui::BeginTabBar(id))
-    {
-        (detail::render_menu_tab_item(std::forward<I>(items)), ...);
-        ImGui::EndTabBar();
-    }
+    (std::invoke(std::forward<I>(items)), ...);
+    ImGui::EndTabBar();
 };
 }
