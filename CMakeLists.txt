@@ -292,7 +292,7 @@ macro(Dependency_Load_Imgui)
         add_library(imgui::imgui ALIAS imgui)     
 
         target_compile_definitions(imgui ${_compile_defs})
-        if(DEFINED _link_Libs)
+        if(DEFINED _link_libs)
             target_link_libraries(imgui ${_link_libs})
         endif()
         target_include_directories(imgui ${_include_dirs})
