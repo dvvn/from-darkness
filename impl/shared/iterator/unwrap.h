@@ -2,36 +2,13 @@
 
 #include <boost/move/detail/iterator_to_raw_pointer.hpp>
 
-// ReSharper disable CppInconsistentNaming
-#if defined(_MSC_VER) && _ITERATOR_DEBUG_LEVEL != 0
-namespace boost
-{
-namespace container
+namespace boost::container
 {
 template <class Pointer, bool IsConst>
 class vec_iterator;
 }
 
-namespace movelib
-{
-namespace detail
-{
-template <class Iterator>
-    requires(std::_Unwrappable_v<Iterator>)
-typename iterator_to_element_ptr<Iterator>::type iterator_to_pointer(Iterator const& i)
-{
-    return iterator_to_pointer(std::_Get_unwrapped(i));
-}
-} // namespace detail
-
-template <class Iterator>
-    requires(std::_Unwrappable_v<Iterator>)
-typename detail::iterator_to_element_ptr<Iterator>::type iterator_to_raw_pointer(Iterator const& i)
-{
-    return iterator_to_raw_pointer(std::_Get_unwrapped(i));
-}
-} // namespace movelib
-} // namespace boost
+// ReSharper disable CppInconsistentNaming
 
 _STD_BEGIN
 template <typename T, bool C>
@@ -41,7 +18,29 @@ _NODISCARD T _Get_unwrapped(boost::container::vec_iterator<T, C> it) noexcept
 }
 
 _STD_END
+
+namespace boost::movelib
+{
+#if defined(_MSC_VER) && _ITERATOR_DEBUG_LEVEL != 0
+namespace detail
+{
+template <class Iterator>
+requires(_STD _Unwrappable_v<Iterator>)
+auto iterator_to_pointer(Iterator const& i) -> typename iterator_to_element_ptr<Iterator>::type
+{
+    return iterator_to_pointer(_STD _Get_unwrapped(i));
+}
+} // namespace detail
+
+template <class Iterator>
+requires(_STD _Unwrappable_v<Iterator>)
+auto iterator_to_raw_pointer(Iterator const& i) -> typename detail::iterator_to_element_ptr<Iterator>::type
+{
+    return iterator_to_raw_pointer(_STD _Get_unwrapped(i));
+}
 #endif
+} // namespace boost::movelib
+
 // ReSharper restore CppInconsistentNaming
 
 namespace fd

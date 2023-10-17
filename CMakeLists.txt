@@ -60,7 +60,7 @@ if(MSVC)
   )
   add_link_options(/SAFESEH:NO)
   add_compile_definitions(
-      #_HAS_EXCEPTIONS=0 #disable exceptions
+      _HAS_EXCEPTIONS=0 #disable exceptions
       UNICODE
       _UNICODE
       NOMINMAX

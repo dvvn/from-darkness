@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "proxy.h"
+#include "hook/proxy.h"
 
 namespace fd
 {

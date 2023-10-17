@@ -2,10 +2,9 @@
 
 // #define FD_SPOOF_RETURN_ADDRESS
 
-#include "cast.h"
-//
 #include "concepts.h"
 #include "diagnostics/fatal.h"
+#include "functional/cast.h"
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
 #include <x86RetSpoof.h>

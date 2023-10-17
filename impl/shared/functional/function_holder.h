@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "basic_function.h"
-#include "call_traits.h"
+#include "functional/basic_function.h"
+#include "functional/call_traits.h"
 
 namespace fd
 {
@@ -17,12 +17,12 @@ class function_holder<Fn, Ret, function_args<Args...>> final : public basic_func
     Fn fn_;
 
   public:
-    constexpr function_holder(Fn &&fn, std::in_place_type_t<Ret> = std::in_place_type<Ret>)
+    constexpr function_holder(Fn&& fn, std::in_place_type_t<Ret> = std::in_place_type<Ret>)
         : fn_(std::move(fn))
     {
     }
 
-    constexpr function_holder(Fn const &fn, std::in_place_type_t<Ret> = std::in_place_type<Ret>)
+    constexpr function_holder(Fn const& fn, std::in_place_type_t<Ret> = std::in_place_type<Ret>)
         : fn_((fn))
     {
     }

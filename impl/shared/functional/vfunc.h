@@ -1,6 +1,6 @@
 #pragma once
 
-#include "call_traits.h"
+#include "functional/call_traits.h"
 
 #include <concepts>
 

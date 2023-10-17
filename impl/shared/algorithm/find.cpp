@@ -1,6 +1,6 @@
-#include "find.h"
-#include "search.h"
+#include "algorithm/find.h"
 #include "search_stop_token.h"
+#include "algorithm/search.h"
 #include "container/array.h"
 #include "container/vector/dynamic.h"
 #include "diagnostics/fatal.h"

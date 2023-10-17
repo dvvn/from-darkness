@@ -1,5 +1,5 @@
 #include "mem_backup.h"
-#include "vfunc.h"
+#include "functional/vfunc.h"
 
 #include <boost/preprocessor/repeat.hpp>
 

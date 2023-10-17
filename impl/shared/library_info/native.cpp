@@ -1,5 +1,4 @@
-﻿#include "native.h"
-#include "diagnostics/runtime_error.h"
+﻿#include "library_info/native.h"
 #include "functional/cast.h"
 #include "functional/ignore.h"
 #include "memory/pattern.h"
@@ -179,7 +178,7 @@ void* native_library_info::interface(char const* name, size_t const length) cons
 {
     auto const root = root_interface(function("CreateInterface"));
     native_interface_holder const* found;
-    auto constexpr last = nullptr;
+    constexpr auto last = nullptr;
 
     if (isdigit(name[length - 1]))
     {
@@ -188,20 +187,15 @@ void* native_library_info::interface(char const* name, size_t const length) cons
     else
     {
         found = find<true>(root, last, name, length);
+#ifdef _DEBUG
         if (found != last && found->name()[length] != '\0')
         {
             auto const duplicate = find<true>(found->next(), last, name, length);
-            if (duplicate != last)
-                throw runtime_error("Found multiple interfaces for given name");
+            assert(duplicate == last);
         }
+#endif
     }
 
     return found ? found->get() : last;
-}
-
-void* native_library_info::return_address_checker() const
-{
-    auto unused="55 8B EC 56 8B F1 33 C0 57 8B 7D 08 8B 8E"_pat;
-    return 0;//this->pattern("55 8B EC 56 8B F1 33 C0 57 8B 7D 08 8B 8E"_pat);
 }
 } // namespace fd

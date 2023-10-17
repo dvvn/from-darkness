@@ -11,6 +11,7 @@ template <typename T>
 concept native_interface_have_name = requires { T::name; };
 }
 
+// todo: nove into details
 struct native_library_info : system_library_info
 {
     using system_library_info::system_library_info;
@@ -22,7 +23,5 @@ struct native_library_info : system_library_info
     {
         return interface(name, Length - 1);
     }
-
-    void* return_address_checker() const;
 };
 } // namespace fd

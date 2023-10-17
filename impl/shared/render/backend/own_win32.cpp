@@ -1,8 +1,7 @@
-﻿#include "own_win32.h"
-//
-#include "diagnostics/system_error.h"
+﻿#include "render/backend/own_win32.h"
 
 #include <Windows.h>
+
 #include <tchar.h>
 
 namespace fd
@@ -95,8 +94,7 @@ own_win32_backend_data::own_win32_backend_data()
         .lpszClassName = class_name};
 
     auto const class_atom = RegisterClassEx(&info_);
-    if (class_atom == INVALID_ATOM)
-        throw system_error("Unable to register window class!");
+    assert(class_atom != INVALID_ATOM);
 
     win32_window_size size;
     auto const parent = GetDesktopWindow();
@@ -113,8 +111,8 @@ own_win32_backend_data::own_win32_backend_data()
         MAKEINTATOM(class_atom), window_name, WS_OVERLAPPEDWINDOW, //
         size.x, size.y, size.w, size.h,                            //
         parent, nullptr, info_.hInstance, nullptr);
-    if (!hwnd_)
-        throw system_error("Window not created!");
+    assert(hwnd_ != nullptr);
+
     /*RECT rect;
     if (!GetWindowRect(hwnd_, &rect))
         throw system_error("Unable to get window rect");*/
@@ -144,7 +142,7 @@ bool own_win32_backend::update()
 
 void own_win32_backend::close()
 {
-    //assert(active_ == true);
+    // assert(active_ == true);
     active_ = false;
     // SetWindowLongPtr(hwnd_, GWLP_USERDATA, NULL);
 }

@@ -31,7 +31,7 @@ bool skip_scene() const
 
     void begin_frame();
     void end_frame();
-    ImDrawData* data() const;
+    ImDrawData* data();
 };
 
 } // namespace fd

@@ -1,4 +1,4 @@
-#include "context.h"
+#include "render/context.h"
 #include "functional/ignore.h"
 
 namespace fd
@@ -14,7 +14,9 @@ render_context::~render_context()
 render_context::render_context()
     : context_(&font_atlas_)
 {
+#ifdef _DEBUG
     IMGUI_CHECKVERSION();
+#endif
     ImGui::SetCurrentContext(&context_);
 
 #if defined(_DEBUG) || defined(IMGUI_DISABLE_DEFAULT_ALLOCATORS)
@@ -61,7 +63,7 @@ void render_context::end_frame()
     // backend call
 }
 
-ImDrawData* render_context::data() const
+ImDrawData* render_context::data()
 {
     return ImGui::GetDrawData();
 }

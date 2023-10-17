@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include "callback.h"
-#include "prepared_data.h"
 #include "functional/call_traits.h"
+#include "hook/callback.h"
+#include "hook/prepared_data.h"
 
 namespace fd
 {
@@ -73,7 +73,7 @@ decltype(auto) get_hook_callback()
 }
 
 template <class Callback, call_type Call_T, typename Ret, class Object, typename... Args>
-Ret invoke_hook_proxy(hook_proxy_member<Call_T, Ret, Object, Args...>* proxy, Args... args)
+Ret invoke_hook_proxy(hook_proxy_member<Call_T, Ret, Object, Args...>* proxy, Args... args) noexcept
 {
     using original_proxy = object_proxy_member<Call_T, Ret, Object, Args...>;
 
@@ -134,7 +134,7 @@ class object_proxy_non_member
 };
 
 template <class Callback, call_type Call_T, typename Ret, typename... Args>
-Ret invoke_hook_proxy(Args... args)
+Ret invoke_hook_proxy(Args... args) noexcept
 {
     using original       = non_member_func_type<Call_T, Ret, Args...>;
     using original_proxy = object_proxy_non_member<Call_T, Ret, Args...>; // or std::bind

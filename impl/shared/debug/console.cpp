@@ -1,12 +1,11 @@
-﻿#include "console.h"
-#include "diagnostics/system_error.h"
+﻿#include "debug/console.h"
 #include "functional/ignore.h"
 
 #include <boost/nowide/iostream.hpp>
 
-#include <tchar.h>
-
+#include <cassert>
 #include <iostream>
+#include <tchar.h>
 
 namespace fd::inline debug
 {
@@ -34,7 +33,7 @@ system_console::system_console()
             return;
         // Add some error handling here.
         // You can call GetLastError() to get more info about the error.
-        throw system_error("Unable to allocate console!");
+        assert(0 && "Unable to allocate console!");
     }
 
     // std::cout, std::clog, std::cerr, std::cin
@@ -47,28 +46,14 @@ system_console::system_console()
     old_in_w  = GetStdHandle(STD_INPUT_HANDLE);
 
     // std::wcout, std::wclog, std::wcerr, std::wcin
-    out_w = CreateFile(
-        _T("CONOUT$"),
-        GENERIC_READ | GENERIC_WRITE,
-        FILE_SHARE_READ | FILE_SHARE_WRITE,
-        nullptr,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        nullptr);
-    in_w = CreateFile(
-        _T("CONIN$"),
-        GENERIC_READ | GENERIC_WRITE,
-        FILE_SHARE_READ | FILE_SHARE_WRITE,
-        nullptr,
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,
-        nullptr);
+    out_w = CreateFile(_T("CONOUT$"), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    in_w  = CreateFile(_T("CONIN$"), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (!SetStdHandle(STD_OUTPUT_HANDLE, out_w))
-        throw system_error("Unable to set output handle!");
+        assert(0 && "Unable to set output handle!");
     if (!SetStdHandle(STD_ERROR_HANDLE, out_w))
-        throw system_error("Unable to set error handle!");
+        assert(0 && "Unable to set error handle!");
     if (!SetStdHandle(STD_INPUT_HANDLE, in_w))
-        throw system_error("Unable to set input handle!");
+        assert(0 && "Unable to set input handle!");
 
     std::cout.clear();
     std::clog.clear();

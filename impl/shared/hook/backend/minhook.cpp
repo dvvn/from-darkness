@@ -1,15 +1,16 @@
 ﻿// ReSharper disable CppMemberFunctionMayBeStatic
-#include "minhook.h"
-#include "prepared_data.h"
-#include "diagnostics/hook_error.h"
+#include "hook/minhook.h"
+#include "hook/prepared_data.h"
 
 #include <MinHook.h>
+#include <cassert>
 
 #undef MH_ALL_HOOKS
 #define MH_ALL_HOOKS nullptr // intellisense stfu
 
 namespace fd
 {
+[[maybe_unused]]
 static char const* to_string(MH_STATUS const status)
 {
     auto msg = MH_StatusToString(status);
@@ -18,33 +19,9 @@ static char const* to_string(MH_STATUS const status)
     return msg;
 }
 
-class minhook_error final : public hook_error
+static void process_status(MH_STATUS const status, [[maybe_unused]] char const* message = nullptr)
 {
-    MH_STATUS status_;
-
-  public:
-    minhook_error(MH_STATUS const status, char const* message)
-        : hook_error(
-              message
-#ifdef _DEBUG
-                  ? message
-                  : to_string(status)
-#endif
-                  )
-        , status_(status)
-    {
-    }
-
-    char const* status() const override
-    {
-        return to_string(status_);
-    }
-};
-
-static void process_status(MH_STATUS const status, char const* message = nullptr)
-{
-    if (status != MH_OK)
-        throw minhook_error(status, message);
+    assert(status == MH_OK);
 }
 
 hook_backend_minhook::~hook_backend_minhook()
