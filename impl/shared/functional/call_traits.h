@@ -37,15 +37,7 @@ enum class call_type : uint8_t
 };
 
 template <call_type C>
-struct call_type_t
-{
-    static constexpr call_type value = C;
-
-    constexpr operator call_type() const
-    {
-        return C;
-    }
-};
+using call_type_t = std::integral_constant<call_type, C>;
 
 template <call_type C>
 inline constexpr call_type_t<C> call_type_v;

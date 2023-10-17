@@ -266,44 +266,36 @@ endmacro()
 macro(Dependency_Load_Imgui)
     Dependency_Load(ocornut imgui --branch features/string_view)
 
-    if(NOT EXISTS ${imgui_SOURCE_DIR}/CMakeLists.txt)
-        #[[if(${_FD_TARGET} STREQUAL CSGO)
-            set(_directx_version 9)
-        elseif(${_FD_TARGET} STREQUAL CS2)
-            set(_directx_version 11)
-        endif()]]
+    if(NOT EXISTS ${imgui_SOURCE_DIR}/CMakeLists.txt)  
+        set(_backends ${imgui_SOURCE_DIR}/backends)
 
+        set(_include_dirs PUBLIC ${imgui_SOURCE_DIR} ${_backends})
         file(GLOB _sources ${imgui_SOURCE_DIR}/*.cpp)
+        list(APPEND _sources ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp)  
         file(GLOB _nat_files ${imgui_SOURCE_DIR}/misc/debuggers/*.nat*)
-      
+        set(_compile_defs PRIVATE IMGUI_IMPL_WIN32_DISABLE_GAMEPAD)
+
+        if(${_FD_TARGET} STREQUAL CSGO)
+            list(APPEND _sources ${_backends}/imgui_impl_dx9.cpp)
+            list(APPEND _compile_defs PUBLIC IMGUI_USE_BGRA_PACKED_COLOR)
+        elseif(${_FD_TARGET} STREQUAL CS2)
+            list(APPEND _sources ${_backends}/imgui_impl_dx11.cpp)  
+        endif()
+
         if(TARGET freetype)
             list(APPEND _sources ${imgui_SOURCE_DIR}/misc/freetype/imgui_freetype.cpp)
-        endif()        
-        list(APPEND _sources 
-            ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
-            #${imgui_SOURCE_DIR}/backends/imgui_impl_dx${_directx_version}.cpp
-            ${imgui_SOURCE_DIR}/backends/imgui_impl_dx9.cpp
-            ${imgui_SOURCE_DIR}/backends/imgui_impl_dx11.cpp
-        )                  
-
+            list(APPEND _compile_defs PUBLIC IMGUI_ENABLE_FREETYPE)
+            list(APPEND _link_libs PUBLIC freetype)
+        endif()   
+                              
         add_library(imgui ${_sources} ${_nat_files})
         add_library(imgui::imgui ALIAS imgui)     
 
-        target_compile_definitions(imgui PRIVATE
-            IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
-        )
-        #[[if(_directx_version EQUAL 9)
-            target_compile_definitions(imgui PRIVATE IMGUI_USE_BGRA_PACKED_COLOR)
-        endif()]]
-        
-        if(TARGET freetype)
-            target_link_libraries(imgui PUBLIC freetype)
-            target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_FREETYPE)
+        target_compile_definitions(imgui ${_compile_defs})
+        if(DEFINED _link_Libs)
+            target_link_libraries(imgui ${_link_libs})
         endif()
-        target_include_directories(imgui PUBLIC
-            ${imgui_SOURCE_DIR}
-            ${imgui_SOURCE_DIR}/backends
-        )
+        target_include_directories(imgui ${_include_dirs})
 
         FD_append_dep("imgui::imgui")
     endif()
