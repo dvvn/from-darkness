@@ -1,8 +1,9 @@
 ﻿// ReSharper disable CppMemberFunctionMayBeStatic
-#include "hook/minhook.h"
+#include "hook/backend/minhook.h"
 #include "hook/prepared_data.h"
 
 #include <MinHook.h>
+
 #include <cassert>
 
 #undef MH_ALL_HOOKS
@@ -40,11 +41,6 @@ void* hook_backend_minhook::create(void* target, void* replace)
     void* original;
     process_status(MH_CreateHook(target, replace, &original));
     return original;
-}
-
-void hook_backend_minhook::create(prepared_hook_data const* data)
-{
-    process_status(MH_CreateHook(data->target, data->replace, data->original));
 }
 
 void hook_backend_minhook::enable()

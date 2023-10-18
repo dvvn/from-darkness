@@ -30,14 +30,14 @@ bool menu_sample()
         bind(menu_tab, "Tab1"sv, bind_front(menu_tab_item, "One"sv, bind(ImGui::TextUnformatted, "Text"sv))), //
         bind(&own_win32_backend::close, &system_bk));
 
-    render_frame const render_frame(&render_bk, &system_bk, &render_ctx, &menu_holder);
+    render_frame const render(&render_bk, &system_bk, &render_ctx, &menu_holder);
 
     while (system_bk.update())
     {
         if (window.minimized())
             continue;
         render_bk.resize(window.size());
-        render_frame.render();
+        render();
     }
 
     return true;

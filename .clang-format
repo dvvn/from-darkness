@@ -65,11 +65,11 @@ IncludeCategories:
     Priority: 1
   - Regex: '<fmt/.*>'
     Priority: 2
-  - Regex: '<immenu.*h>'
+  - Regex: '<imgui.*\.*h>'
     Priority: 3
   - Regex: '<windows\.h>'
     Priority: 4
-  - Regex: '<.*/.*\.h.*>'
+  - Regex: '<.*\.h.*>'
     Priority: 4
     SortPriority: 5
 ...

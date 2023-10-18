@@ -1,7 +1,6 @@
 ﻿#pragma once
-#include "basic_win32.h"
-//
 #include "noncopyable.h"
+#include "render/backend/basic_win32.h"
 
 namespace fd
 {
@@ -9,11 +8,9 @@ class native_win32_backend final : public basic_win32_backend, public noncopyabl
 {
     HWND window_;
 
-    static HWND find_game_window();
-
   public:
-    native_win32_backend(HWND window = find_game_window());
+    native_win32_backend(HWND window = nullptr);
 
-    void fill(win32_window_info* backend_info) const;
+    win32_window_info info() const;
 };
 } // namespace fd

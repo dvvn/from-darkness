@@ -1,5 +1,4 @@
 ﻿#include "comptr.h"
-#include "diagnostics/system_error.h"
 #include "render/backend/own_dx11.h"
 
 #include <cassert>

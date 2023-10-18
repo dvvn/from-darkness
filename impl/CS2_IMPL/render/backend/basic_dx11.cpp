@@ -1,6 +1,4 @@
-﻿#include "basic_dx11.h"
-//
-#include "diagnostics/system_error.h"
+﻿#include "render/backend/basic_dx11.h"
 
 #include <imgui_impl_dx11.h>
 
@@ -15,8 +13,8 @@ basic_dx11_backend::~basic_dx11_backend()
 
 basic_dx11_backend::basic_dx11_backend(ID3D11Device* device, ID3D11DeviceContext* device_context)
 {
-    if (!ImGui_ImplDX11_Init(device, device_context))
-        throw system_error("Unable to init ImGui_ImplDX11!");
+    auto const init = ImGui_ImplDX11_Init(device, device_context);
+    assert(init == true);
 }
 
 void basic_dx11_backend::new_frame()

@@ -10,7 +10,7 @@ struct render_frame final
     RenderCtx* render_context;
     Menu* menu;
 
-    void render() const
+    void operator()() const
     {
         render_backend->new_frame();
         system_backend->new_frame();
