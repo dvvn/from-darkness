@@ -27,7 +27,9 @@ bool fd::run_context()
 
     menu menu_holder(
         bind(menu_tab, "Tab1"sv, bind_front(menu_tab_item, "One"sv, bind(ImGui::TextUnformatted, "Text"sv))), //
-        [] {});
+        [] {
+            // not implemented
+        });
 
     render_frame const render(&render_bk, &system_bk, &render_ctx, &menu_holder);
 

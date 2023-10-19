@@ -1,5 +1,6 @@
 ﻿#include "basic.h"
 
+#include <algorithm>
 #include <cassert>
 
 static wchar_t const* data(UNICODE_STRING const& ustr)
@@ -36,6 +37,8 @@ namespace fd
 {
 basic_library_info::basic_library_info(char_type const* name, size_t const length)
 {
+    assert(!std::any_of(name, name + length, isupper));
+
 #ifdef _WIN64
     auto mem = NtCurrentTeb();
     auto ldr = mem->ProcessEnvironmentBlock->Ldr;

@@ -9,6 +9,7 @@
 #include <cstdint>
 
 // ReSharper disable CppInconsistentNaming
+// see https://www.vergiliusproject.com/kernels/x64/Windows%2011/22H2%20(2022%20Update)/_LDR_DATA_TABLE_ENTRY
 struct LDR_DATA_TABLE_ENTRY_FULL
 {
     LIST_ENTRY InLoadOrderLinks;
@@ -21,14 +22,12 @@ struct LDR_DATA_TABLE_ENTRY_FULL
         PIMAGE_DOS_HEADER DosHeader;
         ULONG_PTR DllBaseAddress;
     };
-
     PVOID EntryPoint;
 
     ULONG SizeOfImage;
     UNICODE_STRING FullDllName;
     UNICODE_STRING BaseDllName;
 };
-
 // ReSharper restore CppInconsistentNaming
 
 namespace fd
