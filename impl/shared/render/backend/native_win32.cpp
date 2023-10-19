@@ -60,8 +60,13 @@ static HWND find_main_window() noexcept
     return helper.get();
 }
 
+native_win32_backend::native_win32_backend()
+    : native_win32_backend(find_main_window())
+{
+}
+
 native_win32_backend::native_win32_backend(HWND window)
-    : basic_win32_backend(window ? window : find_main_window())
+    : basic_win32_backend(window)
     , window_(window)
 {
 }

@@ -44,7 +44,10 @@ struct mem_backup : noncopyable
         return *this;
     }
 
-    mem_backup() = default;
+    mem_backup()
+        : owner_(nullptr)
+    {
+    }
 
     mem_backup(T& from)
         : value_(from)

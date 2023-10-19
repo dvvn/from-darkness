@@ -9,7 +9,8 @@ class native_win32_backend final : public basic_win32_backend, public noncopyabl
     HWND window_;
 
   public:
-    native_win32_backend(HWND window = nullptr);
+    native_win32_backend();
+    native_win32_backend(HWND window );
 
     win32_window_info info() const;
 };

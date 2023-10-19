@@ -14,6 +14,25 @@ struct IUnknown;
 
 namespace fd
 {
+
+template <class T>
+struct comptr;
+
+namespace detail
+{
+template <class From, typename To>
+inline constexpr bool pptr_convertible = false;
+
+template <class T, typename To>
+inline constexpr bool pptr_convertible<comptr<T>, To**> = std::convertible_to<T*, To*>;
+
+template <class T, typename To>
+inline constexpr bool pptr_convertible<comptr<T>, To* const*> = std::convertible_to<T*, To*>;
+
+template <class T, typename To>
+inline constexpr bool pptr_convertible<comptr<T> const, To* const*> = std::convertible_to<T const*, To*>;
+} // namespace detail
+
 template <class T>
 struct comptr_ref
 {
@@ -23,33 +42,30 @@ struct comptr_ref
   private:
     T* ptr_;
 
-    template <typename P>
-    static constexpr bool pptr_convertible = std::convertible_to<target_pointer, std::remove_pointer_t<P>>;
-
   public:
     comptr_ref(T* ptr)
         : ptr_(ptr)
     {
     }
 
-    template <typename P = element_type>
-    operator P*() const requires(pptr_convertible<P>)
+    template <typename To = element_type>
+    operator To*() const requires(std::convertible_to<target_pointer, To*>)
     {
         return ptr_->get();
     }
 
-    template <typename P = element_type**>
-    operator P() requires(pptr_convertible<P>)
+    template <typename To = element_type**>
+    operator To() requires(detail::pptr_convertible<T, To>)
     {
-        if constexpr (!std::is_const_v<T> && !std::is_const_v<std::remove_pointer_t<P>>)
+        if constexpr (!std::is_const_v<T> && !std::is_const_v<std::remove_pointer_t<To>>)
             ptr_->release();
-        return reinterpret_cast<P>(ptr_->address_of());
+        return reinterpret_cast<To>(ptr_->address_of());
     }
 
-    template <typename P = element_type* const*>
-    operator P() const requires(pptr_convertible<P>)
+    template <typename To = element_type* const*>
+    operator To() const requires(detail::pptr_convertible<T, To>)
     {
-        return reinterpret_cast<P>(ptr_->address_of());
+        return reinterpret_cast<To>(ptr_->address_of());
     }
 
     // for IID_PPV_ARGS
@@ -81,12 +97,6 @@ struct comptr
         return ptr_->Release();
     }
 
-    void do_reset()
-    {
-        do_release();
-        ptr_ = nullptr;
-    }
-
     void on_copy()
     {
         ptr_->AddRef();
@@ -99,17 +109,38 @@ struct comptr
             do_release();
     }
 
-    explicit comptr(nullptr_t = {})
+    comptr(nullptr_t = {})
         : ptr_(nullptr)
     {
     }
 
-    template <typename P>
+    /*template <typename P>
     explicit comptr(P&& ptr) noexcept(std::is_rvalue_reference_v<P&&>) requires(std::is_pointer_v<P> && std::constructible_from<pointer, P>)
         : ptr_(ptr)
     {
         if constexpr (std::is_lvalue_reference_v<P&&>)
             on_copy();
+    }*/
+
+    explicit comptr(pointer const& ptr) noexcept
+        : ptr_(ptr)
+    {
+        on_copy();
+    }
+
+    explicit comptr(pointer&& ptr) noexcept
+        : ptr_(ptr)
+    {
+    }
+
+    comptr(pointer const& ptr, std::in_place_t) noexcept
+        : comptr(ptr)
+    {
+    }
+
+    comptr(pointer&& ptr, std::in_place_t) noexcept
+        : comptr(std::move(ptr))
+    {
     }
 
     comptr(comptr const& other)
@@ -117,19 +148,19 @@ struct comptr
     {
     }
 
-    template <typename P>
+    /*template <typename P>
     comptr& operator=(P* ptr) requires(std::assignable_from<pointer&, P*>)
     {
         if (ptr_)
             do_release();
         ptr_ = ptr;
         return *this;
-    }
+    }*/
 
     comptr& operator=(comptr const& other)
     {
-        ptr_ = other.ptr_;
-        on_copy();
+        std::destroy_at(this);
+        std::construct_at(this, other);
         return *this;
     }
 
@@ -153,7 +184,10 @@ struct comptr
     void reset()
     {
         if (ptr_)
-            do_reset();
+        {
+            do_release();
+            ptr_ = nullptr;
+        }
     }
 
     pointer get() const

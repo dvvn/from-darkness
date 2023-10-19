@@ -28,6 +28,7 @@ struct LDR_DATA_TABLE_ENTRY_FULL
     UNICODE_STRING FullDllName;
     UNICODE_STRING BaseDllName;
 };
+
 // ReSharper restore CppInconsistentNaming
 
 namespace fd
@@ -38,8 +39,8 @@ struct basic_library_info
     using string_type = wstring_view;
     using char_type   = wchar_t;
 
-    static auto constexpr file_extension        = ".dll";
-    static auto constexpr file_extension_length = 4;
+    static constexpr auto file_extension        = ".dll";
+    static constexpr auto file_extension_length = 4;
 
   private:
     union
@@ -52,7 +53,7 @@ struct basic_library_info
     basic_library_info(char_type const* name, size_t length);
 
     template <size_t Length>
-    basic_library_info(char_type (&name)[Length])
+    basic_library_info(char_type const (&name)[Length])
         : basic_library_info(name, Length - 1)
     {
     }

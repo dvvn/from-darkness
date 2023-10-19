@@ -1,8 +1,9 @@
 ﻿#include "comptr.h"
 #include "render/backend/own_dx11.h"
 
-#include <cassert>
 #include <tchar.h>
+
+#include <cassert>
 
 namespace fd
 {
@@ -75,7 +76,8 @@ void own_dx11_backend::resize(simple_win32_window_size const& size)
         return;
     last_size_ = size;
 
-    render_target_.release();
+    //????????
+    //render_target_.release();
     swap_chain_->ResizeBuffers(0, size.w, size.h, DXGI_FORMAT_UNKNOWN, 0);
     create_render_target();
 }
