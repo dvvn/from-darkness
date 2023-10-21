@@ -128,4 +128,14 @@ IMAGE_SECTION_HEADER* basic_library_info::section(char const* name, uint8_t cons
 
     return nullptr;
 }
+
+uint8_t* begin(basic_library_info const& info)
+{
+    return static_cast<uint8_t*>(info.image_base());
+}
+
+uint8_t* end(basic_library_info const& info)
+{
+    return begin(info) + info.length();
+}
 } // namespace fd

@@ -92,12 +92,6 @@ void* system_library_info::function(char const* name, size_t const length) const
     return nullptr;
 }
 
-void* system_library_info::pattern(basic_pattern const& pattern) const
-{
-    auto const base = static_cast<uint8_t*>(this->image_base());
-    return find(base, base + this->length(), pattern);
-}
-
 static void* find_rtti_descriptor(string_view const name, void* image_base, void const* image_end)
 {
     void* ret;
@@ -148,7 +142,7 @@ void* system_library_info::vtable(char const* name, size_t length) const
     auto const text_begin = image_base + text->VirtualAddress;
     auto const text_end   = text_begin + text->SizeOfRawData;
 
-    auto const addr1 = search(
+    auto const addr1 = find(
         rdata_begin, rdata_end, type_descriptor, //
         make_search_stop_token([](uint8_t const* found) -> bool {
             return *unsafe_cast<uint32_t*>(found - 0x8) == 0;

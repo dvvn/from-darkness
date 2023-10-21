@@ -1,7 +1,6 @@
 ﻿#include "render/backend/own_win32.h"
 
 #include <Windows.h>
-
 #include <tchar.h>
 
 namespace fd
@@ -26,12 +25,20 @@ DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT const message
         return NULL;
     }
 
-    using enum win32_backend_update_response;
+    auto [response, retval] = static_cast<basic_win32_backend*>(backend)->update(window, message, wparam, lparam);
 
-    return static_cast<basic_win32_backend*>(backend)->update(window, message, wparam, lparam)(
-        make_win32_backend_update_response<skipped>(DefWindowProc),
-        make_win32_backend_update_response<updated>(DefWindowProc),
-        make_win32_backend_update_response<locked>(win32_backend_update_unchanged()));
+    using enum win32_backend_update_response;
+    switch (response)
+    {
+    case skipped:
+    case updated:
+        return DefWindowProc(window, message, wparam, lparam);
+    case locked:
+        return retval;
+    default:
+        unreachable();
+    }
+
 #if 0
     switch (msg) // NOLINT(hicpp-multiway-paths-covered)
     {

@@ -3,22 +3,10 @@
 
 namespace fd
 {
-struct basic_pattern;
-template <size_t... SegmentsBytesCount>
-struct pattern;
-
 class system_library_info : public basic_library_info
 {
   public:
     using basic_library_info::basic_library_info;
-
-    void* pattern(basic_pattern const& pattern) const;
-
-    template <size_t... SegmentsBytesCount>
-    void* pattern(struct pattern<SegmentsBytesCount...> const& pattern) const
-    {
-        return 0; // WIP
-    }
 
     void* function(char const* name, size_t length) const;
 

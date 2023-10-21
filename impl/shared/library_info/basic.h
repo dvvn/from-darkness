@@ -22,17 +22,18 @@ struct LDR_DATA_TABLE_ENTRY_FULL
         PIMAGE_DOS_HEADER DosHeader;
         ULONG_PTR DllBaseAddress;
     };
+
     PVOID EntryPoint;
 
     ULONG SizeOfImage;
     UNICODE_STRING FullDllName;
     UNICODE_STRING BaseDllName;
 };
+
 // ReSharper restore CppInconsistentNaming
 
 namespace fd
 {
-
 struct basic_library_info
 {
     using string_type = wstring_view;
@@ -84,4 +85,7 @@ struct basic_library_info
         return section(name, Length - 1);
     }
 };
+
+uint8_t* begin(basic_library_info const& info);
+uint8_t* end(basic_library_info const& info);
 } // namespace fd

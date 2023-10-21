@@ -23,19 +23,7 @@ class basic_hook_callback : public noncopyable
     void exit();
 };
 
-namespace detail
-{
-template <class T>
-concept hook_callback_have_enter_exit = requires(T obj) {
-    obj.enter();
-    obj.exit();
-};
-}
-
-template <class T>
-inline constexpr bool hook_callback_need_protect = detail::hook_callback_have_enter_exit<T>;
-
-template <class T, bool = hook_callback_need_protect<T>>
+template <class T, bool>
 class hook_callback_thread_protector;
 
 template <class T>
@@ -66,4 +54,18 @@ class hook_callback_thread_protector<T, false> final : public noncopyable
     }
 };
 
+namespace detail
+{
+template <class T>
+concept hook_callback_have_enter_exit = requires(T obj) {
+    obj.enter();
+    obj.exit();
+};
+}
+
+template <class T>
+inline constexpr bool hook_callback_need_protect = detail::hook_callback_have_enter_exit<T>;
+
+template <class T>
+hook_callback_thread_protector(T*) -> hook_callback_thread_protector<T, hook_callback_need_protect<T>>;
 } // namespace fd

@@ -6,7 +6,7 @@
 namespace fd
 {
 template <class T>
-inline constexpr call_type vtable_call_type = call_type::thiscall_;
+inline constexpr call_type_t vtable_call_type = detail::default_call_type_member;
 
 template <call_type Call_T>
 class vfunc_index
@@ -32,13 +32,13 @@ template <class T>
 struct vtable_expander;
 
 template <class T>
-vtable<T> *safe_cast(vtable_expander<T> *ptr)
+vtable<T>* safe_cast(vtable_expander<T>* ptr)
 {
     return safe_cast<vtable<T>>(ptr);
 }
 
 template <class T>
-vtable<T> const *safe_cast(vtable_expander<T> const *ptr)
+vtable<T> const* safe_cast(vtable_expander<T> const* ptr)
 {
     return safe_cast<vtable<T>>(ptr);
 }
@@ -74,14 +74,14 @@ struct vtable_expander<void>
 template <class T>
 struct vtable : vtable_expander<T>
 {
-    using instance_pointer = T *;
-    using table_pointer    = void **;
+    using instance_pointer = T*;
+    using table_pointer    = void**;
 
   private:
     union
     {
         instance_pointer instance_;
-        table_pointer *vtable_;
+        table_pointer* vtable_;
     };
 
   public:
@@ -92,7 +92,7 @@ struct vtable : vtable_expander<T>
     {
     }
 
-    /*explicit*/ vtable(void *instance) requires(!std::is_void_v<T>)
+    /*explicit*/ vtable(void* instance) requires(!std::is_void_v<T>)
         : instance_(static_cast<instance_pointer>(instance))
     {
     }
@@ -167,7 +167,7 @@ auto get(vtable<T> table, auto index) -> decltype(table[index])
 }
 
 template <typename T>
-vtable(T *, size_t = 0) -> vtable<T>;
+vtable(T*, size_t = 0) -> vtable<T>;
 
 // template<call_type_t Call_T,typename Ret,class T,typename ...Args>
 // class vfunc_view

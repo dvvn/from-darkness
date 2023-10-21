@@ -227,6 +227,7 @@ X86_CALL_MEMBER(GET_HOOK_PROXY_MEMBER)
 X86_CALL(GET_HOOK_PROXY_NON_MEMBER)
 #undef GET_HOOK_PROXY_NON_MEMBER
 
+#if INTPTR_MAX == INT32_MAX
 template <
     typename Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member, //
     typename Ret, class Object, typename... Args>
@@ -238,6 +239,7 @@ prepared_hook_data prepare_hook(Ret(__thiscall* target)(Object*, Args...))
         &unique_hook_trampoline<Callback> //
     };
 }
+#endif
 
 template <typename Callback>
 concept hook_callback_know_function = requires { typename Callback::function_type; };
@@ -269,7 +271,7 @@ prepared_hook_data prepare_hook(void* target)
 }
 
 template <call_type Call_T, typename Ret, typename T, typename... Args>
-class vfunc;
+struct vfunc;
 
 template <
     typename Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member, //
@@ -283,6 +285,7 @@ prepared_hook_data prepare_hook(vfunc<Call_T, Ret, Object, Args...> target)
     };
 }
 
+#if 0
 struct native_function_tag;
 
 template <
@@ -292,6 +295,7 @@ prepared_hook_data prepare_hook(Fn abstract_fn)
 {
     return prepare_hook<Callback, Proxy>(abstract_fn.get());
 }
+#endif
 
 #undef HOOK_PROXY_SAMPLE
 } // namespace fd

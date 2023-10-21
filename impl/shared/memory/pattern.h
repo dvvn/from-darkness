@@ -9,6 +9,7 @@
 
 #include <boost/hana/append.hpp>
 #include <boost/hana/back.hpp>
+#include <boost/hana/for_each.hpp>
 #include <boost/hana/tuple.hpp>
 
 #include <algorithm>
@@ -132,6 +133,16 @@ struct pattern_segment
         auto end = std::copy(known_from, known_to, known_bytes.begin());
         assert(known_bytes.end() == end);
     }
+
+    constexpr detail::pattern_size_type size() const
+    {
+        return BytesCount;
+    }
+
+    detail::pattern_size_type whole_size() const
+    {
+        return size() + unknown_bytes;
+    }
 };
 
 template <>
@@ -148,6 +159,48 @@ struct pattern_segment<0>
     detail::pattern_size_type unknown_bytes;
 };
 
+template <detail::pattern_size_type BytesCount>
+detail::pattern_size_type size(pattern_segment<BytesCount> const& segment)
+{
+    if constexpr (BytesCount == 1)
+        return 1;
+    else
+        return size(segment.known_bytes);
+}
+
+template <detail::pattern_size_type BytesCount>
+detail::pattern_size_type abs_size(pattern_segment<BytesCount> const& segment)
+{
+    return size(segment) + segment.unknown_bytes;
+}
+
+template <detail::pattern_size_type BytesCount>
+auto begin(pattern_segment<BytesCount> const& segment)
+{
+    if constexpr (BytesCount == 1)
+        return &segment.known_bytes;
+    else
+        return begin(segment.known_bytes);
+}
+
+template <detail::pattern_size_type BytesCount>
+auto end(pattern_segment<BytesCount> const& segment)
+{
+    if constexpr (BytesCount == 1)
+        return &segment.known_bytes + 1;
+    else
+        return end(segment.known_bytes);
+}
+
+template <detail::pattern_size_type BytesCount>
+uint8_t first_byte(pattern_segment<BytesCount> const& segment)
+{
+    if constexpr (BytesCount == 1)
+        return segment.known_bytes;
+    else
+        return (segment.known_bytes[0]);
+}
+
 template <detail::pattern_size_type... SegmentsBytesCount>
 struct pattern
 {
@@ -156,6 +209,15 @@ struct pattern
     constexpr pattern(pattern_segment<SegmentsBytesCount>... segment)
         : bytes(segment...)
     {
+    }
+
+    detail::pattern_size_type size() const
+    {
+        detail::pattern_size_type sum = 0;
+        boost::hana::for_each(bytes, [&sum](auto& segment) {
+            sum += abs_size(segment);
+        });
+        return sum;
     }
 };
 
@@ -291,7 +353,10 @@ inline namespace literals
 template <detail::pattern_string Pattern>
 constexpr auto operator""_pat()
 {
-    constexpr auto result = detail::make_pattern<Pattern>();
+#ifndef _DEBUG
+    constexpr
+#endif
+        auto result = detail::make_pattern<Pattern>();
     return result;
 }
 } // namespace literals

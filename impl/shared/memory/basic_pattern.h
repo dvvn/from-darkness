@@ -15,6 +15,7 @@ using pattern_difference_type = int8_t;
 #endif
 } // namespace detail
 
+#if 0
 struct basic_pattern_segment
 {
     using size_type       = detail::pattern_size_type;
@@ -53,4 +54,5 @@ struct basic_pattern
     // virtual size_t length() const     = 0;
     // virtual size_t abs_length() const = 0;
 };
+#endif
 } // namespace fd

@@ -6,9 +6,9 @@
 #include <cassert>
 #include <cstdlib>
 
-#define FD_DLLMAIN(...) BOOL WINAPI __VA_ARGS__(HINSTANCE handle, DWORD const reason, LPCVOID const reserved)
+#define FD_DLLMAIN(...) BOOL WINAPI __VA_ARGS__ DllMain(HINSTANCE handle, DWORD const reason, LPCVOID const reserved)
 
-FD_DLLMAIN(DllMain);
+FD_DLLMAIN();
 
 namespace fd
 {
@@ -16,7 +16,7 @@ static bool run_context();
 
 static class : public noncopyable
 {
-    friend FD_DLLMAIN(::DllMain);
+    friend FD_DLLMAIN(::);
 
     HINSTANCE self_handle_;
 
@@ -60,7 +60,7 @@ static class : public noncopyable
 } // namespace fd
 
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
-FD_DLLMAIN(DllMain)
+FD_DLLMAIN()
 {
     switch (reason)
     {

@@ -12,14 +12,17 @@ namespace fd
 struct native_dx11_device_data
 {
     comptr<IDXGISwapChain> swap_chain;
-    comptr<ID3D11Device> device;
+    comptr<ID3D11Device> d3d_device;
     comptr<ID3D11DeviceContext> device_context;
-
-    native_dx11_device_data(IDXGISwapChain* sc);
-    native_dx11_device_data(system_library_info info);
 
   private:
     void setup_devie();
+
+  public:
+    native_dx11_device_data(IDXGISwapChain* sc);
+    native_dx11_device_data(system_library_info info);
+
+    comptr<IDXGIFactory> DXGI_factory() const;
 };
 
 class native_dx11_backend final : basic_dx11_backend, public noncopyable
@@ -44,6 +47,8 @@ class native_dx11_backend final : basic_dx11_backend, public noncopyable
     void render(ImDrawData* draw_data);
     void resize();
     void reset();
+
+    native_dx11_device_data const* data() const;
 };
 
 } // namespace fd

@@ -20,9 +20,10 @@ static char const* to_string(MH_STATUS const status)
     return msg;
 }
 
-static void process_status(MH_STATUS const status, [[maybe_unused]] char const* message = nullptr)
+static bool process_status(MH_STATUS const status, [[maybe_unused]] char const* message = nullptr)
 {
     assert(status == MH_OK);
+    return status == MH_OK;
 }
 
 hook_backend_minhook::~hook_backend_minhook()
@@ -43,23 +44,23 @@ void* hook_backend_minhook::create(void* target, void* replace)
     return original;
 }
 
-void hook_backend_minhook::enable()
+bool hook_backend_minhook::enable()
 {
-    process_status(MH_EnableHook(MH_ALL_HOOKS));
+    return process_status(MH_EnableHook(MH_ALL_HOOKS));
 }
 
-void hook_backend_minhook::disable()
+bool hook_backend_minhook::disable()
 {
-    process_status(MH_DisableHook(MH_ALL_HOOKS));
+    return process_status(MH_DisableHook(MH_ALL_HOOKS));
 }
 
-void hook_backend_minhook::enable(void* target)
+bool hook_backend_minhook::enable(void* target)
 {
-    process_status(MH_EnableHook(target));
+    return process_status(MH_EnableHook(target));
 }
 
-void hook_backend_minhook::disable(void* target)
+bool hook_backend_minhook::disable(void* target)
 {
-    process_status(MH_DisableHook(target));
+    return process_status(MH_DisableHook(target));
 }
 }

@@ -10,10 +10,10 @@ struct hook_backend_minhook final : noncopyable
 
     void* create(void* target, void* replace);
 
-    void enable();
-    void disable();
+    bool enable();
+    bool disable();
 
-    void enable(void* target);
-    void disable(void* target);
+    bool enable(void* target);
+    bool disable(void* target);
 };
 } // namespace fd

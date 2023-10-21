@@ -1,6 +1,4 @@
-#include "basic_win32.h"
-//
-#include "diagnostics/runtime_error.h"
+#include "render/backend/basic_win32.h"
 
 #include <imgui_impl_win32.h>
 #include <imgui_internal.h>
@@ -97,8 +95,9 @@ basic_win32_backend::~basic_win32_backend()
 
 basic_win32_backend::basic_win32_backend(HWND window)
 {
+    assert(IsWindow(window));
     if (!ImGui_ImplWin32_Init(window))
-        throw runtime_error("Unable to init ImGui_ImplWin32!");
+        assert(0 && "Unable to init ImGui_ImplWin32!");
 }
 
 void basic_win32_backend::new_frame()
@@ -106,7 +105,7 @@ void basic_win32_backend::new_frame()
     ImGui_ImplWin32_NewFrame();
 }
 
-win32_backend_update_finish basic_win32_backend::update(HWND window, UINT const message, WPARAM const wparam, LPARAM const lparam)
+win32_backend_update_result basic_win32_backend::update(HWND window, UINT const message, WPARAM const wparam, LPARAM const lparam)
 {
     assert(message != WM_DESTROY);
 
@@ -124,7 +123,7 @@ win32_backend_update_finish basic_win32_backend::update(HWND window, UINT const 
     else
         response = skipped;
 
-    return {response, window, message, wparam, lparam, value};
+    return {response, value};
 }
 
 } // namespace fd

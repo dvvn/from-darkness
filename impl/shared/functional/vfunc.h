@@ -109,6 +109,13 @@ struct vfunc<Call_T, Ret, void, Args...> : basic_vfunc<void>
     using basic_vfunc::basic_vfunc;
 };
 
+#define VFUNC_CONSTRUCT(call__, __call, _call_)                                             \
+    template <typename Ret, typename T, std::convertible_to<T*> Instance, typename... Args> \
+    vfunc(Ret (__call T::*func)(Args...), Instance function) -> vfunc<call__, Ret, T, Args...>;
+
+X86_CALL_MEMBER(VFUNC_CONSTRUCT);
+#undef VFUNC_CONSTRUCT
+
 template <call_type Call_T, typename Ret, typename T, typename... Args>
 Ret invoke(vfunc<Call_T, Ret, T, Args...> func, std::type_identity_t<Args>... args)
 {

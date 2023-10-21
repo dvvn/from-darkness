@@ -1,3 +1,4 @@
+#if 0
 #include "algorithm/find.h"
 #include "search_stop_token.h"
 #include "algorithm/search.h"
@@ -485,4 +486,13 @@ void* search(void* begin, void const* end, void const* from, void const* to, sea
         found = scan_range(begin, end, from, to, target_length, token);
     return found;
 }
+
+//----
+
+template <size_t... SegmentsBytesCount>
+void* find(void* begin, void const* end, pattern<SegmentsBytesCount...> const& pattern)
+{
+   
+}
 } // namespace fd
+#endif

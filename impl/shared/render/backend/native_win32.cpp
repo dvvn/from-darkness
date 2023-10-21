@@ -25,17 +25,17 @@ class find_window_helper : public noncopyable
 
     bool compare(HWND current_window)
     {
+        if (current_window == console_)
+            return false;
         if (GetWindow(current_window, GW_OWNER))
             return false;
         if (!IsWindowVisible(current_window))
-            return false;
-        if (current_window == console_)
             return false;
         DWORD process_id;
         GetWindowThreadProcessId(current_window, &process_id);
         if (current_process_id_ != process_id)
             return false;
-
+        
         target_ = current_window;
 
         return true;
@@ -50,13 +50,12 @@ class find_window_helper : public noncopyable
 static HWND find_main_window() noexcept
 {
     find_window_helper helper;
-    auto const found = EnumWindows(
+    EnumWindows(
         [](HWND current_window, LPARAM const lparam) {
             auto const helper_ptr = reinterpret_cast<find_window_helper*>(lparam);
             return helper_ptr->compare(current_window) ? FALSE : TRUE;
         },
         reinterpret_cast<LPARAM>(&helper));
-    assert(found == TRUE);
     return helper.get();
 }
 

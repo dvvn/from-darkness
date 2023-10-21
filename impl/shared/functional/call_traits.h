@@ -430,4 +430,23 @@ concept unwrapped_member_function = std::is_void_v<typename function_info<Fn>::s
 
 template <typename Fn>
 concept non_member_function = !member_function<Fn> || unwrapped_member_function<Fn>;
+
+namespace detail
+{
+struct call_type_sample
+{
+    // ReSharper disable once CppMemberFunctionMayBeConst
+    void member()
+    {
+        (void)this;
+    }
+
+    static void non_member()
+    {
+    }
+};
+
+inline constexpr call_type_t default_call_type_member     = function_info<decltype(&call_type_sample::member)>::call;
+inline constexpr call_type_t default_call_type_non_member = function_info<decltype(&call_type_sample::non_member)>::call;
+} // namespace detail
 } // namespace fd

@@ -1,26 +1,29 @@
 ﻿#pragma once
-#include "hook/basic_callback.h"
 #include "render/backend/basic_win32.h"
 
 #include <Windows.h>
 
-namespace fd
+namespace fd::hooked::winapi
 {
 template <class SystemBackend>
-class hooked_wndproc final : public basic_hook_callback
+class wndproc final : public basic_hook_callback
 {
-    SystemBackend* backend_;
-    win32_backend_info* backend_info_;
+    using stored_backend = SystemBackend*;
 
-  public:
-    WNDPROC target() const
+    stored_backend backend_;
+
+    template <typename T>
+    static auto pass_original(T& original)
     {
-        return backend_info_->proc();
+        if constexpr (std::copyable<T&>)
+            return original;
+        else
+            return std::ref(original);
     }
 
-    hooked_wndproc(SystemBackend* backend, win32_backend_info* system_backend_info)
+  public:
+    wndproc(stored_backend backend)
         : backend_(backend)
-        , backend_info_(system_backend_info)
     {
     }
 
@@ -34,11 +37,24 @@ class hooked_wndproc final : public basic_hook_callback
 
         // if (backend_->minimized())
         // return original(window, message, wparam, lparam);
+
+        auto [response, retval] = backend_->update(window, message, wparam, lparam);
+
         using enum win32_backend_update_response;
-        return backend_->update(window, message, wparam, lparam)(
-            make_win32_backend_update_response<skipped>(original),
-            make_win32_backend_update_response<updated>(DefWindowProc),
-            make_win32_backend_update_response<locked>(win32_backend_update_unchanged()));
+        switch (response)
+        {
+        case skipped:
+            return original(window, message, wparam, lparam);
+        case updated:
+            return DefWindowProc(window, message, wparam, lparam);
+        case locked:
+            return retval;
+        default:
+            unreachable();
+        }
     }
 };
+
+template <class SystemBackend>
+wndproc(SystemBackend*) -> wndproc<SystemBackend>;
 }
