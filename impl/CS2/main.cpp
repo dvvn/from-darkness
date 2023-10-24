@@ -56,11 +56,11 @@ bool fd::run_context()
 
     hooked::DXGI_factory::create_swap_chain const hk_create_swap_chain(&render_bk);
     create_hook(&hook_bk, vfunc(&IDXGIFactory::CreateSwapChain, render_bk_data->DXGI_factory()), &hk_create_swap_chain);
-    hooked::DXGI_swap_chain::resize_buffers hk_resize_buffers(&render_bk);
+    hooked::DXGI_swap_chain::resize_buffers const hk_resize_buffers(&render_bk);
     create_hook(&hook_bk, vfunc(&IDXGISwapChain::ResizeBuffers, render_bk_data->swap_chain), &hk_resize_buffers);
-    hooked::DXGI_swap_chain::present hk_present(render_frame(&render_bk, &system_bk, &render_ctx, &menu_holder));
+    hooked::DXGI_swap_chain::present const hk_present(render_frame(&render_bk, &system_bk, &render_ctx, &menu_holder));
     create_hook(&hook_bk, vfunc(&IDXGISwapChain::Present, render_bk_data->swap_chain), &hk_present);
-    hooked::winapi::wndproc hk_wndproc(&system_bk);
+    hooked::winapi::wndproc const hk_wndproc(&system_bk);
     create_hook(&hook_bk, system_bk_info.proc(), &hk_wndproc);
 
     if (!hook_bk.enable())

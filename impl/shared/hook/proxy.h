@@ -34,13 +34,18 @@ class object_proxy_member
     };
 
   public:
+    object_proxy_member()
+    {
+        ignore_unused(this);
+    }
+
     object_proxy_member(void* original, void* proxy)
         : original_(original)
         , proxy_(proxy)
     {
     }
 
-    Ret operator()(Args... args)
+    Ret operator()(Args... args) const
     {
         member_func_invoker<Call_T, Ret, Object, Args...> invoker;
         return invoker(original_, object_, args...);
@@ -59,54 +64,89 @@ class object_proxy_member
 
 #define HOOK_PROXY_SAMPLE template <call_type, typename...>
 
-template <class Callback>
-decltype(auto) get_hook_callback()
+namespace detail
 {
-    if constexpr (!hook_callback_need_protect<Callback>)
-        return *unique_hook_callback<Callback>;
-    else
-        return []<typename... Args>(Args&&... args) {
-            auto* callback = unique_hook_callback<Callback>;
-            hook_callback_thread_protector const protector(callback);
-            return (*callback)(std::forward<Args>(args)...);
-        };
+template <bool V, typename T, typename Nothing = std::false_type>
+using type_or_nothing = std::conditional_t<V, T, std::false_type>;
 }
 
 template <class Callback, call_type Call_T, typename Ret, class Object, typename... Args>
-Ret invoke_hook_proxy(hook_proxy_member<Call_T, Ret, Object, Args...>* proxy, Args... args) noexcept
+class hook_callback_invoker_member
 {
-    using original_proxy = object_proxy_member<Call_T, Ret, Object, Args...>;
+    using object_type         = hook_proxy_member<Call_T, Ret, Object, Args...>;
+    using original_fn         = member_func_type<Call_T, Ret, Object, Args...>;
+    using original_fn_wrapped = object_proxy_member<Call_T, Ret, Object, Args...>;
 
-    decltype(auto) callback = get_hook_callback<Callback>();
+    template <typename... ExtraArgs>
+    static constexpr bool invocable = std::invocable<Callback, ExtraArgs..., Args...>;
 
-    constexpr auto pass_original = std::invocable<Callback, original_proxy&, Args...>;
-    constexpr auto pass_classptr = std::invocable<Callback, Object*, Args...>;
+    static constexpr bool call_original_thisptr = invocable<original_fn, object_type*>;
+    static constexpr bool call_thisptr_original = invocable<object_type*, original_fn>;
 
-    if constexpr (pass_original)
+    static constexpr bool call_object_ptr = invocable<object_type*>;
+    static constexpr bool call_original   = invocable<original_fn>;
+    template <bool Const>
+    static constexpr bool call_original_wrapped_ex = invocable<std::conditional_t<Const, original_fn_wrapped const&, original_fn_wrapped>>;
+    static constexpr bool call_original_wrapped    = call_original_wrapped_ex<true> || call_original_wrapped_ex<false>;
+
+#ifdef _DEBUG
+    static_assert(call_original_thisptr + call_thisptr_original + call_object_ptr + call_original + call_original_wrapped == 1);
+#endif
+
+    static constexpr bool store_original_and_thisptr = call_original_thisptr + call_thisptr_original;
+
+    Callback* callback_;
+    [[no_unique_address]] detail::type_or_nothing<call_object_ptr, object_type*> thisptr_;
+    [[no_unique_address]] detail::type_or_nothing<call_original, original_fn> original_;
+    [[no_unique_address]] detail::type_or_nothing<call_original_wrapped, original_fn_wrapped> original_wrapped_;
+
+  public:
+    hook_callback_invoker_member(object_type* thisptr)
+        : callback_(unique_hook_callback<Callback>)
     {
-        original_proxy obj(unique_hook_trampoline<Callback>, proxy);
-        return callback(obj, args...);
+        if constexpr (store_original_and_thisptr + call_object_ptr)
+            thisptr_ = thisptr;
+        if constexpr (store_original_and_thisptr + call_original)
+            original_ = unsafe_cast<original_fn>(unique_hook_trampoline<Callback>);
+        if constexpr (call_original_wrapped)
+            std::construct_at(&original_wrapped_, unique_hook_trampoline<Callback>, thisptr);
     }
-    else if constexpr (pass_classptr)
-    {
-        auto classptr = unsafe_cast<Object*>(proxy);
-        return callback(classptr, args...);
-    }
-    else
-    {
-        return callback(args...);
-    }
-}
 
-#define HOOK_PROXY_MEMBER(call__, __call, _call_)                         \
-    template <typename Ret, class C, typename... Args>                    \
-    struct hook_proxy_member<call__, Ret, C, Args...> final : noncopyable \
-    {                                                                     \
-        template <typename Callback>                                      \
-        Ret __call proxy(Args... args) noexcept                           \
-        {                                                                 \
-            return invoke_hook_proxy<Callback>(this, args...);            \
-        }                                                                 \
+    decltype(auto) operator()(Args... args) const noexcept
+    {
+        if constexpr (call_original_thisptr)
+            return (*callback_)(original_, thisptr_, args...);
+        else if constexpr (call_thisptr_original)
+            return (*callback_)(thisptr_, original_, args...);
+        else if constexpr (call_object_ptr)
+            return (*callback_)(thisptr_, args...);
+        else if constexpr (call_original)
+            return (*callback_)(original_, args...);
+        else if constexpr (call_original_wrapped_ex<true>)
+            return (*callback_)(original_wrapped_, args...);
+        else
+            return (*callback_)(args...);
+    }
+
+    decltype(auto) operator()(Args... args) noexcept
+    {
+        if constexpr (call_original_wrapped_ex<false>)
+            return (*callback_)(original_wrapped_, args...);
+        else
+            return std::as_const(*this)(args...);
+    }
+};
+
+#define HOOK_PROXY_MEMBER(call__, __call, _call_)                                          \
+    template <typename Ret, class C, typename... Args>                                     \
+    struct hook_proxy_member<call__, Ret, C, Args...> final : noncopyable                  \
+    {                                                                                      \
+        template <typename Callback>                                                       \
+        Ret __call proxy(Args... args) noexcept                                            \
+        {                                                                                  \
+            hook_callback_invoker_member<Callback, call__, Ret, C, Args...> invoker(this); \
+            return invoker(args...);                                                       \
+        }                                                                                  \
     };
 
 X86_CALL_MEMBER(HOOK_PROXY_MEMBER);
@@ -126,7 +166,7 @@ class object_proxy_non_member
     {
     }
 
-    Ret operator()(Args... args)
+    Ret operator()(Args... args) const
     {
         non_member_func_invoker<Call_T, Ret, Args...> invoker;
         return invoker(original_, args...);
@@ -134,41 +174,66 @@ class object_proxy_non_member
 };
 
 template <class Callback, call_type Call_T, typename Ret, typename... Args>
-Ret invoke_hook_proxy(Args... args) noexcept
+class hook_callback_invoker_non_member
 {
-    using original       = non_member_func_type<Call_T, Ret, Args...>;
-    using original_proxy = object_proxy_non_member<Call_T, Ret, Args...>; // or std::bind
+    using original_fn         = non_member_func_type<Call_T, Ret, Args...>;
+    using original_fn_wrapped = object_proxy_non_member<Call_T, Ret, Args...>; // or std::bind
 
-    decltype(auto) callback = get_hook_callback<Callback>();
+    template <typename... ExtraArgs>
+    static constexpr bool invocable = std::invocable<Callback, ExtraArgs..., Args...>;
 
-    constexpr auto pass_original       = std::invocable<Callback, original, Args...>;
-    constexpr auto pass_original_proxy = std::invocable<Callback, original_proxy&, Args...>;
+    static constexpr bool call_original = invocable<original_fn>;
+    template <bool Const>
+    static constexpr bool call_original_wrapped_ex = invocable<std::conditional_t<Const, original_fn_wrapped const&, original_fn_wrapped>>;
+    static constexpr bool call_original_wrapped    = call_original_wrapped_ex<true> || call_original_wrapped_ex<false>;
 
-    if constexpr (pass_original)
+#ifdef _DEBUG
+    static_assert(call_original + call_original_wrapped == 1);
+#endif
+
+    Callback* callback_;
+    [[no_unique_address]] detail::type_or_nothing<call_original, original_fn> original_;
+    [[no_unique_address]] detail::type_or_nothing<call_original_wrapped, original_fn_wrapped> original_wrapped_;
+
+  public:
+    hook_callback_invoker_non_member()
+        : callback_(unique_hook_callback<Callback>)
     {
-        auto fn = unsafe_cast<original>(unique_hook_trampoline<Callback>);
-        return callback(fn, args...);
+        if constexpr (call_original)
+            original_ = unsafe_cast<original_fn>(unique_hook_trampoline<Callback>);
+        if constexpr (call_original_wrapped)
+            std::construct_at(&original_wrapped_, unique_hook_trampoline<Callback>);
     }
-    else if constexpr (pass_original_proxy)
-    {
-        original_proxy holder(unique_hook_trampoline<Callback>);
-        return callback(holder, args...);
-    }
-    else
-    {
-        return callback(args...);
-    }
-}
 
-#define HOOK_PROXY_STATIC(call__, __call, call)                            \
-    template <typename Ret, typename... Args>                              \
-    struct hook_proxy_non_member<call__, Ret, Args...> final : noncopyable \
-    {                                                                      \
-        template <class Callback>                                          \
-        static Ret __call proxy(Args... args) noexcept                     \
-        {                                                                  \
-            return invoke_hook_proxy<Callback, call__, Ret>(args...);      \
-        }                                                                  \
+    decltype(auto) operator()(Args... args) const noexcept
+    {
+        if constexpr (call_original)
+            return (*callback_)(original_, args...);
+        else if constexpr (call_original_wrapped_ex<true>)
+            return (*callback_)(original_wrapped_, args...);
+        else
+            return (*callback_)(args...);
+    }
+
+    decltype(auto) operator()(Args... args) noexcept
+    {
+        if constexpr (call_original_wrapped_ex<false>)
+            return (*callback_)(original_wrapped_, args...);
+        else
+            return std::as_const(*this)(args...);
+    }
+};
+
+#define HOOK_PROXY_STATIC(call__, __call, call)                                       \
+    template <typename Ret, typename... Args>                                         \
+    struct hook_proxy_non_member<call__, Ret, Args...> final : noncopyable            \
+    {                                                                                 \
+        template <class Callback>                                                     \
+        static Ret __call proxy(Args... args) noexcept                                \
+        {                                                                             \
+            hook_callback_invoker_non_member<Callback, call__, Ret, Args...> invoker; \
+            return invoker(args...);                                                  \
+        }                                                                             \
     };
 
 X86_CALL(HOOK_PROXY_STATIC);
@@ -229,7 +294,8 @@ X86_CALL(GET_HOOK_PROXY_NON_MEMBER)
 
 #if INTPTR_MAX == INT32_MAX
 template <
-    typename Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member, //
+    typename Callback,
+    HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member, //
     typename Ret, class Object, typename... Args>
 prepared_hook_data prepare_hook(Ret(__thiscall* target)(Object*, Args...))
 {
@@ -259,7 +325,8 @@ prepared_hook_data prepare_hook(void* target)
 }
 
 template <
-    typename Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_non_member, //
+    typename Callback,
+    HOOK_PROXY_SAMPLE class Proxy = hook_proxy_non_member, //
     call_type Call_T, typename Ret, typename... Args>
 prepared_hook_data prepare_hook(void* target)
 {
@@ -274,7 +341,8 @@ template <call_type Call_T, typename Ret, typename T, typename... Args>
 struct vfunc;
 
 template <
-    typename Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member, //
+    typename Callback,
+    HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member, //
     call_type Call_T, typename Ret, class Object, typename... Args>
 prepared_hook_data prepare_hook(vfunc<Call_T, Ret, Object, Args...> target)
 {

@@ -12,15 +12,6 @@ class wndproc final : public basic_hook_callback
 
     stored_backend backend_;
 
-    template <typename T>
-    static auto pass_original(T& original)
-    {
-        if constexpr (std::copyable<T&>)
-            return original;
-        else
-            return std::ref(original);
-    }
-
   public:
     wndproc(stored_backend backend)
         : backend_(backend)
@@ -28,7 +19,7 @@ class wndproc final : public basic_hook_callback
     }
 
     LRESULT operator()(
-        auto& original, //
+        WNDPROC original, //
         HWND window, UINT message, WPARAM wparam, LPARAM lparam) const noexcept
     {
         // todo: check are unput must be blocked before update

@@ -119,12 +119,61 @@ struct pattern_segment_item
 };
 } // namespace detail
 
-template <detail::pattern_size_type BytesCount>
-struct pattern_segment
+template <class S>
+class pattern_segment_base
 {
+    auto* bytes() const
+    {
+        return std::addressof(static_cast<S const*>(this)->known_bytes);
+    }
+
+    auto* bytes()
+    {
+        return std::addressof(static_cast<S*>(this)->known_bytes);
+    }
+
+  public:
+    bool equal(uint8_t const* mem) const
+    {
+        return std::equal(bytes()->begin(), bytes()->end(), mem);
+    }
+
+    auto front() const
+    {
+        return bytes()->front();
+    }
+
+    auto begin() const
+    {
+        return bytes()->begin();
+    }
+
+    auto end() const
+    {
+        return bytes()->end();
+    }
+
+    auto size() const
+    {
+        return bytes()->size();
+    }
+
+    auto abs_size() const
+    {
+        return bytes()->size() + static_cast<S const*>(this)->unknown_bytes;
+    }
+};
+
+template <detail::pattern_size_type BytesCount>
+class pattern_segment : public pattern_segment_base<pattern_segment<BytesCount>>
+{
+    template <class S>
+    friend class pattern_segment_base;
+
     array<uint8_t, BytesCount> known_bytes;
     detail::pattern_size_type unknown_bytes;
 
+  public:
     template <typename It>
     constexpr pattern_segment(It known_from, It known_to, detail::pattern_size_type const unknown_bytes)
         : known_bytes()
@@ -143,63 +192,75 @@ struct pattern_segment
     {
         return size() + unknown_bytes;
     }
+
+    bool equal(uint8_t const* mem) const
+    {
+        return std::equal(known_bytes.begin(), known_bytes.end(), mem);
+    }
 };
 
 template <>
-struct pattern_segment<1>
+class pattern_segment<1>
 {
-    uint8_t known_bytes;
+    uint8_t known_byte;
     detail::pattern_size_type unknown_bytes;
-};
 
-template <>
-struct pattern_segment<0>
-{
-    span</*uint8_t*/ char const> known_bytes;
-    detail::pattern_size_type unknown_bytes;
-};
+  public:
+    constexpr pattern_segment(uint8_t known_byte, detail::pattern_size_type unknown_bytes)
+        : known_byte(known_byte)
+        , unknown_bytes(unknown_bytes)
+    {
+    }
 
-template <detail::pattern_size_type BytesCount>
-detail::pattern_size_type size(pattern_segment<BytesCount> const& segment)
-{
-    if constexpr (BytesCount == 1)
+    bool equal(uint8_t const* mem) const
+    {
+        return known_byte == mem[0];
+    }
+
+    uint8_t front() const
+    {
+        return known_byte;
+    }
+
+    auto begin() const
+    {
+        return &known_byte;
+    }
+
+    auto end() const
+    {
+        return &known_byte + 1;
+    }
+
+    constexpr detail::pattern_size_type size() const
+    {
         return 1;
-    else
-        return size(segment.known_bytes);
-}
+    }
 
-template <detail::pattern_size_type BytesCount>
-detail::pattern_size_type abs_size(pattern_segment<BytesCount> const& segment)
-{
-    return size(segment) + segment.unknown_bytes;
-}
+    detail::pattern_size_type abs_size() const
+    {
+        return 1 + unknown_bytes;
+    }
+};
 
-template <detail::pattern_size_type BytesCount>
-auto begin(pattern_segment<BytesCount> const& segment)
+template <>
+class pattern_segment<0> : public pattern_segment_base<pattern_segment<0>>
 {
-    if constexpr (BytesCount == 1)
-        return &segment.known_bytes;
-    else
-        return begin(segment.known_bytes);
-}
+    template <class S>
+    friend class pattern_segment_base;
 
-template <detail::pattern_size_type BytesCount>
-auto end(pattern_segment<BytesCount> const& segment)
-{
-    if constexpr (BytesCount == 1)
-        return &segment.known_bytes + 1;
-    else
-        return end(segment.known_bytes);
-}
+    using span_type = span</*uint8_t*/ char const>;
 
-template <detail::pattern_size_type BytesCount>
-uint8_t first_byte(pattern_segment<BytesCount> const& segment)
-{
-    if constexpr (BytesCount == 1)
-        return segment.known_bytes;
-    else
-        return (segment.known_bytes[0]);
-}
+    span_type known_bytes;
+    detail::pattern_size_type unknown_bytes;
+
+  public:
+    constexpr pattern_segment(span_type known_bytes, detail::pattern_size_type unknown_bytes)
+        : known_bytes((known_bytes))
+        , unknown_bytes(unknown_bytes)
+    {
+    }
+};
 
 template <detail::pattern_size_type... SegmentsBytesCount>
 struct pattern
@@ -215,7 +276,7 @@ struct pattern
     {
         detail::pattern_size_type sum = 0;
         boost::hana::for_each(bytes, [&sum](auto& segment) {
-            sum += abs_size(segment);
+            sum += segment.abs_size();
         });
         return sum;
     }

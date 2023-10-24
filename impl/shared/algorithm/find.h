@@ -5,15 +5,20 @@
 #include <boost/hana/unpack.hpp>
 
 #include <algorithm>
+#include <cassert>
 
 namespace fd
 {
+namespace detail
+{
 template <typename Callback, typename V>
-struct find_callback_invoker
+class find_callback_invoker
 {
     static constexpr bool invocable_arg = std::invocable<Callback, V>;
     static constexpr bool invocable_raw = std::invocable<Callback>;
-    static constexpr bool invocable     = invocable_arg || invocable_raw;
+
+  public:
+    static constexpr bool invocable = invocable_arg || invocable_raw;
 
     static auto invoke(Callback& callback, V found)
     {
@@ -27,14 +32,14 @@ struct find_callback_invoker
 };
 
 template <typename V, typename Callback>
-V* find_first(V*& first, V* last, V first_value, Callback callback)
+V* find_one_byte(V* first, V* last, V first_value, Callback callback)
 {
     using callback_invoker = find_callback_invoker<Callback, V*>;
     if constexpr (callback_invoker::invocable)
     {
         for (;;)
         {
-            auto const found = std::find(first, (last), first_value);
+            auto const found = std::find(first, last, first_value);
             if (found == last)
                 return nullptr;
             if (callback_invoker::invoke(callback, found))
@@ -48,6 +53,7 @@ V* find_first(V*& first, V* last, V first_value, Callback callback)
         return found == last ? nullptr : found;
     }
 }
+} // namespace detail
 
 template <typename Callback = uint8_t>
 void* find(void* begin, void const* end, void const* from, void const* to, Callback callback = {})
@@ -56,18 +62,18 @@ void* find(void* begin, void const* end, void const* from, void const* to, Callb
     auto const b_end = static_cast<uint8_t*>(const_cast<void*>(end));
 
     auto const b_from     = static_cast<uint8_t const*>(from);
-    auto const b_to       = static_cast<uint8_t const*>(const_cast<void*>(to));
+    auto const b_to       = static_cast<uint8_t const*>((to));
     auto const first_from = static_cast<uint8_t const*>(from)[0];
 
     auto const target_length = std::distance(b_from, b_to);
     if (target_length == 1)
     {
-        return find_first(b_begin, b_end, first_from, std::ref(callback));
+        return detail::find_one_byte(b_begin, b_end, first_from, std::ref(callback));
     }
     // ReSharper disable once CppRedundantElseKeywordInsideCompoundStatement
     else
     {
-        using callback_invoker = find_callback_invoker<Callback, uint8_t*>;
+        using callback_invoker = detail::find_callback_invoker<Callback, uint8_t*>;
 
         auto const b_end_safe = b_end - target_length;
         for (;;)
@@ -89,51 +95,42 @@ void* find(void* begin, void const* end, void const* from, void const* to, Callb
 }
 
 template <detail::pattern_size_type BytesCount>
-struct pattern_segment;
+class pattern_segment;
 template <detail::pattern_size_type... SegmentsBytesCount>
 struct pattern;
 
-template <detail::pattern_size_type BytesCount>
-bool equal(uint8_t const* mem, pattern_segment<BytesCount> const& segment)
-{
-    if constexpr (BytesCount == 1)
-        return mem[0] == segment.known_bytes;
-    else
-        return std::equal(begin(segment), end(segment), mem);
-}
-
 template <detail::pattern_size_type BytesCount, typename... Next>
-bool equal_pattern(uint8_t* first, pattern_segment<BytesCount> const& segment, Next const&... next)
+bool equal(uint8_t const* mem, pattern_segment<BytesCount> const& segment, Next const&... next)
 {
-    if (!equal(first, segment))
-        return false;
+    auto const ok = segment.equal(mem);
 
     if constexpr (sizeof...(Next) == 0)
-        return true;
+        return ok;
     else
-        return equal_pattern(first + abs_size(segment), next...);
+        return ok && equal(mem + (segment.abs_size()), next...);
 }
 
 template <detail::pattern_size_type... SegmentsBytesCount>
-bool equal(uint8_t* first, pattern<SegmentsBytesCount...> const& pat)
+bool equal(uint8_t const* first, uint8_t const* last, pattern<SegmentsBytesCount...> const& pat)
 {
+    assert(std::distance(first, last) <= pat.size());
     return boost::hana::unpack(pat.bytes, [=](auto&... segment) -> bool {
-        return equal_pattern(first, segment...);
+        return equal(first, segment...);
     });
 }
 
 template <typename Callback = uint8_t, detail::pattern_size_type... SegmentsBytesCount>
 void* find(uint8_t* first, uint8_t const* last, pattern<SegmentsBytesCount...> const& pat, Callback callback = {})
 {
-    auto const first_pattern_byte = first_byte(boost::hana::front(pat.bytes));
+    auto const first_pattern_byte = *boost::hana::front(pat.bytes).begin();
 
     if constexpr (sizeof...(SegmentsBytesCount) == 1)
     {
-        return find_first(first, const_cast<uint8_t*>(last), first_pattern_byte, std::ref(callback));
+        return detail::find_one_byte(first, const_cast<uint8_t*>(last), first_pattern_byte, std::ref(callback));
     }
     else
     {
-        using callback_invoker = find_callback_invoker<Callback, uint8_t*>;
+        using callback_invoker = detail::find_callback_invoker<Callback, uint8_t*>;
 
         auto const pat_size  = pat.size();
         auto const safe_last = const_cast<uint8_t*>(last) - pat_size;
@@ -144,7 +141,7 @@ void* find(uint8_t* first, uint8_t const* last, pattern<SegmentsBytesCount...> c
             if (first_found == safe_last)
                 break;
 
-            if (!equal(first_found, pat))
+            if (!equal(first_found, safe_last, pat))
                 ++first;
             else
             {

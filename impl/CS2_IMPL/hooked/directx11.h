@@ -19,7 +19,10 @@ class create_swap_chain : public basic_hook_callback
     {
     }
 
-    HRESULT operator()(auto& original, IUnknown* device, DXGI_SWAP_CHAIN_DESC* desc, IDXGISwapChain** swap_chain) const
+    HRESULT operator()(
+        auto& original,                                                                  //
+        IUnknown* device, DXGI_SWAP_CHAIN_DESC* desc, IDXGISwapChain** swap_chain) const //
+        requires requires { original(device, desc, swap_chain); }
     {
         render_backend_->reset();
         return original(device, desc, swap_chain);
@@ -40,7 +43,10 @@ class resize_buffers : public basic_hook_callback
     {
     }
 
-    HRESULT operator()(auto& original, UINT buffer_count, UINT width, UINT height, DXGI_FORMAT new_format, UINT flags)
+    HRESULT operator()(
+        auto& original,                                                                       //
+        UINT buffer_count, UINT width, UINT height, DXGI_FORMAT new_format, UINT flags) const //
+        requires requires { original(buffer_count, width, height, new_format, flags); }
     {
         auto result = original(buffer_count, width, height, new_format, flags);
         if (SUCCEEDED(result))
@@ -60,7 +66,10 @@ class present : public basic_hook_callback
     {
     }
 
-    HRESULT operator()(auto& original, UINT sync_interval, UINT flags) const
+    HRESULT operator()(
+        auto& original,                       //
+        UINT sync_interval, UINT flags) const //
+        requires requires { original(sync_interval, flags); }
     {
         render_frame_();
         return original(sync_interval, flags);

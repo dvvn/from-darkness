@@ -102,12 +102,12 @@ decltype(auto) apply(Fn fn, call_type info, Args... args)
 #undef INFO_CASE
 }
 
-template <call_type Call_T, typename Ret, typename T, typename... Args>
-requires(std::is_class_v<T> || std::is_union_v<T> /*std::is_fundamental_v<T>*/)
+template <call_type Call_T, typename Ret, typename Object, typename... Args>
+requires(std::is_class_v<Object> || std::is_union_v<Object> /*std::is_fundamental_v<T>*/)
 struct member_func_type_impl;
 
-template <call_type Call_T, typename Ret, typename T, typename... Args>
-using member_func_type = typename member_func_type_impl<Call_T, Ret, T, Args...>::type;
+template <call_type Call_T, typename Ret, typename Object, typename... Args>
+using member_func_type = typename member_func_type_impl<Call_T, Ret, Object, Args...>::type;
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
 template <class Object>
@@ -198,11 +198,11 @@ struct non_member_func_invoker
     }
 };
 
-#define MEMBER_FN_TYPE(call__, __call, _call_)            \
-    template <typename Ret, typename T, typename... Args> \
-    struct member_func_type_impl<call__, Ret, T, Args...> \
-    {                                                     \
-        using type = Ret (__call T::*)(Args...);          \
+#define MEMBER_FN_TYPE(call__, __call, _call_)                 \
+    template <typename Ret, typename Object, typename... Args> \
+    struct member_func_type_impl<call__, Ret, Object, Args...> \
+    {                                                          \
+        using type = Ret (__call Object::*)(Args...);          \
     };
 
 X86_CALL_MEMBER(MEMBER_FN_TYPE)

@@ -26,6 +26,9 @@ class basic_hook_callback : public noncopyable
 template <class T, bool>
 class hook_callback_thread_protector;
 
+//template <class T, bool V>
+//class hook_callback_thread_protector<T const, V>;
+
 template <class T>
 class hook_callback_thread_protector<T, true> final : public noncopyable
 {
@@ -42,15 +45,19 @@ class hook_callback_thread_protector<T, true> final : public noncopyable
     {
         callback->enter();
     }
+
+    hook_callback_thread_protector(T& callback)
+        : hook_callback_thread_protector(std::addressof(callback))
+    {
+    }
 };
 
 template <class T>
 class hook_callback_thread_protector<T, false> final : public noncopyable
 {
   public:
-    hook_callback_thread_protector(T* callback)
+    hook_callback_thread_protector(auto&)
     {
-        ignore_unused(callback);
     }
 };
 
@@ -68,4 +75,6 @@ inline constexpr bool hook_callback_need_protect = detail::hook_callback_have_en
 
 template <class T>
 hook_callback_thread_protector(T*) -> hook_callback_thread_protector<T, hook_callback_need_protect<T>>;
+template <class T>
+hook_callback_thread_protector(T&) -> hook_callback_thread_protector<T, hook_callback_need_protect<T>>;
 } // namespace fd
