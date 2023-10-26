@@ -1,4 +1,5 @@
-﻿#include "basic.h"
+﻿#include "library_info/basic.h"
+#include "functional/cast.h"
 
 #include <algorithm>
 #include <cassert>
@@ -28,9 +29,9 @@ static bool operator!(UNICODE_STRING const& ustr)
     return ustr.Buffer == nullptr;
 }
 
-static bool equal(wchar_t const* str, size_t const length, UNICODE_STRING const& ustr)
+static bool equal(UNICODE_STRING const& ustr, wchar_t const* str, size_t const length)
 {
-    return length == size(ustr) && memcmp(str, data(ustr), length) == 0;
+    return size(ustr) == length && memcmp(str, data(ustr), length) == 0;
 }
 
 namespace fd
@@ -40,20 +41,20 @@ basic_library_info::basic_library_info(char_type const* name, size_t const lengt
     assert(!std::any_of(name, name + length, isupper));
 
 #ifdef _WIN64
-    auto mem = NtCurrentTeb();
-    auto ldr = mem->ProcessEnvironmentBlock->Ldr;
+    auto const mem = reinterpret_cast<TEB*>(__readgsqword(FIELD_OFFSET(NT_TIB64, Self)));
+    auto const ldr = mem->ProcessEnvironmentBlock->Ldr;
 #else
-    auto mem = reinterpret_cast<PEB*>(__readfsdword(0x30));
-    auto ldr = mem->Ldr;
+    auto const mem = reinterpret_cast<PEB*>(__readfsdword(FIELD_OFFSET(NT_TIB32, Self)));
+    auto const ldr = mem->Ldr;
 #endif
-    auto const root_list = &ldr->InMemoryOrderModuleList;
 
+    auto const root_list = &ldr->InMemoryOrderModuleList;
     for (auto list_entry = root_list->Flink; list_entry != root_list; list_entry = list_entry->Flink)
     {
         auto const entry = CONTAINING_RECORD(list_entry, LDR_DATA_TABLE_ENTRY_FULL, InMemoryOrderLinks);
         if (!entry->BaseDllName)
             continue;
-        if (!equal(name, length, entry->BaseDllName))
+        if (!equal(entry->BaseDllName, name, length))
             continue;
 
         entry_full_ = entry;
@@ -74,15 +75,15 @@ void* basic_library_info::base() const
     auto const dos = entry_full_->DosHeader; \
     assert(dos->e_magic == IMAGE_DOS_SIGNATURE);
 
-#define SET_NT                                                                                        \
-    SET_DOS;                                                                                          \
-    auto const nt = reinterpret_cast<IMAGE_NT_HEADERS*>(entry_full_->DllBaseAddress + dos->e_lfanew); \
+#define SET_NT                                                                                   \
+    SET_DOS;                                                                                     \
+    auto const nt = unsafe_cast<IMAGE_NT_HEADERS*>(entry_full_->DllBaseAddress + dos->e_lfanew); \
     assert(nt->Signature == IMAGE_NT_SIGNATURE);
 
 void* basic_library_info::image_base() const
 {
     SET_NT;
-    return reinterpret_cast<void*>(nt->OptionalHeader.ImageBase);
+    return unsafe_cast<void*>(nt->OptionalHeader.ImageBase);
 }
 
 size_t basic_library_info::length() const
@@ -137,5 +138,18 @@ uint8_t* begin(basic_library_info const& info)
 uint8_t* end(basic_library_info const& info)
 {
     return begin(info) + info.length();
+}
+
+span<uint8_t> make_library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base)
+{
+    auto const section_start = safe_cast<uint8_t>(image_base) + section->VirtualAddress;
+    auto const section_end   = section_start + section->SizeOfRawData;
+
+    return {section_start, section_end};
+}
+
+library_section_view::library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base)
+    : span(make_library_section_view(section, image_base))
+{
 }
 } // namespace fd

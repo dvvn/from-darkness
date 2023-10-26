@@ -1,7 +1,5 @@
-﻿#include "search_stop_token.h"
-#include "system.h"
+﻿#include "library_info/system.h"
 #include "algorithm/find.h"
-#include "algorithm/search.h"
 #include "iterator/unwrap.h"
 #include "memory/pattern.h"
 #include "memory/xref.h"
@@ -12,6 +10,15 @@
 #include <Windows.h>
 
 #include <cassert>
+
+namespace fd
+{
+class object_tag;
+} // namespace fd
+
+FMT_BEGIN_NAMESPACE
+FMT_FORMAT_AS(fd::object_tag, char);
+FMT_END_NAMESPACE
 
 namespace fd
 {
@@ -40,15 +47,7 @@ class object_tag
         unreachable();
     }
 };
-}; // namespace fd
 
-FMT_BEGIN_NAMESPACE
-FMT_FORMAT_AS(fd::object_tag, char);
-
-FMT_END_NAMESPACE
-
-namespace fd
-{
 void* system_library_info::function(char const* name, size_t const length) const
 {
     union
@@ -92,7 +91,7 @@ void* system_library_info::function(char const* name, size_t const length) const
     return nullptr;
 }
 
-static void* find_rtti_descriptor(string_view const name, void* image_base, void const* image_end)
+static void* find_rtti_descriptor(string_view const name, uint8_t* image_base, uint8_t* image_end)
 {
     void* ret;
     if (auto const space = name.find(' '); space == name.npos)
@@ -108,7 +107,7 @@ static void* find_rtti_descriptor(string_view const name, void* image_base, void
         array<char, 64> buff;
         auto const buff_end = fmt::format_to(buff.begin(), ".?A{}{}@@", info, class_name);
 
-        ret = find(image_base, image_end, data(buff), iterator_to_raw_pointer(buff_end));
+        ret = find(image_base, image_end, (buff.begin()), (buff_end));
     }
     return ret;
 }
@@ -130,30 +129,26 @@ void* system_library_info::vtable(char const* name, size_t length) const
     //---------
 
     // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string
-    xref const type_descriptor = rtti_descriptor_address - sizeof(uintptr_t) * 2;
+    xref const type_descriptor(rtti_descriptor_address - sizeof(uintptr_t) * 2);
 
     // dos + section->VirtualAddress, section->SizeOfRawData
 
-    auto const rdata       = this->section(".rdata");
-    auto const rdata_begin = image_base + rdata->VirtualAddress;
-    auto const rdata_end   = rdata_begin + rdata->SizeOfRawData;
+    library_section_view const rdata(this->section(".rdata"), image_base);
+    auto const rdata_begin = unwrap_iterator(rdata.begin());
+    auto const rdata_end   = unwrap_iterator(rdata.end());
 
-    auto const text       = this->section(".text");
-    auto const text_begin = image_base + text->VirtualAddress;
-    auto const text_end   = text_begin + text->SizeOfRawData;
-
-    auto const addr1 = find(
-        rdata_begin, rdata_end, type_descriptor, //
-        make_search_stop_token([](uint8_t const* found) -> bool {
-            return *unsafe_cast<uint32_t*>(found - 0x8) == 0;
-        }));
+    auto const addr1 = find(rdata_begin, rdata_end, type_descriptor, [](uint8_t const* found) -> bool {
+        return *unsafe_cast<uint32_t*>(found - 0x8) == 0;
+    });
     if (!addr1)
         return nullptr;
-
     auto const addr2 = find(rdata_begin, rdata_end, xref(safe_cast<uint8_t*>(addr1) - 0xC));
     if (!addr2)
         return nullptr;
 
-    return find(text_begin, text_end, xref(unsafe_cast<uintptr_t>(addr2) + 4));
+    library_section_view const text(this->section(".text"), image_base);
+    auto const test_end = text.end();
+    auto const found    = fd::find(text.begin(), text.end(), xref(unsafe_cast<uintptr_t>((addr2)) + 4));
+    return found != test_end ? unwrap_iterator(found) : nullptr;
 }
 } // namespace fd

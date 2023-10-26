@@ -1,12 +1,11 @@
 ﻿#pragma once
 
+#include "container/span.h"
 #include "string/view.h"
 
 #include <windows.h>
+#include <tchar.h>
 #include <winternl.h>
-
-#include <cstddef>
-#include <cstdint>
 
 // ReSharper disable CppInconsistentNaming
 // see https://www.vergiliusproject.com/kernels/x64/Windows%2011/22H2%20(2022%20Update)/_LDR_DATA_TABLE_ENTRY
@@ -36,11 +35,10 @@ namespace fd
 {
 struct basic_library_info
 {
-    using string_type = wstring_view;
-    using char_type   = wchar_t;
+    using string_type = basic_string_view<TCHAR>;
+    using char_type   = TCHAR;
 
-    static constexpr auto file_extension        = ".dll";
-    static constexpr auto file_extension_length = 4;
+    static constexpr string_view file_extension = ".dll";
 
   private:
     union
@@ -88,4 +86,12 @@ struct basic_library_info
 
 uint8_t* begin(basic_library_info const& info);
 uint8_t* end(basic_library_info const& info);
+
+span<uint8_t> make_library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base);
+
+struct library_section_view : span<uint8_t>
+{
+    library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base);
+};
+
 } // namespace fd

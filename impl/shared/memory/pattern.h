@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "basic_pattern.h"
-#include "pattern_allocator.h"
 #include "container/array.h"
 #include "container/span.h"
 #include "diagnostics/fatal.h"
@@ -133,7 +132,8 @@ class pattern_segment_base
     }
 
   public:
-    bool equal(uint8_t const* mem) const
+    template <typename It>
+    bool equal(It mem) const
     {
         return std::equal(bytes()->begin(), bytes()->end(), mem);
     }
@@ -188,15 +188,10 @@ class pattern_segment : public pattern_segment_base<pattern_segment<BytesCount>>
         return BytesCount;
     }
 
-    detail::pattern_size_type whole_size() const
-    {
-        return size() + unknown_bytes;
-    }
-
-    bool equal(uint8_t const* mem) const
+    /*bool equal(uint8_t const* mem) const
     {
         return std::equal(known_bytes.begin(), known_bytes.end(), mem);
-    }
+    }*/
 };
 
 template <>
@@ -212,9 +207,10 @@ class pattern_segment<1>
     {
     }
 
-    bool equal(uint8_t const* mem) const
+    template <typename It>
+    bool equal(It mem) const
     {
-        return known_byte == mem[0];
+        return known_byte == *mem;
     }
 
     uint8_t front() const

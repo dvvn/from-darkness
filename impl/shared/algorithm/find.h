@@ -1,4 +1,7 @@
 #pragma once
+#include "optional.h"
+#include "functional/cast.h"
+#include "iterator/unwrap.h"
 #include "memory/basic_pattern.h"
 
 #include <boost/hana/front.hpp>
@@ -26,72 +29,115 @@ class find_callback_invoker
             return std::invoke(callback, found);
         else if constexpr (invocable_raw)
             return std::invoke(callback);
-        else
-            return true;
     }
 };
 
-template <typename V, typename Callback>
-V* find_one_byte(V* first, V* last, V first_value, Callback callback)
+template <typename It>
+auto unwrap_byte_iter(It it)
 {
-    using callback_invoker = find_callback_invoker<Callback, V*>;
-    if constexpr (callback_invoker::invocable)
+    if constexpr (std::same_as<void*, std::decay_t<It>>)
     {
+        return safe_cast<uint8_t>(it);
+    }
+    else
+    {
+#ifdef _DEBUG
+        static_assert(sizeof(std::iter_value_t<It>) == sizeof(uint8_t));
+#endif
+        return unwrap_iterator(it);
+    }
+}
+
+template <typename It, typename ItRaw, typename Callback>
+bool invoke_find_callback(It& first_pos, ItRaw current_pos, Callback callback)
+{
+    using cb_invoker  = find_callback_invoker<Callback, ItRaw>;
+    using cb_invoker2 = find_callback_invoker<Callback, It>;
+
+    if constexpr (cb_invoker::invocable)
+    {
+        if (!cb_invoker::invoke(callback, current_pos))
+            return false;
+        rewrap_iterator(first_pos, current_pos);
+    }
+    else if constexpr (cb_invoker2::invocable)
+    {
+        rewrap_iterator(first_pos, current_pos);
+        if (!cb_invoker2::invoke(callback, first_pos))
+            return false;
+    }
+    else
+    {
+        rewrap_iterator(first_pos, current_pos);
+    }
+
+    return true;
+}
+
+template <typename It, typename Callback>
+It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, Callback callback)
+{
+    using cb_invoker  = find_callback_invoker<Callback, decltype(unwrap_byte_iter(rng_start))>;
+    using cb_invoker2 = find_callback_invoker<Callback, It>;
+
+    if constexpr (cb_invoker::invocable || cb_invoker2::invocable)
+    {
+        auto u_start     = unwrap_byte_iter(rng_start);
+        auto const u_end = unwrap_byte_iter(rng_end);
+
         for (;;)
         {
-            auto const found = std::find(first, last, first_value);
-            if (found == last)
-                return nullptr;
-            if (callback_invoker::invoke(callback, found))
-                return found;
-            first = found;
+            auto u_found = std::find(u_start, u_end, first_value);
+            if (u_found == rng_end)
+                return rng_end;
+
+            if (invoke_find_callback(rng_start, u_found, std::ref(callback)))
+                return rng_start;
+
+            u_start = u_found;
         }
     }
     else
     {
-        auto const found = std::find(first, (last), first_value);
-        return found == last ? nullptr : found;
+        return (std::find(rng_start, (rng_end), first_value));
     }
 }
 } // namespace detail
 
-template <typename Callback = uint8_t>
-void* find(void* begin, void const* end, void const* from, void const* to, Callback callback = {})
+template <typename It, typename It2 = It, typename Callback = uint8_t>
+It find(It rng_start, It const rng_end, It2 const what_start, It2 const what_end, Callback callback = {})
 {
-    auto b_begin     = static_cast<uint8_t*>(begin);
-    auto const b_end = static_cast<uint8_t*>(const_cast<void*>(end));
+    using detail::unwrap_byte_iter;
 
-    auto const b_from     = static_cast<uint8_t const*>(from);
-    auto const b_to       = static_cast<uint8_t const*>((to));
-    auto const first_from = static_cast<uint8_t const*>(from)[0];
+    auto const u_what_start = unwrap_byte_iter(what_start);
+    auto const u_what_end   = unwrap_byte_iter(what_end);
 
-    auto const target_length = std::distance(b_from, b_to);
+    auto const what_front = *u_what_start;
+
+    auto const target_length = std::distance(u_what_start, u_what_end);
     if (target_length == 1)
     {
-        return detail::find_one_byte(b_begin, b_end, first_from, std::ref(callback));
+        return detail::find_one_byte(rng_start, rng_start, what_front, std::ref(callback));
     }
     // ReSharper disable once CppRedundantElseKeywordInsideCompoundStatement
     else
     {
-        using callback_invoker = detail::find_callback_invoker<Callback, uint8_t*>;
-
-        auto const b_end_safe = b_end - target_length;
+        auto u_rng_start          = unwrap_byte_iter(rng_start);
+        auto const u_rng_end      = unwrap_byte_iter((rng_end));
+        auto const u_rng_safe_end = u_rng_end - target_length;
         for (;;)
         {
-            auto const first_found = std::find(b_begin, b_end_safe, first_from);
-            if (first_found == b_end_safe)
-                break;
-            if (!std::equal(b_from, b_to, b_begin))
-                ++b_begin;
-            else
-            {
-                if (callback_invoker::invoke(callback, first_found))
-                    return first_found;
-                b_begin = first_found + target_length;
-            }
+            auto u_found_pos = std::find(u_rng_start, u_rng_safe_end, what_front);
+            if (u_found_pos == u_rng_safe_end)
+                return rng_end;
+
+            if (!std::equal(u_what_start, u_what_end, u_rng_start))
+                ++u_rng_start;
+            else if (detail::invoke_find_callback(rng_start, u_found_pos, std::ref(callback)))
+                return rng_start;
+            u_rng_start = u_found_pos + target_length;
         }
     }
-    return nullptr;
 }
 
 template <detail::pattern_size_type BytesCount>
@@ -99,80 +145,69 @@ class pattern_segment;
 template <detail::pattern_size_type... SegmentsBytesCount>
 struct pattern;
 
-template <detail::pattern_size_type BytesCount, typename... Next>
-bool equal(uint8_t const* mem, pattern_segment<BytesCount> const& segment, Next const&... next)
+template <typename It, detail::pattern_size_type BytesCount, typename... Next>
+bool equal(It mem, pattern_segment<BytesCount> const& segment, Next const&... next)
 {
     auto const ok = segment.equal(mem);
 
     if constexpr (sizeof...(Next) == 0)
         return ok;
     else
-        return ok && equal(mem + (segment.abs_size()), next...);
+        return ok && equal(mem + segment.abs_size(), next...);
 }
 
-template <detail::pattern_size_type... SegmentsBytesCount>
-bool equal(uint8_t const* first, uint8_t const* last, pattern<SegmentsBytesCount...> const& pat)
+template <typename It, detail::pattern_size_type... SegmentsBytesCount>
+bool equal(It first, It const last, pattern<SegmentsBytesCount...> const& pat)
 {
     assert(std::distance(first, last) <= pat.size());
-    return boost::hana::unpack(pat.bytes, [=](auto&... segment) -> bool {
-        return equal(first, segment...);
+    return boost::hana::unpack(pat.bytes, [u_start = unwrap_iterator(first)](auto&... segment) -> bool {
+        return equal(u_start, segment...);
     });
 }
 
-template <typename Callback = uint8_t, detail::pattern_size_type... SegmentsBytesCount>
-void* find(uint8_t* first, uint8_t const* last, pattern<SegmentsBytesCount...> const& pat, Callback callback = {})
+template <typename Callback = uint8_t, typename It, detail::pattern_size_type... SegmentsBytesCount>
+It find(It rng_start, It const rng_end, pattern<SegmentsBytesCount...> const& pat, Callback callback = {})
 {
-    auto const first_pattern_byte = *boost::hana::front(pat.bytes).begin();
+    auto const first_pattern_byte = boost::hana::front(pat.bytes).front();
 
     if constexpr (sizeof...(SegmentsBytesCount) == 1)
     {
-        return detail::find_one_byte(first, const_cast<uint8_t*>(last), first_pattern_byte, std::ref(callback));
+        return detail::find_one_byte(rng_start, rng_end, first_pattern_byte, std::ref(callback));
     }
     else
     {
-        using callback_invoker = detail::find_callback_invoker<Callback, uint8_t*>;
+        auto u_rng_start     = unwrap_iterator(rng_start);
+        auto const u_rng_end = unwrap_iterator(rng_end);
 
-        auto const pat_size  = pat.size();
-        auto const safe_last = const_cast<uint8_t*>(last) - pat_size;
+        auto const pat_size       = pat.size();
+        auto const u_rng_end_safe = u_rng_end - pat_size;
 
         for (;;)
         {
-            auto const first_found = std::find(first, safe_last, first_pattern_byte);
-            if (first_found == safe_last)
-                break;
-
-            if (!equal(first_found, safe_last, pat))
-                ++first;
-            else
-            {
-                if (callback_invoker::invoke(callback, first_found))
-                    return first_found;
-                first = first_found + pat_size;
-            }
+            auto const u_found_pos = std::find(u_rng_start, u_rng_end_safe, first_pattern_byte);
+            if (u_found_pos == u_rng_end_safe)
+                return rng_end;
+            if (!equal(u_found_pos, u_rng_end_safe, pat))
+                ++u_rng_start;
+            else if (detail::invoke_find_callback(rng_start, u_found_pos, std::ref(callback)))
+                return rng_start;
+            u_rng_start = u_found_pos + pat_size;
         }
     }
-    return nullptr;
 }
 
-template <typename Callback = uint8_t, detail::pattern_size_type... SegmentsBytesCount>
-void* find(void* first, void const* last, pattern<SegmentsBytesCount...> const& pat, Callback callback = {})
-{
-    return find(static_cast<uint8_t*>(first), static_cast<uint8_t const*>(last), pat, std::ref(callback));
-}
+// template <typename Callback = uint8_t, detail::pattern_size_type... SegmentsBytesCount>
+// void* find(void* first, void const* last, pattern<SegmentsBytesCount...> const& pat, Callback callback = {})
+//{
+//     return find(static_cast<uint8_t*>(first), static_cast<uint8_t const*>(last), pat, std::ref(callback));
+// }
 
 template <bool Owned>
-class xref;
+struct xref;
 
-template <typename Callback = uint8_t, bool Owned>
-void* find(uint8_t* first, uint8_t const* last, xref<Owned> const& xr, Callback callback = {})
+template <typename Callback = uint8_t, typename It, bool Owned>
+auto find(It first, It const last, xref<Owned> const& xr, Callback callback = {})
 {
-    auto ptr = xr.get();
-    return find(first, last, ptr, ptr + 1, std::ref(callback));
-}
-
-template <typename Callback = uint8_t, bool Owned>
-void* find(void* first, void const* last, xref<Owned> const& xr, Callback callback = {})
-{
-    return find(static_cast<uint8_t*>(first), static_cast<uint8_t const*>(last), xr, std::ref(callback));
+    return find(first, last, xr.begin(), xr.end(), std::ref(callback));
 }
 }

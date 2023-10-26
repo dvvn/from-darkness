@@ -28,29 +28,32 @@ class vfunc_index
 template <class T>
 struct vtable;
 
+namespace detail
+{
 template <class T>
 struct vtable_expander;
+} // namespace detail
 
 template <class T>
-vtable<T>* safe_cast(vtable_expander<T>* ptr)
+vtable<T>* get(detail::vtable_expander<T>* ptr)
 {
     return safe_cast<vtable<T>>(ptr);
 }
 
 template <class T>
-vtable<T> const* safe_cast(vtable_expander<T> const* ptr)
+vtable<T> const* get(detail::vtable_expander<T> const* ptr)
 {
     return safe_cast<vtable<T>>(ptr);
 }
 
 template <class T>
-struct vtable_expander
+struct detail::vtable_expander
 {
 #define VFUNC_ACCESS(call__, __call, _call_)                                        \
     template <typename Ret, typename... Args>                                       \
     vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
     {                                                                               \
-        return {func, safe_cast<T>(this)->instance()};                              \
+        return {func, get<T>(this)->instance()};                                    \
     }
 
     X86_CALL_MEMBER(VFUNC_ACCESS);
@@ -58,13 +61,13 @@ struct vtable_expander
 };
 
 template <>
-struct vtable_expander<void>
+struct detail::vtable_expander<void>
 {
 #define VFUNC_ACCESS(call__, __call, _call_)                                        \
     template <typename Ret, typename T, typename... Args>                           \
     vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
     {                                                                               \
-        return {func, safe_cast<T>(this)->instance()};                              \
+        return {func, get<T>(this)->instance()};                                    \
     }
 
     X86_CALL_MEMBER(VFUNC_ACCESS);
@@ -72,7 +75,7 @@ struct vtable_expander<void>
 };
 
 template <class T>
-struct vtable : vtable_expander<T>
+struct vtable : detail::vtable_expander<T>
 {
     using instance_pointer = T*;
     using table_pointer    = void**;
@@ -85,7 +88,7 @@ struct vtable : vtable_expander<T>
     };
 
   public:
-    using vtable_expander<T>::operator[];
+    using detail::vtable_expander<T>::operator[];
 
     vtable()
         : instance_(nullptr)

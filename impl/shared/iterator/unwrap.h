@@ -47,4 +47,23 @@ namespace fd
 {
 using boost::movelib::iterator_to_raw_pointer;
 using boost::movelib::to_raw_pointer;
+
+template <typename It>
+decltype(auto) unwrap_iterator(It&& it)
+{
+#ifdef _MSC_VER
+    return std::_Get_unwrapped(it);
+#else
+#endif
+}
+
+template <typename It, typename ItRaw>
+void rewrap_iterator(It& it, ItRaw&& it_raw)
+{
+#ifdef _MSC_VER
+    return std::_Seek_wrapped(it, it_raw);
+#else
+#endif
+}
+
 } // namespace fd

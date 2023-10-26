@@ -5,13 +5,13 @@
 namespace fd
 {
 template <typename T>
-constexpr T const *as_const(T *ptr)
+constexpr T const* as_const(T* ptr)
 {
     return ptr;
 }
 
 template <typename T>
-constexpr T const *as_const(T const *ptr)
+constexpr T const* as_const(T const* ptr)
 {
     return ptr;
 }
@@ -19,204 +19,224 @@ constexpr T const *as_const(T const *ptr)
 using std::as_const;
 
 template <typename T>
-T *remove_const(T const *ptr)
+T* remove_const(T const* ptr)
 {
-    return const_cast<T *>(ptr);
+    return const_cast<T*>(ptr);
 }
 
 template <typename T>
-constexpr T *remove_const(T *ptr)
+constexpr T* remove_const(T* ptr)
 {
     return ptr;
 }
 
 template <typename T>
-T &remove_const(T const &ref)
+T& remove_const(T const& ref)
 {
-    return const_cast<T &>(ref);
+    return const_cast<T&>(ref);
 }
 
 template <typename T>
-constexpr T &remove_const(T &ref)
+constexpr T& remove_const(T& ref)
 {
     return (ref);
 }
 
 namespace detail
 {
-template <typename T>
-concept is_basic_pointer = std::is_pointer_v<T> && !std::is_function_v<std::remove_pointer_t<T>>;
+template <typename To, typename From>
+concept can_static_cast = requires(From from) { static_cast<To>(from); };
 
-template <typename T>
-concept is_pointer_to_function = //
-    std::is_member_function_pointer_v<T> || (std::is_pointer_v<T> && std::is_function_v<std::remove_pointer_t<T>>);
+inline void safe_cast_debug_trap()
+{
+}
 
-// for msvc, otherwise unreachable
-template <typename Left, typename Right>
-concept cast_between_pointer_and_function =                      //
-    (is_basic_pointer<Left> && is_pointer_to_function<Right>) || //
-    (is_basic_pointer<Right> && is_pointer_to_function<Left>);
+template <typename To>
+struct safe_cast_simple_ptr
+{
+    template <typename From>
+    constexpr To operator()(From* from) const requires(can_static_cast<To, From*>)
+    {
+        safe_cast_debug_trap();
+        return static_cast<To>(from);
+    }
+};
 
+template <typename To>
+struct safe_cast_simple_ptr<To const*>
+{
+    template <typename From>
+    constexpr To const* operator()(From const* from) const requires(can_static_cast<To const*, From const*>)
+    {
+        safe_cast_debug_trap();
+        return static_cast<To const*>(from);
+    }
+};
+
+template <typename To>
+struct safe_cast_simple_ref
+{
+    template <typename From>
+    constexpr To operator()(From&& from) const requires(can_static_cast<To, From &&>)
+    {
+        safe_cast_debug_trap();
+        return static_cast<To>(static_cast<From&&>(from));
+    }
+};
+
+template <typename To>
+struct safe_cast_simple
+{
+    template <typename From>
+    constexpr To operator()(From from) const requires(can_static_cast<To, From>)
+    {
+        safe_cast_debug_trap();
+        return static_cast<To>(from);
+    }
+};
+
+template <typename P, size_t Count = 0>
+struct pointers_count : std::integral_constant<size_t, Count>
+{
+};
+
+template <typename P, size_t Count>
+struct pointers_count<P*, Count> : pointers_count<P, Count + 1>
+{
+};
+
+template <typename P, size_t Count>
+struct pointers_count<P* const, Count> : pointers_count<P, Count + 1>
+{
+};
+
+template <typename P, size_t Count = 1, bool = std::is_pointer_v<P>>
+struct remove_pointer;
+
+template <typename P>
+struct remove_pointer<P, 0, true> : std::type_identity<P>
+{
+};
+
+template <typename P, size_t Count>
+struct remove_pointer<P, Count, false> : std::type_identity<P>
+{
+};
+
+template <typename P, size_t Count>
+struct remove_pointer<P* const, Count, true> : remove_pointer<P, Count - 1>
+{
+};
+
+template <typename P, size_t Count>
+struct remove_pointer<P*, Count, true> : remove_pointer<P, Count - 1>
+{
+};
+
+template <typename P, size_t Count = 0>
+using remove_pointer_t = typename remove_pointer<P, Count>::type;
+
+template <typename P, size_t Index, size_t PointersCount = pointers_count<P>::value>
+struct are_pointer_const : std::is_const<remove_pointer_t<P, PointersCount - Index>>
+{
+};
+
+template <typename P, size_t Index, size_t PointersCount = pointers_count<P>::value>
+inline constexpr bool are_pointer_const_v = are_pointer_const<P, Index, PointersCount>::value;
+
+template <typename T, typename Ptr, size_t Index = 0, size_t Limit = pointers_count<Ptr>::value>
+struct make_pointer_like : make_pointer_like<
+                               std::conditional_t<are_pointer_const_v<Ptr, Index, Limit>, T const*, T*>, //
+                               Ptr, Index + 1, Limit>
+{
+};
+
+template <typename T, typename Ptr, size_t Limit>
+struct make_pointer_like<T, Ptr, Limit, Limit> : std::type_identity<T>
+{
+};
+
+template <typename T, typename P1, typename P2, size_t Index = 0, size_t Limit = pointers_count<P2>::value>
+struct rewrap_pointer_like : rewrap_pointer_like<
+                                 std::conditional_t<are_pointer_const_v<P1, Index, Limit> || are_pointer_const_v<P2, Index, Limit>, T const*, T*>, //
+                                 P1, P2, Index + 1, Limit>
+{
+};
+
+template <typename T, typename P1, typename P2, size_t Limit>
+struct rewrap_pointer_like<T, P1, P2, Limit, Limit> : std::type_identity<T>
+{
+};
+
+template <typename T, typename Ptr, size_t Limit>
+struct make_pointer_like<T*, Ptr*, 0, Limit> : rewrap_pointer_like<remove_pointer_t<T, -1>, T*, Ptr*, 0, Limit>
+{
+};
+
+template <typename T, typename Ptr, size_t Limit>
+struct make_pointer_like<T* const, Ptr*, 0, Limit>; // dont use 'X* const'
+
+template <typename T, typename Ptr, size_t Limit>
+struct make_pointer_like<T**, Ptr*, 0, Limit>;
+template <typename T, typename Ptr, size_t Limit>
+struct make_pointer_like<T* const*, Ptr*, 0, Limit>;
+template <typename T, typename Ptr, size_t Limit>
+struct make_pointer_like<T*, Ptr**, 0, Limit>;
+template <typename T, typename Ptr, size_t Limit>
+struct make_pointer_like<T*, Ptr* const*, 0, Limit>;
+
+template <typename To>
+struct safe_cast_impl
+{
+    template <typename From, typename ToResolved = typename make_pointer_like<To, From*>::type>
+    constexpr ToResolved operator()(From* from) const requires(can_static_cast<ToResolved, From*>)
+    {
+        safe_cast_debug_trap();
+        return static_cast<ToResolved>(from);
+    }
+};
+
+template <typename To>
+struct safe_cast_impl<To*> : safe_cast_simple_ptr<To*>, safe_cast_simple_ptr<To const*>
+{
+};
+
+template <typename To>
+struct safe_cast_impl<To const*> : safe_cast_simple_ptr<To const*>
+{
+};
+
+template <typename To>
+struct safe_cast_impl<To&> : safe_cast_simple_ref<To&>
+{
+};
+
+template <typename To>
+struct safe_cast_impl<To const&> : safe_cast_simple_ref<To const&>
+{
+};
+
+template <typename To>
+struct safe_cast_impl<To&&> : safe_cast_simple_ref<To&&>
+{
+};
 } // namespace detail
 
-template <typename To, typename From>
-concept can_static_cast = requires(From from) { static_cast<To>(from); } &&
-                          !detail::cast_between_pointer_and_function<From, To>;
-
-template <typename To, typename From>
-concept can_const_cast = requires(From from) { const_cast<To>(from); };
-
-template <typename To, typename From>
-concept can_reinterpret_cast = requires(From from) { reinterpret_cast<To>(from); };
-
-template <typename T>
-inline constexpr bool is_void_pointer_v = false;
-
-template <>
-inline constexpr bool is_void_pointer_v<void *> = true;
-
-template <>
-inline constexpr bool is_void_pointer_v<void const *> = true;
-
-template <typename T>
-inline constexpr bool is_void_pointer_v<T **> = is_void_pointer_v<T *>;
-
-namespace detail
-{
-template <typename T, size_t Num = 0>
-struct pointers_count : std::integral_constant<size_t, Num>
-{
-};
-
-template <typename T, size_t Num>
-struct pointers_count<T *, Num> : pointers_count<T, Num + 1>
-{
-};
-
-template <typename T, size_t Count = pointers_count<T>::value>
-constexpr bool are_pointer_const(size_t const idx, size_t const offset = 0)
-{
-    using mutable_t = std::remove_const_t<T>;
-    using raw_t     = std::remove_pointer_t<T>;
-
-    auto const target_idx = Count - offset;
-    return idx == target_idx ? !std::same_as<mutable_t, T> : are_pointer_const<raw_t, Count>(idx, offset + 1);
-}
-
-template <typename T, typename P>
-struct add_pointer_like;
-
-template <typename T, bool Const>
-using add_const_pointer = //
-    std::conditional_t<
-        Const,
-        std::add_pointer_t<std::add_const_t<T>>, //
-        std::add_pointer_t<T>>;
-
-template <typename T, typename P, size_t LastIdx = pointers_count<P>::value, size_t Idx = 0>
-struct repack_pointer : repack_pointer<
-                            add_const_pointer< //
-                                T, are_pointer_const<P, LastIdx>(Idx)>,
-                            P, LastIdx, Idx + 1>
-{
-};
-
-template <typename T, typename P, size_t LastIdx>
-struct repack_pointer<T, P, LastIdx, LastIdx>
-{
-    using type = T;
-};
-
-template <typename T, typename P>
-using repack_pointer_t = typename repack_pointer<T, P>::type;
-
-template <typename To, typename Sample>
-struct change_type_as
-{
-    using type = To;
-};
-
-template <typename To, typename Sample>
-struct change_type_as<To *, Sample const *>
-{
-    using type = add_const_pointer<To, true>;
-};
-
-template <typename To, typename Sample>
-struct change_type_as<To &, Sample const &>
-{
-    using type = std::add_const_t<To> &;
-};
-#if 0
-template <typename T>
-using remove_rvalue_reference_t = std::conditional_t<std::is_rvalue_reference_v<T>, std::remove_reference_t<T>, T>;
-#else
-template <typename T>
-struct remove_rvalue_reference
-{
-    using type = T;
-};
-
-template <typename T>
-struct remove_rvalue_reference<T &&>
-{
-    using type = T;
-};
-
-template <typename T>
-using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
-#endif
-
-template <typename To, typename Sample>
-using change_type_as_t = typename change_type_as<To, remove_rvalue_reference_t<Sample>>::type;
-} // namespace detail
-
-template <
-    typename To,
-    typename From, //
-    can_static_cast<From &&> Result = detail::change_type_as_t<To, From &&>>
-constexpr Result safe_cast(From &&from)
-{
-    return static_cast<Result>(from);
-}
-
-template <
-    typename To, typename From,
-    can_static_cast<From *> Result = std::conditional_t<
-        std::is_pointer_v<To>,                //
-        detail::change_type_as_t<To, From *>, //
-        detail::repack_pointer_t<To, From *>>>
-constexpr Result safe_cast(From *from)
-{
-    return static_cast<Result>(from);
-}
+template <typename To>
+inline constexpr detail::safe_cast_impl<To> safe_cast;
 
 template <typename To, typename From>
 To unsafe_cast(From from)
 {
-    if constexpr (can_static_cast<To, From>)
-        return static_cast<To>(from);
-    else if constexpr (can_const_cast<To, From>)
-        return const_cast<To>(from);
-    else
+    static_assert(sizeof(From) == sizeof(To));
+
+    union
     {
-        static_assert(sizeof(From) == sizeof(To));
+        From from0;
+        To to;
+    };
 
-        if constexpr (can_reinterpret_cast<To, From>)
-        {
-            return reinterpret_cast<To>(from);
-        }
-        else
-        {
-            union
-            {
-                From from0;
-                To to;
-            };
-
-            from0 = from;
-            return to;
-        }
-    }
+    from0 = from;
+    return to;
 }
 } // namespace fd

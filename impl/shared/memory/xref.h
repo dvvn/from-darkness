@@ -5,24 +5,39 @@
 namespace fd
 {
 template <bool Owned>
-class xref;
+struct xref;
 
 template <>
-class xref<false> final
+struct xref<false> final
 {
-    uintptr_t const* value;
+    using pointer  = uintptr_t const*;
+    using iterator = uint8_t const*;
+
+  private:
+    pointer value_;
 
   public:
     xref(uintptr_t&&) = delete;
 
     xref(uintptr_t const& value)
-        : value(&value)
+        : value_(&value)
     {
     }
 
-    uintptr_t const* get() const
+    [[deprecated]]
+    pointer get() const
     {
-        return value;
+        return value_;
+    }
+
+    iterator begin() const
+    {
+        return reinterpret_cast<iterator>(value_);
+    }
+
+    iterator end() const
+    {
+        return reinterpret_cast<iterator>(value_ + 1);
     }
 };
 
@@ -32,6 +47,9 @@ class xref<true> final
     uintptr_t value_;
 
   public:
+    using pointer  = uintptr_t const*;
+    using iterator = uint8_t const*;
+
     xref(uintptr_t&& value)
         : value_(value)
     {
@@ -44,9 +62,20 @@ class xref<true> final
 
     xref(uintptr_t const& value) = delete;
 
-    uintptr_t const* get() const&
+    [[deprecated]]
+    pointer get() const&
     {
         return &value_;
+    }
+
+    iterator begin() const&
+    {
+        return reinterpret_cast<iterator>(&value_);
+    }
+
+    iterator end() const&
+    {
+        return reinterpret_cast<iterator>(&value_ + 1);
     }
 };
 
