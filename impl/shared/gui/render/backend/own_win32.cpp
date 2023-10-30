@@ -1,4 +1,5 @@
-﻿#include "render/backend/own_win32.h"
+﻿#include "gui/render/backend/own_win32.h"
+#include "diagnostics/fatal.h"
 
 #include <Windows.h>
 #include <tchar.h>

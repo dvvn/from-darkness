@@ -13,41 +13,6 @@
 
 namespace fd
 {
-class object_tag;
-} // namespace fd
-
-FMT_BEGIN_NAMESPACE
-FMT_FORMAT_AS(fd::object_tag, char);
-FMT_END_NAMESPACE
-
-namespace fd
-{
-class object_tag
-{
-    string_view obj_;
-
-  public:
-    object_tag(string_view const obj)
-        : obj_(obj)
-    {
-    }
-
-    operator string_view() const
-    {
-        return obj_;
-    }
-
-    operator char() const
-    {
-        if (obj_ == "struct")
-            return 'U';
-        if (obj_ == "class")
-            return 'V';
-        // todo: union
-        unreachable();
-    }
-};
-
 void* system_library_info::function(char const* name, size_t const length) const
 {
     union
@@ -56,7 +21,7 @@ void* system_library_info::function(char const* name, size_t const length) const
         uint8_t* base_address;
     };
 
-    base_address = static_cast<uint8_t*>(this->base());
+    base_address = safe_cast<uint8_t>(this->base());
 
     union
     {
@@ -93,21 +58,25 @@ void* system_library_info::function(char const* name, size_t const length) const
 
 static void* find_rtti_descriptor(string_view const name, uint8_t* image_base, uint8_t* image_end)
 {
-    void* ret;
+    uint8_t* ret;
     if (auto const space = name.find(' '); space == name.npos)
     {
-        auto const pat = make_pattern(".?A", 1, "name, \"@@\""); // todo: FIX ME!!!
-        ret            = find(image_base, image_end, pat);
+        ret = find(image_base, image_end, make_pattern(".?A", 1, "name, \"@@\""));
     }
     else
     {
-        object_tag const info(name.substr(0, space));
+        auto const object_tag = [object_name = name.substr(0, space)] {
+            if (object_name == "struct")
+                return 'U';
+            if (object_name == "class")
+                return 'V';
+            // todo: union
+            unreachable();
+        }();
         auto const class_name = name.substr(space + 1);
 
         array<char, 64> buff;
-        auto const buff_end = fmt::format_to(buff.begin(), ".?A{}{}@@", info, class_name);
-
-        ret = find(image_base, image_end, (buff.begin()), (buff_end));
+        ret = find(image_base, image_end, buff.begin(), fmt::format_to(buff.begin(), ".?A{}{}@@", object_tag, class_name));
     }
     return ret;
 }
@@ -121,7 +90,7 @@ void* system_library_info::vtable(char const* name, size_t length) const
         char const* rtti_descriptor_view;
     };
 
-    auto const image_base = static_cast<uint8_t*>(this->image_base());
+    auto const image_base = safe_cast<uint8_t>(this->image_base());
     auto const image_end  = (image_base) + this->length();
 
     rtti_descriptor = find_rtti_descriptor({name, length}, image_base, image_end);
@@ -134,21 +103,24 @@ void* system_library_info::vtable(char const* name, size_t length) const
     // dos + section->VirtualAddress, section->SizeOfRawData
 
     library_section_view const rdata(this->section(".rdata"), image_base);
-    auto const rdata_begin = unwrap_iterator(rdata.begin());
-    auto const rdata_end   = unwrap_iterator(rdata.end());
+    auto const rdata_begin = (rdata.begin());
+    auto const rdata_end   = (rdata.end());
 
     auto const addr1 = find(rdata_begin, rdata_end, type_descriptor, [](uint8_t const* found) -> bool {
         return *unsafe_cast<uint32_t*>(found - 0x8) == 0;
     });
-    if (!addr1)
+    if (addr1 == rdata_end)
         return nullptr;
-    auto const addr2 = find(rdata_begin, rdata_end, xref(safe_cast<uint8_t*>(addr1) - 0xC));
-    if (!addr2)
+    auto const addr2 = find(rdata_begin, rdata_end, xref(unsafe_cast<uintptr_t>(unwrap_iterator(addr1)) - 0xC));
+    if (addr2 == rdata_end)
         return nullptr;
 
     library_section_view const text(this->section(".text"), image_base);
     auto const test_end = text.end();
-    auto const found    = fd::find(text.begin(), text.end(), xref(unsafe_cast<uintptr_t>((addr2)) + 4));
-    return found != test_end ? unwrap_iterator(found) : nullptr;
+    auto const found    = find(text.begin(), test_end, xref(unsafe_cast<uintptr_t>(unwrap_iterator(addr2)) + 4));
+    if (found == test_end)
+        return nullptr;
+
+    return unwrap_iterator(found);
 }
 } // namespace fd

@@ -42,14 +42,15 @@ struct xref<false> final
 };
 
 template <>
-class xref<true> final
+struct xref<true> final
 {
-    uintptr_t value_;
-
-  public:
     using pointer  = uintptr_t const*;
     using iterator = uint8_t const*;
 
+  private:
+    uintptr_t value_;
+
+  public:
     xref(uintptr_t&& value)
         : value_(value)
     {

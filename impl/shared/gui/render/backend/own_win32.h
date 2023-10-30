@@ -1,8 +1,7 @@
 ﻿#pragma once
 
-#include "basic_win32.h"
-//
 #include "noncopyable.h"
+#include "gui/render/backend/basic_win32.h"
 
 #include <Windows.h>
 
@@ -15,6 +14,7 @@ class own_win32_backend_data : public noncopyable
     WNDCLASSEX info_;
     HWND hwnd_;
 
+  public:
     ~own_win32_backend_data();
     own_win32_backend_data();
 };

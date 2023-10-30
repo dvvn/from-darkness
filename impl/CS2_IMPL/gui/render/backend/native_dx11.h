@@ -2,8 +2,8 @@
 #include "comptr.h"
 #include "noncopyable.h"
 #include "optional.h"
+#include "gui/render/backend/basic_dx11.h"
 #include "library_info/system.h"
-#include "render/backend/basic_dx11.h"
 
 #include <d3d11.h>
 
@@ -22,6 +22,7 @@ struct native_dx11_device_data
     native_dx11_device_data(IDXGISwapChain* sc);
     native_dx11_device_data(system_library_info info);
 
+    // ReSharper disable once CppInconsistentNaming
     comptr<IDXGIFactory> DXGI_factory() const;
 };
 

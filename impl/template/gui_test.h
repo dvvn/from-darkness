@@ -2,12 +2,9 @@
 
 #include "menu_example.h"
 #include "debug/log.h"
-#include "functional/bind.h"
-#include "gui/menu.h"
-#include "gui/menu/tab.h"
-#include "render/backend/own_win32.h"
-#include "render/context.h"
-#include "render/frame.h"
+#include "gui/present.h"
+#include "gui/render/backend/own_win32.h"
+#include "gui/render/context.h"
 
 namespace fd
 {
@@ -25,14 +22,16 @@ bool gui_test()
     auto const window = system_bk.info();
     render_backend render_bk(window.id);
 
-    auto menu = make_menu_example(bind(&own_win32_backend::close, &system_bk));
+    auto menu = make_menu_example([&system_bk] {
+        system_bk.close();
+    });
 
     while (system_bk.update())
     {
         if (window.minimized())
             continue;
         render_bk.resize(window.size());
-        render_frame(&render_bk, &system_bk, &render_ctx, &menu);
+        present_gui(&render_bk, &system_bk, &render_ctx, &menu);
     }
 
     return true;

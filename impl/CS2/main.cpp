@@ -10,10 +10,10 @@
 #include "hook/creator.h"
 #include "hooked/directx11.h"
 #include "hooked/winapi.h"
-#include "render/backend/native_dx11.h"
-#include "render/backend/native_win32.h"
-#include "render/context.h"
-#include "render/frame.h"
+#include "gui/render/backend/native_dx11.h"
+#include "gui/render/backend/native_win32.h"
+#include "gui/render/context.h"
+#include "gui/present.h"
 
 bool fd::run_context()
 {
@@ -48,7 +48,7 @@ bool fd::run_context()
     create_hook(&hook_bk, vfunc(&IDXGIFactory::CreateSwapChain, render_bk_data->DXGI_factory()), &hk_create_swap_chain);
     hooked::DXGI_swap_chain::resize_buffers const hk_resize_buffers(&render_bk);
     create_hook(&hook_bk, vfunc(&IDXGISwapChain::ResizeBuffers, render_bk_data->swap_chain), &hk_resize_buffers);
-    hooked::DXGI_swap_chain::present const hk_present(bind(render_frame, &render_bk, &system_bk, &render_ctx, &menu));
+    hooked::DXGI_swap_chain::present const hk_present(bind(present_gui, &render_bk, &system_bk, &render_ctx, &menu));
     create_hook(&hook_bk, vfunc(&IDXGISwapChain::Present, render_bk_data->swap_chain), &hk_present);
     hooked::winapi::wndproc const hk_wndproc(&system_bk);
     create_hook(&hook_bk, system_bk_info.proc(), &hk_wndproc);

@@ -2,8 +2,8 @@
 
 #include "comptr.h"
 #include "noncopyable.h"
-#include "render/backend/basic_dx11.h"
-#include "render/backend/basic_win32.h"
+#include "gui/render/backend/basic_dx11.h"
+#include "gui/render/backend/basic_win32.h"
 
 #include <d3d11.h>
 

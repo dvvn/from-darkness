@@ -1,10 +1,11 @@
 ﻿#include "library_info/basic.h"
 #include "functional/cast.h"
+#include "string/char.h"
 
 #include <algorithm>
 #include <cassert>
 
-static wchar_t const* data(UNICODE_STRING const& ustr)
+static wchar_t* data(UNICODE_STRING const& ustr)
 {
     return ustr.Buffer;
 }
@@ -14,12 +15,12 @@ static size_t size(UNICODE_STRING const& ustr)
     return ustr.Length / sizeof(wchar_t);
 }
 
-static wchar_t const* begin(UNICODE_STRING const& ustr)
+static wchar_t* begin(UNICODE_STRING const& ustr)
 {
     return ustr.Buffer;
 }
 
-static wchar_t const* end(UNICODE_STRING const& ustr)
+static wchar_t* end(UNICODE_STRING const& ustr)
 {
     return ustr.Buffer + size(ustr);
 }
@@ -31,14 +32,38 @@ static bool operator!(UNICODE_STRING const& ustr)
 
 static bool equal(UNICODE_STRING const& ustr, wchar_t const* str, size_t const length)
 {
-    return size(ustr) == length && memcmp(str, data(ustr), length) == 0;
+    if (size(ustr) != length)
+        return false;
+    if (memcmp(data(ustr), str, length) != 0)
+        return false;
+    return true;
+}
+
+static bool equal(IMAGE_SECTION_HEADER const& header, char const* name, size_t const length)
+{
+    assert(length < std::size(header.Name));
+
+    if (header.Name[length] != '\0')
+        return false;
+    if (memcmp(header.Name, name, length) != 0)
+        return false;
+    return true;
 }
 
 namespace fd
 {
-basic_library_info::basic_library_info(char_type const* name, size_t const length)
+template <typename Fn>
+static void validate_library_name(wchar_t const* name, size_t const length, Fn isupper_check)
 {
-    assert(!std::any_of(name, name + length, isupper));
+    assert(!std::any_of(name, name + length, isupper_check));
+}
+
+static LDR_DATA_TABLE_ENTRY_FULL* find_library(wchar_t const* name, size_t const length)
+{
+    if constexpr (std::invocable<decltype(isupper), wchar_t>)
+        validate_library_name(name, length, isupper);
+    else
+        validate_library_name(name, length, iswupper);
 
 #ifdef _WIN64
     auto const mem = reinterpret_cast<TEB*>(__readgsqword(FIELD_OFFSET(NT_TIB64, Self)));
@@ -57,13 +82,16 @@ basic_library_info::basic_library_info(char_type const* name, size_t const lengt
         if (!equal(entry->BaseDllName, name, length))
             continue;
 
-        entry_full_ = entry;
-        return;
+        return entry;
     }
 
-#ifdef _DEBUG
-    entry_ = nullptr;
-#endif
+    return nullptr;
+}
+
+basic_library_info::basic_library_info(LPCTSTR const name, size_t const length)
+    : entry_full_(find_library(name, length))
+
+{
 }
 
 void* basic_library_info::base() const
@@ -91,28 +119,26 @@ size_t basic_library_info::length() const
     return entry_full_->SizeOfImage;
 }
 
-auto basic_library_info::name() const -> string_type
+auto basic_library_info::name() const -> wstring_view
 {
     auto const& buff = entry_full_->BaseDllName;
     return {begin(buff), end(buff)};
 }
 
-auto basic_library_info::path() const -> string_type
+auto basic_library_info::path() const -> wstring_view
 {
     auto const& buff = entry_full_->FullDllName;
     return {begin(buff), end(buff)};
 }
 
-IMAGE_DATA_DIRECTORY* basic_library_info::directory(uint8_t const index) const
+IMAGE_DATA_DIRECTORY* basic_library_info::directory(size_t const index) const
 {
     SET_NT;
     return nt->OptionalHeader.DataDirectory + index;
 }
 
-IMAGE_SECTION_HEADER* basic_library_info::section(char const* name, uint8_t const length) const
+IMAGE_SECTION_HEADER* basic_library_info::section(char const* name, size_t const length) const
 {
-    assert(length < sizeof(IMAGE_SECTION_HEADER::Name));
-
     SET_NT;
 
     auto begin     = IMAGE_FIRST_SECTION(nt);
@@ -120,11 +146,8 @@ IMAGE_SECTION_HEADER* basic_library_info::section(char const* name, uint8_t cons
 
     for (; begin != end; ++begin)
     {
-        if (begin->Name[length] != '\0') // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
-            continue;
-        if (memcmp(begin->Name, name, length) != 0)
-            continue;
-        return begin;
+        if (equal(*begin, name, length))
+            return begin;
     }
 
     return nullptr;
@@ -132,7 +155,7 @@ IMAGE_SECTION_HEADER* basic_library_info::section(char const* name, uint8_t cons
 
 uint8_t* begin(basic_library_info const& info)
 {
-    return static_cast<uint8_t*>(info.image_base());
+    return safe_cast<uint8_t>(info.image_base());
 }
 
 uint8_t* end(basic_library_info const& info)

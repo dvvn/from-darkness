@@ -2,12 +2,16 @@
 
 #include <imgui.h>
 
+#include <type_traits>
+
 // ReSharper disable CppInconsistentNaming
 
 namespace ImGui::inline ex
 {
 ImGuiID GetID(int n);
+#if defined(IMGUI_DISABLE_OBSOLETE_FUNCTIONS) && defined(IMGUI_HAS_IMSTR)
 ImGuiID GetID(char const* first, char const* last);
+#endif
 } // namespace ImGui::inline ex
 
 // ReSharper restore CppInconsistentNaming

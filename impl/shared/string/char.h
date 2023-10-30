@@ -24,26 +24,45 @@ constexpr bool is_betweet_two(char const c, char const left, char const rigtht)
 }
 } // namespace detail
 
-constexpr bool islower(char const c)
+inline constexpr struct
 {
-    return detail::is_betweet_two(c, 'a', 'z');
-}
+    constexpr bool operator()(char const c) const
+    {
+        return detail::is_betweet_two(c, 'a', 'z');
+    }
 
-constexpr bool isupper(char const c)
+    bool operator()(wchar_t) const = delete;
+} islower;
+
+inline constexpr struct
 {
-    return detail::is_betweet_two(c, 'A', 'Z');
-}
+    constexpr bool operator()(char const c) const
+    {
+        return detail::is_betweet_two(c, 'A', 'Z');
+    }
 
-constexpr bool isdigit(char const c)
+    bool operator()(wchar_t) const = delete;
+} isupper;
+
+inline constexpr struct
 {
-    return detail::is_betweet_two(c, '0', '9');
-}
+    constexpr bool operator()(char const c) const
+    {
+        return detail::is_betweet_two(c, '0', '9');
+    }
 
-constexpr bool isxdigit(char const c)
+    bool operator()(wchar_t) const = delete;
+} isdigit;
+
+inline constexpr struct
 {
-    return detail::is_betweet_two(c, '0', '9') || //
-           detail::is_betweet_two(c, 'a', 'f') || //
-           detail::is_betweet_two(c, 'A', 'F');
-}
+    constexpr bool operator()(char const c) const
+    {
+        return detail::is_betweet_two(c, '0', '9') || //
+               detail::is_betweet_two(c, 'a', 'f') || //
+               detail::is_betweet_two(c, 'A', 'F');
+    }
 
+    bool operator()(wchar_t) const = delete;
+} isxdigit;
 } // namespace fd

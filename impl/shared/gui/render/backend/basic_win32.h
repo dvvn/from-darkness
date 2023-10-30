@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#include "diagnostics/fatal.h"
-
 #include <Windows.h>
 
 #include <functional>
@@ -73,7 +71,7 @@ enum class win32_backend_update_response : uint8_t
     locked,
 };
 
-using win32_backend_update_result=std::pair<win32_backend_update_response,LRESULT>;
+using win32_backend_update_result = std::pair<win32_backend_update_response, LRESULT>;
 
 class basic_win32_backend
 {

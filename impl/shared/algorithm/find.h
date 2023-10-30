@@ -82,19 +82,19 @@ It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, Call
 
     if constexpr (cb_invoker::invocable || cb_invoker2::invocable)
     {
-        auto u_start     = unwrap_byte_iter(rng_start);
-        auto const u_end = unwrap_byte_iter(rng_end);
+        auto u_rng_start     = unwrap_byte_iter(rng_start);
+        auto const u_rng_end = unwrap_byte_iter(rng_end);
 
         for (;;)
         {
-            auto u_found = std::find(u_start, u_end, first_value);
-            if (u_found == rng_end)
+            auto pos_found = std::find(u_rng_start, u_rng_end, first_value);
+            if (pos_found == u_rng_end)
                 return rng_end;
 
-            if (invoke_find_callback(rng_start, u_found, std::ref(callback)))
+            if (invoke_find_callback(rng_start, pos_found, std::ref(callback)))
                 return rng_start;
 
-            u_start = u_found;
+            u_rng_start = pos_found;
         }
     }
     else
@@ -127,15 +127,15 @@ It find(It rng_start, It const rng_end, It2 const what_start, It2 const what_end
         auto const u_rng_safe_end = u_rng_end - target_length;
         for (;;)
         {
-            auto u_found_pos = std::find(u_rng_start, u_rng_safe_end, what_front);
-            if (u_found_pos == u_rng_safe_end)
+            auto front_found = std::find(u_rng_start, u_rng_safe_end, what_front);
+            if (front_found == u_rng_safe_end)
                 return rng_end;
 
             if (!std::equal(u_what_start, u_what_end, u_rng_start))
                 ++u_rng_start;
-            else if (detail::invoke_find_callback(rng_start, u_found_pos, std::ref(callback)))
+            else if (detail::invoke_find_callback(rng_start, front_found, std::ref(callback)))
                 return rng_start;
-            u_rng_start = u_found_pos + target_length;
+            u_rng_start = front_found + target_length;
         }
     }
 }
@@ -184,14 +184,14 @@ It find(It rng_start, It const rng_end, pattern<SegmentsBytesCount...> const& pa
 
         for (;;)
         {
-            auto const u_found_pos = std::find(u_rng_start, u_rng_end_safe, first_pattern_byte);
-            if (u_found_pos == u_rng_end_safe)
+            auto const first_byte_found = std::find(u_rng_start, u_rng_end_safe, first_pattern_byte);
+            if (first_byte_found == u_rng_end_safe)
                 return rng_end;
-            if (!equal(u_found_pos, u_rng_end_safe, pat))
+            if (!equal(first_byte_found, u_rng_end_safe, pat))
                 ++u_rng_start;
-            else if (detail::invoke_find_callback(rng_start, u_found_pos, std::ref(callback)))
+            else if (detail::invoke_find_callback(rng_start, first_byte_found, std::ref(callback)))
                 return rng_start;
-            u_rng_start = u_found_pos + pat_size;
+            u_rng_start = first_byte_found + pat_size;
         }
     }
 }

@@ -4,7 +4,6 @@
 #include "string/view.h"
 
 #include <windows.h>
-#include <tchar.h>
 #include <winternl.h>
 
 // ReSharper disable CppInconsistentNaming
@@ -33,14 +32,8 @@ struct LDR_DATA_TABLE_ENTRY_FULL
 
 namespace fd
 {
-struct basic_library_info
+class basic_library_info
 {
-    using string_type = basic_string_view<TCHAR>;
-    using char_type   = TCHAR;
-
-    static constexpr string_view file_extension = ".dll";
-
-  private:
     union
     {
         LDR_DATA_TABLE_ENTRY_FULL* entry_full_;
@@ -48,10 +41,10 @@ struct basic_library_info
     };
 
   public:
-    basic_library_info(char_type const* name, size_t length);
+    basic_library_info(wchar_t const* name, size_t length);
 
     template <size_t Length>
-    basic_library_info(char_type const (&name)[Length])
+    basic_library_info(wchar_t const (&name)[Length])
         : basic_library_info(name, Length - 1)
     {
     }
@@ -72,10 +65,10 @@ struct basic_library_info
     void* base() const;
     void* image_base() const;
     size_t length() const;
-    string_type name() const;
-    string_type path() const;
-    IMAGE_DATA_DIRECTORY* directory(uint8_t index) const;
-    IMAGE_SECTION_HEADER* section(char const* name, uint8_t length) const;
+    wstring_view name() const;
+    wstring_view path() const;
+    IMAGE_DATA_DIRECTORY* directory(size_t index) const;
+    IMAGE_SECTION_HEADER* section(char const* name, size_t length) const;
 
     template <size_t Length>
     IMAGE_SECTION_HEADER* section(char const (&name)[Length]) const
