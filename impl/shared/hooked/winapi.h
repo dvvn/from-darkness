@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "render/backend/basic_win32.h"
+#include "gui/render/backend/basic_win32.h"
 
 #include <Windows.h>
 
@@ -19,7 +19,7 @@ class wndproc final : public basic_hook_callback
     }
 
     LRESULT operator()(
-        WNDPROC original, //
+        WNDPROC const original, //
         HWND window, UINT message, WPARAM wparam, LPARAM lparam) const noexcept
     {
         // todo: check are unput must be blocked before update

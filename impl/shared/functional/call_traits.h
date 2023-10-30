@@ -436,17 +436,17 @@ namespace detail
 struct call_type_sample
 {
     // ReSharper disable once CppMemberFunctionMayBeConst
-    void member()
+    void operator()()
     {
         (void)this;
     }
 
-    static void non_member()
+    static void fn()
     {
     }
 };
 
-inline constexpr call_type_t default_call_type_member     = function_info<decltype(&call_type_sample::member)>::call;
-inline constexpr call_type_t default_call_type_non_member = function_info<decltype(&call_type_sample::non_member)>::call;
+inline constexpr call_type_t default_call_type_member     = function_info<call_type_sample>::call;
+inline constexpr call_type_t default_call_type_non_member = function_info<decltype(&call_type_sample::fn)>::call;
 } // namespace detail
 } // namespace fd

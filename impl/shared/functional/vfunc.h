@@ -42,8 +42,9 @@ void* get_vfunc(void* table_function, void* instance)
 template <typename Fn>
 void* get_vfunc(Fn table_function, void* instance)
 {
+#ifdef _DEBUG
     static_assert(member_function<Fn>);
-
+#endif
     constexpr auto call = function_info<Fn>::call;
     auto function       = unsafe_cast<void*>(table_function);
     return get_vfunc<call>(function, instance);
