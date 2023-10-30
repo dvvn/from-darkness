@@ -1,10 +1,10 @@
 #pragma once
 
-#include "menu.h"
-#include "menu/tab.h"
-//
+#include "menu_example.h"
 #include "debug/log.h"
 #include "functional/bind.h"
+#include "gui/menu.h"
+#include "gui/menu/tab.h"
 #include "render/backend/own_win32.h"
 #include "render/context.h"
 #include "render/frame.h"
@@ -12,7 +12,7 @@
 namespace fd
 {
 template <class RenderBackend>
-bool menu_sample()
+bool gui_test()
 {
 #ifdef _DEBUG
     log_activator log_activator;
@@ -24,20 +24,15 @@ bool menu_sample()
     own_win32_backend system_bk;
     auto const window = system_bk.info();
     render_backend render_bk(window.id);
-    using namespace fd::string_view_literals;
 
-    menu menu_holder(
-        bind(menu_tab, "Tab1"sv, bind_front(menu_tab_item, "One"sv, bind(ImGui::TextUnformatted, "Text"sv))), //
-        bind(&own_win32_backend::close, &system_bk));
-
-    render_frame const render(&render_bk, &system_bk, &render_ctx, &menu_holder);
+    auto menu = make_menu_example(bind(&own_win32_backend::close, &system_bk));
 
     while (system_bk.update())
     {
         if (window.minimized())
             continue;
         render_bk.resize(window.size());
-        render();
+        render_frame(&render_bk, &system_bk, &render_ctx, &menu);
     }
 
     return true;

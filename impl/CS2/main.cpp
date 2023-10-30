@@ -1,4 +1,5 @@
 #include "dll_context.h"
+#include "menu_example.h"
 #include "debug/console.h"
 #include "debug/log.h"
 #include "functional/bind.h"
@@ -30,25 +31,14 @@ bool fd::run_context()
     system_library_info render_system_lib(L"rendersystemdx11.dll");
     render_backend render_bk(render_system_lib);
 
-    menu menu_holder(
-        [] {
-            using namespace fd::string_view_literals;
-            menu_tab(
-                "Tab1"sv,
-                bind(menu_tab_item, "One"sv, bind_front(ImGui::TextUnformatted, "Text"sv)),
-                bind(menu_tab_item, "Two"sv, bind_front(ImGui::TextUnformatted, "Text2"sv)));
-            menu_tab(
-                "Tab2"sv,
-                bind(menu_tab_item, "__One"sv, bind_front(ImGui::TextUnformatted, "__Text"sv)),
-                bind(menu_tab_item, "__Two"sv, bind_front(ImGui::TextUnformatted, "__Text2"sv)));
-        },
-        [] {
-            if (!context_holder.resume())
-            {
-                assert(0 && "Unable to resume context");
-                unreachable();
-            }
-        });
+    auto menu = make_menu_example([] {
+        if (!context_holder.resume())
+        {
+            assert(0 && "Unable to resume context");
+            unreachable();
+        }
+    });
+
     auto const render_bk_data = render_bk.data();
     auto const system_bk_info = system_bk.info();
 
@@ -58,7 +48,7 @@ bool fd::run_context()
     create_hook(&hook_bk, vfunc(&IDXGIFactory::CreateSwapChain, render_bk_data->DXGI_factory()), &hk_create_swap_chain);
     hooked::DXGI_swap_chain::resize_buffers const hk_resize_buffers(&render_bk);
     create_hook(&hook_bk, vfunc(&IDXGISwapChain::ResizeBuffers, render_bk_data->swap_chain), &hk_resize_buffers);
-    hooked::DXGI_swap_chain::present const hk_present(render_frame(&render_bk, &system_bk, &render_ctx, &menu_holder));
+    hooked::DXGI_swap_chain::present const hk_present(bind(render_frame, &render_bk, &system_bk, &render_ctx, &menu));
     create_hook(&hook_bk, vfunc(&IDXGISwapChain::Present, render_bk_data->swap_chain), &hk_present);
     hooked::winapi::wndproc const hk_wndproc(&system_bk);
     create_hook(&hook_bk, system_bk_info.proc(), &hk_wndproc);

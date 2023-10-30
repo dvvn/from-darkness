@@ -19,7 +19,7 @@ class menu_item_id
     ImGuiID id_;
 
   public:
-    constexpr menu_item_id(ImGuiID const id, size_t)
+    constexpr menu_item_id(ImGuiID const id, int)
         : id_(id)
     {
     }

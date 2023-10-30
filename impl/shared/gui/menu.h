@@ -17,6 +17,17 @@ class menu final : public noncopyable
     [[no_unique_address]] //
     UnloadHandler unload_;
 
+    void render_unload_button()
+    {
+        /*if (!ImGui::BeginChild(menu_item_id(__LINE__)))
+            return;*/
+
+        if (ImGui::Button("Unload"))
+            std::invoke(unload_);
+
+        // ImGui::EndChild();
+    }
+
   public:
     menu(Callback callback, UnloadHandler unload)
         : visible_(false)
@@ -47,19 +58,11 @@ class menu final : public noncopyable
 #ifndef IMGUI_DISABLE_DEMO_WINDOWS
         ImGui::ShowDemoWindow();
 #endif
-        using std::invoke;
         if (ImGui::Begin("WIP", &next_visible_, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            (callback_());
-
-            if (ImGui::BeginChild(menu_item_id(__LINE__)))
-            {
-                if (ImGui::Button("Unload"))
-                {
-                    invoke(unload_);
-                }
-            }
-            ImGui::EndChild();
+            std::invoke(callback_);
+            if constexpr (std::invocable<UnloadHandler>)
+                render_unload_button();
         }
         ImGui::End();
     }
