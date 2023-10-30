@@ -175,4 +175,6 @@ library_section_view::library_section_view(IMAGE_SECTION_HEADER const* section, 
     : span(make_library_section_view(section, image_base))
 {
 }
+
+
 } // namespace fd

@@ -86,5 +86,4 @@ struct library_section_view : span<uint8_t>
 {
     library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base);
 };
-
 } // namespace fd

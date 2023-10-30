@@ -43,16 +43,17 @@ auto iterator_to_raw_pointer(Iterator const& i) -> typename detail::iterator_to_
 
 // ReSharper restore CppInconsistentNaming
 
-namespace fd
+namespace fd::detail
 {
-using boost::movelib::iterator_to_raw_pointer;
-using boost::movelib::to_raw_pointer;
+/// deprecated
+// using boost::movelib::iterator_to_raw_pointer;
+// using boost::movelib::to_raw_pointer;
 
 template <typename It>
 decltype(auto) unwrap_iterator(It&& it)
 {
 #ifdef _MSC_VER
-    return std::_Get_unwrapped(it);
+    return _STD _Get_unwrapped(it);
 #else
 #endif
 }
@@ -61,9 +62,33 @@ template <typename It, typename ItRaw>
 void rewrap_iterator(It& it, ItRaw&& it_raw)
 {
 #ifdef _MSC_VER
-    return std::_Seek_wrapped(it, it_raw);
+    return _STD _Seek_wrapped(it, it_raw);
 #else
 #endif
 }
 
-} // namespace fd
+template <bool Validate = true, typename It>
+auto unwrap_range(It first, It const last)
+{
+    if constexpr (Validate)
+    {
+#ifdef _MSC_VER
+        _STD _Adl_verify_range(first, last);
+#else
+#endif
+    }
+    return std::pair(unwrap_iterator(first), unwrap_iterator(last));
+}
+
+template <bool Validate = true, typename Rng>
+auto unwrap_range(Rng&& rng)
+{
+#ifdef _DEBUG
+    static_assert(std::is_trivially_destructible_v<Rng> || std::is_lvalue_reference_v<Rng>);
+#endif
+    using std::begin;
+    using std::end;
+    return unwrap_range<Validate>(begin(rng), end(rng));
+}
+
+} // namespace fd::detail

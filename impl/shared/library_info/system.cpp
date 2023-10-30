@@ -90,10 +90,9 @@ void* system_library_info::vtable(char const* name, size_t length) const
         char const* rtti_descriptor_view;
     };
 
-    auto const image_base = safe_cast<uint8_t>(this->image_base());
-    auto const image_end  = (image_base) + this->length();
+    auto const [image_start, image_end] = detail::unwrap_range(*this);
 
-    rtti_descriptor = find_rtti_descriptor({name, length}, image_base, image_end);
+    rtti_descriptor = find_rtti_descriptor({name, length}, image_start, image_end);
 
     //---------
 
@@ -102,25 +101,25 @@ void* system_library_info::vtable(char const* name, size_t length) const
 
     // dos + section->VirtualAddress, section->SizeOfRawData
 
-    library_section_view const rdata(this->section(".rdata"), image_base);
-    auto const rdata_begin = (rdata.begin());
-    auto const rdata_end   = (rdata.end());
+    library_section_view const rdata(this->section(".rdata"), image_start);
+    auto const [rdata_begin, rdata_end] = detail::unwrap_range(rdata);
 
     auto const addr1 = find(rdata_begin, rdata_end, type_descriptor, [](uint8_t const* found) -> bool {
         return *unsafe_cast<uint32_t*>(found - 0x8) == 0;
     });
     if (addr1 == rdata_end)
         return nullptr;
-    auto const addr2 = find(rdata_begin, rdata_end, xref(unsafe_cast<uintptr_t>(unwrap_iterator(addr1)) - 0xC));
+
+    auto const addr2 = find(rdata_begin, rdata_end, xref(unsafe_cast<uintptr_t>(addr1) - 0xC));
     if (addr2 == rdata_end)
         return nullptr;
 
-    library_section_view const text(this->section(".text"), image_base);
+    library_section_view const text(this->section(".text"), image_start);
     auto const test_end = text.end();
-    auto const found    = find(text.begin(), test_end, xref(unsafe_cast<uintptr_t>(unwrap_iterator(addr2)) + 4));
+    auto const found    = find(text.begin(), test_end, xref(unsafe_cast<uintptr_t>(addr2) + 4));
     if (found == test_end)
         return nullptr;
 
-    return unwrap_iterator(found);
+    return detail::unwrap_iterator(found);
 }
 } // namespace fd
