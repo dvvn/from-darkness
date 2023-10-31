@@ -1,10 +1,10 @@
 ﻿#pragma once
 #include "noncopyable.h"
-#include "menu/item_id.h"
+#include "gui/menu/item_id.h"
 
 #include <imgui.h>
 
-namespace fd
+namespace fd::gui
 {
 template <class Callback, class UnloadHandler>
 class menu final : public noncopyable
@@ -79,5 +79,4 @@ class menu final : public noncopyable
     //     ImGui::PopID();
     // }
 };
-
-} // namespace fd
+} // namespace fd::gui

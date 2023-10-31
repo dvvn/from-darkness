@@ -6,10 +6,10 @@
 #include "gui/render/backend/own_win32.h"
 #include "gui/render/context.h"
 
-namespace fd
+namespace fd::gui
 {
 template <class RenderBackend>
-bool gui_test()
+bool run_test()
 {
 #ifdef _DEBUG
     log_activator log_activator;
@@ -31,9 +31,9 @@ bool gui_test()
         if (window.minimized())
             continue;
         render_bk.resize(window.size());
-        present_gui(&render_bk, &system_bk, &render_ctx, &menu);
+        present(&render_bk, &system_bk, &render_ctx, &menu);
     }
 
     return true;
 }
-} // namespace fd
+} // namespace fd::gui

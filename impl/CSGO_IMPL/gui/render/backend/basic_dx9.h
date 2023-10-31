@@ -6,7 +6,7 @@ struct IDirect3DDevice9;
 
 // ReSharper restore CppInconsistentNaming
 
-namespace fd
+namespace fd::gui
 {
 class basic_dx9_backend
 {

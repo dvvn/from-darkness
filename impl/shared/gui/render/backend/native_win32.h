@@ -2,7 +2,7 @@
 #include "noncopyable.h"
 #include "gui/render/backend/basic_win32.h"
 
-namespace fd
+namespace fd::gui
 {
 class native_win32_backend final : public basic_win32_backend, public noncopyable
 {

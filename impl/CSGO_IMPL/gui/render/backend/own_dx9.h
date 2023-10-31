@@ -1,13 +1,13 @@
 ﻿#pragma once
 
-#include "basic_dx9.h"
-#include "basic_win32.h"
 #include "comptr.h"
 #include "noncopyable.h"
+#include "gui/render/backend/basic_dx9.h"
+#include "gui/render/backend/basic_win32.h"
 
 #include <d3d9.h>
 
-namespace fd
+namespace fd::gui
 {
 class own_dx9_backend_data : public noncopyable
 {
@@ -31,4 +31,4 @@ class own_dx9_backend final : own_dx9_backend_data, public basic_dx9_backend
     void render(ImDrawData* draw_data);
     void resize(simple_win32_window_size const& size);
 };
-} // namespace fd
+} // namespace fd::gui

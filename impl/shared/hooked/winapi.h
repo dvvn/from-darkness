@@ -31,7 +31,7 @@ class wndproc final : public basic_hook_callback
 
         auto [response, retval] = backend_->update(window, message, wparam, lparam);
 
-        using enum win32_backend_update_response;
+        using enum gui::win32_backend_update_response;
         switch (response)
         {
         case skipped:

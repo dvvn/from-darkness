@@ -9,30 +9,30 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT m
 
 // ReSharper restore CppInconsistentNaming
 
-namespace fd
+namespace fd::gui
 {
-simple_win32_window_size::simple_win32_window_size()
+win32_window_size_simple::win32_window_size_simple()
     : w(CW_USEDEFAULT)
     , h(CW_USEDEFAULT)
 {
 }
 
-simple_win32_window_size::simple_win32_window_size(RECT const& rect)
+win32_window_size_simple::win32_window_size_simple(RECT const& rect)
     : w(rect.right - rect.left)
     , h(rect.bottom - rect.top)
 {
 }
 
-simple_win32_window_size::simple_win32_window_size(LONG w, LONG h)
+win32_window_size_simple::win32_window_size_simple(LONG w, LONG h)
     : w(w)
     , h(h)
 {
 }
 
-bool simple_win32_window_size::operator==(simple_win32_window_size const& other) const
+bool win32_window_size_simple::operator==(win32_window_size_simple const& other) const
 {
 #if LONG_MAX == INT_MAX
-    if constexpr (sizeof(simple_win32_window_size) == sizeof(uint64_t))
+    if constexpr (sizeof(win32_window_size_simple) == sizeof(uint64_t))
         return *reinterpret_cast<uint64_t const*>(this) == reinterpret_cast<uint64_t const&>(other);
     else
 #endif
@@ -46,15 +46,15 @@ win32_window_size::win32_window_size()
 }
 
 win32_window_size::win32_window_size(RECT const& rect)
-    : simple_win32_window_size(rect)
+    : win32_window_size_simple(rect)
     , x(rect.top)
     , y(rect.left)
 {
 }
 
-win32_window_size& win32_window_size::operator=(simple_win32_window_size const& parent_size)
+win32_window_size& win32_window_size::operator=(win32_window_size_simple const& parent_size)
 {
-    simple_win32_window_size::operator=(parent_size);
+    win32_window_size_simple::operator=(parent_size);
     return *this;
 }
 
@@ -75,12 +75,12 @@ bool win32_window_info::minimized() const
     return IsIconic(id);
 }
 
-static_win32_window_info::static_win32_window_info(HWND id)
-    : static_win32_window_info(win32_window_info(id))
+win32_window_info_static::win32_window_info_static(HWND id)
+    : win32_window_info_static(win32_window_info(id))
 {
 }
 
-static_win32_window_info::static_win32_window_info(win32_window_info info)
+win32_window_info_static::win32_window_info_static(win32_window_info info)
     : dynamic(std::move(info))
     , proc(dynamic.proc())
     , size(dynamic.size())
@@ -112,18 +112,18 @@ win32_backend_update_result basic_win32_backend::update(HWND window, UINT const 
     auto const& events       = GImGui->InputEventsQueue;
     auto const events_stored = events.size();
 
-    auto value = ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam);
+    auto const retval = ImGui_ImplWin32_WndProcHandler(window, message, wparam, lparam);
     win32_backend_update_response response;
 
     using enum win32_backend_update_response;
-    if (value != 0)
+    if (retval != 0)
         response = locked;
     else if (events_stored != events.size())
         response = updated;
     else
         response = skipped;
 
-    return {response, value};
+    return {response, retval};
 }
 
-} // namespace fd
+} // namespace fd::gui

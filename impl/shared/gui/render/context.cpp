@@ -1,7 +1,7 @@
 #include "gui/render/context.h"
 #include "functional/ignore.h"
 
-namespace fd
+namespace fd::gui
 {
 render_context::~render_context()
 {
@@ -68,4 +68,4 @@ ImDrawData* render_context::data()
 {
     return ImGui::GetDrawData();
 }
-} // namespace fd
+} // namespace fd::gui

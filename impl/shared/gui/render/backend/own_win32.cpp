@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include <tchar.h>
 
-namespace fd
+namespace fd::gui
 {
 DECLSPEC_NOINLINE static LRESULT WINAPI wnd_proc(HWND window, UINT const message, WPARAM wparam, LPARAM lparam) noexcept
 {
@@ -108,7 +108,7 @@ own_win32_backend_data::own_win32_backend_data()
     auto const parent = GetDesktopWindow();
     if (RECT parent_rect; parent && GetWindowRect(parent, &parent_rect))
     {
-        simple_win32_window_size const parent_size(parent_rect);
+        win32_window_size_simple const parent_size(parent_rect);
         size.x = parent_rect.bottom * 0.05;
         size.y = parent_rect.right * 0.05;
         size.w = parent_size.w * 0.8;
@@ -159,4 +159,4 @@ win32_window_info own_win32_backend::info() const
 {
     return {hwnd_};
 }
-} // namespace fd
+} // namespace fd::gui

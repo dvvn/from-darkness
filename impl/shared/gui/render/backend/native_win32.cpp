@@ -1,7 +1,5 @@
-﻿#include "render/backend/native_win32.h"
+﻿#include "gui/render/backend/native_win32.h"
 #include "functional/ignore.h"
-
-#include <imgui_impl_win32.h>
 
 #include <Windows.h>
 #include <tchar.h>
@@ -35,7 +33,7 @@ class find_window_helper : public noncopyable
         GetWindowThreadProcessId(current_window, &process_id);
         if (current_process_id_ != process_id)
             return false;
-        
+
         target_ = current_window;
 
         return true;
@@ -59,6 +57,8 @@ static HWND find_main_window() noexcept
     return helper.get();
 }
 
+namespace gui
+{
 native_win32_backend::native_win32_backend()
     : native_win32_backend(find_main_window())
 {
@@ -74,4 +74,5 @@ win32_window_info native_win32_backend::info() const
 {
     return {window_};
 }
+} // namespace gui
 } // namespace fd

@@ -16,7 +16,7 @@ ImGuiID GetID(char const* first, char const* last);
 
 // ReSharper restore CppInconsistentNaming
 
-namespace fd
+namespace fd::gui
 {
 class menu_item_id
 {

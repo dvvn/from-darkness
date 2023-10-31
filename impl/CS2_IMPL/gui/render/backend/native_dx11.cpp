@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <cassert>
 
-namespace fd
+namespace fd::gui
 {
 native_dx11_device_data::native_dx11_device_data(IDXGISwapChain* sc)
     : swap_chain(sc)
@@ -105,6 +105,11 @@ native_dx11_backend::native_dx11_backend(native_dx11_device_data data)
     auto const bb = back_buffer();
     if (!init_render_target(bb))
         assert(0 && "failed to create render target view");
+}
+
+native_dx11_backend::native_dx11_backend(system_library_info info)
+    : native_dx11_backend(native_dx11_device_data(info))
+{
 }
 
 // native_dx11_backend::native_dx11_backend(system_library_info info)

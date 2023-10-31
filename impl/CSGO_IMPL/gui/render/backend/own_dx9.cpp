@@ -1,14 +1,13 @@
-﻿#include "own_dx9.h"
-//
-#include "comptr.h"
+﻿#include "comptr.h"
 #include "diagnostics/system_error.h"
+#include "gui/render/backend/own_dx9.h"
 
-#include <cassert>
 #include <tchar.h>
 
-namespace fd
-{
+#include <cassert>
 
+namespace fd::gui
+{
 own_dx9_backend_data::own_dx9_backend_data(HWND hwnd)
 {
     auto const d3d = Direct3DCreate9(D3D_SDK_VERSION);
@@ -98,4 +97,4 @@ void own_dx9_backend::resize(simple_win32_window_size const& size)
     if (current != size)
         own_dx9_backend::reset();
 }
-} // namespace fd
+} // namespace fd::gui

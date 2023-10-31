@@ -1,12 +1,11 @@
-﻿#include "basic_dx9.h"
-//
+﻿#include "gui/render/backend/basic_dx9.h"
 #include "diagnostics/system_error.h"
 
 #include <imgui_impl_dx9.h>
 
 #pragma comment(lib, "d3d9.lib")
 
-namespace fd
+namespace fd::gui
 {
 basic_dx9_backend::~basic_dx9_backend()
 {

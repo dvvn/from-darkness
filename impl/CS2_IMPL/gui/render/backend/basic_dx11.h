@@ -7,7 +7,7 @@ struct ID3D11DeviceContext;
 
 // ReSharper restore CppInconsistentNaming
 
-namespace fd
+namespace fd::gui
 {
 class basic_dx11_backend
 {

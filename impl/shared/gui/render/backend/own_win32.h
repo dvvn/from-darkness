@@ -5,7 +5,7 @@
 
 #include <Windows.h>
 
-namespace fd
+namespace fd::gui
 {
 class own_win32_backend_data : public noncopyable
 {

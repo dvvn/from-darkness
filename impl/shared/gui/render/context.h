@@ -4,7 +4,7 @@
 
 #include <imgui_internal.h>
 
-namespace fd
+namespace fd::gui
 {
 class render_context final : public noncopyable
 {
@@ -33,5 +33,4 @@ bool skip_scene() const
     void end_frame();
     ImDrawData* data();
 };
-
 } // namespace fd

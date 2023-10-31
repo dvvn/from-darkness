@@ -306,7 +306,7 @@ macro(Dependency_Load_Imgui)
         FD_append_dep("imgui::imgui")
     endif()
 
-    set(_custom_config ${_FD_SHARED_DIR}/gui/render/config.h)
+    set(_custom_config ${_FD_SHARED_DIR}/gui/config.h)
     if(NOT EXISTS ${_custom_config})
         message(FATAL_ERROR "imgui cstom config not found!")
     endif()

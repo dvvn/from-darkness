@@ -5,7 +5,7 @@
 
 #include <cassert>
 
-namespace fd
+namespace fd::gui
 {
 own_dx11_backend_data::own_dx11_backend_data(HWND hwnd)
 {
@@ -70,15 +70,15 @@ void own_dx11_backend::render(ImDrawData* draw_data)
     swap_chain_->Present(1, 0);
 }
 
-void own_dx11_backend::resize(simple_win32_window_size const& size)
+void own_dx11_backend::resize(win32_window_size_simple const& size)
 {
     if (last_size_ == size)
         return;
     last_size_ = size;
 
     //????????
-    //render_target_.release();
+    // render_target_.release();
     swap_chain_->ResizeBuffers(0, size.w, size.h, DXGI_FORMAT_UNKNOWN, 0);
     create_render_target();
 }
-} // namespace fd
+} // namespace fd::gui

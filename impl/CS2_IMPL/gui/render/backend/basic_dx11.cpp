@@ -4,7 +4,7 @@
 
 #pragma comment(lib, "d3d11.lib")
 
-namespace fd
+namespace fd::gui
 {
 basic_dx11_backend::~basic_dx11_backend()
 {

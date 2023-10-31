@@ -7,7 +7,7 @@
 
 #include <d3d11.h>
 
-namespace fd
+namespace fd::gui
 {
 class own_dx11_backend_data : public noncopyable
 {
@@ -38,13 +38,13 @@ class own_dx11_backend_data : public noncopyable
 
 class own_dx11_backend final : own_dx11_backend_data, public basic_dx11_backend
 {
-    simple_win32_window_size last_size_;
+    win32_window_size_simple last_size_;
 
   public:
     own_dx11_backend(HWND hwnd);
 
     using basic_dx11_backend::new_frame;
     void render(ImDrawData* draw_data);
-    void resize(simple_win32_window_size const& size);
+    void resize(win32_window_size_simple const& size);
 };
 } // namespace fd

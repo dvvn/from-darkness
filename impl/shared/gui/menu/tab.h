@@ -11,7 +11,7 @@ namespace ImGui::inline ex
 bool BeginTabBar(ImGuiID id, ImGuiTabBarFlags flags = ImGuiTabBarFlags_None);
 } // namespace ImGui::inline ex
 
-namespace fd
+namespace fd::gui
 {
 inline constexpr auto menu_tab_item = []<typename Fn>(string_view const name, Fn&& callback) -> void {
     if (!ImGui::BeginTabItem(name))

@@ -2,24 +2,23 @@
 
 #include <Windows.h>
 
-#include <functional>
-#include <utility>
+#include <cstdint>
 
-namespace fd
+namespace fd::gui
 {
-struct simple_win32_window_size
+struct win32_window_size_simple
 {
     LONG w;
     LONG h;
 
-    simple_win32_window_size();
-    simple_win32_window_size(RECT const& rect);
-    simple_win32_window_size(LONG w, LONG h);
+    win32_window_size_simple();
+    win32_window_size_simple(RECT const& rect);
+    win32_window_size_simple(LONG w, LONG h);
 
-    bool operator==(simple_win32_window_size const& other) const;
+    bool operator==(win32_window_size_simple const& other) const;
 };
 
-struct win32_window_size : simple_win32_window_size
+struct win32_window_size : win32_window_size_simple
 {
     LONG x;
     LONG y;
@@ -27,7 +26,7 @@ struct win32_window_size : simple_win32_window_size
     win32_window_size();
     win32_window_size(RECT const& rect);
 
-    win32_window_size& operator=(simple_win32_window_size const& parent_size);
+    win32_window_size& operator=(win32_window_size_simple const& parent_size);
 };
 
 struct win32_window_info final
@@ -39,7 +38,7 @@ struct win32_window_info final
     bool minimized() const;
 };
 
-struct static_win32_window_info
+struct win32_window_info_static
 {
     union
     {
@@ -51,8 +50,8 @@ struct static_win32_window_info
     win32_window_size size;
     bool minimized;
 
-    static_win32_window_info(HWND id);
-    static_win32_window_info(win32_window_info info);
+    win32_window_info_static(HWND id);
+    win32_window_info_static(win32_window_info info);
 };
 
 enum class win32_backend_update_response : uint8_t
@@ -71,13 +70,16 @@ enum class win32_backend_update_response : uint8_t
     locked,
 };
 
-using win32_backend_update_result = std::pair<win32_backend_update_response, LRESULT>;
+struct win32_backend_update_result
+{
+    win32_backend_update_response response;
+    LRESULT retval;
+};
 
 class basic_win32_backend
 {
   protected:
     ~basic_win32_backend();
-
     basic_win32_backend(HWND window);
 
   public:
@@ -85,4 +87,4 @@ class basic_win32_backend
 
     static win32_backend_update_result update(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 };
-} // namespace fd
+} // namespace fd::gui

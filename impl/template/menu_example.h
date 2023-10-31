@@ -5,7 +5,7 @@
 #include "gui/menu/tab.h"
 #include "string/view.h"
 
-namespace fd
+namespace fd::gui
 {
 template <typename UnloadHandler>
 auto make_menu_example(UnloadHandler&& unload_handler)

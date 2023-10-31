@@ -1,15 +1,14 @@
-﻿#include "native_dx9.h"
-//
+﻿#include "gui/render/backend/native_dx9.h"
 #include "noncopyable.h"
-#include "diagnostics/runtime_error.h"
 #include "library_info/system.h"
 #include "memory/pattern.h"
 #ifdef _DEBUG
 #include "string/view.h"
 #endif
 
-#include <d3d9.h>
 #include <imgui.h>
+
+#include <d3d9.h>
 
 #include <cassert>
 

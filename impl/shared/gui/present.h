@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-namespace fd
+namespace fd::gui
 {
-inline constexpr auto present_gui = //
+inline constexpr auto present = //
     []<class RenderB, class SystemB, class RenderCtx, class Menu>(
         RenderB* render_backend, SystemB* system_backend, RenderCtx* render_context, Menu* menu) -> void {
     render_backend->new_frame();
