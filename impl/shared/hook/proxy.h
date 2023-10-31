@@ -2,8 +2,7 @@
 
 #include "functional/call_traits.h"
 #include "hook/callback.h"
-#include "hook/prepared_data.h"
-#include "hook/proxy_data.h"
+#include "hook/info.h"
 
 namespace fd
 {
@@ -218,7 +217,7 @@ struct extract_hook_proxy<hook_proxy_non_member<Call_T, Ret, Args...>>
     template <                                                                                                 \
         class Callback, HOOK_PROXY_SAMPLE class Proxy = detail::hook_proxy_member, /**/                        \
         typename Ret, class Object, typename... Args>                                                          \
-    prepared_hook_data<Callback> prepare_hook(Ret (__call Object::*target)(Args...))                           \
+    hook_info<Callback> prepare_hook(Ret (__call Object::*target)(Args...))                                    \
     {                                                                                                          \
         using proxy_type = Proxy<call__, Ret, Object, Args...>;                                                \
         return {unsafe_cast<void*>(target), detail::extract_hook_proxy<proxy_type>::template get<Callback>()}; \
@@ -231,7 +230,7 @@ X86_CALL_MEMBER(GET_HOOK_PROXY_MEMBER)
     template <                                                                                                 \
         class Callback, HOOK_PROXY_SAMPLE class Proxy = detail::hook_proxy_non_member, /**/                    \
         typename Ret, typename... Args>                                                                        \
-    prepared_hook_data<Callback> prepare_hook(Ret(__call* target)(Args...))                                    \
+    hook_info<Callback> prepare_hook(Ret(__call* target)(Args...))                                             \
     {                                                                                                          \
         using proxy_type = Proxy<call__, Ret, Args...>;                                                        \
         return {unsafe_cast<void*>(target), detail::extract_hook_proxy<proxy_type>::template get<Callback>()}; \
@@ -245,7 +244,7 @@ template <
     typename Callback,
     HOOK_PROXY_SAMPLE class Proxy = detail::hook_proxy_member, //
     typename Ret, class Object, typename... Args>
-prepared_hook_data prepare_hook(Ret(__thiscall* target)(Object*, Args...))
+hook_info prepare_hook(Ret(__thiscall* target)(Object*, Args...))
 {
     using proxy_type = Proxy<call_type::thiscall_, Ret, Object, Args...>;
     return {unsafe_cast<void*>(target), detail::extract_hook_proxy<proxy_type>::template get<Callback>()};
@@ -257,14 +256,14 @@ template <typename Callback>
 concept hook_callback_know_function = requires { typename Callback::function_type; };
 
 template <hook_callback_know_function Callback, HOOK_PROXY_SAMPLE class Proxy>
-prepared_hook_data<Callback> prepare_hook(void* target)
+hook_info<Callback> prepare_hook(void* target)
 {
     using function_type = typename Callback::function_type;
     return prepare_hook<Callback, Proxy>(unsafe_cast<function_type>(target));
 }
 
 template <hook_callback_know_function Callback>
-prepared_hook_data<Callback> prepare_hook(void* target)
+hook_info<Callback> prepare_hook(void* target)
 {
     using function_type = typename Callback::function_type;
     return prepare_hook<Callback>(unsafe_cast<function_type>(target));
@@ -275,7 +274,7 @@ template <
     typename Callback,
     HOOK_PROXY_SAMPLE class Proxy = detail::hook_proxy_non_member, //
     call_type Call_T, typename Ret, typename... Args>
-prepared_hook_data<Callback> prepare_hook(void* target)
+hook_info<Callback> prepare_hook(void* target)
 {
     using proxy_type = Proxy<Call_T, Ret, Args...>;
     return {target, detail::extract_hook_proxy<proxy_type>::template get<Callback>()};
@@ -288,7 +287,7 @@ template <
     typename Callback,
     HOOK_PROXY_SAMPLE class Proxy = detail::hook_proxy_member, //
     call_type Call_T, typename Ret, class Object, typename... Args>
-prepared_hook_data<Callback> prepare_hook(vfunc<Call_T, Ret, Object, Args...> target)
+hook_info<Callback> prepare_hook(vfunc<Call_T, Ret, Object, Args...> target)
 {
     using proxy_type = Proxy<Call_T, Ret, Object, Args...>;
     return {target.get(), detail::extract_hook_proxy<proxy_type>::template get<Callback>()};
@@ -300,7 +299,7 @@ struct native_function_tag;
 template <
     typename Callback, HOOK_PROXY_SAMPLE class Proxy = hook_proxy_member, //
     std::derived_from<native_function_tag> Fn>
-prepared_hook_data prepare_hook(Fn abstract_fn)
+hook_info prepare_hook(Fn abstract_fn)
 {
     return prepare_hook<Callback, Proxy>(abstract_fn.get());
 }

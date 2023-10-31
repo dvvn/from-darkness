@@ -7,7 +7,7 @@
 namespace fd
 {
 template <typename Callback>
-class prepared_hook_data
+class hook_info
 {
     void* target_;
     void* replace_;
@@ -17,7 +17,7 @@ class prepared_hook_data
 #endif
 
   public:
-    prepared_hook_data(void* target, void* replace)
+    hook_info(void* target, void* replace)
         : target_(target)
         , replace_(replace)
 #ifdef _DEBUG
