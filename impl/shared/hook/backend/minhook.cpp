@@ -1,13 +1,14 @@
-﻿// ReSharper disable CppMemberFunctionMayBeStatic
-#include "hook/backend/minhook.h"
-#include "hook/prepared_data.h"
+﻿#include "hook/backend/minhook.h"
 
 #include <MinHook.h>
 
 #include <cassert>
 
-#undef MH_ALL_HOOKS
+// ReSharper disable CppMemberFunctionMayBeStatic
+
+#if MH_ALL_HOOKS == NULL
 #define MH_ALL_HOOKS nullptr // intellisense stfu
+#endif
 
 namespace fd
 {
