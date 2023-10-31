@@ -315,15 +315,20 @@ template <call_type Call_T, typename Ret, class Object, typename... Args>
 struct object_froxy_for<member_function_info<Call_T, Ret, Object, Args...>> : std::type_identity<detail::object_proxy_member<Call_T, Ret, Object, Args...>>
 {
 };
-
+#if 1
 template <call_type Call_T, typename Ret, typename... Args>
 struct object_froxy_for<non_member_function_info<Call_T, Ret, Args...>> : std::type_identity<detail::object_proxy_non_member<Call_T, Ret, Args...>>
 {
 };
+#else
+template <call_type Call_T, typename Ret, typename... Args>
+struct object_froxy_for<non_member_function_info<Call_T, Ret, Args...>> : non_member_function<Call_T, Ret, Args...>
+{
+};
+#endif
 
 template <typename Fn>
 struct object_froxy_for<function_info<Fn>> : object_froxy_for<typename function_info<Fn>::base>
 {
 };
-
 } // namespace fd

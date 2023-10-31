@@ -50,8 +50,8 @@ template <class T>
 struct detail::vtable_expander
 {
 #define VFUNC_ACCESS(call__, __call, _call_)                                        \
-    template <typename Ret, typename... Args>                                       \
-    vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
+    template <typename member_function, typename... Args>                                       \
+    vfunc<call__, member_function, T, Args...> operator[](member_function (__call T::*func)(Args...)) const \
     {                                                                               \
         return {func, get<T>(this)->instance()};                                    \
     }
@@ -64,8 +64,8 @@ template <>
 struct detail::vtable_expander<void>
 {
 #define VFUNC_ACCESS(call__, __call, _call_)                                        \
-    template <typename Ret, typename T, typename... Args>                           \
-    vfunc<call__, Ret, T, Args...> operator[](Ret (__call T::*func)(Args...)) const \
+    template <typename member_function, typename T, typename... Args>                           \
+    vfunc<call__, member_function, T, Args...> operator[](member_function (__call T::*func)(Args...)) const \
     {                                                                               \
         return {func, get<T>(this)->instance()};                                    \
     }
@@ -172,7 +172,7 @@ auto get(vtable<T> table, auto index) -> decltype(table[index])
 template <typename T>
 vtable(T*, size_t = 0) -> vtable<T>;
 
-// template<call_type_t Call_T,typename Ret,class T,typename ...Args>
+// template<call_type_t Call_T,typename member_function,class T,typename ...Args>
 // class vfunc_view
 //{
 //     vtable<T>

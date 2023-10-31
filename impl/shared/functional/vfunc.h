@@ -43,7 +43,7 @@ template <typename Fn>
 void* get_vfunc(Fn table_function, void* instance)
 {
 #ifdef _DEBUG
-    static_assert(member_function<Fn>);
+    static_assert(std::is_member_function_pointer_v<Fn>);
 #endif
     constexpr auto call = function_info<Fn>::call;
     auto function       = unsafe_cast<void*>(table_function);
@@ -92,7 +92,7 @@ struct vfunc : basic_vfunc<T>
 {
     using basic_vfunc<T>::basic_vfunc;
 
-    vfunc(member_func_type<Call_T, Ret, T, Args...> function, T* instance)
+    vfunc(member_function_t<Call_T, Ret, T, Args...> function, T* instance)
         : basic_vfunc<T>(get_vfunc(function, instance), instance)
     {
     }

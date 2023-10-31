@@ -104,10 +104,10 @@ decltype(auto) apply(Fn fn, call_type info, Args... args)
 
 template <call_type Call_T, typename Ret, typename Object, typename... Args>
 requires(std::is_class_v<Object> || std::is_union_v<Object> /*std::is_fundamental_v<T>*/)
-struct member_func_type_impl;
+struct member_function;
 
 template <call_type Call_T, typename Ret, typename Object, typename... Args>
-using member_func_type = typename member_func_type_impl<Call_T, Ret, Object, Args...>::type;
+using member_function_t = typename member_function<Call_T, Ret, Object, Args...>::type;
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
 template <class Object>
@@ -135,7 +135,7 @@ decltype(auto) try_spoof_member_return_address(void* function, Object* instance,
     else
     {
         using obj_t = std::conditional_t<forwarded<Object>, dummy_class, Object>;
-        using fn_t  = member_func_type<Call_T, Ret, obj_t, Args...>;
+        using fn_t  = member_function_t<Call_T, Ret, obj_t, Args...>;
         return std::invoke(unsafe_cast<fn_t>(function), unsafe_cast<obj_t*>(instance), args...);
     }
 }
@@ -177,32 +177,31 @@ struct return_address_spoofer<call_type::thiscall_, Ret, Object*, Args...>
 #endif
 
 template <call_type Call_T, typename Ret, typename... Args>
-struct non_member_func_type_impl;
+struct non_member_function;
 
 template <call_type Call_T, typename Ret, typename... Args>
-using non_member_func_type = typename non_member_func_type_impl<Call_T, Ret, Args...>::type;
+using non_member_function_t = typename non_member_function<Call_T, Ret, Args...>::type;
 
 template <call_type Call_T, class Ret, typename... Args>
 struct non_member_func_invoker
 {
-    using type = non_member_func_type<Call_T, Ret, Args...>;
+    using function_type = non_member_function_t<Call_T, Ret, Args...>;
 
-    Ret operator()(type function, Args... args) const
+    Ret operator()(function_type function, Args... args) const
     {
         return std::invoke(function, args...);
     }
 
     Ret operator()(void* function, Args... args) const
     {
-        return operator()(unsafe_cast<type>(function), args...);
+        return operator()(unsafe_cast<function_type>(function), args...);
     }
 };
 
-#define MEMBER_FN_TYPE(call__, __call, _call_)                 \
-    template <typename Ret, typename Object, typename... Args> \
-    struct member_func_type_impl<call__, Ret, Object, Args...> \
-    {                                                          \
-        using type = Ret (__call Object::*)(Args...);          \
+#define MEMBER_FN_TYPE(call__, __call, _call_)                                                                 \
+    template <typename Ret, typename Object, typename... Args>                                                 \
+    struct member_function<call__, Ret, Object, Args...> : std::type_identity<Ret (__call Object::*)(Args...)> \
+    {                                                                                                          \
     };
 
 X86_CALL_MEMBER(MEMBER_FN_TYPE)
@@ -211,7 +210,7 @@ X86_CALL_MEMBER(MEMBER_FN_TYPE)
 template <call_type Call_T, class Ret, class T, typename... Args>
 struct member_func_invoker
 {
-    using function_type = member_func_type<Call_T, Ret, T, Args...>;
+    using function_type = member_function_t<Call_T, Ret, T, Args...>;
 
     Ret operator()(function_type function, T* instance, Args... args) const
     {
@@ -232,7 +231,7 @@ template <call_type Call_T, class Ret, class T, typename... Args>
 requires(std::is_class_v<T> && !complete<T>)
 struct member_func_invoker<Call_T, Ret, T, Args...> : member_func_invoker<Call_T, Ret, void, Args...>
 {
-    static_assert(sizeof(member_func_type<Call_T, Ret, T, Args...>) != sizeof(void*));
+    static_assert(sizeof(member_function_t<Call_T, Ret, T, Args...>) != sizeof(void*));
 };
 
 #if INTPTR_MAX == INT32_MAX
@@ -244,7 +243,7 @@ struct member_func_invoker<call_type::thiscall_, Ret, void, Args...> : non_membe
 template <call_type Call_T, class Ret, typename... Args>
 struct member_func_invoker<Call_T, Ret, void, Args...>
 {
-    using function_type = member_func_type<Call_T, Ret, dummy_class, Args...>;
+    using function_type = member_function_t<Call_T, Ret, dummy_class, Args...>;
 
     Ret operator()(function_type function, void* instance, Args... args) const
     {
@@ -257,11 +256,10 @@ struct member_func_invoker<Call_T, Ret, void, Args...>
     }
 };
 
-#define NON_MEMBER_FN_TYPE(call__, __call, _call_)         \
-    template <typename Ret, typename... Args>              \
-    struct non_member_func_type_impl<call__, Ret, Args...> \
-    {                                                      \
-        using type = Ret(__call*)(Args...);                \
+#define NON_MEMBER_FN_TYPE(call__, __call, _call_)                                               \
+    template <typename Ret, typename... Args>                                                    \
+    struct non_member_function<call__, Ret, Args...> : std::type_identity<Ret(__call*)(Args...)> \
+    {                                                                                            \
     };
 
 X86_CALL_MEMBER(NON_MEMBER_FN_TYPE)
@@ -423,15 +421,6 @@ X86_CALL_MEMBER(FN_INFO_MEMBER)
     };
 X86_CALL(FN_INFO_NON_MEMEBER)
 #undef FN_INFO_NON_MEMEBER
-
-template <typename Fn>
-concept member_function = requires { typename function_info<Fn>::self_type; };
-
-template <typename Fn>
-concept unwrapped_member_function = std::is_void_v<typename function_info<Fn>::self_type>;
-
-template <typename Fn>
-concept non_member_function = !member_function<Fn> || unwrapped_member_function<Fn>;
 
 namespace detail
 {
