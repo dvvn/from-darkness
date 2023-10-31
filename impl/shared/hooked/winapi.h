@@ -1,9 +1,14 @@
 ﻿#pragma once
+#include "functional/call_traits.h"
+#include "functional/ignore.h"
 #include "gui/render/backend/basic_win32.h"
+#include "hook/proxy_data.h"
 
 #include <Windows.h>
 
-namespace fd::hooked::winapi
+namespace fd
+{
+namespace hooked::winapi
 {
 template <class SystemBackend>
 class wndproc final : public basic_hook_callback
@@ -48,4 +53,18 @@ class wndproc final : public basic_hook_callback
 
 template <class SystemBackend>
 wndproc(SystemBackend*) -> wndproc<SystemBackend>;
-}
+} // namespace hooked::winapi
+
+namespace detail
+{
+template <class SystemBackend>
+struct hook_proxy_original_for<hooked::winapi::wndproc<SystemBackend>> : std::type_identity<hook_proxy_original<WNDPROC>>
+{
+};
+
+template <class SystemBackend>
+struct hook_proxy_original_for<hooked::winapi::wndproc<SystemBackend> const> : std::type_identity<hook_proxy_original<WNDPROC>>
+{
+};
+} // namespace detail
+} // namespace fd

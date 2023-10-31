@@ -29,4 +29,6 @@ constexpr auto unreachable = std::abort;
 #endif
 #endif
 
+template <class>
+inline constexpr bool always_false = false;
 } // namespace fd

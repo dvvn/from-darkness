@@ -6,26 +6,22 @@
 namespace fd
 {
 template <class Backend, class Target, class Callback>
-prepared_hook_data create_hook(Backend* backend, Target target, Callback* callback)
+prepared_hook_data<Callback> create_hook(Backend* backend, Target target, Callback* callback)
 {
     auto hook_data = prepare_hook<Callback>(target);
-    auto original  = backend->create(hook_data.target, hook_data.replace);
+    auto original  = backend->create(hook_data.target(), hook_data.replace());
     assert(original != nullptr);
-    *hook_data.original            = original;
-    unique_hook_callback<Callback> = callback;
+    detail::unique_hook_proxy_data<Callback>.set_original(original);
+    detail::unique_hook_proxy_data<Callback>.set_callback(callback);
     return hook_data;
 }
 
-namespace detail
-{
-template <typename T>
-inline uint8_t hook_callback_buffer[sizeof(T)];
-}
+
 
 template <class Backend, class Target, class Callback>
-prepared_hook_data create_hook(Backend* backend, Target target, Callback callback) requires(std::is_trivially_destructible_v<Callback>)
+prepared_hook_data<Callback> create_hook(Backend* backend, Target target, Callback callback) requires(std::is_trivially_destructible_v<Callback>)
 {
-    auto stored_callback = new (&detail::hook_callback_buffer<Callback>) Callback(std::move(callback));
+    auto stored_callback = new (&detail::unique_hook_callback<Callback>) Callback(std::move(callback));
     return create_hook(backend, target, stored_callback);
 }
 } // namespace fd

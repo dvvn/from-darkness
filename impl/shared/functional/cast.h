@@ -225,18 +225,24 @@ struct safe_cast_impl<To&&> : safe_cast_simple_ref<To&&>
 template <typename To>
 inline constexpr detail::safe_cast_impl<To> safe_cast;
 
-template <typename To, typename From>
-To unsafe_cast(From from)
-{
-    static_assert(sizeof(From) == sizeof(To));
-
-    union
+template <typename To>
+inline constexpr auto unsafe_cast = []<typename From>(From from) -> To {
+    if constexpr (std::same_as<From, To>)
     {
-        From from0;
-        To to;
-    };
+        return from;
+    }
+    else
+    {
+        static_assert(sizeof(From) == sizeof(To));
 
-    from0 = from;
-    return to;
-}
+        union
+        {
+            From from0;
+            To to;
+        };
+
+        from0 = from;
+        return to;
+    }
+};
 } // namespace fd

@@ -295,32 +295,34 @@ class member_func_return_type_resolver
     }
 };
 
+namespace detail
+{
+template <size_t Index, typename, typename... T>
+struct function_arg : function_arg<Index - 1, T...>
+{
+};
+
+template <typename T, typename... Next>
+struct function_arg<0, T, Next...> : std::type_identity<T>
+{
+};
+} // namespace detail
+
 template <typename... T>
 struct function_args
 {
+    static constexpr size_t count = sizeof...(T);
+    template <size_t I>
+    using get = typename detail::function_arg<I, T...>::type;
 };
 
-namespace detail
+template <>
+struct function_args<>
 {
-template <size_t Target, size_t Current, typename, typename... T>
-struct function_arg : function_arg<Target, Current + 1, T...>
-{
+    static constexpr size_t count = 0;
+    template <size_t I>
+    using get = void;
 };
-
-template <size_t Target, typename Arg, typename... T>
-struct function_arg<Target, Target, Arg, T...>
-{
-    using type = Arg;
-};
-
-template <size_t Target, size_t Current, typename... T>
-struct function_arg<Target, Current, function_args<T...>> : function_arg<Target, Current, T...>
-{
-};
-
-template <size_t Target, typename... T>
-using function_arg_t = typename function_arg<Target, 0, T...>::type;
-} // namespace detail
 
 template <call_type Call_T, typename Ret>
 struct basic_function_info
@@ -329,31 +331,19 @@ struct basic_function_info
     using return_type = Ret;
 };
 
-template <typename... Args>
-struct function_info_args
-{
-    using args = function_args<Args...>;
-    template <size_t I>
-    using arg = detail::function_arg_t<I, Args...>;
-};
-
-template <>
-struct function_info_args<>
-{
-    using args = function_args<>;
-    template <size_t I>
-    using arg = void;
-};
-
 template <call_type Call_T, typename Ret, typename T, typename... Args>
-struct member_function_info : basic_function_info<Call_T, Ret>, function_info_args<Args...>
+struct member_function_info : basic_function_info<Call_T, Ret>
 {
     using self_type = T;
+    using args      = function_args<Args...>;
+    using base      = member_function_info;
 };
 
 template <call_type Call_T, typename Ret, typename... Args>
-struct non_member_function_info : basic_function_info<Call_T, Ret>, function_info_args<Args...>
+struct non_member_function_info : basic_function_info<Call_T, Ret>
 {
+    using args = function_args<Args...>;
+    using base = non_member_function_info;
 };
 
 template <typename Fn>
@@ -401,23 +391,35 @@ struct function_info<Ret(__thiscall*)(T*, Args...)> : member_function_info<call_
 //{
 // };
 
-#define FN_INFO_MEMBER(call__, __call, _call_)                                                                   \
-    template <typename Ret, typename T, typename... Args>                                                        \
-    struct function_info<Ret (__call T::*)(Args...)> : member_function_info<call__, Ret, T, Args...>             \
-    {                                                                                                            \
-    };                                                                                                           \
-    template <typename Ret, typename T, typename... Args>                                                        \
-    struct function_info<Ret (__call T::*)(Args...) const> : member_function_info<call__, Ret, T const, Args...> \
-    {                                                                                                            \
+#define FN_INFO_MEMBER(call__, __call, _call_)                                                                            \
+    template <typename Ret, typename T, typename... Args>                                                                 \
+    struct function_info<Ret (__call T::*)(Args...)> : member_function_info<call__, Ret, T, Args...>                      \
+    {                                                                                                                     \
+    };                                                                                                                    \
+    template <typename Ret, typename T, typename... Args>                                                                 \
+    struct function_info<Ret (__call T::*)(Args...) noexcept> : member_function_info<call__, Ret, T, Args...>             \
+    {                                                                                                                     \
+    };                                                                                                                    \
+    template <typename Ret, typename T, typename... Args>                                                                 \
+    struct function_info<Ret (__call T::*)(Args...) const> : member_function_info<call__, Ret, T const, Args...>          \
+    {                                                                                                                     \
+    };                                                                                                                    \
+    template <typename Ret, typename T, typename... Args>                                                                 \
+    struct function_info<Ret (__call T::*)(Args...) const noexcept> : member_function_info<call__, Ret, T const, Args...> \
+    {                                                                                                                     \
     };
 
 X86_CALL_MEMBER(FN_INFO_MEMBER)
 #undef FN_INFO_MEMBER
 
-#define FN_INFO_NON_MEMEBER(call__, __call, _call_)                                              \
-    template <typename Ret, typename... Args>                                                    \
-    struct function_info<Ret(__call*)(Args...)> : non_member_function_info<call__, Ret, Args...> \
-    {                                                                                            \
+#define FN_INFO_NON_MEMEBER(call__, __call, _call_)                                                       \
+    template <typename Ret, typename... Args>                                                             \
+    struct function_info<Ret(__call*)(Args...)> : non_member_function_info<call__, Ret, Args...>          \
+    {                                                                                                     \
+    };                                                                                                    \
+    template <typename Ret, typename... Args>                                                             \
+    struct function_info<Ret(__call*)(Args...) noexcept> : non_member_function_info<call__, Ret, Args...> \
+    {                                                                                                     \
     };
 X86_CALL(FN_INFO_NON_MEMEBER)
 #undef FN_INFO_NON_MEMEBER

@@ -11,11 +11,12 @@ basic_hook_callback::~basic_hook_callback()
     {
         // nothing here
     }
-    while (called_.load(order) != 0);
+    while (called_.load(order_) != 0);
 }
 
 basic_hook_callback::basic_hook_callback()
-    : called_(0)
+    : order_(std::memory_order::relaxed)
+    , called_(0)
 {
     assert(called_.is_lock_free());
 }

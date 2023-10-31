@@ -8,9 +8,9 @@ namespace fd
 {
 class basic_hook_callback : public noncopyable
 {
-    static constexpr auto order = std::memory_order_relaxed;
-    using value_type            = std::atomic<size_t>;
+    using value_type = std::atomic<size_t>;
 
+    std::memory_order order_ ;
     value_type called_;
 
   protected:
@@ -26,8 +26,8 @@ class basic_hook_callback : public noncopyable
 template <class T, bool>
 class hook_callback_thread_protector;
 
-//template <class T, bool V>
-//class hook_callback_thread_protector<T const, V>;
+// template <class T, bool V>
+// class hook_callback_thread_protector<T const, V>;
 
 template <class T>
 class hook_callback_thread_protector<T, true> final : public noncopyable
