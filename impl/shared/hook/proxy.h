@@ -2,7 +2,7 @@
 
 #include "functional/call_traits.h"
 #include "hook/callback.h"
-#include "hook/prepared_data.h"
+#include "hook/info.h"
 #include "hook/proxy_data.h"
 
 namespace fd
