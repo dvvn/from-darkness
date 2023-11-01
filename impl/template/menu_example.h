@@ -12,7 +12,7 @@ auto make_menu_example(UnloadHandler&& unload_handler)
 {
     return menu(
         [] {
-            using namespace fd::string_view_literals;
+            using namespace string_view_literals;
             menu_tab(
                 "Tab1"sv,
                 bind(menu_tab_item, "One"sv, bind_front(ImGui::TextUnformatted, "Text"sv)),

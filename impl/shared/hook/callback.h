@@ -1,17 +1,17 @@
 ﻿#pragma once
 #include "noncopyable.h"
-#include "functional/ignore.h"
+#include "functional/bind.h"
+#include "functional/invoke_on.h"
 
 #include <atomic>
+#include <concepts>
 
 namespace fd
 {
 class basic_hook_callback : public noncopyable
 {
-    using value_type = std::atomic<size_t>;
-
-    std::memory_order order_ ;
-    value_type called_;
+    std::memory_order order_;
+    std::atomic<size_t> called_;
 
   protected:
     ~basic_hook_callback();
@@ -19,62 +19,27 @@ class basic_hook_callback : public noncopyable
   public:
     basic_hook_callback();
 
-    void enter();
-    void exit();
+    void enter() noexcept;
+    void exit() noexcept;
 };
 
-template <class T, bool>
-class hook_callback_thread_protector;
-
-// template <class T, bool V>
-// class hook_callback_thread_protector<T const, V>;
-
-template <class T>
-class hook_callback_thread_protector<T, true> final : public noncopyable
+template <std::derived_from<basic_hook_callback> Callback, typename... Args>
+auto invoke(Callback& callback, Args&&... args)
 {
-    T* callback_;
-
-  public:
-    ~hook_callback_thread_protector()
+    using fn_ret = std::invoke_result<Callback&, Args&&...>;
+    if constexpr (std::is_void_v<fn_ret>)
     {
-        callback_->exit();
+        callback.enter();
+        callback(std::forward<Args>(args)...);
+        callback.exit();
     }
-
-    hook_callback_thread_protector(T* callback)
-        : callback_(callback)
+    else
     {
-        callback->enter();
+        callback.enter();
+        invoke_on const lazy_exit(object_state_constant<destruct>(), [&] {
+            callback.exit();
+        });
+        return callback(std::forward<Args>(args)...);
     }
-
-    hook_callback_thread_protector(T& callback)
-        : hook_callback_thread_protector(std::addressof(callback))
-    {
-    }
-};
-
-template <class T>
-class hook_callback_thread_protector<T, false> final : public noncopyable
-{
-  public:
-    hook_callback_thread_protector(auto&)
-    {
-    }
-};
-
-namespace detail
-{
-template <class T>
-concept hook_callback_have_enter_exit = requires(T obj) {
-    obj.enter();
-    obj.exit();
-};
 }
-
-template <class T>
-inline constexpr bool hook_callback_need_protect = detail::hook_callback_have_enter_exit<T>;
-
-template <class T>
-hook_callback_thread_protector(T*) -> hook_callback_thread_protector<T, hook_callback_need_protect<T>>;
-template <class T>
-hook_callback_thread_protector(T&) -> hook_callback_thread_protector<T, hook_callback_need_protect<T>>;
 } // namespace fd

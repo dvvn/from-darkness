@@ -37,13 +37,13 @@ bool fd::run_context()
 
     hook_backend_minhook hook_backend;
 
-    hooked::DXGI_factory::create_swap_chain const hk_create_swap_chain(&render_backend);
+    hooked::DXGI_factory::create_swap_chain hk_create_swap_chain(&render_backend);
     create_hook(&hook_backend, vfunc(&IDXGIFactory::CreateSwapChain, render_backend_data->DXGI_factory()), &hk_create_swap_chain);
-    hooked::DXGI_swap_chain::resize_buffers const hk_resize_buffers(&render_backend);
+    hooked::DXGI_swap_chain::resize_buffers hk_resize_buffers(&render_backend);
     create_hook(&hook_backend, vfunc(&IDXGISwapChain::ResizeBuffers, render_backend_data->swap_chain), &hk_resize_buffers);
-    hooked::DXGI_swap_chain::present const hk_present(bind(gui::present, &render_backend, &system_backend, &render_context, &menu));
+    hooked::DXGI_swap_chain::present hk_present(bind(gui::present, &render_backend, &system_backend, &render_context, &menu));
     create_hook(&hook_backend, vfunc(&IDXGISwapChain::Present, render_backend_data->swap_chain), &hk_present);
-    hooked::winapi::wndproc const hk_wndproc(&system_backend);
+    hooked::winapi::wndproc hk_wndproc(&system_backend);
     create_hook(&hook_backend, system_backend_info.proc(), &hk_wndproc);
 
     if (!hook_backend.enable())

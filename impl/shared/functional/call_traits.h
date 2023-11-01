@@ -69,7 +69,7 @@ struct dummy_class final
 #endif
 
 template <template <call_type Call_T> class Q, typename... Args>
-decltype(auto) apply(call_type info, Args... args)
+decltype(auto) apply(call_type const info, Args... args)
 {
 #define INFO_CASE(call__, __call, _call_) \
     case call__:                          \
@@ -86,7 +86,7 @@ decltype(auto) apply(call_type info, Args... args)
 }
 
 template <typename Fn, typename... Args>
-decltype(auto) apply(Fn fn, call_type info, Args... args)
+decltype(auto) apply(Fn fn, call_type const info, Args... args)
 {
 #define INFO_CASE(call__, __call, _call_) \
     case call__:                          \
@@ -287,7 +287,7 @@ class member_func_return_type_resolver
     }
 
     template <typename Ret>
-    operator Ret() &
+    operator Ret()
     {
         return boost::hana::unpack(args_, [this](Args... args) {
             func_invoker<Ret> invoker;
@@ -296,11 +296,11 @@ class member_func_return_type_resolver
     }
 
     template <typename Ret>
-    operator Ret() &&
+    operator Ret() const
     {
-        return boost::hana::unpack(args_, [fn = function_, inst = instance_](Args... args) {
+        return boost::hana::unpack(args_, [this](Args... args) {
             func_invoker<Ret> invoker;
-            return invoker(args..., fn, inst);
+            return invoker(args..., function_, instance_);
         });
     }
 };

@@ -4,11 +4,21 @@
 
 namespace fd
 {
-#ifdef __cpp_lib_bind_back
-using std::bind_back;
-#endif
-#ifdef __cpp_lib_bind_front
-using std::bind_front;
-#endif
+template <typename Fn>
+requires(std::is_member_function_pointer_v<Fn>)
+auto bind_back(Fn, auto&&...) = delete;
+
+template <typename Fn>
+requires(std::is_member_function_pointer_v<Fn>)
+auto bind_front(Fn, auto&&...) = delete;
+
+template <typename Fn>
+requires(std::is_member_function_pointer_v<Fn>)
+auto bind(Fn, auto&&...) = delete;
+
+//^^^^ this hurt perfomance and code looks ugly
+
 using std::bind;
-}
+using std::bind_back;
+using std::bind_front;
+} // namespace fd

@@ -7,43 +7,9 @@
 
 namespace fd
 {
-enum class class_state : uint8_t
-{
-    construct,
-    destruct,
-    copy,
-    move
-};
-
-template <class_state State>
-using class_state_constant = std::integral_constant<class_state, State>;
-
-template <class_state State, typename Callback>
-class invoke_on;
-
-template <class_state State, typename Callback>
-constexpr auto make_invoke_on(class_state_constant<State>, Callback&& callback) -> invoke_on<State, std::decay_t<Callback>>
-{
-    return {std::forward<Callback>(callback)};
-}
-
 namespace detail
 {
-template <typename Callback>
-concept nullable_callback_check = //
-    !std::is_class_v<Callback> || //
-    requires(Callback c) {
-        {
-            c.operator!()
-        };
-    } || //
-    requires(Callback c) {
-        {
-            operator!(c)
-        };
-    };
-
-template <typename Callback, bool = nullable_callback_check<Callback>>
+template <typename Callback, bool = /*!std::is_class_v<Callback> ||*/ std::convertible_to<Callback, bool>>
 struct nullable_callback;
 
 template <typename Callback>
@@ -61,7 +27,7 @@ struct nullable_callback<Callback, true> : overload_t<Callback>
 
     bool has_value() const
     {
-        return !!(operator*());
+        return static_cast<bool>(static_cast<overload_t<Callback> const*>(this));
     }
 
     template <typename... Args>
@@ -101,101 +67,97 @@ struct nullable_callback<Callback, false> : optional<Callback>
 };
 } // namespace detail
 
-template <typename Callback>
-class invoke_on<class_state::construct, Callback>
+enum object_state : uint8_t
 {
-  public:
-    template <std::constructible_from<Callback> Fn>
-    constexpr invoke_on(Fn&& callback)
-    {
-        std::invoke(std::forward<Fn>(callback));
-    }
+    construct = 1 << 0,
+    destruct  = 1 << 1,
+    copy      = 1 << 2,
+    move      = 1 << 3,
 };
 
-template <typename Callback>
-class invoke_on<class_state::destruct, Callback>
+template <auto State>
+using object_state_constant = std::integral_constant<object_state, static_cast<object_state>(State)>;
+
+template <object_state State, typename Callback>
+class invoke_on
 {
-    detail::nullable_callback<Callback> callback_;
+    using nullable_callback = detail::nullable_callback<Callback>;
+    using callback          = Callback;
+
+    static constexpr bool store_nullable = State & move || (State & destruct && std::movable<Callback>);
+    static constexpr bool store          = State & (copy | destruct);
+
+    using callback_stored = std::conditional_t<store_nullable, nullable_callback, std::conditional_t<store, callback, std::false_type>>;
+
+    [[no_unique_address]] //
+    callback_stored callback_;
+
+    template <object_state CurrentState>
+    void do_call()
+    {
+        if constexpr (State & CurrentState)
+        {
+            if constexpr (!(CurrentState & construct) && std::convertible_to<callback_stored, bool>)
+                if (!callback_)
+                    return;
+            callback_();
+        }
+    }
 
   public:
     ~invoke_on()
     {
-        if (callback_)
-            std::invoke(callback_);
+        do_call<destruct>();
     }
 
-    template <std::constructible_from<Callback> Fn>
-    constexpr invoke_on(Fn&& callback)
+    template <typename Fn>
+    constexpr invoke_on(Fn&& callback) requires(State == construct && std::constructible_from<Callback, Fn>)
+    {
+        std::invoke(std::forward<Fn>(callback));
+    }
+
+    template <typename Fn>
+    constexpr invoke_on(Fn&& callback) requires(std::constructible_from<callback_stored, Fn>)
         : callback_(std::forward<Fn>(callback))
     {
+        do_call<construct>();
     }
-};
 
-template <typename Callback>
-class invoke_on<class_state::copy, Callback>
-{
-    Callback callback_;
-
-  public:
-    template <std::constructible_from<Callback> Fn>
-    constexpr invoke_on(Fn&& callback)
-        : callback_(std::forward<Fn>(callback))
+    template <class Fn>
+    constexpr invoke_on(object_state_constant<State>, Fn&& callback)
+        : invoke_on(std::forward<Fn>(callback))
     {
     }
 
     invoke_on(invoke_on const& other)
         : callback_(other.callback_)
     {
-        std::invoke(callback_);
+        do_call<copy>();
     }
 
     invoke_on& operator=(invoke_on const& other)
     {
         callback_ = other.callback_;
-        std::invoke(callback_);
+        do_call<copy>();
         return *this;
     }
 
     invoke_on(invoke_on&& other) noexcept
         : callback_(std::move(other.callback_))
     {
+        do_call<move>();
     }
 
     invoke_on& operator=(invoke_on&& other) noexcept
     {
         using std::swap;
         swap(callback_, other.callback_);
+        other.do_call<move>();
+        do_call<move>();
         return *this;
     }
 };
 
-template <typename Callback>
-class invoke_on<class_state::move, Callback>
-{
-    detail::nullable_callback<Callback> callback_;
-
-  public:
-    template <std::constructible_from<Callback> Fn>
-    constexpr invoke_on(Fn&& callback)
-        : callback_(std::forward<Fn>(callback))
-    {
-    }
-
-    invoke_on(invoke_on const& other)            = default;
-    invoke_on& operator=(invoke_on const& other) = default;
-
-    invoke_on(invoke_on&& other) noexcept
-        : callback_(std::move(other.callback_))
-    {
-        std::invoke(callback_);
-    }
-
-    invoke_on& operator=(invoke_on&& other) noexcept
-    {
-        using std::swap;
-        swap(callback_, other.callback_);
-        std::invoke(callback_);
-        return *this;
-    }
-};
+template <object_state State, typename Callback>
+invoke_on(object_state_constant<State>, Callback&& callback) -> invoke_on<State, std::decay_t<Callback>>;
 }

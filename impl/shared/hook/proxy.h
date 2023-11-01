@@ -62,7 +62,7 @@ class object_proxy_member
 };
 
 template <class Callback, class Proxy, typename... Args>
-decltype(auto) invoke_hook_proxy(Proxy* proxy, Args... args)
+auto invoke_hook_proxy(Proxy* proxy, Args... args)
 {
     decltype(auto) original = unique_hook_proxy_data<Callback>.get_original();
     decltype(auto) callback = unique_hook_proxy_data<Callback>.get_callback();
@@ -77,15 +77,15 @@ decltype(auto) invoke_hook_proxy(Proxy* proxy, Args... args)
 #endif
         if constexpr (extra_args_count == 2)
         {
-            return callback(original, proxy, args...);
+            return (invoke)(callback, original, proxy, args...);
         }
         else if constexpr (extra_args_count == 1)
         {
             using arg0 = std::remove_cvref_t<typename callback_args::template get<0>>;
             if constexpr (std::constructible_from<arg0, decltype(original), decltype(proxy)>)
-                return callback(arg0(original, proxy), args...);
+                return (invoke)(callback, arg0(original, proxy), args...);
             else
-                return callback(proxy, args...);
+                return (invoke)(callback, proxy, args...);
         }
     }
     else if constexpr (callback_args::count < args_count)
@@ -94,13 +94,13 @@ decltype(auto) invoke_hook_proxy(Proxy* proxy, Args... args)
         static_assert(callback_args::count <= 1);
 #endif
         if constexpr (callback_args::count == 1)
-            return callback(proxy);
+            return (invoke)(callback, proxy);
         else if constexpr (callback_args::count == 0)
-            return callback();
+            return (invoke)(callback);
     }
     else
     {
-        return callback(args...);
+        return (invoke)(callback, args...);
     }
 }
 
@@ -157,10 +157,8 @@ decltype(auto) invoke_hook_proxy(Args... args)
     decltype(auto) original = unique_hook_proxy_data<Callback>.get_original();
     decltype(auto) callback = unique_hook_proxy_data<Callback>.get_callback();
 
-    using callback_args = typename function_info<std::decay_t<decltype(callback)>>::args;
-
+    using callback_args       = typename function_info<std::decay_t<decltype(callback)>>::args;
     constexpr auto args_count = sizeof...(Args);
-
     if constexpr (callback_args::count > args_count)
     {
         constexpr auto extra_args_count = callback_args::count - args_count;
@@ -168,9 +166,9 @@ decltype(auto) invoke_hook_proxy(Args... args)
         {
             using arg0 = std::remove_cvref_t<typename callback_args::template get<0>>;
             if constexpr (!std::is_fundamental_v<arg0> && std::constructible_from<arg0, decltype(original)>)
-                return callback(arg0(original), args...);
+                return (invoke)(callback, arg0(original), args...);
             else
-                return callback(original, args...);
+                return (invoke)(callback, original, args...);
         }
         else
             static_assert(always_false<Callback>);
@@ -178,13 +176,13 @@ decltype(auto) invoke_hook_proxy(Args... args)
     else if constexpr (callback_args::count < args_count)
     {
         if constexpr (callback_args::count == 0)
-            return callback();
+            return (invoke)(callback, callback);
         else
             static_assert(always_false<Callback>);
     }
     else
     {
-        return callback(args...);
+        return (invoke)(callback, args...);
     }
 }
 
@@ -274,10 +272,10 @@ hook_info<Callback> prepare_hook(Func fn)
     return prepare_hook<Callback, proxy>(fn);
 }
 
+#if 0 // old version
 template <call_type Call_T, typename Ret, typename T, typename... Args>
 struct vfunc;
 
-#if 0 // old version
 template <
     typename Callback,
     FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy_member, //
