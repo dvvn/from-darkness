@@ -265,18 +265,21 @@ struct member_func_invoker<Call_T, Ret, void, Args...>
 X86_CALL_MEMBER(NON_MEMBER_FN_TYPE)
 #undef NON_MEMBER_FN_TYPE
 
-template <call_type Call_T, typename T, typename... Args>
+template <call_type Call_T, class Object, typename... Args>
 class member_func_return_type_resolver
 {
     using args_packed = boost::hana::tuple<Args...>;
 
+    template <typename Ret>
+    using func_invoker = member_func_invoker<Call_T, Ret, Object, Args...>;
+
     void* function_;
-    T* instance_;
+    Object* instance_;
     [[no_unique_address]] //
     args_packed args_;
 
   public:
-    member_func_return_type_resolver(void* function, T* instance, Args... args)
+    member_func_return_type_resolver(void* function, Object* instance, Args... args)
         : function_(function)
         , instance_(instance)
         , args_(args...)
@@ -284,11 +287,20 @@ class member_func_return_type_resolver
     }
 
     template <typename Ret>
-    operator Ret()
+    operator Ret() &
     {
         return boost::hana::unpack(args_, [this](Args... args) {
-            member_func_invoker<Call_T, Ret, T, Args...> invoker;
+            func_invoker<Ret> invoker;
             return invoker(args..., function_, instance_);
+        });
+    }
+
+    template <typename Ret>
+    operator Ret() &&
+    {
+        return boost::hana::unpack(args_, [fn = function_, inst = instance_](Args... args) {
+            func_invoker<Ret> invoker;
+            return invoker(args..., fn, inst);
         });
     }
 };
@@ -332,20 +344,31 @@ struct basic_function_info
 template <call_type Call_T, typename Ret, typename T, typename... Args>
 struct member_function_info : basic_function_info<Call_T, Ret>
 {
-    using self_type = T;
-    using args      = function_args<Args...>;
-    using base      = member_function_info;
+    using base = member_function_info;
+
+    template <template <call_type, typename...> class Other>
+    using rebind = Other<Call_T, Ret, T, Args...>;
+
+    using object = T;
+    using args   = function_args<Args...>;
 };
 
 template <call_type Call_T, typename Ret, typename... Args>
 struct non_member_function_info : basic_function_info<Call_T, Ret>
 {
-    using args = function_args<Args...>;
     using base = non_member_function_info;
+
+    template <template <call_type, typename...> class Other>
+    using rebind = Other<Call_T, Ret, Args...>;
+
+    using args = function_args<Args...>;
 };
 
 template <typename Fn>
 struct function_info;
+
+// template <typename Fn>
+// using function_info_base = typename function_info<Fn>::base;
 
 #ifdef _MSC_VER
 template <typename Ret, typename Fn, typename... Args>
@@ -436,8 +459,8 @@ struct call_type_sample
     {
     }
 };
-
-inline constexpr call_type_t default_call_type_member     = function_info<call_type_sample>::call;
-inline constexpr call_type_t default_call_type_non_member = function_info<decltype(&call_type_sample::fn)>::call;
 } // namespace detail
+
+inline constexpr auto default_call_type_member     = function_info<detail::call_type_sample>::call;
+inline constexpr auto default_call_type_non_member = function_info<decltype(&detail::call_type_sample::fn)>::call;
 } // namespace fd

@@ -14,7 +14,7 @@ template <call_type Call>
 struct vfunc_index_resolver;
 
 template <call_type Call>
-static size_t get_vfunc_index(void *function) noexcept
+static size_t get_vfunc_index(void* function) noexcept
 {
     vfunc_index_resolver<Call> resolver;
     member_func_invoker<Call, size_t, void> invoker;
@@ -22,7 +22,7 @@ static size_t get_vfunc_index(void *function) noexcept
     return invoker(function, /*instance*/ &resolver);
 }
 
-size_t get_vfunc_index(call_type call, void *function)
+size_t get_vfunc_index(call_type call, void* function)
 {
     return apply(
         [=]<call_type Call>(call_type_t<Call>) {
@@ -32,7 +32,7 @@ size_t get_vfunc_index(call_type call, void *function)
 }
 
 #define GET_VFUNC_IDX_IMPL(call__, __call, _call_)              \
-    size_t get_vfunc_index(call_type_t<call__>, void *function) \
+    size_t get_vfunc_index(call_type_t<call__>, void* function) \
     {                                                           \
         return get_vfunc_index<call__>(function);               \
     }

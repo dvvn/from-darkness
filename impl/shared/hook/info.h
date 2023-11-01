@@ -17,6 +17,11 @@ class hook_info
 #endif
 
   public:
+    constexpr hook_info()
+    {
+        ignore_unused(this);
+    }
+
     hook_info(void* target, void* replace)
         : target_(target)
         , replace_(replace)

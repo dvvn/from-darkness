@@ -1,12 +1,12 @@
 #pragma once
 
 #include "mem_backup.h"
-#include "vfunc.h"
+#include "functional/vfunc.h"
 
 namespace fd
 {
 template <class T>
-inline constexpr call_type_t vtable_call_type = detail::default_call_type_member;
+inline constexpr auto vtable_call_type = default_call_type_member;
 
 template <call_type Call_T>
 class vfunc_index
@@ -26,56 +26,7 @@ class vfunc_index
 };
 
 template <class T>
-struct vtable;
-
-namespace detail
-{
-template <class T>
-struct vtable_expander;
-} // namespace detail
-
-template <class T>
-vtable<T>* get(detail::vtable_expander<T>* ptr)
-{
-    return safe_cast<vtable<T>>(ptr);
-}
-
-template <class T>
-vtable<T> const* get(detail::vtable_expander<T> const* ptr)
-{
-    return safe_cast<vtable<T>>(ptr);
-}
-
-template <class T>
-struct detail::vtable_expander
-{
-#define VFUNC_ACCESS(call__, __call, _call_)                                        \
-    template <typename member_function, typename... Args>                                       \
-    vfunc<call__, member_function, T, Args...> operator[](member_function (__call T::*func)(Args...)) const \
-    {                                                                               \
-        return {func, get<T>(this)->instance()};                                    \
-    }
-
-    X86_CALL_MEMBER(VFUNC_ACCESS);
-#undef VFUNC_ACCESS
-};
-
-template <>
-struct detail::vtable_expander<void>
-{
-#define VFUNC_ACCESS(call__, __call, _call_)                                        \
-    template <typename member_function, typename T, typename... Args>                           \
-    vfunc<call__, member_function, T, Args...> operator[](member_function (__call T::*func)(Args...)) const \
-    {                                                                               \
-        return {func, get<T>(this)->instance()};                                    \
-    }
-
-    X86_CALL_MEMBER(VFUNC_ACCESS);
-#undef VFUNC_ACCESS
-};
-
-template <class T>
-struct vtable : detail::vtable_expander<T>
+struct vtable
 {
     using instance_pointer = T*;
     using table_pointer    = void**;
@@ -88,8 +39,6 @@ struct vtable : detail::vtable_expander<T>
     };
 
   public:
-    using detail::vtable_expander<T>::operator[];
-
     vtable()
         : instance_(nullptr)
     {
@@ -151,13 +100,19 @@ struct vtable : detail::vtable_expander<T>
         return make_mem_backup(*vtable_, other.get());
     }
 
+    template <typename Func>
+    auto operator[](Func fn) const -> typename function_info<Func>::template rebind<vfunc>
+    {
+        return {fn, instance_};
+    }
+
     template <call_type Call_T>
-    unknown_vfunc_args<Call_T, T> operator[](vfunc_index<Call_T> index) const
+    auto operator[](vfunc_index<Call_T> index) const -> unknown_vfunc_args<Call_T, T>
     {
         return {index, instance_};
     }
 
-    unknown_vfunc_args<vtable_call_type<T>, T> operator[](ptrdiff_t index) const
+    auto operator[](ptrdiff_t index) const -> unknown_vfunc_args<vtable_call_type<T>, T>
     {
         return {index, instance_};
     }

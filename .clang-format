@@ -15,6 +15,7 @@ FixNamespaceComments: true
 #LambdaBodyIndentation: OuterScope
 #NamespaceIndentation: All
 BreakConstructorInitializers: BeforeComma
+BreakInheritanceList: AfterColon
 RemoveSemicolon: true
 AlignAfterOpenBracket: AlwaysBreak #Align #BlockIndent
 AllowShortLambdasOnASingleLine: Empty

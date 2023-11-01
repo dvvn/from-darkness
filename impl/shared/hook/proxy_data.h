@@ -53,23 +53,12 @@ class hook_proxy_original
 };
 
 template <typename Callback>
-struct hook_proxy_callback_for : std::type_identity<hook_proxy_callback<Callback>>
-{
-};
-
-template <typename Callback>
-struct hook_proxy_original_for : std::type_identity<hook_proxy_original<void*>>
-{
-};
-
-template <typename Callback>
-struct hook_proxy_data final : hook_proxy_callback_for<Callback>::type, hook_proxy_original_for<Callback>::type, noncopyable
+struct hook_proxy_data final : hook_proxy_callback<Callback>, hook_proxy_original<void*>, noncopyable
 {
 };
 
 template <typename Callback>
 inline hook_proxy_data<Callback> unique_hook_proxy_data;
 
-template <typename T>
-inline uint8_t unique_hook_callback[sizeof(T)];
+
 }

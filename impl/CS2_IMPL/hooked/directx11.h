@@ -13,7 +13,7 @@ namespace DXGI_factory
 template <class RenderBackend>
 class create_swap_chain : public basic_hook_callback
 {
-    using native_function  = function_info<decltype(&IDXGIFactory::CreateSwapChain)>;
+    using native_function  = function_info<decltype(&IDXGIFactory::CreateSwapChain)>::base;
     using original_wrapped = object_froxy_for<native_function>::type;
 
     RenderBackend* render_backend_;
@@ -25,7 +25,7 @@ class create_swap_chain : public basic_hook_callback
     }
 
     HRESULT operator()(
-        original_wrapped original,                                                       //
+        original_wrapped const original,                                                 //
         IUnknown* device, DXGI_SWAP_CHAIN_DESC* desc, IDXGISwapChain** swap_chain) const //
     {
         render_backend_->reset();
@@ -39,7 +39,7 @@ namespace DXGI_swap_chain
 template <class RenderBackend>
 class resize_buffers : public basic_hook_callback
 {
-    using native_function  = function_info<decltype(&IDXGISwapChain::ResizeBuffers)>;
+    using native_function  = function_info<decltype(&IDXGISwapChain::ResizeBuffers)>::base;
     using original_wrapped = object_froxy_for<native_function>::type;
 
     RenderBackend* render_backend_;
@@ -51,10 +51,10 @@ class resize_buffers : public basic_hook_callback
     }
 
     HRESULT operator()(
-        original_wrapped original,                                                            //
-        UINT buffer_count, UINT width, UINT height, DXGI_FORMAT new_format, UINT flags) const //
+        original_wrapped const original,                                                                                    //
+        UINT const buffer_count, UINT const width, UINT const height, DXGI_FORMAT const new_format, UINT const flags) const //
     {
-        auto result = original(buffer_count, width, height, new_format, flags);
+        auto const result = original(buffer_count, width, height, new_format, flags);
         if (SUCCEEDED(result))
             render_backend_->resize();
         return result;
@@ -64,7 +64,7 @@ class resize_buffers : public basic_hook_callback
 template <class RenderFrame>
 class present : public basic_hook_callback
 {
-    using native_function  = function_info<decltype(&IDXGISwapChain::Present)>;
+    using native_function  = function_info<decltype(&IDXGISwapChain::Present)>::base;
     using original_wrapped = object_froxy_for<native_function>::type;
 
     RenderFrame render_frame_;
@@ -76,8 +76,8 @@ class present : public basic_hook_callback
     }
 
     HRESULT operator()(
-        original_wrapped original,            //
-        UINT sync_interval, UINT flags) const //
+        original_wrapped const original,                  //
+        UINT const sync_interval, UINT const flags) const //
     {
         render_frame_();
         return original(sync_interval, flags);

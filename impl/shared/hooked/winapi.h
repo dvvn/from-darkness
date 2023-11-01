@@ -1,30 +1,27 @@
 ﻿#pragma once
-#include "functional/call_traits.h"
-#include "functional/ignore.h"
 #include "gui/render/backend/basic_win32.h"
-#include "hook/proxy_data.h"
+#include "hook/proxy.h"
 
 #include <Windows.h>
 
-namespace fd
-{
-namespace hooked::winapi
+namespace fd::hooked::winapi
 {
 template <class SystemBackend>
 class wndproc final : public basic_hook_callback
 {
-    using stored_backend = SystemBackend*;
+    using native_function  = function_info<WNDPROC>::base;
+    using original_wrapped = object_froxy_for<native_function>::type;
 
-    stored_backend backend_;
+    SystemBackend* backend_;
 
   public:
-    wndproc(stored_backend backend)
+    wndproc(SystemBackend* backend)
         : backend_(backend)
     {
     }
 
     LRESULT operator()(
-        WNDPROC const original, //
+        original_wrapped const original, //
         HWND window, UINT message, WPARAM wparam, LPARAM lparam) const noexcept
     {
         // todo: check are unput must be blocked before update
@@ -51,20 +48,6 @@ class wndproc final : public basic_hook_callback
     }
 };
 
-template <class SystemBackend>
-wndproc(SystemBackend*) -> wndproc<SystemBackend>;
-} // namespace hooked::winapi
-
-namespace detail
-{
-template <class SystemBackend>
-struct hook_proxy_original_for<hooked::winapi::wndproc<SystemBackend>> : std::type_identity<hook_proxy_original<WNDPROC>>
-{
-};
-
-template <class SystemBackend>
-struct hook_proxy_original_for<hooked::winapi::wndproc<SystemBackend> const> : std::type_identity<hook_proxy_original<WNDPROC>>
-{
-};
-} // namespace detail
-} // namespace fd
+//template <class SystemBackend>
+//wndproc(SystemBackend*) -> wndproc<SystemBackend>;
+} // namespace fd::hooked::winapi
