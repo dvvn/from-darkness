@@ -107,11 +107,6 @@ native_dx11_backend::native_dx11_backend(native_dx11_device_data data)
         assert(0 && "failed to create render target view");
 }
 
-native_dx11_backend::native_dx11_backend(system_library_info info)
-    : native_dx11_backend(native_dx11_device_data(info))
-{
-}
-
 // native_dx11_backend::native_dx11_backend(system_library_info info)
 //     : native_dx11_backend(native_dx11_device_data(info))
 //{

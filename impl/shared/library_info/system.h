@@ -30,4 +30,9 @@ class system_library_info : public basic_library_info
         return vtable(name, __builtin_strlen(name));
     }*/
 };
+
+inline namespace literals
+{
+system_library_info operator"" _dll(wchar_t const* name, size_t length);
+} // namespace literals
 } // namespace fd

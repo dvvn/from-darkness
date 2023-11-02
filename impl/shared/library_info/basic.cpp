@@ -58,13 +58,17 @@ static void validate_library_name(wchar_t const* name, size_t const length, Fn i
     assert(!std::any_of(name, name + length, isupper_check));
 }
 
-static LDR_DATA_TABLE_ENTRY_FULL* find_library(wchar_t const* name, size_t const length)
+static void validate_library_name(wchar_t const* name, size_t const length)
 {
     if constexpr (std::invocable<decltype(isupper), wchar_t>)
         validate_library_name(name, length, isupper);
     else
         validate_library_name(name, length, iswupper);
+}
 
+template <typename Fn>
+static LDR_DATA_TABLE_ENTRY_FULL* find_library(Fn equal_wrapped)
+{
 #ifdef _WIN64
     auto const mem = reinterpret_cast<TEB*>(__readgsqword(FIELD_OFFSET(NT_TIB64, Self)));
     auto const ldr = mem->ProcessEnvironmentBlock->Ldr;
@@ -79,7 +83,7 @@ static LDR_DATA_TABLE_ENTRY_FULL* find_library(wchar_t const* name, size_t const
         auto const entry = CONTAINING_RECORD(list_entry, LDR_DATA_TABLE_ENTRY_FULL, InMemoryOrderLinks);
         if (!entry->BaseDllName)
             continue;
-        if (!equal(entry->BaseDllName, name, length))
+        if (!equal_wrapped(entry->BaseDllName))
             continue;
 
         return entry;
@@ -89,9 +93,35 @@ static LDR_DATA_TABLE_ENTRY_FULL* find_library(wchar_t const* name, size_t const
 }
 
 basic_library_info::basic_library_info(LPCTSTR const name, size_t const length)
-    : entry_full_(find_library(name, length))
-
+    : entry_full_(find_library([=](UNICODE_STRING const& ustr) {
+        if (size(ustr) != length)
+            return false;
+        if (memcmp(data(ustr), name, length) != 0)
+            return false;
+        return true;
+    }))
 {
+#ifdef _DEBUG
+    if (!entry_)
+        validate_library_name(name, length);
+#endif
+}
+
+basic_library_info::basic_library_info(wchar_t const* name, size_t length, from_literal)
+    : entry_full_(find_library([=, abs_length = length + 4](UNICODE_STRING const& ustr) {
+        if (size(ustr) != abs_length)
+            return false;
+        if (memcmp(data(ustr) + length, L".dll", 4) != 0)
+            return false;
+        if (memcmp(data(ustr), name, length) != 0)
+            return false;
+        return true;
+    }))
+{
+#ifdef _DEBUG
+    if (!entry_)
+        validate_library_name(name, length);
+#endif
 }
 
 void* basic_library_info::base() const
@@ -175,6 +205,5 @@ library_section_view::library_section_view(IMAGE_SECTION_HEADER const* section, 
     : span(make_library_section_view(section, image_base))
 {
 }
-
 
 } // namespace fd

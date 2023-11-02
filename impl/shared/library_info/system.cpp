@@ -122,4 +122,9 @@ void* system_library_info::vtable(char const* name, size_t length) const
 
     return detail::unwrap_iterator(found);
 }
+
+system_library_info literals::operator""_dll(wchar_t const* name, size_t length)
+{
+    return system_library_info{name, length, from_literal()};
+}
 } // namespace fd

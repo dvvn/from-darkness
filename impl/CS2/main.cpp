@@ -22,7 +22,7 @@ bool fd::run_context()
 
     gui::render_context render_context;
     gui::native_win32_backend system_backend;
-    gui::native_dx11_backend render_backend(L"rendersystemdx11.dll");
+    gui::native_dx11_backend render_backend(L"rendersystemdx11"_dll);
 
     auto menu = gui::make_menu_example([] {
         if (!context_holder.resume())

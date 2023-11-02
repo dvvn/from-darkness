@@ -41,7 +41,7 @@ class native_dx11_backend final : basic_dx11_backend, public noncopyable
 
   public:
     native_dx11_backend(native_dx11_device_data data);
-    native_dx11_backend(system_library_info info);
+    
 
     using basic_dx11_backend::new_frame;
 
