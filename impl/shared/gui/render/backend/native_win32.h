@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "noncopyable.h"
 #include "gui/render/backend/basic_win32.h"
+#include "winapi/window_info.h"
 
 namespace fd::gui
 {
@@ -12,6 +13,6 @@ class native_win32_backend final : public basic_win32_backend, public noncopyabl
     native_win32_backend();
     native_win32_backend(HWND window);
 
-    win32_window_info info() const;
+    HWND window() const;
 };
 } // namespace fd

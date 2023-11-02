@@ -31,14 +31,14 @@ native_dx11_device_data::native_dx11_device_data(system_library_info info)
     setup_devie();
 }
 
-comptr<IDXGIFactory> native_dx11_device_data::DXGI_factory() const
+win::com_ptr<IDXGIFactory> native_dx11_device_data::DXGI_factory() const
 {
-    comptr<IDXGIDevice> device;
+    win::com_ptr<IDXGIDevice> device;
     d3d_device->QueryInterface(IID_PPV_ARGS(&device));
-    comptr<IDXGIAdapter> adapter;
+    win::com_ptr<IDXGIAdapter> adapter;
     // device->GetParent(IID_PPV_ARGS(&adapter));
     device->GetAdapter(&adapter);
-    comptr<IDXGIFactory> factory;
+    win::com_ptr<IDXGIFactory> factory;
     adapter->GetParent(IID_PPV_ARGS(&factory));
     return (factory);
 }
@@ -49,7 +49,7 @@ void native_dx11_device_data::setup_devie()
     d3d_device->GetImmediateContext(&device_context);
 }
 
-comptr<ID3D11Texture2D> native_dx11_backend::back_buffer() const
+win::com_ptr<ID3D11Texture2D> native_dx11_backend::back_buffer() const
 {
     ID3D11Texture2D* back_buffer;
     data_.swap_chain->GetBuffer(0, IID_PPV_ARGS(&back_buffer));

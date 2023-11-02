@@ -12,7 +12,7 @@ class own_win32_backend_data : public noncopyable
     friend class own_win32_backend;
 
     WNDCLASSEX info_;
-    HWND hwnd_;
+    HWND window_;
 
   public:
     ~own_win32_backend_data();
@@ -29,6 +29,6 @@ class own_win32_backend final : public own_win32_backend_data, public basic_win3
     bool update();
     void close();
 
-    win32_window_info info() const;
+    HWND window() const;
 };
 }

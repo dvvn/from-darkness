@@ -6,7 +6,7 @@
 #include <cassert>
 #include <cstdlib>
 
-#define FD_DLLMAIN(...) BOOL WINAPI __VA_ARGS__ DllMain(HINSTANCE handle, DWORD const reason, LPCVOID const reserved)
+#define FD_DLLMAIN(...) BOOL WINAPI __VA_ARGS__ DllMain(HINSTANCE instance, DWORD const reason, LPCVOID const reserved)
 
 FD_DLLMAIN();
 
@@ -18,15 +18,15 @@ static class : public noncopyable
 {
     friend FD_DLLMAIN(::);
 
-    HINSTANCE self_handle_;
+    HINSTANCE instance_;
 
     HANDLE thread_;
     DWORD thread_id_;
 
-    bool start(HINSTANCE handle)
+    bool start(HINSTANCE instance)
     {
-        self_handle_ = handle;
-        thread_      = CreateThread(
+        instance_ = instance;
+        thread_   = CreateThread(
             nullptr, 0,
             [](LPVOID this_ptr) -> DWORD {
                 auto const success = run_context();
@@ -40,7 +40,7 @@ static class : public noncopyable
     void stop(bool const success) const
     {
         assert(GetCurrentThreadId() == thread_id_);
-        FreeLibraryAndExitThread(self_handle_, success ? EXIT_SUCCESS : EXIT_FAILURE);
+        FreeLibraryAndExitThread(instance_, success ? EXIT_SUCCESS : EXIT_FAILURE);
     }
 
   public:
@@ -67,7 +67,7 @@ FD_DLLMAIN()
     case DLL_PROCESS_ATTACH: {
         // Initialize once for each new process.
         // Return FALSE to fail DLL load.
-        if (!fd::context_holder.start(handle))
+        if (!fd::context_holder.start(instance))
             return FALSE;
         break;
     }

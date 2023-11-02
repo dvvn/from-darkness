@@ -2,7 +2,6 @@
 
 #include <wrl/client.h>
 
-#include <concepts>
 #include <functional>
 #include <utility>
 
@@ -12,11 +11,10 @@ using ULONG = unsigned long;
 // ReSharper disable once CppInconsistentNaming
 struct IUnknown;
 
-namespace fd
+namespace fd::win
 {
-
 template <class T>
-struct comptr;
+struct com_ptr;
 
 namespace detail
 {
@@ -24,17 +22,17 @@ template <class From, typename To>
 inline constexpr bool pptr_convertible = false;
 
 template <class T, typename To>
-inline constexpr bool pptr_convertible<comptr<T>, To**> = std::convertible_to<T*, To*>;
+inline constexpr bool pptr_convertible<com_ptr<T>, To**> = std::convertible_to<T*, To*>;
 
 template <class T, typename To>
-inline constexpr bool pptr_convertible<comptr<T>, To* const*> = std::convertible_to<T*, To*>;
+inline constexpr bool pptr_convertible<com_ptr<T>, To* const*> = std::convertible_to<T*, To*>;
 
 template <class T, typename To>
-inline constexpr bool pptr_convertible<comptr<T> const, To* const*> = std::convertible_to<T const*, To*>;
+inline constexpr bool pptr_convertible<com_ptr<T> const, To* const*> = std::convertible_to<T const*, To*>;
 } // namespace detail
 
 template <class T>
-struct comptr_ref
+struct com_ptr_ref
 {
     using element_type   = typename T::element_type;
     using target_pointer = typename T::pointer;
@@ -43,7 +41,7 @@ struct comptr_ref
     T* ptr_;
 
   public:
-    comptr_ref(T* ptr)
+    com_ptr_ref(T* ptr)
         : ptr_(ptr)
     {
     }
@@ -77,13 +75,13 @@ struct comptr_ref
 
 template <class T>
 // ReSharper disable once CppInconsistentNaming
-void** IID_PPV_ARGS_Helper(comptr_ref<T> pp) noexcept requires(std::convertible_to<T, IUnknown*>)
+void** IID_PPV_ARGS_Helper(com_ptr_ref<T> pp) noexcept requires(std::convertible_to<T, IUnknown*>)
 {
     return reinterpret_cast<void**>(static_cast<IUnknown**>(pp));
 }
 
 template <typename T>
-struct comptr
+struct com_ptr
 {
     using pointer      = T*;
     using reference    = T&;
@@ -103,53 +101,53 @@ struct comptr
     }
 
   public:
-    ~comptr()
+    ~com_ptr()
     {
         if (ptr_)
             do_release();
     }
 
-    comptr(nullptr_t = {})
+    com_ptr(nullptr_t = {})
         : ptr_(nullptr)
     {
     }
 
     /*template <typename P>
-    explicit comptr(P&& ptr) noexcept(std::is_rvalue_reference_v<P&&>) requires(std::is_pointer_v<P> && std::constructible_from<pointer, P>)
+    explicit com_ptr(P&& ptr) noexcept(std::is_rvalue_reference_v<P&&>) requires(std::is_pointer_v<P> && std::constructible_from<pointer, P>)
         : ptr_(ptr)
     {
         if constexpr (std::is_lvalue_reference_v<P&&>)
             on_copy();
     }*/
 
-    explicit comptr(pointer const& ptr) noexcept
+    explicit com_ptr(pointer const& ptr) noexcept
         : ptr_(ptr)
     {
         on_copy();
     }
 
-    explicit comptr(pointer&& ptr) noexcept
+    explicit com_ptr(pointer&& ptr) noexcept
         : ptr_(ptr)
     {
     }
 
-    comptr(pointer const& ptr, std::in_place_t) noexcept
-        : comptr(ptr)
+    com_ptr(pointer const& ptr, std::in_place_t) noexcept
+        : com_ptr(ptr)
     {
     }
 
-    comptr(pointer&& ptr, std::in_place_t) noexcept
-        : comptr(std::move(ptr))
+    com_ptr(pointer&& ptr, std::in_place_t) noexcept
+        : com_ptr(std::move(ptr))
     {
     }
 
-    comptr(comptr const& other)
-        : comptr(other.ptr_)
+    com_ptr(com_ptr const& other)
+        : com_ptr(other.ptr_)
     {
     }
 
     /*template <typename P>
-    comptr& operator=(P* ptr) requires(std::assignable_from<pointer&, P*>)
+    com_ptr& operator=(P* ptr) requires(std::assignable_from<pointer&, P*>)
     {
         if (ptr_)
             do_release();
@@ -157,19 +155,19 @@ struct comptr
         return *this;
     }*/
 
-    comptr& operator=(comptr const& other)
+    com_ptr& operator=(com_ptr const& other)
     {
         std::destroy_at(this);
         std::construct_at(this, other);
         return *this;
     }
 
-    comptr(comptr&& other) noexcept
-        : comptr(std::exchange(other.ptr_, nullptr))
+    com_ptr(com_ptr&& other) noexcept
+        : com_ptr(std::exchange(other.ptr_, nullptr))
     {
     }
 
-    comptr& operator=(comptr&& other) noexcept
+    com_ptr& operator=(com_ptr&& other) noexcept
     {
         using std::swap;
         swap(ptr_, other.ptr_);
@@ -226,17 +224,17 @@ struct comptr
        return &ptr_;
    }*/
 
-    comptr_ref<comptr> operator&() &
+    com_ptr_ref<com_ptr> operator&() &
     {
         return {this};
     }
 
-    comptr_ref<comptr const> operator&() const&
+    com_ptr_ref<com_ptr const> operator&() const&
     {
         return {this};
     }
 };
 
 template <typename T>
-comptr(T*) -> comptr<T>;
+com_ptr(T*) -> com_ptr<T>;
 } // namespace fd

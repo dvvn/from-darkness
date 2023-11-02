@@ -33,7 +33,7 @@ bool fd::run_context()
     });
 
     auto const render_backend_data = render_backend.data();
-    auto const system_backend_info = system_backend.info();
+    win::window_info const system_backend_info(system_backend.window());
 
     hook_backend_minhook hook_backend;
 

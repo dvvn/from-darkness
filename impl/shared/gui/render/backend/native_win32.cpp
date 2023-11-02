@@ -2,7 +2,6 @@
 #include "functional/ignore.h"
 
 #include <Windows.h>
-#include <tchar.h>
 
 namespace fd
 {
@@ -70,9 +69,9 @@ native_win32_backend::native_win32_backend(HWND window)
 {
 }
 
-win32_window_info native_win32_backend::info() const
+HWND native_win32_backend::window() const
 {
-    return {window_};
+    return window_;
 }
 } // namespace gui
 } // namespace fd

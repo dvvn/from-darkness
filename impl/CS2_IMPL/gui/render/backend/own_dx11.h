@@ -1,9 +1,8 @@
 ﻿#pragma once
-
-#include "comptr.h"
 #include "noncopyable.h"
 #include "gui/render/backend/basic_dx11.h"
-#include "gui/render/backend/basic_win32.h"
+#include "winapi/com_ptr.h"
+#include "winapi/window_info.h"
 
 #include <d3d11.h>
 
@@ -13,10 +12,10 @@ class own_dx11_backend_data : public noncopyable
 {
     friend class own_dx11_backend;
 
-    comptr<ID3D11Device> device_;
-    comptr<ID3D11DeviceContext> device_context_;
-    comptr<IDXGISwapChain> swap_chain_;
-    comptr<ID3D11RenderTargetView> render_target_;
+    win::com_ptr<ID3D11Device> device_;
+    win::com_ptr<ID3D11DeviceContext> device_context_;
+    win::com_ptr<IDXGISwapChain> swap_chain_;
+    win::com_ptr<ID3D11RenderTargetView> render_target_;
 
     template <UINT LevelsCount>
     HRESULT create_device_and_swap_chain(
@@ -38,13 +37,13 @@ class own_dx11_backend_data : public noncopyable
 
 class own_dx11_backend final : own_dx11_backend_data, public basic_dx11_backend
 {
-    win32_window_size_simple last_size_;
+    win::window_size_simple last_size_;
 
   public:
     own_dx11_backend(HWND hwnd);
 
     using basic_dx11_backend::new_frame;
     void render(ImDrawData* draw_data);
-    void resize(win32_window_size_simple const& size);
+    void resize(win::window_size_simple const& size);
 };
-} // namespace fd
+} // namespace fd::gui

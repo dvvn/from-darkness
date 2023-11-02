@@ -1,7 +1,4 @@
-﻿#include "comptr.h"
-#include "gui/render/backend/own_dx11.h"
-
-#include <tchar.h>
+﻿#include "gui/render/backend/own_dx11.h"
 
 #include <cassert>
 
@@ -46,7 +43,7 @@ own_dx11_backend_data::own_dx11_backend_data(HWND hwnd)
 
 void own_dx11_backend_data::create_render_target()
 {
-    comptr<ID3D11Texture2D> back_buffer;
+    win::com_ptr<ID3D11Texture2D> back_buffer;
     swap_chain_->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
     device_->CreateRenderTargetView(back_buffer, nullptr, &render_target_);
 }
@@ -55,7 +52,7 @@ own_dx11_backend::own_dx11_backend(HWND hwnd)
     : own_dx11_backend_data(hwnd)
     , basic_dx11_backend(device_, device_context_)
     // ReSharper disable once CppPossiblyUnintendedObjectSlicing
-    , last_size_(win32_window_info(hwnd).size())
+    , last_size_(win::window_info(hwnd).size())
 {
 }
 
@@ -70,7 +67,7 @@ void own_dx11_backend::render(ImDrawData* draw_data)
     swap_chain_->Present(1, 0);
 }
 
-void own_dx11_backend::resize(win32_window_size_simple const& size)
+void own_dx11_backend::resize(win::window_size_simple const& size)
 {
     if (last_size_ == size)
         return;
