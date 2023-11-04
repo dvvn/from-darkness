@@ -12,7 +12,7 @@
 namespace fd::gui
 {
 native_dx11_device_data::native_dx11_device_data(IDXGISwapChain* sc)
-    : swap_chain(sc)
+    : swap_chain_(sc)
 {
     setup_devie();
 }
@@ -27,14 +27,29 @@ native_dx11_device_data::native_dx11_device_data(system_library_info info)
     auto const native_swap_chain = **static_cast<dx11_swap_chain***>(abs_addr);
     assert(native_swap_chain != nullptr);
 
-    std::construct_at(std::addressof(swap_chain), native_swap_chain->pDXGISwapChain);
+    std::construct_at(std::addressof(swap_chain_), native_swap_chain->pDXGISwapChain);
     setup_devie();
+}
+
+IDXGISwapChain* native_dx11_device_data::swap_chain() const
+{
+    return swap_chain_;
+}
+
+ID3D11Device* native_dx11_device_data::d3d_device() const
+{
+    return d3d_device_;
+}
+
+ID3D11DeviceContext* native_dx11_device_data::device_context() const
+{
+    return device_context_;
 }
 
 win::com_ptr<IDXGIFactory> native_dx11_device_data::DXGI_factory() const
 {
     win::com_ptr<IDXGIDevice> device;
-    d3d_device->QueryInterface(IID_PPV_ARGS(&device));
+    d3d_device_->QueryInterface(IID_PPV_ARGS(&device));
     win::com_ptr<IDXGIAdapter> adapter;
     // device->GetParent(IID_PPV_ARGS(&adapter));
     device->GetAdapter(&adapter);
@@ -43,23 +58,23 @@ win::com_ptr<IDXGIFactory> native_dx11_device_data::DXGI_factory() const
     return (factory);
 }
 
-void native_dx11_device_data::setup_devie()
-{
-    swap_chain->GetDevice(IID_PPV_ARGS(&d3d_device));
-    d3d_device->GetImmediateContext(&device_context);
-}
-
-win::com_ptr<ID3D11Texture2D> native_dx11_backend::back_buffer() const
+win::com_ptr<ID3D11Texture2D> native_dx11_device_data::back_buffer() const
 {
     ID3D11Texture2D* back_buffer;
-    data_.swap_chain->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
+    swap_chain_->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
     return {back_buffer, std::in_place};
+}
+
+void native_dx11_device_data::setup_devie()
+{
+    swap_chain_->GetDevice(IID_PPV_ARGS(&d3d_device_));
+    d3d_device_->GetImmediateContext(&device_context_);
 }
 
 bool native_dx11_backend::init_render_target(ID3D11Texture2D* back_buffer)
 {
     DXGI_SWAP_CHAIN_DESC swap_chain_desc;
-    data_.swap_chain->GetDesc(&swap_chain_desc);
+    data_.swap_chain()->GetDesc(&swap_chain_desc);
 
     D3D11_RENDER_TARGET_VIEW_DESC target_view_desc;
 #ifndef _DEBUG
@@ -89,7 +104,7 @@ bool native_dx11_backend::init_render_target(ID3D11Texture2D* back_buffer)
 
 bool native_dx11_backend::create_render_target(ID3D11Texture2D* back_buffer, D3D11_RENDER_TARGET_VIEW_DESC const* target_view_desc)
 {
-    auto const result = data_.d3d_device->CreateRenderTargetView(back_buffer, target_view_desc, &render_target_);
+    auto const result = data_.d3d_device()->CreateRenderTargetView(back_buffer, target_view_desc, &render_target_);
     return SUCCEEDED(result);
 }
 
@@ -99,10 +114,10 @@ bool native_dx11_backend::create_render_target(ID3D11Texture2D* back_buffer)
 }
 
 native_dx11_backend::native_dx11_backend(native_dx11_device_data data)
-    : basic_dx11_backend(data.d3d_device, data.device_context)
+    : basic_dx11_backend(data.d3d_device(), data.device_context())
     , data_(std::move(data))
 {
-    auto const bb = back_buffer();
+    auto const bb = data.back_buffer();
     if (!init_render_target(bb))
         assert(0 && "failed to create render target view");
 }
@@ -114,13 +129,13 @@ native_dx11_backend::native_dx11_backend(native_dx11_device_data data)
 
 void native_dx11_backend::render(ImDrawData* draw_data)
 {
-    data_.device_context->OMSetRenderTargets(1, &render_target_, nullptr);
+    data_.device_context()->OMSetRenderTargets(1, &render_target_, nullptr);
     basic_dx11_backend::render(draw_data);
 }
 
 void native_dx11_backend::resize()
 {
-    auto const bb = back_buffer();
+    auto const bb = data_.back_buffer();
     if (!create_render_target(bb))
         assert(0 && "failed to create render target view");
 }
