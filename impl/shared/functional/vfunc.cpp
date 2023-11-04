@@ -15,8 +15,8 @@ struct vfunc_index_resolver;
 template <class Call_T>
 static size_t get_vfunc_index(void* function) noexcept
 {
-    vfunc_index_resolver<Call_T> resolver;
     member_func_invoker<Call_T, size_t, void> invoker;
+    vfunc_index_resolver<Call_T> resolver;
     return invoker(function, &resolver);
 }
 

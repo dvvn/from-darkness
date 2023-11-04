@@ -17,7 +17,12 @@ X86_CALL_MEMBER(GET_VFUNC);
 #undef GET_VFUNC
 
 template <typename Fn>
-void* get_vfunc(Fn table_function, void* instance) requires(std::is_member_function_pointer_v<Fn>)
+void* get_vfunc(Fn table_function, void* instance)
+#if 0
+    requires(std::is_member_function_pointer_v<Fn>)
+#else
+    requires requires { typename function_info<Fn>::object_type; }
+#endif
 {
     using call_type = typename function_info<Fn>::call_type;
     auto function   = unsafe_cast<void*>(table_function);

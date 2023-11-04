@@ -125,6 +125,6 @@ void* system_library_info::vtable(char const* name, size_t length) const
 
 system_library_info literals::operator""_dll(wchar_t const* name, size_t length)
 {
-    return system_library_info{name, length, L".dll", 4};
+    return {name, length, L".dll", 4};
 }
 } // namespace fd
