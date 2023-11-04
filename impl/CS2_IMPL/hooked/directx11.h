@@ -4,17 +4,14 @@
 
 #include <d3d11.h>
 
-namespace fd
-{
-namespace hooked
+namespace fd::hooked
 {
 namespace DXGI_factory
 {
 template <class RenderBackend>
 class create_swap_chain : public basic_hook_callback
 {
-    using native_function  = function_info<decltype(&IDXGIFactory::CreateSwapChain)>::base;
-    using original_wrapped = object_froxy_for<native_function>::type;
+    using original_wrapped = object_froxy_for<decltype(&IDXGIFactory::CreateSwapChain), create_swap_chain>;
 
     RenderBackend* render_backend_;
 
@@ -39,8 +36,7 @@ namespace DXGI_swap_chain
 template <class RenderBackend>
 class resize_buffers : public basic_hook_callback
 {
-    using native_function  = function_info<decltype(&IDXGISwapChain::ResizeBuffers)>::base;
-    using original_wrapped = object_froxy_for<native_function>::type;
+    using original_wrapped = object_froxy_for<decltype(&IDXGISwapChain::ResizeBuffers), resize_buffers>;
 
     RenderBackend* render_backend_;
 
@@ -64,8 +60,7 @@ class resize_buffers : public basic_hook_callback
 template <class RenderFrame>
 class present : public basic_hook_callback
 {
-    using native_function  = function_info<decltype(&IDXGISwapChain::Present)>::base;
-    using original_wrapped = object_froxy_for<native_function>::type;
+    using original_wrapped = object_froxy_for<decltype(&IDXGISwapChain::Present), present>;
 
     RenderFrame render_frame_;
 
@@ -84,5 +79,4 @@ class present : public basic_hook_callback
     }
 };
 } // namespace DXGI_swap_chain
-} // namespace hooked
 }

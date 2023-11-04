@@ -9,8 +9,7 @@ namespace fd::hooked::winapi
 template <class SystemBackend>
 class wndproc final : public basic_hook_callback
 {
-    using native_function  = function_info<WNDPROC>::base;
-    using original_wrapped = object_froxy_for<native_function>::type;
+    using original_wrapped = object_froxy_for<WNDPROC, wndproc>;
 
     SystemBackend* backend_;
 
@@ -48,6 +47,6 @@ class wndproc final : public basic_hook_callback
     }
 };
 
-//template <class SystemBackend>
-//wndproc(SystemBackend*) -> wndproc<SystemBackend>;
+// template <class SystemBackend>
+// wndproc(SystemBackend*) -> wndproc<SystemBackend>;
 } // namespace fd::hooked::winapi

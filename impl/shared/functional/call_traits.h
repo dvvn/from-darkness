@@ -40,10 +40,6 @@ struct call_type final
 
 #undef CALL_T_ITEM
 
-struct dummy_class final
-{
-};
-
 #if 0
 #define X86_CALL_PROXY(call__, __call, call)
 #define X86_CALL_PROXY_MEMBER(call__, __call, call)
@@ -109,6 +105,19 @@ struct member_function;
 
 template <class Call_T, typename Ret, typename Object, typename... Args>
 using member_function_t = typename member_function<Call_T, Ret, Object, Args...>::type;
+
+#define MEMBER_FN_TYPE(call__, __call, _call_)                                                                             \
+    template <typename Ret, typename Object, typename... Args>                                                             \
+    struct member_function<call__, Ret, Object, Args...> : std::type_identity<Ret (__call Object::*)(Args...)>             \
+    {                                                                                                                      \
+    };                                                                                                                     \
+    template <typename Ret, typename Object, typename... Args>                                                             \
+    struct member_function<call__, Ret, Object const, Args...> : std::type_identity<Ret (__call Object::*)(Args...) const> \
+    {                                                                                                                      \
+    };
+
+X86_CALL_MEMBER(MEMBER_FN_TYPE)
+#undef MEMBER_FN_TYPE
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
 template <class Object>
@@ -199,15 +208,6 @@ struct non_member_func_invoker
     }
 };
 
-#define MEMBER_FN_TYPE(call__, __call, _call_)                                                                 \
-    template <typename Ret, typename Object, typename... Args>                                                 \
-    struct member_function<call__, Ret, Object, Args...> : std::type_identity<Ret (__call Object::*)(Args...)> \
-    {                                                                                                          \
-    };
-
-X86_CALL_MEMBER(MEMBER_FN_TYPE)
-#undef MEMBER_FN_BUILDER
-
 template <class Call_T, class Ret, class T, typename... Args>
 struct member_func_invoker
 {
@@ -241,14 +241,22 @@ struct member_func_invoker<call_type::thiscall_, Ret, void, Args...> : non_membe
 {
 };
 #endif
+
+namespace detail
+{
+struct dummy_class final
+{
+};
+} // namespace detail
+
 template <class Call_T, class Ret, typename... Args>
 struct member_func_invoker<Call_T, Ret, void, Args...>
 {
-    using function_type = member_function_t<Call_T, Ret, dummy_class, Args...>;
+    using function_type = member_function_t<Call_T, Ret, detail::dummy_class, Args...>;
 
     Ret operator()(function_type function, void* instance, Args... args) const
     {
-        return std::invoke(function, static_cast<dummy_class*>(instance), args...);
+        return std::invoke(function, static_cast<detail::dummy_class*>(instance), args...);
     }
 
     Ret operator()(void* function, void* instance, Args... args) const
@@ -287,14 +295,14 @@ class member_func_return_type_resolver
     {
     }
 
-    template <typename Ret>
+    /*template <typename Ret>
     operator Ret()
     {
         return boost::hana::unpack(args_, [this](Args... args) {
             func_invoker<Ret> invoker;
             return invoker(args..., function_, instance_);
         });
-    }
+    }*/
 
     template <typename Ret>
     operator Ret() const
@@ -345,8 +353,6 @@ struct basic_function_info
 template <class Call_T, typename Ret, class T, typename... Args>
 struct member_function_info : basic_function_info<Call_T, Ret>
 {
-    using base = member_function_info;
-
     template <template <class, typename, class, typename...> class Other>
     using rebind = Other<Call_T, Ret, T, Args...>;
 
@@ -357,8 +363,6 @@ struct member_function_info : basic_function_info<Call_T, Ret>
 template <class Call_T, typename Ret, typename... Args>
 struct non_member_function_info : basic_function_info<Call_T, Ret>
 {
-    using base = non_member_function_info;
-
     template <template <class, typename, typename...> class Other>
     using rebind = Other<Call_T, Ret, Args...>;
 
@@ -448,12 +452,22 @@ X86_CALL(FN_INFO_NON_MEMEBER)
 
 namespace detail
 {
+template <class Call_T, typename Ret, class Object, typename... Args>
+constexpr auto decay_function_info_helper(member_function_info<Call_T, Ret, Object, Args...>) -> member_function_info<Call_T, Ret, Object, Args...>
+{
+    return {};
+}
+
+template <class Call_T, typename Ret, typename... Args>
+constexpr auto decay_function_info_helper(non_member_function_info<Call_T, Ret, Args...>) -> non_member_function_info<Call_T, Ret, Args...>
+{
+    return {};
+}
+
 struct call_type_sample
 {
-    // ReSharper disable once CppMemberFunctionMayBeConst
-    void operator()()
+    void operator()() const
     {
-        (void)this;
     }
 
     static void fn()
@@ -461,6 +475,9 @@ struct call_type_sample
     }
 };
 } // namespace detail
+
+template <class FnInfo>
+using decay_function_info = decltype(detail::decay_function_info_helper(std::declval<FnInfo>()));
 
 using default_call_type_member     = function_info<detail::call_type_sample>::call_type;
 using default_call_type_non_member = function_info<decltype(&detail::call_type_sample::fn)>::call_type;

@@ -104,24 +104,24 @@ auto invoke_hook_proxy(Proxy* proxy, Args... args)
     }
 }
 
-#define HOOK_PROXY_MEMBER(call__, __call, _call_)                                    \
-    template <typename Ret, class Object, typename... Args>                          \
-    struct hook_proxy_member<call__, Ret, Object, Args...> final : noncopyable       \
-    {                                                                                \
-        template <typename Callback>                                                 \
-        Ret __call proxy(Args... args) noexcept                                      \
-        {                                                                            \
-            return invoke_hook_proxy<Callback>(this, args...);                       \
-        }                                                                            \
-    };                                                                               \
-    template <typename Ret, class Object, typename... Args>                          \
-    struct hook_proxy_member<call__, Ret, Object const, Args...> final : noncopyable \
-    {                                                                                \
-        template <typename Callback>                                                 \
-        Ret __call proxy(Args... args) const noexcept                                \
-        {                                                                            \
-            return invoke_hook_proxy<Callback>(this, args...);                       \
-        }                                                                            \
+#define HOOK_PROXY_MEMBER(call__, __call, _call_)                              \
+    template <typename Ret, class Object, typename... Args>                    \
+    struct hook_proxy_member<call__, Ret, Object, Args...> : noncopyable       \
+    {                                                                          \
+        template <typename Callback>                                           \
+        Ret __call proxy(Args... args) noexcept                                \
+        {                                                                      \
+            return invoke_hook_proxy<Callback>(this, args...);                 \
+        }                                                                      \
+    };                                                                         \
+    template <typename Ret, class Object, typename... Args>                    \
+    struct hook_proxy_member<call__, Ret, Object const, Args...> : noncopyable \
+    {                                                                          \
+        template <typename Callback>                                           \
+        Ret __call proxy(Args... args) const noexcept                          \
+        {                                                                      \
+            return invoke_hook_proxy<Callback>(this, args...);                 \
+        }                                                                      \
     };
 
 X86_CALL_MEMBER(HOOK_PROXY_MEMBER);
@@ -186,15 +186,15 @@ decltype(auto) invoke_hook_proxy(Args... args)
     }
 }
 
-#define HOOK_PROXY_STATIC(call__, __call, _call_)                          \
-    template <typename Ret, typename... Args>                              \
-    struct hook_proxy_non_member<call__, Ret, Args...> final : noncopyable \
-    {                                                                      \
-        template <class Callback>                                          \
-        static Ret __call proxy(Args... args) noexcept                     \
-        {                                                                  \
-            return invoke_hook_proxy<Callback, Args...>(args...);          \
-        }                                                                  \
+#define HOOK_PROXY_STATIC(call__, __call, _call_)                    \
+    template <typename Ret, typename... Args>                        \
+    struct hook_proxy_non_member<call__, Ret, Args...> : noncopyable \
+    {                                                                \
+        template <class Callback>                                    \
+        static Ret __call proxy(Args... args) noexcept               \
+        {                                                            \
+            return invoke_hook_proxy<Callback, Args...>(args...);    \
+        }                                                            \
     };
 
 X86_CALL(HOOK_PROXY_STATIC);
@@ -224,16 +224,21 @@ auto extract_hook_proxy(Func)
     return extract_hook_proxy<Callback, proxy_type>();
 }
 
-template <typename Fn>
+template <typename FnInfo>
 struct default_hook_proxy;
 
 template <class Call_T, typename Ret, class Object, typename... Args>
-struct default_hook_proxy<member_function_info<Call_T, Ret, Object, Args...>> : std::type_identity<hook_proxy_member<Call_T, Ret, Object, Args...>>
+struct default_hook_proxy<member_function_info<Call_T, Ret, Object, Args...>> : hook_proxy_member<Call_T, Ret, Object, Args...>
 {
 };
 
 template <class Call_T, typename Ret, typename... Args>
-struct default_hook_proxy<non_member_function_info<Call_T, Ret, Args...>> : std::type_identity<hook_proxy_non_member<Call_T, Ret, Args...>>
+struct default_hook_proxy<non_member_function_info<Call_T, Ret, Args...>> : hook_proxy_non_member<Call_T, Ret, Args...>
+{
+};
+
+template <typename Fn>
+struct default_hook_proxy<function_info<Fn>> : default_hook_proxy<decay_function_info<function_info<Fn>>>
 {
 };
 } // namespace detail
@@ -267,8 +272,8 @@ hook_info<Callback> prepare_hook(Func fn)
     // remove if no requires in vfunc prepare_hook
     requires(complete<function_info<Func>>)
 {
-    using fn_info = typename function_info<Func>::base;
-    using proxy   = typename detail::default_hook_proxy<fn_info>::type;
+    using fn_info = function_info<Func>;
+    using proxy   = detail::default_hook_proxy<fn_info>;
     return prepare_hook<Callback, proxy>(fn);
 }
 
@@ -321,16 +326,22 @@ hook_info<Callback> prepare_hook(Fn abstract_fn)
 }
 #endif
 
-template <typename Fn>
-struct object_froxy_for;
-
-template <class Call_T, typename Ret, class Object, typename... Args>
-struct object_froxy_for<member_function_info<Call_T, Ret, Object, Args...>> : std::type_identity<detail::object_proxy_member<Call_T, Ret, Object, Args...>>
+template <typename Fn, class Source /*= void*/>
+struct object_froxy_for : object_froxy_for<decay_function_info<function_info<Fn>>, Source>
 {
+    using object_froxy_for<decay_function_info<function_info<Fn>>, Source>::object_froxy_for;
 };
 
-template <class Call_T, typename Ret, typename... Args>
-struct object_froxy_for<non_member_function_info<Call_T, Ret, Args...>> : std::type_identity<detail::object_proxy_non_member<Call_T, Ret, Args...>>
+template <class Call_T, typename Ret, class Object, typename... Args, class Source>
+struct object_froxy_for<member_function_info<Call_T, Ret, Object, Args...>, Source> : detail::object_proxy_member<Call_T, Ret, Object, Args...>
 {
+    using detail::object_proxy_member<Call_T, Ret, Object, Args...>::object_proxy_member;
 };
+
+template <class Call_T, typename Ret, typename... Args, class Source>
+struct object_froxy_for<non_member_function_info<Call_T, Ret, Args...>, Source> : detail::object_proxy_non_member<Call_T, Ret, Args...>
+{
+    using detail::object_proxy_non_member<Call_T, Ret, Args...>::object_proxy_non_member;
+};
+
 } // namespace fd
