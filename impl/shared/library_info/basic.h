@@ -32,9 +32,6 @@ struct LDR_DATA_TABLE_ENTRY_FULL
 
 namespace fd
 {
-struct from_literal
-{
-};
 
 class basic_library_info
 {
@@ -46,7 +43,7 @@ class basic_library_info
 
   public:
     basic_library_info(wchar_t const* name, size_t length);
-    basic_library_info(wchar_t const* name, size_t length, from_literal);
+    basic_library_info(wchar_t const* name, size_t name_length, wchar_t const* extension, size_t extension_length);
 
     template <size_t Length>
     basic_library_info(wchar_t const (&name)[Length])

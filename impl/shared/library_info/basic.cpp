@@ -32,11 +32,20 @@ static bool operator!(UNICODE_STRING const& ustr)
 
 static bool equal(UNICODE_STRING const& ustr, wchar_t const* str, size_t const length)
 {
-    if (size(ustr) != length)
+    return std::equal(begin(ustr), end(ustr), str, str + length);
+}
+
+static bool equal(UNICODE_STRING const& ustr, wchar_t const* part1, size_t const part1_length, wchar_t const* part2, size_t const part2_length)
+{
+    if (size(ustr) != part1_length + part2_length)
         return false;
-    if (memcmp(data(ustr), str, length) != 0)
-        return false;
-    return true;
+    auto const check1 = [=] {
+        return std::equal(begin(ustr), end(ustr), part1, part1 + part1_length);
+    };
+    auto const check2 = [=] {
+        return std::equal(begin(ustr) + part1_length, end(ustr), part2, part2 + part2_length);
+    };
+    return part1_length <= part2_length ? check1() && check2() : check2() && check1();
 }
 
 static bool equal(IMAGE_SECTION_HEADER const& header, char const* name, size_t const length)
@@ -66,8 +75,8 @@ static void validate_library_name(wchar_t const* name, size_t const length)
         validate_library_name(name, length, iswupper);
 }
 
-template <typename Fn>
-static LDR_DATA_TABLE_ENTRY_FULL* find_library(Fn equal_wrapped)
+template <typename... T>
+static LDR_DATA_TABLE_ENTRY_FULL* find_library(T... args)
 {
 #ifdef _WIN64
     auto const mem = reinterpret_cast<TEB*>(__readgsqword(FIELD_OFFSET(NT_TIB64, Self)));
@@ -83,7 +92,7 @@ static LDR_DATA_TABLE_ENTRY_FULL* find_library(Fn equal_wrapped)
         auto const entry = CONTAINING_RECORD(list_entry, LDR_DATA_TABLE_ENTRY_FULL, InMemoryOrderLinks);
         if (!entry->BaseDllName)
             continue;
-        if (!equal_wrapped(entry->BaseDllName))
+        if (!equal(entry->BaseDllName, args...))
             continue;
 
         return entry;
@@ -93,13 +102,7 @@ static LDR_DATA_TABLE_ENTRY_FULL* find_library(Fn equal_wrapped)
 }
 
 basic_library_info::basic_library_info(LPCTSTR const name, size_t const length)
-    : entry_full_(find_library([=](UNICODE_STRING const& ustr) {
-        if (size(ustr) != length)
-            return false;
-        if (memcmp(data(ustr), name, length) != 0)
-            return false;
-        return true;
-    }))
+    : entry_full_(find_library(name, length))
 {
 #ifdef _DEBUG
     if (!entry_)
@@ -107,20 +110,12 @@ basic_library_info::basic_library_info(LPCTSTR const name, size_t const length)
 #endif
 }
 
-basic_library_info::basic_library_info(wchar_t const* name, size_t length, from_literal)
-    : entry_full_(find_library([=, abs_length = length + 4](UNICODE_STRING const& ustr) {
-        if (size(ustr) != abs_length)
-            return false;
-        if (memcmp(data(ustr) + length, L".dll", 4) != 0)
-            return false;
-        if (memcmp(data(ustr), name, length) != 0)
-            return false;
-        return true;
-    }))
+basic_library_info::basic_library_info(wchar_t const* name, size_t const name_length, wchar_t const* extension, size_t const extension_length)
+    : entry_full_(find_library(name, name_length, extension, extension_length))
 {
 #ifdef _DEBUG
     if (!entry_)
-        validate_library_name(name, length);
+        validate_library_name(name, name_length + extension_length);
 #endif
 }
 
