@@ -22,24 +22,23 @@
 
 namespace fd
 {
-enum class call_type : uint8_t
+#define CALL_T_ITEM(_V_) \
+    struct _V_##_ final  \
+    {                    \
+    };
+
+struct call_type final
 {
-// ReSharper disable CppInconsistentNaming
 #if INTPTR_MAX == INT32_MAX
-    thiscall_,
-    fastcall_,
-    stdcall_,
+    CALL_T_ITEM(thiscall);
+    CALL_T_ITEM(fastcall);
+    CALL_T_ITEM(stdcall);
 #endif
-    cdecl_,
-    vectorcall_,
-    // ReSharper restore CppInconsistentNaming
+    CALL_T_ITEM(cdecl);
+    CALL_T_ITEM(vectorcall);
 };
 
-template <call_type C>
-using call_type_t = std::integral_constant<call_type, C>;
-
-template <call_type C>
-inline constexpr call_type_t<C> call_type_v;
+#undef CALL_T_ITEM
 
 struct dummy_class final
 {
@@ -68,7 +67,8 @@ struct dummy_class final
 #define X86_CALL_MEMBER X86_CALL
 #endif
 
-template <template <call_type Call_T> class Q, typename... Args>
+#if 0
+template <template <class Call_T> class Q, typename... Args>
 decltype(auto) apply(call_type const info, Args... args)
 {
 #define INFO_CASE(call__, __call, _call_) \
@@ -101,12 +101,13 @@ decltype(auto) apply(Fn fn, call_type const info, Args... args)
 
 #undef INFO_CASE
 }
+#endif
 
-template <call_type Call_T, typename Ret, typename Object, typename... Args>
+template <class Call_T, typename Ret, typename Object, typename... Args>
 requires(std::is_class_v<Object> || std::is_union_v<Object> /*std::is_fundamental_v<T>*/)
 struct member_function;
 
-template <call_type Call_T, typename Ret, typename Object, typename... Args>
+template <class Call_T, typename Ret, typename Object, typename... Args>
 using member_function_t = typename member_function<Call_T, Ret, Object, Args...>::type;
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
@@ -116,10 +117,10 @@ struct return_address_gadget;
 template <class Object>
 concept valid_return_address_gadget = requires { return_address_gadget<Object>::address; };
 
-template <call_type Call_T, typename Ret, typename... Args>
+template <class Call_T, typename Ret, typename... Args>
 struct return_address_spoofer;
 
-template <call_type Call_T, typename Ret, class Object, typename... Args>
+template <class Call_T, typename Ret, class Object, typename... Args>
 decltype(auto) try_spoof_member_return_address(void* function, Object* instance, Args... args)
 {
     using spoofer = return_address_spoofer<Call_T, Ret, Object*, Args...>;
@@ -176,13 +177,13 @@ struct return_address_spoofer<call_type::thiscall_, Ret, Object*, Args...>
 };
 #endif
 
-template <call_type Call_T, typename Ret, typename... Args>
+template <class Call_T, typename Ret, typename... Args>
 struct non_member_function;
 
-template <call_type Call_T, typename Ret, typename... Args>
+template <class Call_T, typename Ret, typename... Args>
 using non_member_function_t = typename non_member_function<Call_T, Ret, Args...>::type;
 
-template <call_type Call_T, class Ret, typename... Args>
+template <class Call_T, class Ret, typename... Args>
 struct non_member_func_invoker
 {
     using function_type = non_member_function_t<Call_T, Ret, Args...>;
@@ -207,7 +208,7 @@ struct non_member_func_invoker
 X86_CALL_MEMBER(MEMBER_FN_TYPE)
 #undef MEMBER_FN_BUILDER
 
-template <call_type Call_T, class Ret, class T, typename... Args>
+template <class Call_T, class Ret, class T, typename... Args>
 struct member_func_invoker
 {
     using function_type = member_function_t<Call_T, Ret, T, Args...>;
@@ -227,7 +228,7 @@ struct member_func_invoker
     }
 };
 
-template <call_type Call_T, class Ret, class T, typename... Args>
+template <class Call_T, class Ret, class T, typename... Args>
 requires(std::is_class_v<T> && !complete<T>)
 struct member_func_invoker<Call_T, Ret, T, Args...> : member_func_invoker<Call_T, Ret, void, Args...>
 {
@@ -240,7 +241,7 @@ struct member_func_invoker<call_type::thiscall_, Ret, void, Args...> : non_membe
 {
 };
 #endif
-template <call_type Call_T, class Ret, typename... Args>
+template <class Call_T, class Ret, typename... Args>
 struct member_func_invoker<Call_T, Ret, void, Args...>
 {
     using function_type = member_function_t<Call_T, Ret, dummy_class, Args...>;
@@ -265,7 +266,7 @@ struct member_func_invoker<Call_T, Ret, void, Args...>
 X86_CALL_MEMBER(NON_MEMBER_FN_TYPE)
 #undef NON_MEMBER_FN_TYPE
 
-template <call_type Call_T, class Object, typename... Args>
+template <class Call_T, class Object, typename... Args>
 class member_func_return_type_resolver
 {
     using args_packed = boost::hana::tuple<Args...>;
@@ -334,31 +335,31 @@ struct function_args<>
     using get = void;
 };
 
-template <call_type Call_T, typename Ret>
+template <class Call_T, typename Ret>
 struct basic_function_info
 {
-    static constexpr call_type_t<Call_T> call;
+    using call_type   = Call_T;
     using return_type = Ret;
 };
 
-template <call_type Call_T, typename Ret, typename T, typename... Args>
+template <class Call_T, typename Ret, class T, typename... Args>
 struct member_function_info : basic_function_info<Call_T, Ret>
 {
     using base = member_function_info;
 
-    template <template <call_type, typename...> class Other>
+    template <template <class, typename, class, typename...> class Other>
     using rebind = Other<Call_T, Ret, T, Args...>;
 
-    using object = T;
-    using args   = function_args<Args...>;
+    using object_type = T;
+    using args        = function_args<Args...>;
 };
 
-template <call_type Call_T, typename Ret, typename... Args>
+template <class Call_T, typename Ret, typename... Args>
 struct non_member_function_info : basic_function_info<Call_T, Ret>
 {
     using base = non_member_function_info;
 
-    template <template <call_type, typename...> class Other>
+    template <template <class, typename, typename...> class Other>
     using rebind = Other<Call_T, Ret, Args...>;
 
     using args = function_args<Args...>;
@@ -461,6 +462,6 @@ struct call_type_sample
 };
 } // namespace detail
 
-inline constexpr auto default_call_type_member     = function_info<detail::call_type_sample>::call;
-inline constexpr auto default_call_type_non_member = function_info<decltype(&detail::call_type_sample::fn)>::call;
+using default_call_type_member     = function_info<detail::call_type_sample>::call_type;
+using default_call_type_non_member = function_info<decltype(&detail::call_type_sample::fn)>::call_type;
 } // namespace fd

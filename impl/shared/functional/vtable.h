@@ -5,10 +5,15 @@
 
 namespace fd
 {
-template <class T>
-inline constexpr auto vtable_call_type = default_call_type_member;
+template <class>
+struct vtable_call_type_for : std::type_identity<default_call_type_member>
+{
+};
 
-template <call_type Call_T>
+template <class Object>
+using vtable_call_type = typename vtable_call_type_for<Object>::type;
+
+template <class Call_T>
 class vfunc_index
 {
     size_t index_;
@@ -106,7 +111,7 @@ struct vtable
         return {fn, instance_};
     }
 
-    template <call_type Call_T>
+    template <class Call_T>
     auto operator[](vfunc_index<Call_T> index) const -> unknown_vfunc_args<Call_T, T>
     {
         return {index, instance_};

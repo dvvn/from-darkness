@@ -1,43 +1,46 @@
-#include "mem_backup.h"
 #include "functional/vfunc.h"
 
 #include <boost/preprocessor/repeat.hpp>
 
 // for buggy resharper
-#ifndef BOOST_PP_LIMIT_REPEAT
+#if !defined(BOOST_PP_LIMIT_REPEAT) || defined(__RESHARPER__)
 #define BOOST_PP_LIMIT_REPEAT 1
 #endif
 
 namespace fd
 {
-template <call_type Call>
+template <class Call_T>
 struct vfunc_index_resolver;
 
-template <call_type Call>
+template <class Call_T>
 static size_t get_vfunc_index(void* function) noexcept
 {
-    vfunc_index_resolver<Call> resolver;
-    member_func_invoker<Call, size_t, void> invoker;
-    // auto backup = make_mem_backup(get_vtable_ref(instance), get_vtable(&resolver));
-    return invoker(function, /*instance*/ &resolver);
+    vfunc_index_resolver<Call_T> resolver;
+    member_func_invoker<Call_T, size_t, void> invoker;
+    return invoker(function, &resolver);
 }
 
-size_t get_vfunc_index(call_type call, void* function)
+static void** get_vtable(void* instance)
 {
-    return apply(
-        [=]<call_type Call>(call_type_t<Call>) {
-            return get_vfunc_index<Call>(function);
-        },
-        call);
+    return *static_cast<void***>(instance);
 }
 
-#define GET_VFUNC_IDX_IMPL(call__, __call, _call_)              \
-    size_t get_vfunc_index(call_type_t<call__>, void* function) \
-    {                                                           \
-        return get_vfunc_index<call__>(function);               \
+template <class Call_T>
+static void* get_vfunc_impl(void* table_function, void* instance)
+{
+    auto const function_index = get_vfunc_index<Call_T>(table_function);
+    return get_vtable(instance)[function_index];
+}
+
+#define GET_VFUNC_IMPL(call__, __call, _call_)                    \
+    template <>                                                   \
+    void* get_vfunc<call__>(void* table_function, void* instance) \
+    {                                                             \
+        return get_vfunc_impl<call__>(table_function, instance);  \
     }
 
-X86_CALL_MEMBER(GET_VFUNC_IDX_IMPL);
+X86_CALL_MEMBER(GET_VFUNC_IMPL);
+#undef GET_VFUNC_IMPL
 
 #define GET_INDEX_FN(z, i, __call) \
     virtual size_t __call i_##i()  \

@@ -7,14 +7,14 @@
 
 namespace fd
 {
-#define FD_HOOK_PROXY_TEMPLATE template <call_type, typename...>
+#define FD_HOOK_PROXY_TEMPLATE template <class, typename, typename...>
 
 namespace detail
 {
-template <call_type Call_T, typename Ret, class Object, typename... Args>
+template <class Call_T, typename Ret, class Object, typename... Args>
 struct hook_proxy_member;
 
-template <call_type Call_T, typename Ret, class Object, typename... Args>
+template <class Call_T, typename Ret, class Object, typename... Args>
 class object_proxy_member
 {
 #if 0
@@ -127,10 +127,10 @@ auto invoke_hook_proxy(Proxy* proxy, Args... args)
 X86_CALL_MEMBER(HOOK_PROXY_MEMBER);
 #undef HOOK_PROXY_MEMBER
 
-template <call_type Call_T, typename Ret, typename... Args>
+template <class Call_T, typename Ret, typename... Args>
 struct hook_proxy_non_member;
 
-template <call_type Call_T, typename Ret, typename... Args>
+template <class Call_T, typename Ret, typename... Args>
 class object_proxy_non_member
 {
     using invoker_type = non_member_func_invoker<Call_T, Ret, Args...>;
@@ -227,12 +227,12 @@ auto extract_hook_proxy(Func)
 template <typename Fn>
 struct default_hook_proxy;
 
-template <call_type Call_T, typename Ret, class Object, typename... Args>
+template <class Call_T, typename Ret, class Object, typename... Args>
 struct default_hook_proxy<member_function_info<Call_T, Ret, Object, Args...>> : std::type_identity<hook_proxy_member<Call_T, Ret, Object, Args...>>
 {
 };
 
-template <call_type Call_T, typename Ret, typename... Args>
+template <class Call_T, typename Ret, typename... Args>
 struct default_hook_proxy<non_member_function_info<Call_T, Ret, Args...>> : std::type_identity<hook_proxy_non_member<Call_T, Ret, Args...>>
 {
 };
@@ -273,13 +273,13 @@ hook_info<Callback> prepare_hook(Func fn)
 }
 
 #if 0 // old version
-template <call_type Call_T, typename Ret, typename T, typename... Args>
+template <class Call_T, typename Ret, typename T, typename... Args>
 struct vfunc;
 
 template <
     typename Callback,
     FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy_member, //
-    call_type Call_T, typename Ret, class Object, typename... Args>
+    class Call_T, typename Ret, class Object, typename... Args>
 hook_info<Callback> prepare_hook(vfunc<Call_T, Ret, Object, Args...> target)
 {
     using proxy = Proxy<Call_T, Ret, Object, Args...>;
@@ -289,7 +289,7 @@ hook_info<Callback> prepare_hook(vfunc<Call_T, Ret, Object, Args...> target)
 template <
     typename Callback,
     FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy_member, //
-    call_type Call_T, typename Ret, class Object, typename... Args>
+    class Call_T, typename Ret, class Object, typename... Args>
 hook_info<Callback> prepare_hook(vfunc<Call_T, Ret, Object, function_args<Args...>> target)
 {
     using proxy_type = Proxy<Call_T, Ret, Object, Args...>;
@@ -324,12 +324,12 @@ hook_info<Callback> prepare_hook(Fn abstract_fn)
 template <typename Fn>
 struct object_froxy_for;
 
-template <call_type Call_T, typename Ret, class Object, typename... Args>
+template <class Call_T, typename Ret, class Object, typename... Args>
 struct object_froxy_for<member_function_info<Call_T, Ret, Object, Args...>> : std::type_identity<detail::object_proxy_member<Call_T, Ret, Object, Args...>>
 {
 };
 
-template <call_type Call_T, typename Ret, typename... Args>
+template <class Call_T, typename Ret, typename... Args>
 struct object_froxy_for<non_member_function_info<Call_T, Ret, Args...>> : std::type_identity<detail::object_proxy_non_member<Call_T, Ret, Args...>>
 {
 };

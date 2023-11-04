@@ -6,53 +6,22 @@
 
 namespace fd
 {
-size_t get_vfunc_index(call_type call, void* function);
+template <class Call_T>
+void* get_vfunc(void* table_function, void* instance);
 
-#define GET_VFUNC_IDX(call__, __call, _call_) \
-    /**/                                      \
-    size_t get_vfunc_index(call_type_t<call__> call, void* function);
+#define GET_VFUNC(call__, __call, _call_) \
+    template <>                           \
+    void* get_vfunc<call__>(void* table_function, void* instance);
 
-X86_CALL_MEMBER(GET_VFUNC_IDX);
-#undef GET_VFUNC_IDX
-
-inline void** get_vtable(void* instance)
-{
-    return *static_cast<void***>(instance);
-}
-
-// template <typename T>
-// void **get_vtable(T *instance)
-//{
-//     return get_vtable(static_cast<void *>( (instance)));
-// }
-
-inline void* get_vfunc(call_type const call, void* table_function, void* instance)
-{
-    auto const function_index = get_vfunc_index(call, table_function);
-    return get_vtable(instance)[function_index];
-}
-
-template <call_type Call_T>
-void* get_vfunc(void* table_function, void* instance)
-{
-    auto const function_index = get_vfunc_index(call_type_v<Call_T>, table_function);
-    return get_vtable(instance)[function_index];
-}
+X86_CALL_MEMBER(GET_VFUNC);
+#undef GET_VFUNC
 
 template <typename Fn>
-void* get_vfunc(Fn table_function, void* instance)
-#ifdef _DEBUG
-    requires(std::is_member_function_pointer_v<Fn>)
-#endif
+void* get_vfunc(Fn table_function, void* instance) requires(std::is_member_function_pointer_v<Fn>)
 {
-    constexpr auto call = function_info<Fn>::call;
-    auto function       = unsafe_cast<void*>(table_function);
-    return get_vfunc<call>(function, instance);
-}
-
-inline void* get_vfunc(ptrdiff_t const function_index, void* instance)
-{
-    return get_vtable(instance)[function_index];
+    using call_type = typename function_info<Fn>::call_type;
+    auto function   = unsafe_cast<void*>(table_function);
+    return get_vfunc<call_type>(function, instance);
 }
 
 struct vfunc_tag
@@ -91,7 +60,7 @@ class basic_vfunc : public vfunc_tag
 template <typename Object>
 class basic_vfunc<Object const>;
 
-template <call_type Call_T, typename Ret, class Object, typename... Args>
+template <class Call_T, typename Ret, class Object, typename... Args>
 struct vfunc : basic_vfunc<Object>
 {
     using function_type = typename member_function<Call_T, Ret, Object, Args...>::type;
@@ -115,13 +84,13 @@ struct vfunc : basic_vfunc<Object>
     }*/
 };
 
-template <call_type Call_T, typename Ret, typename... Args>
+template <class Call_T, typename Ret, typename... Args>
 struct vfunc<Call_T, Ret, void, Args...> : basic_vfunc<void>
 {
     using basic_vfunc::basic_vfunc;
 };
 
-template <call_type Call_T, typename Ret, class Object, typename... Args>
+template <class Call_T, typename Ret, class Object, typename... Args>
 struct vfunc<Call_T, Ret, Object, function_args<Args...>> : vfunc<Call_T, Ret, Object, Args...>
 {
     using vfunc<Call_T, Ret, Object, Args...>::vfunc;
@@ -132,23 +101,23 @@ template <typename Func, class Object>
 vfunc(Func fn, Object instance)->typename function_info<Func>::template rebind<vfunc>;
 #else
 template <typename Func, class Object, class Info = function_info<Func>>
-vfunc(Func fn, Object instance) -> vfunc<Info::call, typename Info::return_type, typename Info::object, typename Info::args>;
+vfunc(Func fn, Object instance) -> vfunc<typename Info::call_type, typename Info::return_type, typename Info::object_type, typename Info::args>;
 #endif
 
-template <call_type Call_T, typename Ret, class Object, typename... Args>
+template <class Call_T, typename Ret, class Object, typename... Args>
 Ret invoke(vfunc<Call_T, Ret, Object, Args...> func, std::type_identity_t<Args>... args)
 {
     member_func_invoker<Call_T, Ret, Object, Args...> invoker;
     return invoker(func.get(), func.instance(), args...);
 }
 
-template <call_type Call_T, class Object>
+template <class Call_T, class Object>
 struct unknown_vfunc_args : basic_vfunc<Object>
 {
     template <typename Fn>
     unknown_vfunc_args(Fn function, Object* instance)
 #ifdef _DEBUG
-        requires(function_info<Fn>::call == Call_T)
+        requires(std::same_as<Call_T, typename function_info<Fn>::call_type>)
 #endif
         : basic_vfunc<Object>(get_vfunc(function, instance), instance)
     {
@@ -171,13 +140,13 @@ struct unknown_vfunc_args : basic_vfunc<Object>
     }
 };
 
-template <call_type Call_T, class Object, typename... Args>
+template <class Call_T, class Object, typename... Args>
 auto invoke(unknown_vfunc_args<Call_T, Object> func, Args... args) -> member_func_return_type_resolver<Call_T, Object, Args...>
 {
     return {func.get(), func.instance(), args...};
 }
 
-template <typename Ret, call_type Call_T, class Object, typename... Args>
+template <typename Ret, class Call_T, class Object, typename... Args>
 Ret invoke(unknown_vfunc_args<Call_T, Object> func, Args... args)
 {
     member_func_invoker<Call_T, Ret, Object, Args...> invoker;
@@ -196,14 +165,14 @@ struct unknown_vfunc_call : basic_vfunc<Object>
     {
     }
 
-    template <call_type Call_T>
-    auto get(call_type_t<Call_T> = {}) const -> vfunc<Call_T, Ret, Object, Args...>
+    template <class Call_T>
+    auto get(Call_T = {}) const -> vfunc<Call_T, Ret, Object, Args...>
     {
         return {basic_vfunc<Object>::get(), basic_vfunc<Object>::instance()};
     }
 };
 
-template <call_type Call_T, typename Ret, class Object, typename... Args>
+template <class Call_T, typename Ret, class Object, typename... Args>
 Ret invoke(unknown_vfunc_call<Ret, Object, Args...> func, std::type_identity_t<Args>... args)
 {
     member_func_invoker<Call_T, Ret, Object, Args...> invoker;
@@ -216,13 +185,13 @@ struct unknown_vfunc : basic_vfunc<Object>
     template <typename Fn>
     unknown_vfunc(Fn function, Object* instance)
 #ifdef _DEBUG
-        requires(std::convertible_to<Object, typename function_info<Fn>::object>)
+        requires(std::convertible_to<Object, typename function_info<Fn>::object_type>)
 #endif
         : basic_vfunc<Object>(get_vfunc(function, instance), instance)
     {
     }
 
-    template <call_type Call_T, typename Ret, typename... Args>
+    template <class Call_T, typename Ret, typename... Args>
     auto get() const -> vfunc<Call_T, Ret, Object, Args...>
     {
         return {basic_vfunc<Object>::get(), basic_vfunc<Object>::instance()};
@@ -234,21 +203,21 @@ struct unknown_vfunc : basic_vfunc<Object>
         return {basic_vfunc<Object>::get(), basic_vfunc<Object>::instance()};
     }
 
-    template <call_type Call_T>
+    template <class Call_T>
     auto get() const -> unknown_vfunc_args<Call_T, Object>
     {
         return {basic_vfunc<Object>::get(), basic_vfunc<Object>::instance()};
     }
 };
 
-template <call_type Call_T, typename Ret, class Object, typename... Args>
+template <class Call_T, typename Ret, class Object, typename... Args>
 Ret invoke(unknown_vfunc<Object> func, Args... args)
 {
     member_func_invoker<Call_T, Ret, Object, Args...> invoker;
     return invoker(func.get(), func.instance(), args...);
 }
 
-template <call_type Call_T, class Object, typename... Args>
+template <class Call_T, class Object, typename... Args>
 auto invoke(unknown_vfunc<Object> func, Args... args) -> member_func_return_type_resolver<Call_T, Object, Args...>
 {
     return {func.get(), func.instance(), args...};
