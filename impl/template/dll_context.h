@@ -55,7 +55,6 @@ static class : public noncopyable
     {
         return ResumeThread(thread_) != static_cast<DWORD>(-1);
     }
-
 } context_holder;
 } // namespace fd
 

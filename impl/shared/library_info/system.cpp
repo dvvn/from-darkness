@@ -42,7 +42,7 @@ void* system_library_info::function(char const* name, size_t const length) const
     auto const last_offset = std::min(export_dir->NumberOfNames, export_dir->NumberOfFunctions);
     for (DWORD offset = 0; offset != last_offset; ++offset)
     {
-        auto const fn_name = (base_address + names[offset]);
+        auto const fn_name = base_address + names[offset];
         if (fn_name[length] != '\0')
             continue;
         if (memcmp(fn_name, name, length) != 0)

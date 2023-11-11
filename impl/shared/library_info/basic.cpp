@@ -30,9 +30,14 @@ static bool operator!(UNICODE_STRING const& ustr)
     return ustr.Buffer == nullptr;
 }
 
+static bool equal(UNICODE_STRING const& ustr, size_t const offset, wchar_t const* str, size_t const length)
+{
+    return memcmp(data(ustr) + offset, str, length * sizeof(wchar_t)) == 0;
+}
+
 static bool equal(UNICODE_STRING const& ustr, wchar_t const* str, size_t const length)
 {
-    return std::equal(begin(ustr), end(ustr), str, str + length);
+    return size(ustr) == length && equal((ustr), 0, str, length);
 }
 
 static bool equal(UNICODE_STRING const& ustr, wchar_t const* part1, size_t const part1_length, wchar_t const* part2, size_t const part2_length)
@@ -40,10 +45,10 @@ static bool equal(UNICODE_STRING const& ustr, wchar_t const* part1, size_t const
     if (size(ustr) != part1_length + part2_length)
         return false;
     auto const check1 = [=] {
-        return std::equal(begin(ustr), end(ustr), part1, part1 + part1_length);
+        return equal(ustr, 0, part1, part1_length);
     };
     auto const check2 = [=] {
-        return std::equal(begin(ustr) + part1_length, end(ustr), part2, part2 + part2_length);
+        return equal(ustr, part1_length, part2, part2_length);
     };
     return part1_length <= part2_length ? check1() && check2() : check2() && check1();
 }
@@ -77,6 +82,9 @@ static void validate_library_name(wchar_t const* name, size_t const length)
 
 template <typename... T>
 static LDR_DATA_TABLE_ENTRY_FULL* find_library(T... args)
+#ifdef _DEBUG
+    requires requires(UNICODE_STRING str) { equal(str, args...); }
+#endif
 {
 #ifdef _WIN64
     auto const mem = reinterpret_cast<TEB*>(__readgsqword(FIELD_OFFSET(NT_TIB64, Self)));
@@ -115,7 +123,10 @@ basic_library_info::basic_library_info(wchar_t const* name, size_t const name_le
 {
 #ifdef _DEBUG
     if (!entry_)
-        validate_library_name(name, name_length + extension_length);
+    {
+        validate_library_name(name, name_length);
+        validate_library_name(extension, extension_length);
+    }
 #endif
 }
 
@@ -200,5 +211,4 @@ library_section_view::library_section_view(IMAGE_SECTION_HEADER const* section, 
     : span(make_library_section_view(section, image_base))
 {
 }
-
 } // namespace fd

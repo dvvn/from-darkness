@@ -145,9 +145,10 @@ template <typename P, size_t Index, size_t PointersCount = pointers_count<P>::va
 inline constexpr bool are_pointer_const_v = are_pointer_const<P, Index, PointersCount>::value;
 
 template <typename T, typename Ptr, size_t Index = 0, size_t Limit = pointers_count<Ptr>::value>
-struct make_pointer_like : make_pointer_like<
-                               std::conditional_t<are_pointer_const_v<Ptr, Index, Limit>, T const*, T*>, //
-                               Ptr, Index + 1, Limit>
+struct make_pointer_like :
+    make_pointer_like<
+        std::conditional_t<are_pointer_const_v<Ptr, Index, Limit>, T const*, T*>, //
+        Ptr, Index + 1, Limit>
 {
 };
 
@@ -157,9 +158,10 @@ struct make_pointer_like<T, Ptr, Limit, Limit> : std::type_identity<T>
 };
 
 template <typename T, typename P1, typename P2, size_t Index = 0, size_t Limit = pointers_count<P2>::value>
-struct rewrap_pointer_like : rewrap_pointer_like<
-                                 std::conditional_t<are_pointer_const_v<P1, Index, Limit> || are_pointer_const_v<P2, Index, Limit>, T const*, T*>, //
-                                 P1, P2, Index + 1, Limit>
+struct rewrap_pointer_like :
+    rewrap_pointer_like<
+        std::conditional_t<are_pointer_const_v<P1, Index, Limit> || are_pointer_const_v<P2, Index, Limit>, T const*, T*>, //
+        P1, P2, Index + 1, Limit>
 {
 };
 
@@ -220,21 +222,23 @@ template <typename To>
 struct safe_cast_impl<To&&> : safe_cast_simple_ref<To&&>
 {
 };
-} // namespace detail
 
 template <typename To>
-inline constexpr detail::safe_cast_impl<To> safe_cast;
-
-template <typename To>
-inline constexpr auto unsafe_cast = []<typename From>(From from) -> To {
-    if constexpr (std::same_as<From, To>)
+struct unsafe_cast_direct
+{
+    template <typename From>
+    constexpr To operator()(From from) const requires(sizeof(From) == sizeof(To) && std::convertible_to<From, To>)
     {
-        return from;
+        return static_cast<To>(from);
     }
-    else
-    {
-        static_assert(sizeof(From) == sizeof(To));
+};
 
+template <typename To>
+struct unsafe_cast_force
+{
+    template <typename From>
+    To operator()(From from) const requires(sizeof(From) == sizeof(To) && !std::convertible_to<From, To> && std::is_trivially_destructible_v<From>)
+    {
         union
         {
             From from0;
@@ -245,4 +249,24 @@ inline constexpr auto unsafe_cast = []<typename From>(From from) -> To {
         return to;
     }
 };
+
+template <typename To, bool Trivial = std::is_trivially_destructible_v<To>>
+struct unsafe_cast_impl;
+
+template <typename To>
+struct unsafe_cast_impl<To, true> : unsafe_cast_direct<To>, unsafe_cast_force<To>
+{
+};
+
+template <typename To>
+struct unsafe_cast_impl<To, false> : unsafe_cast_direct<To>
+{
+};
+} // namespace detail
+
+template <typename To>
+inline constexpr detail::safe_cast_impl<To> safe_cast;
+
+template <typename To>
+inline constexpr detail::unsafe_cast_impl<To> unsafe_cast;
 } // namespace fd

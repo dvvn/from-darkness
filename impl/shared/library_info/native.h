@@ -19,7 +19,7 @@ struct native_library_info : system_library_info
     static void* interface(char const* name, size_t length, interface_register* root);
 
     template <size_t Length>
-    void* interface(char const (&name)[Length], interface_register* root_interface) const
+    static void* interface(char const (&name)[Length], interface_register* root_interface)
     {
         return interface(name, Length - 1, root_interface);
     }

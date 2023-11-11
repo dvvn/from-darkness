@@ -4,8 +4,6 @@
 #include "functional/cast.h"
 #include "functional/ignore.h"
 
-#include <type_traits>
-
 namespace fd::detail
 {
 template <typename Callback>
@@ -59,6 +57,5 @@ struct hook_proxy_data final : hook_proxy_callback<Callback>, hook_proxy_origina
 
 template <typename Callback>
 inline hook_proxy_data<Callback> unique_hook_proxy_data;
-
 
 }

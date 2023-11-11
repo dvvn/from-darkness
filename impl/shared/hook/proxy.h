@@ -77,15 +77,15 @@ auto invoke_hook_proxy(Proxy* proxy, Args... args)
 #endif
         if constexpr (extra_args_count == 2)
         {
-            return (invoke)(callback, original, proxy, args...);
+            return invoke_hook_callback(callback, original, proxy, args...);
         }
         else if constexpr (extra_args_count == 1)
         {
             using arg0 = std::remove_cvref_t<typename callback_args::template get<0>>;
             if constexpr (std::constructible_from<arg0, decltype(original), decltype(proxy)>)
-                return (invoke)(callback, arg0(original, proxy), args...);
+                return invoke_hook_callback(callback, arg0(original, proxy), args...);
             else
-                return (invoke)(callback, proxy, args...);
+                return invoke_hook_callback(callback, proxy, args...);
         }
     }
     else if constexpr (callback_args::count < args_count)
@@ -94,13 +94,13 @@ auto invoke_hook_proxy(Proxy* proxy, Args... args)
         static_assert(callback_args::count <= 1);
 #endif
         if constexpr (callback_args::count == 1)
-            return (invoke)(callback, proxy);
+            return invoke_hook_callback(callback, proxy);
         else if constexpr (callback_args::count == 0)
-            return (invoke)(callback);
+            return invoke_hook_callback(callback);
     }
     else
     {
-        return (invoke)(callback, args...);
+        return invoke_hook_callback(callback, args...);
     }
 }
 
@@ -166,9 +166,9 @@ decltype(auto) invoke_hook_proxy(Args... args)
         {
             using arg0 = std::remove_cvref_t<typename callback_args::template get<0>>;
             if constexpr (!std::is_fundamental_v<arg0> && std::constructible_from<arg0, decltype(original)>)
-                return (invoke)(callback, arg0(original), args...);
+                return invoke_hook_callback(callback, arg0(original), args...);
             else
-                return (invoke)(callback, original, args...);
+                return invoke_hook_callback(callback, original, args...);
         }
         else
             static_assert(always_false<Callback>);
@@ -176,13 +176,13 @@ decltype(auto) invoke_hook_proxy(Args... args)
     else if constexpr (callback_args::count < args_count)
     {
         if constexpr (callback_args::count == 0)
-            return (invoke)(callback, callback);
+            return invoke_hook_callback(callback, callback);
         else
             static_assert(always_false<Callback>);
     }
     else
     {
-        return (invoke)(callback, args...);
+        return invoke_hook_callback(callback, args...);
     }
 }
 

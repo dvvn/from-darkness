@@ -6,37 +6,36 @@
 namespace fd
 {
 template <class Backend, class Callback>
-void create_hook(Backend* backend, hook_info<Callback> const& info, Callback* callback)
+bool create_hook(Backend* backend, hook_info<Callback> const& info, Callback* callback)
 {
     auto original = backend->create(info.target(), info.replace());
-    assert(original != nullptr);
+    if (!original)
+        return false;
     auto& data = detail::unique_hook_proxy_data<Callback>;
     data.set_original(original);
     data.set_callback(callback);
+    return true;
 }
 
 template <FD_HOOK_PROXY_TEMPLATE class Proxy, class Backend, class Target, class Callback>
-hook_info<Callback> create_hook(Backend* backend, Target target, Callback* callback)
+bool create_hook(Backend* backend, Target target, Callback* callback)
 {
     auto info = prepare_hook<Callback, Proxy>(target);
-    create_hook(backend, info, callback);
-    return info;
+    return create_hook(backend, info, callback);
 }
 
 template <class Proxy, class Backend, class Target, class Callback>
-hook_info<Callback> create_hook(Backend* backend, Target target, Callback* callback)
+bool create_hook(Backend* backend, Target target, Callback* callback)
 {
     auto info = prepare_hook<Callback, Proxy>(target);
-    create_hook(backend, info, callback);
-    return info;
+    return create_hook(backend, info, callback);
 }
 
 template <class Backend, class Target, class Callback>
-hook_info<Callback> create_hook(Backend* backend, Target target, Callback* callback)
+bool create_hook(Backend* backend, Target target, Callback* callback)
 {
     auto info = prepare_hook<Callback>(target);
-    create_hook(backend, info, callback);
-    return info;
+    return create_hook(backend, info, callback);
 }
 
 /*namespace detail

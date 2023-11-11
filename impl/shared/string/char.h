@@ -10,11 +10,11 @@ constexpr size_t strlen(char const (&)[S])
     return S - 1;
 }
 
-template <size_t S>
-constexpr size_t strlen(wchar_t const (&)[S])
-{
-    return S - 1;
-}
+//template <size_t S>
+//constexpr size_t strlen(wchar_t const (&)[S])
+//{
+//    return S - 1;
+//}
 
 namespace detail
 {

@@ -1,5 +1,4 @@
 #include "native/interface_register.h"
-#include "functional/ignore.h"
 #include "string/char.h"
 #include "string/view.h"
 
@@ -44,12 +43,20 @@ static interface_register* find(
         auto const src_name      = first->name();
         auto const src_name_back = src_name[length];
 
-        if (SkipVersion ? !isdigit(src_name_back) : src_name_back != '\0')
+        if constexpr (SkipVersion)
+        {
+            if (!isdigit(src_name_back))
+                continue;
+        }
+        else
+        {
+            if (src_name_back != '\0')
+                continue;
+        }
+        if (std::char_traits<char>::compare(src_name, name, length) != 0)
+        {
             continue;
-
-        if (memcmp(src_name, name, length) != 0)
-            continue;
-
+        }
         if constexpr (SkipVersion)
         {
             if (!all_digits(src_name + length + 1))

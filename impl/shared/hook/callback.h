@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "noncopyable.h"
-#include "functional/bind.h"
 #include "functional/invoke_on.h"
 
 #include <atomic>
@@ -24,7 +23,7 @@ class basic_hook_callback : public noncopyable
 };
 
 template <std::derived_from<basic_hook_callback> Callback, typename... Args>
-auto invoke(Callback& callback, Args&&... args)
+auto invoke_hook_callback(Callback& callback, Args&&... args)
 {
     using fn_ret = std::invoke_result<Callback&, Args&&...>;
     if constexpr (std::is_void_v<fn_ret>)
@@ -36,7 +35,7 @@ auto invoke(Callback& callback, Args&&... args)
     else
     {
         callback.enter();
-        invoke_on const lazy_exit(object_state_constant<destruct>(), [&] {
+        invoke_on const lazy_exit(object_state::destruct(), [&] {
             callback.exit();
         });
         return callback(std::forward<Args>(args)...);
