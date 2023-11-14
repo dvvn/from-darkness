@@ -67,17 +67,17 @@ static bool equal(IMAGE_SECTION_HEADER const& header, char const* name, size_t c
 namespace fd
 {
 template <typename Fn>
-static void validate_library_name(wchar_t const* name, size_t const length, Fn isupper_check)
+static void validate_library_name(wchar_t const* name, size_t const length, Fn islower_fn)
 {
-    assert(!std::any_of(name, name + length, isupper_check));
+    assert(std::all_of(name, name + length, islower_fn));
 }
 
 static void validate_library_name(wchar_t const* name, size_t const length)
 {
-    if constexpr (std::invocable<decltype(isupper), wchar_t>)
-        validate_library_name(name, length, isupper);
+    if constexpr (std::invocable<decltype(islower), wchar_t>)
+        validate_library_name(name, length, islower);
     else
-        validate_library_name(name, length, iswupper);
+        validate_library_name(name, length, iswlower);
 }
 
 template <typename... T>
@@ -109,25 +109,36 @@ static LDR_DATA_TABLE_ENTRY_FULL* find_library(T... args)
     return nullptr;
 }
 
-basic_library_info::basic_library_info(LPCTSTR const name, size_t const length)
-    : entry_full_(find_library(name, length))
+basic_library_info::basic_library_info(char const* name, size_t const length, wchar_t* buffer)
 {
-#ifdef _DEBUG
-    if (!entry_)
-        validate_library_name(name, length);
-#endif
+    std::transform(name, name + length, buffer, tolower);
+    entry_full_ = find_library(buffer, length);
 }
 
-basic_library_info::basic_library_info(wchar_t const* name, size_t const name_length, wchar_t const* extension, size_t const extension_length)
-    : entry_full_(find_library(name, name_length, extension, extension_length))
+basic_library_info::basic_library_info(LPCTSTR const name, size_t const length)
 {
 #ifdef _DEBUG
-    if (!entry_)
-    {
-        validate_library_name(name, name_length);
-        validate_library_name(extension, extension_length);
-    }
+    validate_library_name(name, length);
 #endif
+    entry_full_ = find_library(name, length);
+}
+
+//basic_library_info::basic_library_info(char const* name, size_t const name_length, wchar_t* name_buffer, wchar_t const* extension, size_t const extension_length)
+//{
+//#ifdef _DEBUG
+//    validate_library_name(extension, extension_length);
+//#endif
+//    std::transform(name, name + name_length, name_buffer, tolower);
+//    entry_full_ = find_library(name_buffer, name_length, extension, extension_length);
+//}
+
+basic_library_info::basic_library_info(wchar_t const* name, size_t const name_length, wchar_t const* extension, size_t const extension_length)
+{
+#ifdef _DEBUG
+    validate_library_name(name, name_length);
+    validate_library_name(extension, extension_length);
+#endif
+    entry_full_ = find_library(name, name_length, extension, extension_length);
 }
 
 void* basic_library_info::base() const

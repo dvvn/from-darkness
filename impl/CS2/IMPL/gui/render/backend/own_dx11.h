@@ -20,7 +20,7 @@ class own_dx11_backend_data : public noncopyable
     template <UINT LevelsCount>
     HRESULT create_device_and_swap_chain(
         D3D_FEATURE_LEVEL const (&levels)[LevelsCount], DXGI_SWAP_CHAIN_DESC const* swap_chain_desc, //
-        UINT const flags, D3D_DRIVER_TYPE const driver_type)
+        UINT const flags, D3D_DRIVER_TYPE const driver_type) noexcept
     {
         D3D_FEATURE_LEVEL feature_level;
         return D3D11CreateDeviceAndSwapChain(

@@ -32,7 +32,6 @@ struct LDR_DATA_TABLE_ENTRY_FULL
 
 namespace fd
 {
-
 class basic_library_info
 {
     union
@@ -42,13 +41,22 @@ class basic_library_info
     };
 
   public:
+    basic_library_info(char const* name, size_t length, wchar_t* buffer);
     basic_library_info(wchar_t const* name, size_t length);
+    // basic_library_info(char const* name, size_t name_length, wchar_t* name_buffer, wchar_t const* extension, size_t extension_length);
     basic_library_info(wchar_t const* name, size_t name_length, wchar_t const* extension, size_t extension_length);
 
     template <size_t Length>
     basic_library_info(wchar_t const (&name)[Length])
         : basic_library_info(name, Length - 1)
     {
+    }
+
+    template <size_t Length>
+    basic_library_info(char const (&name)[Length])
+    {
+        wchar_t buffer[Length - 1];
+        std::construct_at(this, name, Length - 1, buffer);
     }
 
 #if 0
@@ -63,6 +71,11 @@ class basic_library_info
         entry_ = basic_library_info(buffer, buffer_length).entry_;
     }
 #endif
+
+    explicit operator bool() const
+    {
+        return entry_ != nullptr;
+    }
 
     void* base() const;
     void* image_base() const;
