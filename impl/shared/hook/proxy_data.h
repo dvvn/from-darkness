@@ -41,7 +41,7 @@ class hook_proxy_original
 
     void set_original(void* original)
     {
-        original_ = unsafe_cast<Fn>(original);
+        original_ = unsafe_cast_lazy(original);
     }
 
     Fn get_original() const
@@ -57,5 +57,4 @@ struct hook_proxy_data final : hook_proxy_callback<Callback>, hook_proxy_origina
 
 template <typename Callback>
 inline hook_proxy_data<Callback> unique_hook_proxy_data;
-
 }

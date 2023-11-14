@@ -3,14 +3,11 @@
 // #define FD_SPOOF_RETURN_ADDRESS
 
 #include "concepts.h"
-#include "diagnostics/fatal.h"
 #include "functional/cast.h"
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
 #include <x86RetSpoof.h>
 #endif
-
-#include <boost/hana/tuple.hpp>
 
 #include <functional>
 
@@ -273,46 +270,6 @@ struct member_func_invoker<Call_T, Ret, void, Args...>
 
 X86_CALL_MEMBER(NON_MEMBER_FN_TYPE)
 #undef NON_MEMBER_FN_TYPE
-
-template <class Call_T, class Object, typename... Args>
-class member_func_return_type_resolver
-{
-    using args_packed = boost::hana::tuple<Args...>;
-
-    template <typename Ret>
-    using func_invoker = member_func_invoker<Call_T, Ret, Object, Args...>;
-
-    void* function_;
-    Object* instance_;
-    [[no_unique_address]] //
-    args_packed args_;
-
-  public:
-    member_func_return_type_resolver(void* function, Object* instance, Args... args)
-        : function_(function)
-        , instance_(instance)
-        , args_(args...)
-    {
-    }
-
-    /*template <typename Ret>
-    operator Ret()
-    {
-        return boost::hana::unpack(args_, [this](Args... args) {
-            func_invoker<Ret> invoker;
-            return invoker(args..., function_, instance_);
-        });
-    }*/
-
-    template <typename Ret>
-    operator Ret() const
-    {
-        return boost::hana::unpack(args_, [this](Args... args) {
-            func_invoker<Ret> invoker;
-            return invoker(args..., function_, instance_);
-        });
-    }
-};
 
 namespace detail
 {

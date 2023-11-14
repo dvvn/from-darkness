@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <type_traits>
 
 namespace fd
 {
@@ -29,6 +30,10 @@ constexpr auto unreachable = std::abort;
 #endif
 #endif
 
-template <class>
-inline constexpr bool always_false = false;
+template <typename = void, uint8_t N>
+[[noreturn]]
+constexpr void unreachable_ct()
+{
+    static_assert(N == N + 1);
+}
 } // namespace fd

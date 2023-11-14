@@ -1,6 +1,9 @@
 #pragma once
 
 #include "functional/call_traits.h"
+#include "functional/invoke_cast.h"
+
+#include <boost/hana/tuple.hpp>
 
 #include <concepts>
 
@@ -25,16 +28,12 @@ void* get_vfunc(Fn table_function, void* instance)
 #endif
 {
     using call_type = typename function_info<Fn>::call_type;
-    auto function   = unsafe_cast<void*>(table_function);
+    void* function  = unsafe_cast_lazy(table_function);
     return get_vfunc<call_type>(function, instance);
 }
 
-struct vfunc_tag
-{
-};
-
 template <class Object>
-class basic_vfunc : public vfunc_tag
+class basic_vfunc
 {
     void* function_;
     Object* instance_;
@@ -77,10 +76,10 @@ struct vfunc : basic_vfunc<Object>
     {
     }
 
-    function_type get_full() const
+    /*function_type get_full() const
     {
         return unsafe_cast<function_type>(basic_vfunc<Object>::get());
-    }
+    }*/
 
     /*Ret operator()(Args... args) const
     {
@@ -88,6 +87,19 @@ struct vfunc : basic_vfunc<Object>
         return invoker(function_, instance_, args...);
     }*/
 };
+
+template <class Call_T, typename Ret, class Object, typename... Args>
+auto get(vfunc<Call_T, Ret, Object, Args...> vf) -> typename decltype(vf)::function_type
+{
+    return unsafe_cast_lazy(vf.get());
+}
+
+template <class Call_T, typename Ret, class Object, typename... Args>
+Ret invoke(vfunc<Call_T, Ret, Object, Args...> func, std::type_identity_t<Args>... args)
+{
+    constexpr member_func_invoker<Call_T, Ret, Object, Args...> invoker;
+    return invoker(func.get(), func.instance(), args...);
+}
 
 template <class Call_T, typename Ret, typename... Args>
 struct vfunc<Call_T, Ret, void, Args...> : basic_vfunc<void>
@@ -108,13 +120,6 @@ vfunc(Func fn, Object instance)->typename function_info<Func>::template rebind<v
 template <typename Func, class Object, class Info = function_info<Func>>
 vfunc(Func fn, Object instance) -> vfunc<typename Info::call_type, typename Info::return_type, typename Info::object_type, typename Info::args>;
 #endif
-
-template <class Call_T, typename Ret, class Object, typename... Args>
-Ret invoke(vfunc<Call_T, Ret, Object, Args...> func, std::type_identity_t<Args>... args)
-{
-    member_func_invoker<Call_T, Ret, Object, Args...> invoker;
-    return invoker(func.get(), func.instance(), args...);
-}
 
 template <class Call_T, class Object>
 struct unknown_vfunc_args : basic_vfunc<Object>
@@ -145,8 +150,49 @@ struct unknown_vfunc_args : basic_vfunc<Object>
     }
 };
 
+namespace detail
+{
 template <class Call_T, class Object, typename... Args>
-auto invoke(unknown_vfunc_args<Call_T, Object> func, Args... args) -> member_func_return_type_resolver<Call_T, Object, Args...>
+class unknown_vfunc_invoker
+{
+    using args_packed = boost::hana::tuple<Args...>;
+
+    template <typename Ret>
+    static constexpr member_func_invoker<Call_T, Ret, Object, Args...> invoker;
+
+    void* function_;
+    Object* instance_;
+    [[no_unique_address]] //
+    args_packed args_;
+
+  public:
+    unknown_vfunc_invoker(void* function, Object* instance, Args... args)
+        : function_(function)
+        , instance_(instance)
+        , args_(args...)
+    {
+    }
+
+    template <typename Ret>
+    Ret operator()(std::type_identity<Ret>) const
+    {
+        return boost::hana::unpack(args_, [this](Args... args) -> Ret {
+            return invoker<Ret>(args..., function_, instance_);
+        });
+    }
+
+    template <typename Ret>
+    Ret operator()(std::type_identity<Ret>)
+    {
+        return boost::hana::unpack(args_, [this](Args... args) -> Ret {
+            return invoker<Ret>(args..., function_, instance_);
+        });
+    }
+};
+} // namespace detail
+
+template <class Call_T, class Object, typename... Args>
+auto invoke(unknown_vfunc_args<Call_T, Object> func, Args... args) -> invoke_cast<detail::unknown_vfunc_invoker<Call_T, Object, Args...>>
 {
     return {func.get(), func.instance(), args...};
 }
@@ -223,7 +269,7 @@ Ret invoke(unknown_vfunc<Object> func, Args... args)
 }
 
 template <class Call_T, class Object, typename... Args>
-auto invoke(unknown_vfunc<Object> func, Args... args) -> member_func_return_type_resolver<Call_T, Object, Args...>
+auto invoke(unknown_vfunc<Object> func, Args... args) -> invoke_cast<detail::unknown_vfunc_invoker<Call_T, Object, Args...>>
 {
     return {func.get(), func.instance(), args...};
 }

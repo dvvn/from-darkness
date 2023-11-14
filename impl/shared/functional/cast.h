@@ -1,22 +1,32 @@
 #pragma once
 
-#include <utility>
+#include "functional/invoke_cast.h"
 
 namespace fd
 {
 template <typename T>
-constexpr T const* as_const(T* ptr)
+constexpr T const* add_const(T* ptr)
 {
     return ptr;
 }
 
 template <typename T>
-constexpr T const* as_const(T const* ptr)
+constexpr T const* add_const(T const* ptr)
 {
     return ptr;
 }
 
-using std::as_const;
+template <typename T>
+constexpr T const& add_const(T& ptr)
+{
+    return ptr;
+}
+
+template <typename T>
+constexpr T const& add_const(T const& ptr)
+{
+    return ptr;
+}
 
 template <typename T>
 T* remove_const(T const* ptr)
@@ -47,15 +57,36 @@ namespace detail
 template <typename To, typename From>
 concept can_static_cast = requires(From from) { static_cast<To>(from); };
 
-inline void safe_cast_debug_trap()
+constexpr void safe_cast_debug_trap()
 {
 }
+
+inline void unsafe_cast_debug_trap()
+{
+}
+
+template <typename To>
+struct safe_cast_simple
+{
+    template <typename From>
+    constexpr To operator()(From from) const
+#ifdef _DEBUG
+        requires(can_static_cast<To, From>)
+#endif
+    {
+        safe_cast_debug_trap();
+        return static_cast<To>(from);
+    }
+};
 
 template <typename To>
 struct safe_cast_simple_ptr
 {
     template <typename From>
-    constexpr To operator()(From* from) const requires(can_static_cast<To, From*>)
+    constexpr To operator()(From* from) const
+#ifdef _DEBUG
+        requires(can_static_cast<To, From*>)
+#endif
     {
         safe_cast_debug_trap();
         return static_cast<To>(from);
@@ -66,7 +97,10 @@ template <typename To>
 struct safe_cast_simple_ptr<To const*>
 {
     template <typename From>
-    constexpr To const* operator()(From const* from) const requires(can_static_cast<To const*, From const*>)
+    constexpr To const* operator()(From const* from) const
+#ifdef _DEBUG
+        requires(can_static_cast<To const*, From const*>)
+#endif
     {
         safe_cast_debug_trap();
         return static_cast<To const*>(from);
@@ -77,21 +111,13 @@ template <typename To>
 struct safe_cast_simple_ref
 {
     template <typename From>
-    constexpr To operator()(From&& from) const requires(can_static_cast<To, From &&>)
+    constexpr To operator()(From&& from) const
+#ifdef _DEBUG
+        requires(can_static_cast<To, From &&>)
+#endif
     {
         safe_cast_debug_trap();
         return static_cast<To>(static_cast<From&&>(from));
-    }
-};
-
-template <typename To>
-struct safe_cast_simple
-{
-    template <typename From>
-    constexpr To operator()(From from) const requires(can_static_cast<To, From>)
-    {
-        safe_cast_debug_trap();
-        return static_cast<To>(from);
     }
 };
 
@@ -188,14 +214,22 @@ template <typename T, typename Ptr, size_t Limit>
 struct make_pointer_like<T*, Ptr* const*, 0, Limit>;
 
 template <typename To>
-struct safe_cast_impl
+struct safe_cast_ptr_rewrap
 {
     template <typename From, typename ToResolved = typename make_pointer_like<To, From*>::type>
-    constexpr ToResolved operator()(From* from) const requires(can_static_cast<ToResolved, From*>)
+    constexpr ToResolved operator()(From* from) const
+#ifdef _DEBUG
+        requires(can_static_cast<ToResolved, From*>)
+#endif
     {
         safe_cast_debug_trap();
         return static_cast<ToResolved>(from);
     }
+};
+
+template <typename To>
+struct safe_cast_impl : safe_cast_ptr_rewrap<To>, safe_cast_simple<To>
+{
 };
 
 template <typename To>
@@ -227,8 +261,9 @@ template <typename To>
 struct unsafe_cast_direct
 {
     template <typename From>
-    constexpr To operator()(From from) const requires(sizeof(From) == sizeof(To) && std::convertible_to<From, To>)
+    To operator()(From from) const requires(sizeof(To) == sizeof(From) && can_static_cast<From, To>)
     {
+        unsafe_cast_debug_trap();
         return static_cast<To>(from);
     }
 };
@@ -237,8 +272,10 @@ template <typename To>
 struct unsafe_cast_force
 {
     template <typename From>
-    To operator()(From from) const requires(sizeof(From) == sizeof(To) && !std::convertible_to<From, To> && std::is_trivially_destructible_v<From>)
+    To operator()(From from) const requires(sizeof(To) == sizeof(From) && !can_static_cast<From, To> && std::is_trivially_destructible_v<From>)
     {
+        unsafe_cast_debug_trap();
+
         union
         {
             From from0;
@@ -262,11 +299,58 @@ template <typename To>
 struct unsafe_cast_impl<To, false> : unsafe_cast_direct<To>
 {
 };
+
+template <typename From, template <typename> class Impl>
+struct auto_cast
+{
+    From from;
+
+    template <typename To>
+    To operator()(std::type_identity<To>) const
+#ifdef _DEBUG
+        requires(std::invocable<Impl<To>, From const&>)
+#endif
+    {
+        constexpr Impl<To> impl;
+        return impl(from);
+    }
+
+    template <typename To>
+    To operator()(std::type_identity<To>)
+#ifdef _DEBUG
+        requires(std::invocable<Impl<To>, From&>)
+#endif
+    {
+        constexpr Impl<To> impl;
+        return impl(from);
+    }
+};
+
+template <template <typename> class Impl>
+inline constexpr auto lazy_cast = []<typename From>(From from) -> invoke_cast<auto_cast<From, Impl>> {
+    return {from};
+};
 } // namespace detail
+
+template <typename T>
+struct remove_rvalue_reference : std::type_identity<T>
+{
+};
+
+template <typename T>
+struct remove_rvalue_reference<T&> : std::type_identity<T&>
+{
+};
+
+template <typename T>
+struct remove_rvalue_reference<T&&> : std::type_identity<T>
+{
+};
 
 template <typename To>
 inline constexpr detail::safe_cast_impl<To> safe_cast;
-
+inline constexpr auto safe_cast_lazy = detail::lazy_cast<detail::safe_cast_impl>;
 template <typename To>
 inline constexpr detail::unsafe_cast_impl<To> unsafe_cast;
+inline constexpr auto unsafe_cast_lazy = detail::lazy_cast<detail::unsafe_cast_impl>;
 } // namespace fd

@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "diagnostics/fatal.h"
 #include "functional/call_traits.h"
 #include "hook/callback.h"
 #include "hook/info.h"
@@ -171,14 +172,14 @@ decltype(auto) invoke_hook_proxy(Args... args)
                 return invoke_hook_callback(callback, original, args...);
         }
         else
-            static_assert(always_false<Callback>);
+            unreachable_ct<Callback>();
     }
     else if constexpr (callback_args::count < args_count)
     {
         if constexpr (callback_args::count == 0)
             return invoke_hook_callback(callback, callback);
         else
-            static_assert(always_false<Callback>);
+            unreachable_ct<Callback>();
     }
     else
     {
@@ -301,16 +302,16 @@ hook_info<Callback> prepare_hook(vfunc<Call_T, Ret, Object, function_args<Args..
     return {target.get(), detail::extract_hook_proxy<Callback, proxy_type>()};
 }
 #else
-struct vfunc_tag;
 
-template <typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy_member, class VFunc>
-hook_info<Callback> prepare_hook(VFunc target) requires
-#ifdef _DEBUG
-    requires { target.get_full(); } &&
-#endif
-    std::derived_from<VFunc, vfunc_tag>
+template <class Call_T, typename Ret, class Object, typename... Args>
+struct vfunc;
+
+template <
+    typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy_member, //
+    class Call_T, typename Ret, class Object, typename... Args>
+hook_info<Callback> prepare_hook(vfunc<Call_T, Ret, Object, Args...> target)
 {
-    return prepare_hook<Callback, Proxy>(target.get_full());
+    return prepare_hook<Callback, Proxy>(get(target));
 }
 #endif
 
