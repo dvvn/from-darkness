@@ -405,6 +405,8 @@ Dependency_Load_Boost(
     unordered
     nowide
     lambda2
+    vmd
+    preprocessor
 )
 
 #[[

@@ -11,54 +11,25 @@
 
 #include <functional>
 
-#undef thiscall
-#undef cdecl
-#undef fastcall
-#undef stdcall
-#undef vectorcall
-
 namespace fd
 {
-#define CALL_T_ITEM(_V_) \
-    struct _V_##_ final  \
-    {                    \
+#define _CCV_TYPE(_CCV_, ...) \
+    struct _CCV_##_ final     \
+    {                         \
     };
 
 struct call_type final
 {
-#if INTPTR_MAX == INT32_MAX
-    CALL_T_ITEM(thiscall);
-    CALL_T_ITEM(fastcall);
-    CALL_T_ITEM(stdcall);
+#ifdef _MSC_VER
+    _MEMBER_CALL(_CCV_TYPE, , , );
+#else
+
 #endif
-    CALL_T_ITEM(cdecl);
-    CALL_T_ITEM(vectorcall);
 };
 
-#undef CALL_T_ITEM
+#undef _CCV_TYPE
 
-#if 0
-#define X86_CALL_PROXY(call__, __call, call)
-#define X86_CALL_PROXY_MEMBER(call__, __call, call)
-#endif
-
-#define _X86_CALL_PROXY(_PROXY_, _T_) _PROXY_(call_type::_T_##_, __##_T_, ##_T_)
-
-#if INTPTR_MAX == INT32_MAX
-#define X86_CALL(_PROXY_)              \
-    _X86_CALL_PROXY(_PROXY_, cdecl)    \
-    _X86_CALL_PROXY(_PROXY_, fastcall) \
-    _X86_CALL_PROXY(_PROXY_, stdcall)  \
-    _X86_CALL_PROXY(_PROXY_, vectorcall)
-#define X86_CALL_MEMBER(_PROXY_)       \
-    _X86_CALL_PROXY(_PROXY_, thiscall) \
-    X86_CALL(_PROXY_)
-#elif INTPTR_MAX == INT64_MAX
-#define X86_CALL(_PROXY_)           \
-    _X86_CALL_PROXY(_PROXY_, cdecl) \
-    _X86_CALL_PROXY(_PROXY_, vectorcall)
-#define X86_CALL_MEMBER X86_CALL
-#endif
+#define _CCV_T(_CCV_) call_type::_CCV_##_
 
 #if 0
 template <template <class Call_T> class Q, typename... Args>
@@ -96,25 +67,78 @@ decltype(auto) apply(Fn fn, call_type const info, Args... args)
 }
 #endif
 
-template <class Call_T, typename Ret, typename Object, typename... Args>
-requires(std::is_class_v<Object> || std::is_union_v<Object> /*std::is_fundamental_v<T>*/)
+template <typename Fn>
+struct function_info;
+
+template <bool Noexcept, class Call_T, typename Ret, class T, typename... Args>
+struct member_function_info;
+
+template <bool Noexcept, class Call_T, typename Ret, typename... Args>
+struct non_member_function_info;
+
+template <bool Noexcept, class Call_T, typename Ret, typename Object, typename... Args>
+// requires(std::is_class_v<Object> || std::is_union_v<Object> /*std::is_fundamental_v<T>*/)
 struct member_function;
 
-template <class Call_T, typename Ret, typename Object, typename... Args>
-using member_function_t = typename member_function<Call_T, Ret, Object, Args...>::type;
+template <bool Noexcept, class Call_T, typename Ret, typename... Args>
+struct non_member_function;
 
-#define MEMBER_FN_TYPE(call__, __call, _call_)                                                                             \
-    template <typename Ret, typename Object, typename... Args>                                                             \
-    struct member_function<call__, Ret, Object, Args...> : std::type_identity<Ret (__call Object::*)(Args...)>             \
-    {                                                                                                                      \
-    };                                                                                                                     \
-    template <typename Ret, typename Object, typename... Args>                                                             \
-    struct member_function<call__, Ret, Object const, Args...> : std::type_identity<Ret (__call Object::*)(Args...) const> \
-    {                                                                                                                      \
+#define _NOEXCEPT_BOOLnoexcept true
+#define _NOEXCEPT_BOOL         false
+
+#define _MEMBER_CCV_HELPER(_CCV_, _CV_, _REF_, _NOEXCEPT_)                                               \
+    template <typename Ret, typename Object, typename... Args>                                           \
+    struct member_function<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(_CCV_), Ret, Object _CV_ _REF_, Args...> : \
+        std::type_identity<Ret (_CCV_ Object::*)(Args...) _CV_ _REF_ _NOEXCEPT_>                         \
+    {                                                                                                    \
+    };                                                                                                   \
+    template <typename Ret, typename Object, typename... Args>                                           \
+    struct function_info<Ret (_CCV_ Object::*)(Args...) _CV_ _REF_ _NOEXCEPT_> :                         \
+        member_function_info<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(_CCV_), Ret, Object _CV_ _REF_, Args...> \
+    {                                                                                                    \
     };
 
-X86_CALL_MEMBER(MEMBER_FN_TYPE)
-#undef MEMBER_FN_TYPE
+#define _NON_MEMBER_CCV_HELPER(_CCV_, _CV_UNUSED_, _REF_UNUSED_, _NOEXCEPT_)                                                                  \
+    template <typename Ret, typename... Args>                                                                                                 \
+    struct non_member_function<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(_CCV_), Ret, Args...> : std::type_identity<Ret(_CCV_*)(Args...) _NOEXCEPT_> \
+    {                                                                                                                                         \
+    };                                                                                                                                        \
+    template <typename Ret, typename... Args>                                                                                                 \
+    struct function_info<Ret(_CCV_*)(Args...) _NOEXCEPT_> : non_member_function_info<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(_CCV_), Ret, Args...> \
+    {                                                                                                                                         \
+    };
+#define _NON_MEMBER_THISCALL_HELPER(_CV_UNUSED_, _REF_, _NOEXCEPT_)                                                                                     \
+    template <typename Ret, typename... Args>                                                                                                           \
+    struct non_member_function<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(__thiscall), Ret, Args...> : std::type_identity<Ret(__thiscall*)(Args...) _NOEXCEPT_> \
+    {                                                                                                                                                   \
+    };                                                                                                                                                  \
+    template <typename Ret, typename Object, typename... Args>                                                                                          \
+    struct function_info<Ret(__thiscall*)(Object * _REF_, Args...) _NOEXCEPT_> :                                                                        \
+        member_function_info<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(__thiscall), Ret, Object _REF_, Args...>                                                \
+    {                                                                                                                                                   \
+    };
+
+#ifdef _MSC_VER
+_MEMBER_CALL_CV_REF_NOEXCEPT(_MEMBER_CCV_HELPER)
+
+_NON_MEMBER_CALL(_NON_MEMBER_CCV_HELPER, , , )
+_NON_MEMBER_CALL(_NON_MEMBER_CCV_HELPER, , , noexcept)
+
+#define _NON_MEMBER_THISCALL_REF(FUNC, NOEXCEPT_OPT) \
+    _EMIT_THISCALL(FUNC, , , NOEXCEPT_OPT)           \
+    _EMIT_THISCALL(FUNC, , &, NOEXCEPT_OPT)          \
+    _EMIT_THISCALL(FUNC, , &&, NOEXCEPT_OPT)
+_NON_MEMBER_THISCALL_REF(_NON_MEMBER_THISCALL_HELPER, )
+_NON_MEMBER_THISCALL_REF(_NON_MEMBER_THISCALL_HELPER, noexcept)
+#undef _NON_MEMBER_THISCALL_REF
+
+#else
+
+#endif
+
+#undef _NON_MEMBER_CCV_HELPER
+#undef _NON_MEMBER_THISCALL_HELPER
+#undef _MEMBER_CCV_HELPER
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
 template <class Object>
@@ -183,94 +207,6 @@ struct return_address_spoofer<call_type::thiscall_, Ret, Object*, Args...>
 };
 #endif
 
-template <class Call_T, typename Ret, typename... Args>
-struct non_member_function;
-
-template <class Call_T, typename Ret, typename... Args>
-using non_member_function_t = typename non_member_function<Call_T, Ret, Args...>::type;
-
-template <class Call_T, class Ret, typename... Args>
-struct non_member_func_invoker
-{
-    using function_type = non_member_function_t<Call_T, Ret, Args...>;
-
-    Ret operator()(function_type function, Args... args) const
-    {
-        return std::invoke(function, args...);
-    }
-
-    Ret operator()(void* function, Args... args) const
-    {
-        return operator()(unsafe_cast<function_type>(function), args...);
-    }
-};
-
-template <class Call_T, class Ret, class T, typename... Args>
-struct member_func_invoker
-{
-    using function_type = member_function_t<Call_T, Ret, T, Args...>;
-
-    Ret operator()(function_type function, T* instance, Args... args) const
-    {
-        return std::invoke(function, instance, args...);
-    }
-
-    Ret operator()(void* function, T* instance, Args... args) const
-    {
-#ifdef FD_SPOOF_RETURN_ADDRESS
-        return try_spoof_member_return_address<Call_T, Ret>(function, instance, args...);
-#else
-        return operator()(unsafe_cast<function_type>(function), instance, args...);
-#endif
-    }
-};
-
-template <class Call_T, class Ret, class T, typename... Args>
-requires(std::is_class_v<T> && !complete<T>)
-struct member_func_invoker<Call_T, Ret, T, Args...> : member_func_invoker<Call_T, Ret, void, Args...>
-{
-    static_assert(sizeof(member_function_t<Call_T, Ret, T, Args...>) != sizeof(void*));
-};
-
-#if INTPTR_MAX == INT32_MAX
-template <class Ret, typename... Args>
-struct member_func_invoker<call_type::thiscall_, Ret, void, Args...> : non_member_func_invoker<call_type::thiscall_, Ret, void*, Args...>
-{
-};
-#endif
-
-namespace detail
-{
-struct dummy_class final
-{
-};
-} // namespace detail
-
-template <class Call_T, class Ret, typename... Args>
-struct member_func_invoker<Call_T, Ret, void, Args...>
-{
-    using function_type = member_function_t<Call_T, Ret, detail::dummy_class, Args...>;
-
-    Ret operator()(function_type function, void* instance, Args... args) const
-    {
-        return std::invoke(function, static_cast<detail::dummy_class*>(instance), args...);
-    }
-
-    Ret operator()(void* function, void* instance, Args... args) const
-    {
-        return operator()(unsafe_cast<function_type>(function), instance, args...);
-    }
-};
-
-#define NON_MEMBER_FN_TYPE(call__, __call, _call_)                                               \
-    template <typename Ret, typename... Args>                                                    \
-    struct non_member_function<call__, Ret, Args...> : std::type_identity<Ret(__call*)(Args...)> \
-    {                                                                                            \
-    };
-
-X86_CALL_MEMBER(NON_MEMBER_FN_TYPE)
-#undef NON_MEMBER_FN_TYPE
-
 namespace detail
 {
 template <size_t Index, typename, typename... T>
@@ -300,37 +236,34 @@ struct function_args<>
     using get = void;
 };
 
-template <class Call_T, typename Ret>
+template <bool Noexcept, class Call_T, typename Ret>
 struct basic_function_info
 {
+    static constexpr bool is_noexcept = Noexcept;
+
     using call_type   = Call_T;
     using return_type = Ret;
 };
 
-template <class Call_T, typename Ret, class T, typename... Args>
-struct member_function_info : basic_function_info<Call_T, Ret>
+template <bool Noexcept, class Call_T, typename Ret, class T, typename... Args>
+struct member_function_info : basic_function_info<Noexcept, Call_T, Ret>
 {
-    template <template <class, typename, class, typename...> class Other>
-    using rebind = Other<Call_T, Ret, T, Args...>;
+    /*template <template <class, typename, class, typename...> class Other>
+    using rebind = Other<Call_T, Ret, T, Args...>;*/
 
-    using object_type = T;
-    using args        = function_args<Args...>;
+    using object_type_raw = T;
+    using object_type     = std::remove_reference_t<T>;
+    using args            = function_args<Args...>;
 };
 
-template <class Call_T, typename Ret, typename... Args>
-struct non_member_function_info : basic_function_info<Call_T, Ret>
+template <bool Noexcept, class Call_T, typename Ret, typename... Args>
+struct non_member_function_info : basic_function_info<Noexcept, Call_T, Ret>
 {
-    template <template <class, typename, typename...> class Other>
-    using rebind = Other<Call_T, Ret, Args...>;
+    /*template <template <class, typename, typename...> class Other>
+    using rebind = Other<Call_T, Ret, Args...>;*/
 
     using args = function_args<Args...>;
 };
-
-template <typename Fn>
-struct function_info;
-
-// template <typename Fn>
-// using function_info_base = typename function_info<Fn>::base;
 
 #ifdef _MSC_VER
 template <typename Ret, typename Fn, typename... Args>
@@ -362,61 +295,20 @@ struct function_info<Obj> : function_info<decltype(&Obj::operator())>
 {
 };
 
-#if INTPTR_MAX == INT32_MAX
-template <typename Ret, typename T, typename... Args>
-struct function_info<Ret(__thiscall*)(T*, Args...)> : member_function_info<call_type::thiscall_, Ret, T, Args...>
-{
-};
-#endif
-// template <typename Ret, typename T, typename... Args>
-// struct non_member_function_info<call_type::thiscall_, Ret, T, Args...>
-//     : member_function_info<call_type::thiscall_, Ret, T, Args...>
-//{
-// };
-
-#define FN_INFO_MEMBER(call__, __call, _call_)                                                                            \
-    template <typename Ret, typename T, typename... Args>                                                                 \
-    struct function_info<Ret (__call T::*)(Args...)> : member_function_info<call__, Ret, T, Args...>                      \
-    {                                                                                                                     \
-    };                                                                                                                    \
-    template <typename Ret, typename T, typename... Args>                                                                 \
-    struct function_info<Ret (__call T::*)(Args...) noexcept> : member_function_info<call__, Ret, T, Args...>             \
-    {                                                                                                                     \
-    };                                                                                                                    \
-    template <typename Ret, typename T, typename... Args>                                                                 \
-    struct function_info<Ret (__call T::*)(Args...) const> : member_function_info<call__, Ret, T const, Args...>          \
-    {                                                                                                                     \
-    };                                                                                                                    \
-    template <typename Ret, typename T, typename... Args>                                                                 \
-    struct function_info<Ret (__call T::*)(Args...) const noexcept> : member_function_info<call__, Ret, T const, Args...> \
-    {                                                                                                                     \
-    };
-
-X86_CALL_MEMBER(FN_INFO_MEMBER)
-#undef FN_INFO_MEMBER
-
-#define FN_INFO_NON_MEMEBER(call__, __call, _call_)                                                       \
-    template <typename Ret, typename... Args>                                                             \
-    struct function_info<Ret(__call*)(Args...)> : non_member_function_info<call__, Ret, Args...>          \
-    {                                                                                                     \
-    };                                                                                                    \
-    template <typename Ret, typename... Args>                                                             \
-    struct function_info<Ret(__call*)(Args...) noexcept> : non_member_function_info<call__, Ret, Args...> \
-    {                                                                                                     \
-    };
-X86_CALL(FN_INFO_NON_MEMEBER)
-#undef FN_INFO_NON_MEMEBER
-
 namespace detail
 {
-template <class Call_T, typename Ret, class Object, typename... Args>
-constexpr auto decay_function_info_helper(member_function_info<Call_T, Ret, Object, Args...>) -> member_function_info<Call_T, Ret, Object, Args...>
+struct dummy_class final
+{
+};
+
+template <bool Noexcept, class Call_T, typename Ret, class Object, typename... Args>
+constexpr auto decay_function_info_helper(member_function_info<Noexcept, Call_T, Ret, Object, Args...> info) -> decltype(info)
 {
     return {};
 }
 
-template <class Call_T, typename Ret, typename... Args>
-constexpr auto decay_function_info_helper(non_member_function_info<Call_T, Ret, Args...>) -> non_member_function_info<Call_T, Ret, Args...>
+template <bool Noexcept, class Call_T, typename Ret, typename... Args>
+constexpr auto decay_function_info_helper(non_member_function_info<Noexcept, Call_T, Ret, Args...> info) -> decltype(info)
 {
     return {};
 }
@@ -438,4 +330,31 @@ using decay_function_info = decltype(detail::decay_function_info_helper(std::dec
 
 using default_call_type_member     = function_info<detail::call_type_sample>::call_type;
 using default_call_type_non_member = function_info<decltype(&detail::call_type_sample::fn)>::call_type;
+
+template <typename Fn, typename... Args>
+auto invoke(Fn&& fn, safe_cast_t<void, typename function_info<std::decay_t<Fn>>::object_type*> instance, Args&&... args)
+{
+    using object_type = typename function_info<std::decay_t<Fn>>::object_type;
+
+#ifdef FD_SPOOF_RETURN_ADDRESS
+    // WIP
+#else
+    return std::invoke(std::forward<Fn>(fn), safe_cast<object_type>(instance), std::forward<Args>(args)...);
+#endif
+}
+
+template <typename Fn, typename Obj, typename... Args>
+auto invoke(Fn&& fn, Obj* instance, Args&&... args) requires(
+    sizeof(fn) == sizeof(void*) && !complete<typename function_info<std::decay_t<Fn>>::object_type>
+#ifdef _DEBUG
+    && std::invocable<Fn &&, Obj*, Args && ...>
+#endif
+)
+{
+#ifdef FD_SPOOF_RETURN_ADDRESS
+    // WIP
+#else
+    return std::invoke(std::forward<Fn>(fn), unsafe_cast<detail::dummy_class*>(instance), std::forward<Args>(args)...);
+#endif
+}
 } // namespace fd

@@ -1,11 +1,10 @@
 #include "functional/vfunc.h"
 
-#include <boost/preprocessor/repeat.hpp>
-
-// for buggy resharper
-#if !defined(BOOST_PP_LIMIT_REPEAT) || defined(__RESHARPER__)
+#ifdef __RESHARPER__
 #define BOOST_PP_LIMIT_REPEAT 1
 #endif
+
+#include <boost/preprocessor/repeat.hpp>
 
 namespace fd
 {
@@ -15,9 +14,11 @@ struct vfunc_index_resolver;
 template <class Call_T>
 static size_t get_vfunc_index(void* function) noexcept
 {
-    member_func_invoker<Call_T, size_t, void> invoker;
-    vfunc_index_resolver<Call_T> resolver;
-    return invoker(function, &resolver);
+    using resolver_type = vfunc_index_resolver<Call_T>;
+    using function_type = typename member_function<true, Call_T, size_t, resolver_type const>::type;
+
+    resolver_type resolver;
+    return std::invoke(unsafe_cast<function_type>(function), &resolver);
 }
 
 static void** get_vtable(void* instance)
@@ -32,27 +33,34 @@ static void* get_vfunc_impl(void* table_function, void* instance)
     return get_vtable(instance)[function_index];
 }
 
-#define GET_VFUNC_IMPL(call__, __call, _call_)                    \
-    template <>                                                   \
-    void* get_vfunc<call__>(void* table_function, void* instance) \
-    {                                                             \
-        return get_vfunc_impl<call__>(table_function, instance);  \
+#define GET_VFUNC_IMPL(_CCV_, ...)                                       \
+    template <>                                                          \
+    void* get_vfunc<_CCV_T(_CCV_)>(void* table_function, void* instance) \
+    {                                                                    \
+        return get_vfunc_impl<_CCV_T(_CCV_)>(table_function, instance);  \
     }
 
-X86_CALL_MEMBER(GET_VFUNC_IMPL);
-#undef GET_VFUNC_IMPL
-
-#define GET_INDEX_FN(z, i, __call) \
-    virtual size_t __call i_##i()  \
-    {                              \
-        return i;                  \
+#define GET_INDEX_FN(_Z_UNUSED_, _INDEX_, _CCV_)        \
+    virtual size_t _CCV_ get_##_INDEX_() const noexcept \
+    {                                                   \
+        return _INDEX_;                                 \
     }
 
-#define VFUNC_INDEX_RESOLVER(call__, __call, _call_)                  \
-    template <>                                                       \
-    struct vfunc_index_resolver<call__> final                         \
-    {                                                                 \
-        BOOST_PP_REPEAT(BOOST_PP_LIMIT_REPEAT, GET_INDEX_FN, __call); \
+#define VFUNC_INDEX_RESOLVER(_CCV_, ...)                             \
+    template <>                                                      \
+    struct vfunc_index_resolver<_CCV_T(_CCV_)>                       \
+    {                                                                \
+        BOOST_PP_REPEAT(BOOST_PP_LIMIT_REPEAT, GET_INDEX_FN, _CCV_); \
     };
-X86_CALL_MEMBER(VFUNC_INDEX_RESOLVER); // NOLINT(cppcoreguidelines-virtual-class-destructor, clang-diagnostic-extra-semi)
+
+#ifdef _MSC_VER
+_MEMBER_CALL(GET_VFUNC_IMPL, , , )
+_MEMBER_CALL(VFUNC_INDEX_RESOLVER, , , ) // NOLINT(cppcoreguidelines-virtual-class-destructor, clang-diagnostic-extra-semi)
+#else
+
+#endif
+
+#undef GET_VFUNC_IMPL
+#undef GET_INDEX_FN
+#undef VFUNC_INDEX_RESOLVER
 }

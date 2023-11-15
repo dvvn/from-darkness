@@ -7,47 +7,15 @@
 namespace fd::detail
 {
 template <typename Callback>
-class hook_proxy_callback
+struct hook_proxy_callback
 {
-    Callback* callback_;
-
-  public:
-    hook_proxy_callback()
-    {
-        ignore_unused(this);
-    }
-
-    void set_callback(Callback* callback)
-    {
-        callback_ = callback;
-    }
-
-    Callback& get_callback() const
-    {
-        return *callback_;
-    }
+    Callback* callback;
 };
 
 template <typename Fn>
-class hook_proxy_original
+struct hook_proxy_original
 {
-    Fn original_;
-
-  public:
-    hook_proxy_original()
-    {
-        ignore_unused(this);
-    }
-
-    void set_original(void* original)
-    {
-        original_ = unsafe_cast_lazy(original);
-    }
-
-    Fn get_original() const
-    {
-        return original_;
-    }
+    Fn original;
 };
 
 template <typename Callback>

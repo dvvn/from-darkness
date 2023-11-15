@@ -9,8 +9,6 @@ namespace fd::hooked::winapi
 template <class SystemBackend>
 class wndproc final : public basic_hook_callback
 {
-    using original_wrapped = object_froxy_for<WNDPROC, wndproc>;
-
     SystemBackend* backend_;
 
   public:
@@ -20,7 +18,7 @@ class wndproc final : public basic_hook_callback
     }
 
     LRESULT operator()(
-        original_wrapped const original, //
+        WNDPROC const original, //
         HWND window, UINT message, WPARAM wparam, LPARAM lparam) const noexcept
     {
         // todo: check are unput must be blocked before update

@@ -12,23 +12,27 @@ namespace fd
 template <class Call_T>
 void* get_vfunc(void* table_function, void* instance);
 
-#define GET_VFUNC(call__, __call, _call_) \
-    template <>                           \
-    void* get_vfunc<call__>(void* table_function, void* instance);
+#define GET_VFUNC(_CCV_, ...) \
+    template <>               \
+    void* get_vfunc<_CCV_T(_CCV_)>(void* table_function, void* instance);
 
-X86_CALL_MEMBER(GET_VFUNC);
+#ifdef _MSC_VER
+_MEMBER_CALL(GET_VFUNC, , , )
+#else
+
+#endif
 #undef GET_VFUNC
 
 template <typename Fn>
 void* get_vfunc(Fn table_function, void* instance)
 #if 0
-    requires(std::is_member_function_pointer_v<Fn>)
+   requires(std::is_member_function_pointer_v<Fn>)
 #else
     requires requires { typename function_info<Fn>::object_type; }
 #endif
 {
     using call_type = typename function_info<Fn>::call_type;
-    void* function  = unsafe_cast_lazy(table_function);
+    auto function   = unsafe_cast<void*>(table_function);
     return get_vfunc<call_type>(function, instance);
 }
 
@@ -67,11 +71,17 @@ class basic_vfunc<Object const>;
 template <class Call_T, typename Ret, class Object, typename... Args>
 struct vfunc : basic_vfunc<Object>
 {
-    using function_type = typename member_function<Call_T, Ret, Object, Args...>::type;
+    template <bool Noexcept>
+    using function_type = typename member_function<Noexcept, Call_T, Ret, Object, Args...>::type;
 
     using basic_vfunc<Object>::basic_vfunc;
 
-    vfunc(function_type function, Object* instance)
+    vfunc(function_type<true> function, Object* instance)
+        : basic_vfunc<Object>(get_vfunc(function, instance), instance)
+    {
+    }
+
+    vfunc(function_type<false> function, Object* instance)
         : basic_vfunc<Object>(get_vfunc(function, instance), instance)
     {
     }
@@ -89,7 +99,7 @@ struct vfunc : basic_vfunc<Object>
 };
 
 template <class Call_T, typename Ret, class Object, typename... Args>
-auto get(vfunc<Call_T, Ret, Object, Args...> vf) -> typename decltype(vf)::function_type
+auto get(vfunc<Call_T, Ret, Object, Args...> vf) -> typename decltype(vf)::template function_type<false>
 {
     return unsafe_cast_lazy(vf.get());
 }
@@ -97,8 +107,12 @@ auto get(vfunc<Call_T, Ret, Object, Args...> vf) -> typename decltype(vf)::funct
 template <class Call_T, typename Ret, class Object, typename... Args>
 Ret invoke(vfunc<Call_T, Ret, Object, Args...> func, std::type_identity_t<Args>... args)
 {
-    constexpr member_func_invoker<Call_T, Ret, Object, Args...> invoker;
-    return invoker(func.get(), func.instance(), args...);
+#ifdef FD_SPOOF_RETURN_ADDRESS
+    auto instance = safe_cast<void>(func.instance());
+#else
+    auto instance = func.instance();
+#endif
+    return invoke(get(func), instance, args...);
 }
 
 template <class Call_T, typename Ret, typename... Args>
@@ -158,9 +172,10 @@ class unknown_vfunc_invoker
     using args_packed = boost::hana::tuple<Args...>;
 
     template <typename Ret>
-    static constexpr member_func_invoker<Call_T, Ret, Object, Args...> invoker;
+    using raw_function = member_function<false, Call_T, Ret, Object, Args...>;
 
     void* function_;
+
     Object* instance_;
     [[no_unique_address]] //
     args_packed args_;
@@ -177,15 +192,7 @@ class unknown_vfunc_invoker
     Ret operator()(std::type_identity<Ret>) const
     {
         return boost::hana::unpack(args_, [this](Args... args) -> Ret {
-            return invoker<Ret>(args..., function_, instance_);
-        });
-    }
-
-    template <typename Ret>
-    Ret operator()(std::type_identity<Ret>)
-    {
-        return boost::hana::unpack(args_, [this](Args... args) -> Ret {
-            return invoker<Ret>(args..., function_, instance_);
+            return invoke(unsafe_cast<raw_function<Ret>>(function_), instance_, args...);
         });
     }
 };
@@ -200,8 +207,7 @@ auto invoke(unknown_vfunc_args<Call_T, Object> func, Args... args) -> invoke_cas
 template <typename Ret, class Call_T, class Object, typename... Args>
 Ret invoke(unknown_vfunc_args<Call_T, Object> func, Args... args)
 {
-    member_func_invoker<Call_T, Ret, Object, Args...> invoker;
-    return invoker(func.get(), func.instance(), args...);
+    return invoke(func.template get<Ret, Args...>(), args...);
 }
 
 template <typename Ret, class Object, typename... Args>
@@ -226,8 +232,7 @@ struct unknown_vfunc_call : basic_vfunc<Object>
 template <class Call_T, typename Ret, class Object, typename... Args>
 Ret invoke(unknown_vfunc_call<Ret, Object, Args...> func, std::type_identity_t<Args>... args)
 {
-    member_func_invoker<Call_T, Ret, Object, Args...> invoker;
-    return invoker(func.get(), func.instance(), args...);
+    return invoke(func.template get<Call_T>(), args...);
 }
 
 template <class Object>
@@ -264,8 +269,7 @@ struct unknown_vfunc : basic_vfunc<Object>
 template <class Call_T, typename Ret, class Object, typename... Args>
 Ret invoke(unknown_vfunc<Object> func, Args... args)
 {
-    member_func_invoker<Call_T, Ret, Object, Args...> invoker;
-    return invoker(func.get(), func.instance(), args...);
+    return invoke(func.template get<Call_T, Ret, Args...>(), args...);
 }
 
 template <class Call_T, class Object, typename... Args>

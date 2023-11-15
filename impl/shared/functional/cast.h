@@ -55,7 +55,7 @@ constexpr T& remove_const(T& ref)
 namespace detail
 {
 template <typename To, typename From>
-concept can_static_cast = requires(From from) { static_cast<To>(from); };
+concept can_static_cast = !std::is_void_v<To> && requires(From from) { static_cast<To>(from); };
 
 constexpr void safe_cast_debug_trap()
 {
@@ -174,7 +174,9 @@ template <typename T, typename Ptr, size_t Index = 0, size_t Limit = pointers_co
 struct make_pointer_like :
     make_pointer_like<
         std::conditional_t<are_pointer_const_v<Ptr, Index, Limit>, T const*, T*>, //
-        Ptr, Index + 1, Limit>
+        Ptr,
+        Index + 1,
+        Limit>
 {
 };
 
@@ -187,7 +189,10 @@ template <typename T, typename P1, typename P2, size_t Index = 0, size_t Limit =
 struct rewrap_pointer_like :
     rewrap_pointer_like<
         std::conditional_t<are_pointer_const_v<P1, Index, Limit> || are_pointer_const_v<P2, Index, Limit>, T const*, T*>, //
-        P1, P2, Index + 1, Limit>
+        P1,
+        P2,
+        Index + 1,
+        Limit>
 {
 };
 
@@ -261,7 +266,7 @@ template <typename To>
 struct unsafe_cast_direct
 {
     template <typename From>
-    To operator()(From from) const requires(sizeof(To) == sizeof(From) && can_static_cast<From, To>)
+    To operator()(From from) const requires(sizeof(To) == sizeof(From) && can_static_cast<To, From>)
     {
         unsafe_cast_debug_trap();
         return static_cast<To>(from);
@@ -272,7 +277,8 @@ template <typename To>
 struct unsafe_cast_force
 {
     template <typename From>
-    To operator()(From from) const requires(sizeof(To) == sizeof(From) && !can_static_cast<From, To> && std::is_trivially_destructible_v<From>)
+    requires(sizeof(To) == sizeof(From))
+    To operator()(From from) const requires(sizeof(To) == sizeof(From) && !can_static_cast<To, From> && std::is_trivially_destructible_v<From>)
     {
         unsafe_cast_debug_trap();
 
@@ -353,4 +359,7 @@ inline constexpr auto safe_cast_lazy = detail::lazy_cast<detail::safe_cast_impl>
 template <typename To>
 inline constexpr detail::unsafe_cast_impl<To> unsafe_cast;
 inline constexpr auto unsafe_cast_lazy = detail::lazy_cast<detail::unsafe_cast_impl>;
+
+template <typename To, typename From>
+using safe_cast_t = std::invoke_result_t<detail::safe_cast_impl<To>, From>;
 } // namespace fd
