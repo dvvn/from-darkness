@@ -33,6 +33,11 @@ static void* get_vfunc_impl(void* table_function, void* instance)
     return get_vtable(instance)[function_index];
 }
 
+void* get_vfunc(size_t const index, void* instance)
+{
+    return get_vtable(instance)[index];
+}
+
 #define GET_VFUNC_IMPL(_CCV_, ...)                                       \
     template <>                                                          \
     void* get_vfunc<_CCV_T(_CCV_)>(void* table_function, void* instance) \

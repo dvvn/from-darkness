@@ -13,21 +13,10 @@ struct vtable_call_type_for : std::type_identity<default_call_type_member>
 template <class Object>
 using vtable_call_type = typename vtable_call_type_for<Object>::type;
 
-template <class Call_T>
-class vfunc_index
+template <typename Fn, size_t Index>
+struct vfunc_tag
 {
-    size_t index_;
-
-  public:
-    constexpr vfunc_index(size_t index /*, call_type_holder<Call_T> = {}*/)
-        : index_(index)
-    {
-    }
-
-    operator size_t() const
-    {
-        return index_;
-    }
+    Fn fn;
 };
 
 template <class T>
@@ -104,37 +93,26 @@ struct vtable
     {
         return make_mem_backup(*vtable_, other.get());
     }
-
-    template <typename Func>
-    auto operator[](Func fn) const -> typename function_info<Func>::template rebind<vfunc>
-    {
-        return {fn, instance_};
-    }
-
-    template <class Call_T>
-    auto operator[](vfunc_index<Call_T> index) const -> unknown_vfunc_args<Call_T, T>
-    {
-        return {index, instance_};
-    }
-
-    auto operator[](ptrdiff_t index) const -> unknown_vfunc_args<vtable_call_type<T>, T>
-    {
-        return {index, instance_};
-    }
 };
-
-template <typename T>
-auto get(vtable<T> table, auto index) -> decltype(table[index])
-{
-    return table[index];
-}
 
 template <typename T>
 vtable(T*, size_t = 0) -> vtable<T>;
 
-// template<call_type_t Call_T,typename member_function,class T,typename ...Args>
-// class vfunc_view
-//{
-//     vtable<T>
-// };
+template <typename Func, typename T>
+auto get(Func fn, vtable<T> table) -> vfunc<Func>
+{
+    return {fn, table.instance()};
+}
+
+template <typename Func, typename T>
+auto get(Func fn, vtable<T> table, std::in_place_t hint) -> vfunc<Func>
+{
+    return {fn, table.instance(), hint};
+}
+
+template <typename Func, typename T>
+auto get(size_t index, vtable<T> table) -> vfunc<Func>
+{
+    return {index, table.instance()};
+}
 }

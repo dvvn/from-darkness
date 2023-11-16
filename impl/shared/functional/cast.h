@@ -174,9 +174,7 @@ template <typename T, typename Ptr, size_t Index = 0, size_t Limit = pointers_co
 struct make_pointer_like :
     make_pointer_like<
         std::conditional_t<are_pointer_const_v<Ptr, Index, Limit>, T const*, T*>, //
-        Ptr,
-        Index + 1,
-        Limit>
+        Ptr, Index + 1, Limit>
 {
 };
 
@@ -189,10 +187,7 @@ template <typename T, typename P1, typename P2, size_t Index = 0, size_t Limit =
 struct rewrap_pointer_like :
     rewrap_pointer_like<
         std::conditional_t<are_pointer_const_v<P1, Index, Limit> || are_pointer_const_v<P2, Index, Limit>, T const*, T*>, //
-        P1,
-        P2,
-        Index + 1,
-        Limit>
+        P1, P2, Index + 1, Limit>
 {
 };
 
@@ -277,13 +272,13 @@ template <typename To>
 struct unsafe_cast_force
 {
     template <typename From>
-    requires(sizeof(To) == sizeof(From))
     To operator()(From from) const requires(sizeof(To) == sizeof(From) && !can_static_cast<To, From> && std::is_trivially_destructible_v<From>)
     {
         unsafe_cast_debug_trap();
 
         union
         {
+            uint8_t gap = 0;
             From from0;
             To to;
         };

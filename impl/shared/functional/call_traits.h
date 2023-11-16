@@ -248,8 +248,8 @@ struct basic_function_info
 template <bool Noexcept, class Call_T, typename Ret, class T, typename... Args>
 struct member_function_info : basic_function_info<Noexcept, Call_T, Ret>
 {
-    /*template <template <class, typename, class, typename...> class Other>
-    using rebind = Other<Call_T, Ret, T, Args...>;*/
+    template <template <bool, class, typename, class, typename...> class Other>
+    using rebind = Other<Noexcept, Call_T, Ret, T, Args...>;
 
     using object_type_raw = T;
     using object_type     = std::remove_reference_t<T>;
@@ -259,8 +259,8 @@ struct member_function_info : basic_function_info<Noexcept, Call_T, Ret>
 template <bool Noexcept, class Call_T, typename Ret, typename... Args>
 struct non_member_function_info : basic_function_info<Noexcept, Call_T, Ret>
 {
-    /*template <template <class, typename, typename...> class Other>
-    using rebind = Other<Call_T, Ret, Args...>;*/
+    template <template <bool, class, typename, typename...> class Other>
+    using rebind = Other<Noexcept, Call_T, Ret, Args...>;
 
     using args = function_args<Args...>;
 };

@@ -144,71 +144,30 @@ _NON_MEMBER_CALL(HOOK_PROXY_STATIC, , , noexcept);
 #endif
 } // namespace detail
 
-template <class Callback, class Proxy, typename Func>
-hook_info<Callback> prepare_hook(Func fn)
+template <class Callback, class Proxy, typename Func, bool Inner = false>
+hook_info<Callback> prepare_hook(Func fn, std::bool_constant<Inner> = {}) requires(Inner || complete<Proxy>)
 {
     return {unsafe_cast<void*>(fn), unsafe_cast<void*>(&Proxy::template proxy<Callback>)};
 }
 
 template <class Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy, typename Func>
-hook_info<Callback> prepare_hook(Func fn)
-#ifdef _DEBUG
-    requires(complete<Proxy<Func>>)
-#endif
+hook_info<Callback> prepare_hook(Func fn) requires(complete<Proxy<Func>>)
 {
-    return prepare_hook<Callback, Proxy<Func>>(fn);
+    return prepare_hook<Callback, Proxy<Func>>(fn, std::true_type());
 }
 
-#if 0 // old version
-template <class Call_T, typename Ret, typename T, typename... Args>
+template <typename Fn, size_t FnSize>
 struct vfunc;
 
-template <
-    typename Callback,
-    FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy_member, //
-    class Call_T, typename Ret, class Object, typename... Args>
-hook_info<Callback> prepare_hook(vfunc<Call_T, Ret, Object, Args...> target)
+template <typename Callback, class Proxy, typename Func, size_t FuncSize>
+hook_info<Callback> prepare_hook(vfunc<Func, FuncSize> target)
 {
-    using proxy = Proxy<Call_T, Ret, Object, Args...>;
-    return prepare_hook<Callback, proxy>(target.get());
+    return prepare_hook<Callback, Proxy, Func>(target, std::true_type());
 }
 
-template <
-    typename Callback,
-    FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy_member, //
-    class Call_T, typename Ret, class Object, typename... Args>
-hook_info<Callback> prepare_hook(vfunc<Call_T, Ret, Object, function_args<Args...>> target)
+template <typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy, typename Func, size_t FuncSize>
+hook_info<Callback> prepare_hook(vfunc<Func, FuncSize> target)
 {
-    using proxy_type = Proxy<Call_T, Ret, Object, Args...>;
-    return {target.get(), detail::extract_hook_proxy<Callback, proxy_type>()};
+    return prepare_hook<Callback, Proxy<Func>, Func>(target, std::true_type());
 }
-#else
-
-template <class Call_T, typename Ret, class Object, typename... Args>
-struct vfunc;
-
-template <
-    typename Callback,
-    FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy, //
-    class Call_T,
-    typename Ret,
-    class Object,
-    typename... Args>
-hook_info<Callback> prepare_hook(vfunc<Call_T, Ret, Object, Args...> target)
-{
-    return prepare_hook<Callback, Proxy>(get(target));
-}
-#endif
-
-#if 0 // probably unused
-struct native_function_tag;
-
-template <
-    typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy_member, //
-    std::derived_from<native_function_tag> Fn>
-hook_info<Callback> prepare_hook(Fn abstract_fn)
-{
-    return prepare_hook<Callback, Proxy>(abstract_fn.get());
-}
-#endif
 } // namespace fd
