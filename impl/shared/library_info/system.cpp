@@ -1,5 +1,6 @@
 ﻿#include "library_info/system.h"
 #include "algorithm/find.h"
+#include "functional/cast.h"
 #include "iterator/unwrap.h"
 #include "memory/pattern.h"
 #include "memory/xref.h"
