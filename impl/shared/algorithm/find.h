@@ -63,9 +63,12 @@ It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, Call
 
     if constexpr (cb_invoker::invocable || cb_invoker2::invocable)
     {
+        verify_range(rng_start, rng_end);
+
         auto const callback_ref = std::ref(callback);
 
-        auto [u_rng_start, u_rng_end] = unwrap_range(rng_start, rng_end);
+        auto u_rng_start     = unwrap_iterator(rng_start);
+        auto const u_rng_end = unwrap_iterator(rng_end);
 
         for (;;)
         {
@@ -89,11 +92,15 @@ It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, Call
 template <typename It, typename It2 = It, typename Callback = uint8_t>
 It find(It rng_start, It const rng_end, It2 const what_start, It2 const what_end, Callback callback = {})
 {
+    verify_range(what_start, what_end);
+
     auto const callback_ref = std::ref(callback);
 
-    auto [u_what_start, u_what_end] = detail::unwrap_range(what_start, what_end);
-    auto const what_front           = *u_what_start;
-    auto const target_length        = std::distance(u_what_start, u_what_end);
+    auto const u_what_start = unwrap_iterator(what_start);
+    auto const u_what_end   = unwrap_iterator(what_end);
+
+    auto const what_front    = *u_what_start;
+    auto const target_length = std::distance(u_what_start, u_what_end);
 
     if (target_length == 1)
     {
@@ -102,7 +109,12 @@ It find(It rng_start, It const rng_end, It2 const what_start, It2 const what_end
     // ReSharper disable once CppRedundantElseKeywordInsideCompoundStatement
     else
     {
-        auto [u_rng_start, u_rng_safe_end] = detail::unwrap_range(rng_start, rng_end - target_length);
+        verify_range(rng_start, rng_end);
+
+        auto u_rng_start          = unwrap_iterator(rng_start);
+        auto const u_rng_safe_end = unwrap_iterator(rng_end - target_length);
+
+        verify_range(u_rng_start, u_rng_safe_end);
 
         for (;;)
         {
@@ -120,19 +132,19 @@ It find(It rng_start, It const rng_end, It2 const what_start, It2 const what_end
 }
 
 template <detail::pattern_size_type BytesCount>
-class pattern_segment;
+struct pattern_segment;
 template <detail::pattern_size_type... SegmentsBytesCount>
 struct pattern;
 
 template <typename It, detail::pattern_size_type BytesCount, typename... Next>
 bool equal(It mem, pattern_segment<BytesCount> const& segment, Next const&... next)
 {
-    auto const ok = segment.equal(mem);
+    auto const ok = std::equal(begin(segment), end(segment), mem);
 
     if constexpr (sizeof...(Next) == 0)
         return ok;
     else
-        return ok && equal(mem + segment.abs_size(), next...);
+        return ok && equal(mem + abs_size(segment), next...);
 }
 
 template <typename It, detail::pattern_size_type... SegmentsBytesCount>
@@ -148,7 +160,7 @@ It find(It rng_start, It const rng_end, pattern<SegmentsBytesCount...> const& pa
 {
     auto const callback_ref = std::ref(callback);
 
-    auto const first_pattern_byte = boost::hana::front(pat.bytes).front();
+    auto const first_pattern_byte = *ubegin(boost::hana::front(pat.bytes));
 
     if constexpr (sizeof...(SegmentsBytesCount) == 1)
     {
@@ -156,8 +168,14 @@ It find(It rng_start, It const rng_end, pattern<SegmentsBytesCount...> const& pa
     }
     else
     {
-        auto const pat_size                = pat.size();
-        auto [u_rng_start, u_rng_end_safe] = detail::unwrap_range(rng_start, rng_end - pat_size);
+        verify_range(rng_start, rng_end);
+
+        auto const pat_size = pat.size();
+
+        auto u_rng_start          = unwrap_iterator(rng_start);
+        auto const u_rng_end_safe = unwrap_iterator(rng_end - pat_size);
+
+        verify_range(u_rng_start, u_rng_end_safe);
 
         for (;;)
         {

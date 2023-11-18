@@ -91,7 +91,8 @@ void* system_library_info::vtable(char const* name, size_t length) const
         char const* rtti_descriptor_view;
     };
 
-    auto const [image_start, image_end] = detail::unwrap_range(*this);
+    auto const image_start = ubegin(*this);
+    auto const image_end   = uend(*this);
 
     rtti_descriptor = find_rtti_descriptor({name, length}, image_start, image_end);
 
@@ -103,7 +104,9 @@ void* system_library_info::vtable(char const* name, size_t length) const
     // dos + section->VirtualAddress, section->SizeOfRawData
 
     library_section_view const rdata(this->section(".rdata"), image_start);
-    auto const [rdata_begin, rdata_end] = detail::unwrap_range(rdata);
+
+    auto const rdata_begin = ubegin(rdata);
+    auto const rdata_end   = ubegin(rdata);
 
     auto const addr1 = find(rdata_begin, rdata_end, type_descriptor, [](uint8_t const* found) -> bool {
         return *unsafe_cast<uint32_t*>(found - 0x8) == 0;
@@ -116,12 +119,12 @@ void* system_library_info::vtable(char const* name, size_t length) const
         return nullptr;
 
     library_section_view const text(this->section(".text"), image_start);
-    auto const test_end = text.end();
-    auto const found    = find(text.begin(), test_end, xref(unsafe_cast<uintptr_t>(addr2) + 4));
+    auto const test_end = uend(text);
+    auto const found    = find(ubegin(text), test_end, xref(unsafe_cast<uintptr_t>(addr2) + 4));
     if (found == test_end)
         return nullptr;
 
-    return detail::unwrap_iterator(found);
+    return found;
 }
 
 system_library_info literals::operator""_dll(wchar_t const* name, size_t length)

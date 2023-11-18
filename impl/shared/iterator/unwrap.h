@@ -1,94 +1,109 @@
 #pragma once
 
-#include <boost/move/detail/iterator_to_raw_pointer.hpp>
-
-namespace boost::container
-{
-template <class Pointer, bool IsConst>
-class vec_iterator;
-}
-
-// ReSharper disable CppInconsistentNaming
-
-_STD_BEGIN
-template <typename T, bool C>
-_NODISCARD T _Get_unwrapped(boost::container::vec_iterator<T, C> it) noexcept
-{
-    return it.get_ptr();
-}
-
-_STD_END
-
-namespace boost::movelib
-{
-#if defined(_MSC_VER) && _ITERATOR_DEBUG_LEVEL != 0
-namespace detail
-{
-template <class Iterator>
-requires(_STD _Unwrappable_v<Iterator>)
-auto iterator_to_pointer(Iterator const& i) -> typename iterator_to_element_ptr<Iterator>::type
-{
-    return iterator_to_pointer(_STD _Get_unwrapped(i));
-}
-} // namespace detail
-
-template <class Iterator>
-requires(_STD _Unwrappable_v<Iterator>)
-auto iterator_to_raw_pointer(Iterator const& i) -> typename detail::iterator_to_element_ptr<Iterator>::type
-{
-    return iterator_to_raw_pointer(_STD _Get_unwrapped(i));
-}
-#endif
-} // namespace boost::movelib
+#include <iterator>
+#include <utility>
 
 // ReSharper restore CppInconsistentNaming
 
-namespace fd::detail
+namespace fd
+{
+namespace detail
 {
 /// deprecated
 // using boost::movelib::iterator_to_raw_pointer;
 // using boost::movelib::to_raw_pointer;
 
+template <typename Rng>
+concept can_access_unwrapped_iterator = std::is_trivially_destructible_v<std::remove_cvref_t<Rng>> || std::is_lvalue_reference_v<Rng>;
+
+template <typename T>
+concept has_unchecked_begin = requires(T obj) {
+#ifdef _MSC_VER
+    static_cast<T>(obj)._Unchecked_begin();
+#else
+
+#endif
+};
+
+template <typename T>
+concept has_unchecked_end = requires(T obj) {
+#ifdef _MSC_VER
+    static_cast<T>(obj)._Unchecked_end();
+#else
+
+#endif
+};
+
+} // namespace detail
+
 template <typename It>
-decltype(auto) unwrap_iterator(It&& it)
+constexpr decltype(auto) unwrap_iterator(It&& it)
 {
 #ifdef _MSC_VER
-    return _STD _Get_unwrapped(it);
+    return _STD _Get_unwrapped(static_cast<It&&>(it));
 #else
 #endif
 }
 
 template <typename It, typename ItRaw>
-void rewrap_iterator(It& it, ItRaw&& it_raw)
+constexpr void rewrap_iterator(It& it, ItRaw&& it_raw)
 {
 #ifdef _MSC_VER
-    return _STD _Seek_wrapped(it, it_raw);
+    return _STD _Seek_wrapped(it, static_cast<ItRaw&&>(it_raw));
 #else
 #endif
 }
 
-template <bool Validate = true, typename It>
-auto unwrap_range(It first, It const last)
+template <typename Rng>
+constexpr auto ubegin(Rng&& rng)
+#ifdef _DEBUG
+    requires(detail::can_access_unwrapped_iterator<Rng &&>)
+#endif
 {
-    if constexpr (Validate)
+    if constexpr (detail::has_unchecked_begin<Rng&&>)
     {
 #ifdef _MSC_VER
-        _STD _Adl_verify_range(first, last);
+        return static_cast<Rng&&>(rng)._Unchecked_begin();
 #else
+
 #endif
     }
-    return std::pair(unwrap_iterator(first), unwrap_iterator(last));
+    else
+    {
+        using std::begin;
+        return unwrap_iterator(begin(static_cast<Rng&&>(rng)));
+    }
 }
 
-template <bool Validate = true, typename Rng>
-auto unwrap_range(Rng&& rng)
+template <typename It, typename It2>
+constexpr void verify_range(It const& it, It2 const& it2)
 {
-#ifdef _DEBUG
-    static_assert(std::is_trivially_destructible_v<Rng> || std::is_lvalue_reference_v<Rng>);
+#ifdef _MSC_VER
+    _STD _Adl_verify_range(it, it2);
+#else
+
 #endif
-    using std::begin;
-    using std::end;
-    return unwrap_range<Validate>(begin(rng), end(rng));
 }
 
-} // namespace fd::detail
+template <typename Rng>
+constexpr auto uend(Rng&& rng)
+#ifdef _DEBUG
+    requires(detail::can_access_unwrapped_iterator<Rng &&>)
+#endif
+{
+    if constexpr (detail::has_unchecked_end<Rng&&>)
+    {
+#ifdef _MSC_VER
+        return static_cast<Rng&&>(rng)._Unchecked_end();
+#else
+
+#endif
+    }
+    else
+    {
+        using std::end;
+        return unwrap_iterator(end(static_cast<Rng&&>(rng)));
+    }
+}
+
+} // namespace fd
