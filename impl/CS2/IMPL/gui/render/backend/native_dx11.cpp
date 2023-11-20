@@ -20,8 +20,8 @@ native_dx11_device_data::native_dx11_device_data(IDXGISwapChain* sc)
 native_dx11_device_data::native_dx11_device_data(system_library_info info)
 {
     assert(info.name() == L"rendersystemdx11.dll");
-    auto const addr = find((info), "66 0F 7F 05 ? ? ? ? 66 0F 7F 0D ? ? ? ? 48 89 35"_pat);
-    assert(addr != nullptr);
+    auto const addr = find(info, "66 0F 7F 05 ? ? ? ? 66 0F 7F 0D ? ? ? ? 48 89 35"_pat);
+    assert(addr != nullptr); // nullptr only for range style
     auto const abs_addr = resolve_relative_address(addr, 0x4, 0x8);
     assert(abs_addr != nullptr);
     auto const native_swap_chain = **static_cast<dx11_swap_chain***>(abs_addr);

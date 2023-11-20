@@ -26,7 +26,7 @@ class find_callback_invoker
 };
 
 template <typename It, typename ItRaw, typename Callback>
-bool invoke_find_callback(It& first_pos, ItRaw current_pos, std::reference_wrapper<Callback> callback)
+bool on_found_byte(It& first_pos, ItRaw current_pos, std::reference_wrapper<Callback> callback)
 {
     using cb_invoker  = find_callback_invoker<Callback, ItRaw>;
     using cb_invoker2 = find_callback_invoker<Callback, It>;
@@ -51,7 +51,7 @@ bool invoke_find_callback(It& first_pos, ItRaw current_pos, std::reference_wrapp
     return true;
 }
 
-template <typename It, typename Callback>
+template <bool Verify = true, typename It, typename Callback>
 It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, std::reference_wrapper<Callback> callback)
 {
     using cb_invoker  = find_callback_invoker<Callback, decltype(unwrap_iterator(rng_start))>;
@@ -59,7 +59,8 @@ It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, std:
 
     if constexpr (cb_invoker::invocable || cb_invoker2::invocable)
     {
-        verify_range(rng_start, rng_end);
+        if constexpr (Verify)
+            verify_range(rng_start, rng_end);
 
         auto u_rng_start     = unwrap_iterator(rng_start);
         auto const u_rng_end = unwrap_iterator(rng_end);
@@ -70,7 +71,7 @@ It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, std:
             if (pos_found == u_rng_end)
                 return rng_end;
 
-            if (invoke_find_callback(rng_start, pos_found, callback))
+            if (on_found_byte(rng_start, pos_found, callback))
                 return rng_start;
 
             u_rng_start = pos_found;
@@ -118,7 +119,7 @@ It find(It rng_start, It const rng_end, It2 const what_start, It2 const what_end
 
             if (!std::equal(u_what_start, u_what_end, u_rng_start))
                 ++u_rng_start;
-            else if (detail::invoke_find_callback(rng_start, front_found, callback_ref))
+            else if (detail::on_found_byte(rng_start, front_found, callback_ref))
                 return rng_start;
             u_rng_start = front_found + target_length;
         }

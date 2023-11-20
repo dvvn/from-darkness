@@ -15,7 +15,9 @@ using pattern_difference_type = int8_t;
 #endif
 } // namespace detail
 
-template <detail::pattern_size_type... SegmentsBytesCount>
-struct pattern;
+template <detail::pattern_size_type BytesCount, detail::pattern_size_type UnknownBytesCount>
+struct pattern_segment;
+template <class ...Segment>
+class pattern;
 
 } // namespace fd

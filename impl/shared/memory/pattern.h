@@ -108,12 +108,13 @@ pattern_string(char const (&)[S]) -> pattern_string<S - 1>;
 
 struct pattern_segment_item
 {
-    uint8_t byte = -1;
+    uint8_t byte;
     bool unknown = true;
 
-    constexpr operator uint8_t() const
+    template <std::same_as<uint8_t> T>
+    constexpr operator T() const
     {
-        assert(!unknown);
+        assert(unknown == false);
         return byte;
     }
 };
@@ -124,52 +125,6 @@ inline constexpr auto pattern_segment_item_unknown = [](pattern_segment_item con
 };
 } // namespace detail
 
-template <class S>
-class pattern_segment_base
-{
-    auto* bytes() const
-    {
-        return std::addressof(static_cast<S const*>(this)->known_bytes);
-    }
-
-    auto* bytes()
-    {
-        return std::addressof(static_cast<S*>(this)->known_bytes);
-    }
-
-  public:
-    template <typename It>
-    bool equal(It mem) const
-    {
-        return std::equal(bytes()->begin(), bytes()->end(), mem);
-    }
-
-    auto front() const
-    {
-        return bytes()->front();
-    }
-
-    auto begin() const
-    {
-        return bytes()->begin();
-    }
-
-    auto end() const
-    {
-        return bytes()->end();
-    }
-
-    auto size() const
-    {
-        return bytes()->size();
-    }
-
-    auto abs_size() const
-    {
-        return bytes()->size() + static_cast<S const*>(this)->unknown_bytes;
-    }
-};
-
 template <detail::pattern_size_type BytesCount>
 struct pattern_segment_bytes : array<uint8_t, BytesCount>
 {
@@ -178,113 +133,133 @@ struct pattern_segment_bytes : array<uint8_t, BytesCount>
         : array<uint8_t, BytesCount>()
     {
         assert(std::distance(known_from, known_to) == BytesCount);
-        std::copy(known_from, known_to, this->begin());
+        if constexpr (BytesCount == 1)
+            this->front() = *known_from;
+        else
+            std::copy(known_from, known_to, this->begin());
     }
 };
 
 template <>
-struct pattern_segment_bytes<1> : array<uint8_t, 1>
-{
-    template <typename It>
-    constexpr pattern_segment_bytes(It known_from, It known_to)
-        : array()
-    {
-        assert(std::distance(known_from, known_to) == 1);
-        this->front() = *known_from;
-    }
-};
+struct pattern_segment_bytes<0>;
 
 template <>
-struct pattern_segment_bytes<0> : span<char const>
+struct pattern_segment_bytes<-1> : span<char const>
 {
     using span::span;
 };
 
 template <detail::pattern_size_type BytesCount>
-struct pattern_segment
+struct pattern_segment_unknown_bytes : std::integral_constant<detail::pattern_size_type, BytesCount>
 {
-    template <detail::pattern_size_type C>
-    friend constexpr auto begin(pattern_segment<C> const&) -> typename pattern_segment<C>::storage_type::const_iterator;
-    template <detail::pattern_size_type C>
-    friend constexpr auto end(pattern_segment<C> const&) -> typename pattern_segment<C>::storage_type::const_iterator;
-    template <detail::pattern_size_type C>
-    friend constexpr auto ubegin(pattern_segment<C> const&) -> typename pattern_segment<C>::storage_type::const_pointer;
-    template <detail::pattern_size_type C>
-    friend constexpr auto uend(pattern_segment<C> const&) -> typename pattern_segment<C>::storage_type::const_pointer;
-    template <detail::pattern_size_type C>
-    friend constexpr auto size(pattern_segment<C> const&) -> typename pattern_segment<C>::size_type;
-    template <detail::pattern_size_type C>
-    friend constexpr auto abs_size(pattern_segment<C> const&) -> typename pattern_segment<C>::size_type;
-
-    using storage_type = pattern_segment_bytes<BytesCount>;
-    using size_type    = detail::pattern_size_type;
-
-  private:
-    storage_type known_bytes_;
-    size_type unknown_bytes_;
-
-  public:
-    template <typename It>
-    constexpr pattern_segment(It known_from, It known_to, size_type const unknown_bytes)
-        : known_bytes_(known_from, known_to)
-        , unknown_bytes_(unknown_bytes)
+    constexpr pattern_segment_unknown_bytes(std::integral_constant<detail::pattern_size_type, BytesCount> = {})
     {
     }
 };
 
-template <detail::pattern_size_type BytesCount>
-constexpr auto begin(pattern_segment<BytesCount> const& segment) -> typename pattern_segment<BytesCount>::storage_type::const_iterator
+template <>
+struct pattern_segment_unknown_bytes<-1>
 {
-    return begin(segment.known_bytes_);
-}
+    detail::pattern_size_type value;
 
-template <detail::pattern_size_type BytesCount>
-constexpr auto end(pattern_segment<BytesCount> const& segment) -> typename pattern_segment<BytesCount>::storage_type::const_iterator
-{
-    return end(segment.known_bytes_);
-}
-
-template <detail::pattern_size_type BytesCount>
-constexpr auto ubegin(pattern_segment<BytesCount> const& segment) -> typename pattern_segment<BytesCount>::storage_type::const_pointer
-{
-    return ubegin(segment.known_bytes_);
-}
-
-template <detail::pattern_size_type BytesCount>
-constexpr auto uend(pattern_segment<BytesCount> const& segment) -> typename pattern_segment<BytesCount>::storage_type::const_pointer
-{
-    return ubegin(segment.known_bytes_);
-}
-
-template <detail::pattern_size_type BytesCount>
-constexpr auto size(pattern_segment<BytesCount> const& segment) -> typename pattern_segment<BytesCount>::size_type
-{
-    if constexpr (BytesCount == 0)
-        return segment.known_bytes_.size();
-    else
-        return BytesCount;
-}
-
-template <detail::pattern_size_type BytesCount>
-constexpr auto abs_size(pattern_segment<BytesCount> const& segment) -> typename pattern_segment<BytesCount>::size_type
-{
-    return size(segment) + segment.unknown_bytes_;
-}
-
-template <detail::pattern_size_type... SegmentsBytesCount>
-struct pattern
-{
-    boost::hana::tuple<pattern_segment<SegmentsBytesCount>...> bytes;
-
-    constexpr pattern(pattern_segment<SegmentsBytesCount>... segment)
-        : bytes(segment...)
+    template <detail::pattern_size_type BytesCount>
+    constexpr pattern_segment_unknown_bytes(std::integral_constant<detail::pattern_size_type, BytesCount>)
+        : value{BytesCount}
     {
+    }
+
+    constexpr pattern_segment_unknown_bytes(detail::pattern_size_type const bytes_count)
+        : value{bytes_count}
+    {
+    }
+};
+
+template <detail::pattern_size_type Bytes, detail::pattern_size_type UnknownBytes>
+struct pattern_segment
+{
+    template <detail::pattern_size_type Bytes1, detail::pattern_size_type UnknownBytes1>
+    friend constexpr auto ubegin(pattern_segment<Bytes1, UnknownBytes1> const&) -> typename pattern_segment<Bytes1, UnknownBytes1>::known_bytes::const_pointer;
+    template <detail::pattern_size_type Bytes1, detail::pattern_size_type UnknownBytes1>
+    friend constexpr auto uend(pattern_segment<Bytes1, UnknownBytes1> const&) -> typename pattern_segment<Bytes1, UnknownBytes1>::known_bytes::const_pointer;
+    template <detail::pattern_size_type Bytes1, detail::pattern_size_type UnknownBytes1>
+    friend constexpr auto abs_size(pattern_segment<Bytes1, UnknownBytes1> const&) -> typename pattern_segment<Bytes1, UnknownBytes1>::unknown_bytes::value_type;
+
+    using known_bytes   = pattern_segment_bytes<Bytes>;
+    using unknown_bytes = pattern_segment_unknown_bytes<UnknownBytes>;
+
+  private:
+    known_bytes known_bytes_;
+    [[no_unique_address]] //
+    unknown_bytes unknown_bytes_;
+
+  public:
+    template <typename It>
+    constexpr pattern_segment(It known_from, It known_to, unknown_bytes unknown_bytes = {})
+        : known_bytes_(known_from, known_to)
+        , unknown_bytes_(unknown_bytes)
+    {
+    }
+
+    constexpr typename known_bytes::const_iterator begin() const
+    {
+        return known_bytes_.begin();
+    }
+
+    constexpr typename known_bytes::const_iterator end() const
+    {
+        return known_bytes_.begin();
+    }
+
+    constexpr typename unknown_bytes::value_type size() const
+    {
+        return known_bytes_.size();
+    }
+};
+
+template <detail::pattern_size_type BytesCount, detail::pattern_size_type UnknownBytes>
+constexpr auto ubegin(pattern_segment<BytesCount, UnknownBytes> const& segment) ->
+    typename pattern_segment<BytesCount, UnknownBytes>::known_bytes::const_pointer
+{
+    return ubegin(segment.known_bytes_);
+}
+
+template <detail::pattern_size_type BytesCount, detail::pattern_size_type UnknownBytes>
+constexpr auto uend(pattern_segment<BytesCount, UnknownBytes> const& segment) -> //
+    typename pattern_segment<BytesCount, UnknownBytes>::known_bytes::const_pointer
+{
+    return ubegin(segment.known_bytes_);
+}
+
+template <detail::pattern_size_type BytesCount, detail::pattern_size_type UnknownBytes>
+constexpr auto abs_size(pattern_segment<BytesCount, UnknownBytes> const& segment) -> //
+    typename pattern_segment<BytesCount, UnknownBytes>::unknown_bytes::value_type
+{
+    using std::size;
+    return size(segment) + segment.unknown_bytes_.value;
+}
+
+template <class... Segment>
+class pattern
+{
+    using storage_type = boost::hana::tuple<Segment...>;
+
+    storage_type bytes_;
+
+  public:
+    constexpr pattern(Segment... segment)
+        : bytes_(segment...)
+    {
+    }
+
+    storage_type const& get() const
+    {
+        return bytes_;
     }
 
     detail::pattern_size_type size() const
     {
         detail::pattern_size_type sum = 0;
-        boost::hana::for_each(bytes, [&sum](auto& segment) {
+        boost::hana::for_each(bytes_, [&sum](auto& segment) {
             sum += abs_size(segment);
         });
         return sum;
@@ -315,7 +290,7 @@ struct transformed_pattern : array<pattern_segment_item, BytesCount>
 
             if (*first == '?')
             {
-                assert(length == 1 || *first == *std::next(first));
+                assert(length == 1 || *std::next(first) == '?');
                 it->unknown = true;
             }
             else
@@ -349,14 +324,14 @@ struct transformed_pattern : array<pattern_segment_item, BytesCount>
     {
         using iterator = It; // pattern_segment_item const* /*typename array<pattern_segment_item, BytesCount>::const_iterator*/;
 
-        iterator begin;
-        iterator end;
-        pattern_size_type unknown;
+        iterator first;
+        iterator last;
+        pattern_size_type jump;
 
-        constexpr pattern_size_type length() const
+        /*constexpr pattern_size_type length() const
         {
-            return std::distance(begin, end);
-        }
+            return std::distance(first, last);
+        }*/
     };
 
     constexpr auto segment(size_t skip = 0) const -> segment_view<pattern_segment_item const*>
@@ -380,11 +355,11 @@ struct transformed_pattern : array<pattern_segment_item, BytesCount>
     }
 };
 
-template <size_t SegmentLength>
-constexpr auto make_segment(auto tmp_segment)
-{
-    return pattern_segment<SegmentLength>(tmp_segment.begin, tmp_segment.end, tmp_segment.unknown);
-}
+// template <size_t SegmentLength>
+// constexpr auto make_segment(auto tmp_segment)
+//{
+//     return pattern_segment<SegmentLength>(tmp_segment.begin, tmp_segment.end, tmp_segment.unknown);
+// }
 
 template <pattern_string Str>
 struct static_pattern
@@ -400,9 +375,8 @@ constexpr auto make_pattern()
 
     auto make_segment = []<size_t Skip>(std::in_place_index_t<Skip>) {
         constexpr auto tmp_segment    = bytes.segment(Skip);
-        constexpr auto segment_length = tmp_segment.length();
-        static_assert(segment_length != 0);
-        return pattern_segment<segment_length>(tmp_segment.begin, tmp_segment.end, tmp_segment.unknown);
+        constexpr auto segment_length = std::distance(tmp_segment.first, tmp_segment.last);
+        return pattern_segment<segment_length, tmp_segment.jump>(tmp_segment.first, tmp_segment.last);
     };
     constexpr auto segments_count = bytes.segments_count();
     return [&]<size_t... I>(std::index_sequence<I...>) {
@@ -435,9 +409,9 @@ constexpr auto make_pattern(Args const&... args)
         using std::begin;
         using std::end;
         if constexpr (sizeof(T) == sizeof(char) && !std::is_class_v<T>)
-            return pattern_segment<sizeof(T)>(&str, &str + 1, val);
+            return pattern_segment<sizeof(T), -1>(&str, &str + 1, val);
         else
-            return pattern_segment<0>(begin(str), end(str) - std::is_bounded_array_v<T>, val);
+            return pattern_segment<-1, -1>(begin(str), end(str) - std::is_bounded_array_v<T>, val);
     };
     auto const make_segment_at = [&]<size_t I>(std::in_place_index_t<I>) {
         constexpr auto index = I % 2 ? I + 1 : I;
