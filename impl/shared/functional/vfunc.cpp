@@ -27,9 +27,9 @@ static void** get_vtable(void* instance)
 }
 
 template <class Call_T>
-static void* get_vfunc_impl(void* table_function, void* instance)
+static void* get_vfunc_impl(void* abstract_function, void* instance)
 {
-    auto const function_index = get_vfunc_index<Call_T>(table_function);
+    auto const function_index = get_vfunc_index<Call_T>(abstract_function);
     return get_vtable(instance)[function_index];
 }
 
@@ -38,11 +38,11 @@ void* get_vfunc(size_t const index, void* instance)
     return get_vtable(instance)[index];
 }
 
-#define GET_VFUNC_IMPL(_CCV_, ...)                                       \
-    template <>                                                          \
-    void* get_vfunc<_CCV_T(_CCV_)>(void* table_function, void* instance) \
-    {                                                                    \
-        return get_vfunc_impl<_CCV_T(_CCV_)>(table_function, instance);  \
+#define GET_VFUNC_IMPL(_CCV_, ...)                                          \
+    template <>                                                             \
+    void* get_vfunc<_CCV_T(_CCV_)>(void* abstract_function, void* instance) \
+    {                                                                       \
+        return get_vfunc_impl<_CCV_T(_CCV_)>(abstract_function, instance);  \
     }
 
 #define GET_INDEX_FN(_Z_UNUSED_, _INDEX_, _CCV_)        \

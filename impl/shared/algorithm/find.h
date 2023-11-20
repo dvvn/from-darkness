@@ -1,9 +1,5 @@
 #pragma once
 #include "iterator/unwrap.h"
-#include "memory/basic_pattern.h"
-
-#include <boost/hana/front.hpp>
-#include <boost/hana/unpack.hpp>
 
 #include <algorithm>
 
@@ -30,7 +26,7 @@ class find_callback_invoker
 };
 
 template <typename It, typename ItRaw, typename Callback>
-bool invoke_find_callback(It& first_pos, ItRaw current_pos, Callback callback)
+bool invoke_find_callback(It& first_pos, ItRaw current_pos, std::reference_wrapper<Callback> callback)
 {
     using cb_invoker  = find_callback_invoker<Callback, ItRaw>;
     using cb_invoker2 = find_callback_invoker<Callback, It>;
@@ -56,7 +52,7 @@ bool invoke_find_callback(It& first_pos, ItRaw current_pos, Callback callback)
 }
 
 template <typename It, typename Callback>
-It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, Callback callback)
+It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, std::reference_wrapper<Callback> callback)
 {
     using cb_invoker  = find_callback_invoker<Callback, decltype(unwrap_iterator(rng_start))>;
     using cb_invoker2 = find_callback_invoker<Callback, It>;
@@ -64,8 +60,6 @@ It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, Call
     if constexpr (cb_invoker::invocable || cb_invoker2::invocable)
     {
         verify_range(rng_start, rng_end);
-
-        auto const callback_ref = std::ref(callback);
 
         auto u_rng_start     = unwrap_iterator(rng_start);
         auto const u_rng_end = unwrap_iterator(rng_end);
@@ -76,7 +70,7 @@ It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, Call
             if (pos_found == u_rng_end)
                 return rng_end;
 
-            if (invoke_find_callback(rng_start, pos_found, callback_ref))
+            if (invoke_find_callback(rng_start, pos_found, callback))
                 return rng_start;
 
             u_rng_start = pos_found;
@@ -118,7 +112,7 @@ It find(It rng_start, It const rng_end, It2 const what_start, It2 const what_end
 
         for (;;)
         {
-            auto front_found = std::find(u_rng_start, u_rng_safe_end, what_front);
+            auto const front_found = std::find(u_rng_start, u_rng_safe_end, what_front);
             if (front_found == u_rng_safe_end)
                 return rng_end;
 
@@ -130,72 +124,6 @@ It find(It rng_start, It const rng_end, It2 const what_start, It2 const what_end
         }
     }
 }
-
-template <detail::pattern_size_type BytesCount>
-struct pattern_segment;
-template <detail::pattern_size_type... SegmentsBytesCount>
-struct pattern;
-
-template <typename It, detail::pattern_size_type BytesCount, typename... Next>
-bool equal(It mem, pattern_segment<BytesCount> const& segment, Next const&... next)
-{
-    auto const ok = std::equal(begin(segment), end(segment), mem);
-
-    if constexpr (sizeof...(Next) == 0)
-        return ok;
-    else
-        return ok && equal(mem + abs_size(segment), next...);
-}
-
-template <typename It, detail::pattern_size_type... SegmentsBytesCount>
-bool equal(It u_start, pattern<SegmentsBytesCount...> const& pat)
-{
-    return boost::hana::unpack(pat.bytes, [u_start](auto&... segment) -> bool {
-        return equal(u_start, segment...);
-    });
-}
-
-template <typename Callback = uint8_t, typename It, detail::pattern_size_type... SegmentsBytesCount>
-It find(It rng_start, It const rng_end, pattern<SegmentsBytesCount...> const& pat, Callback callback = {})
-{
-    auto const callback_ref = std::ref(callback);
-
-    auto const first_pattern_byte = *ubegin(boost::hana::front(pat.bytes));
-
-    if constexpr (sizeof...(SegmentsBytesCount) == 1)
-    {
-        return detail::find_one_byte(rng_start, rng_end, first_pattern_byte, callback_ref);
-    }
-    else
-    {
-        verify_range(rng_start, rng_end);
-
-        auto const pat_size = pat.size();
-
-        auto u_rng_start          = unwrap_iterator(rng_start);
-        auto const u_rng_end_safe = unwrap_iterator(rng_end - pat_size);
-
-        verify_range(u_rng_start, u_rng_end_safe);
-
-        for (;;)
-        {
-            auto const first_byte_found = std::find(u_rng_start, u_rng_end_safe, first_pattern_byte);
-            if (first_byte_found == u_rng_end_safe)
-                return rng_end;
-            if (!equal(first_byte_found, pat))
-                ++u_rng_start;
-            else if (detail::invoke_find_callback(rng_start, first_byte_found, callback_ref))
-                return rng_start;
-            u_rng_start = first_byte_found + pat_size;
-        }
-    }
-}
-
-// template <typename Callback = uint8_t, detail::pattern_size_type... SegmentsBytesCount>
-// void* find(void* first, void const* last, pattern<SegmentsBytesCount...> const& pat, Callback callback = {})
-//{
-//     return find(static_cast<uint8_t*>(first), static_cast<uint8_t const*>(last), pat, std::ref(callback));
-// }
 
 template <bool Owned>
 struct xref;

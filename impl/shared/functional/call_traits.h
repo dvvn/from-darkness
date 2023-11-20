@@ -83,38 +83,37 @@ struct member_function;
 template <bool Noexcept, class Call_T, typename Ret, typename... Args>
 struct non_member_function;
 
-#define _NOEXCEPT_BOOLnoexcept true
-#define _NOEXCEPT_BOOL         false
+#define _NOEXCEPT_BOOL(...) 0##__VA_OPT__(1)
 
 #define _MEMBER_CCV_HELPER(_CCV_, _CV_, _REF_, _NOEXCEPT_)                                               \
     template <typename Ret, typename Object, typename... Args>                                           \
-    struct member_function<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(_CCV_), Ret, Object _CV_ _REF_, Args...> : \
+    struct member_function<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(_CCV_), Ret, Object _CV_ _REF_, Args...> : \
         std::type_identity<Ret (_CCV_ Object::*)(Args...) _CV_ _REF_ _NOEXCEPT_>                         \
     {                                                                                                    \
     };                                                                                                   \
     template <typename Ret, typename Object, typename... Args>                                           \
     struct function_info<Ret (_CCV_ Object::*)(Args...) _CV_ _REF_ _NOEXCEPT_> :                         \
-        member_function_info<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(_CCV_), Ret, Object _CV_ _REF_, Args...> \
+        member_function_info<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(_CCV_), Ret, Object _CV_ _REF_, Args...> \
     {                                                                                                    \
     };
 
 #define _NON_MEMBER_CCV_HELPER(_CCV_, _CV_UNUSED_, _REF_UNUSED_, _NOEXCEPT_)                                                                  \
     template <typename Ret, typename... Args>                                                                                                 \
-    struct non_member_function<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(_CCV_), Ret, Args...> : std::type_identity<Ret(_CCV_*)(Args...) _NOEXCEPT_> \
+    struct non_member_function<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(_CCV_), Ret, Args...> : std::type_identity<Ret(_CCV_*)(Args...) _NOEXCEPT_> \
     {                                                                                                                                         \
     };                                                                                                                                        \
     template <typename Ret, typename... Args>                                                                                                 \
-    struct function_info<Ret(_CCV_*)(Args...) _NOEXCEPT_> : non_member_function_info<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(_CCV_), Ret, Args...> \
+    struct function_info<Ret(_CCV_*)(Args...) _NOEXCEPT_> : non_member_function_info<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(_CCV_), Ret, Args...> \
     {                                                                                                                                         \
     };
 #define _NON_MEMBER_THISCALL_HELPER(_CV_UNUSED_, _REF_, _NOEXCEPT_)                                                                                     \
     template <typename Ret, typename... Args>                                                                                                           \
-    struct non_member_function<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(__thiscall), Ret, Args...> : std::type_identity<Ret(__thiscall*)(Args...) _NOEXCEPT_> \
+    struct non_member_function<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(__thiscall), Ret, Args...> : std::type_identity<Ret(__thiscall*)(Args...) _NOEXCEPT_> \
     {                                                                                                                                                   \
     };                                                                                                                                                  \
     template <typename Ret, typename Object, typename... Args>                                                                                          \
     struct function_info<Ret(__thiscall*)(Object * _REF_, Args...) _NOEXCEPT_> :                                                                        \
-        member_function_info<_NOEXCEPT_BOOL##_NOEXCEPT_, _CCV_T(__thiscall), Ret, Object _REF_, Args...>                                                \
+        member_function_info<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(__thiscall), Ret, Object _REF_, Args...>                                                \
     {                                                                                                                                                   \
     };
 
@@ -239,7 +238,7 @@ struct function_args<>
 template <bool Noexcept, class Call_T, typename Ret>
 struct basic_function_info
 {
-    static constexpr bool is_noexcept = Noexcept;
+    static constexpr bool no_throw = Noexcept;
 
     using call_type   = Call_T;
     using return_type = Ret;

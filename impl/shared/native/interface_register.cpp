@@ -1,21 +1,9 @@
 #include "native/interface_register.h"
-#include "string/char.h"
+#include "algorithm/char.h"
 #include "string/view.h"
-
-#include <cassert>
 
 namespace fd
 {
-static bool all_digits(char const* ptr)
-{
-    for (auto c = *ptr; c != '\0'; c = *++ptr)
-    {
-        if (!isdigit(c))
-            return false;
-    }
-    return true;
-}
-
 inline namespace native
 {
 void* interface_register::get() const
@@ -32,175 +20,108 @@ interface_register* interface_register::next() const
 {
     return next_;
 }
+} // namespace native
 
 template <bool SkipVersion>
-static interface_register* find(
-    interface_register* first, interface_register* last, //
-    char const* name, size_t const length)
+static interface_register* find_impl(
+    interface_register* first, interface_register const* last, //
+    char const* name, size_t const name_length)
 {
+    constexpr auto check_first_char = [](char const* name_last_char) {
+        if constexpr (SkipVersion)
+            return isdigit(*name_last_char);
+        else
+            return *name_last_char == '\0';
+    };
+
+    constexpr auto check_version = [](char const* str) {
+        if constexpr (SkipVersion)
+        {
+            for (;; ++str)
+            {
+                auto const c = *str;
+                if (isdigit(c))
+                    continue;
+
+                if (c == '\0')
+                    break;
+
+                return false;
+            }
+        }
+
+        return true;
+    };
+
     for (; first != last; first = first->next())
     {
-        auto const src_name      = first->name();
-        auto const src_name_back = src_name[length];
+        auto const src_name = first->name();
 
-        if constexpr (SkipVersion)
-        {
-            if (!isdigit(src_name_back))
-                continue;
-        }
-        else
-        {
-            if (src_name_back != '\0')
-                continue;
-        }
-        if (std::char_traits<char>::compare(src_name, name, length) != 0)
-        {
+        if (!check_first_char(src_name + name_length))
             continue;
-        }
-        if constexpr (SkipVersion)
-        {
-            if (!all_digits(src_name + length + 1))
-                continue;
-        }
+        if (memcmp(src_name, name, name_length) != 0)
+            continue;
+        if (!check_version(src_name + name_length + 1))
+            continue;
 
-        return first;
+        break;
     }
-    return last;
+    return first;
 }
 
-#if 0
-template <bool Partial>
-class found_interface_register;
-
-class basic_found_interface_register
+enum class interface_register_find_flag : uint8_t
 {
-    interface_register* holder_;
-    size_t input_string_length_;
-
-    template <bool>
-    friend class found_interface_register;
-
-  public:
-    // ReSharper disable once CppPossiblyUninitializedMember
-    basic_found_interface_register(interface_register* holder)
-        : holder_(holder)
-    {
-    }
-
-    interface_register* operator->() const
-    {
-        return holder_;
-    }
-
-    explicit operator bool() const
-    {
-        return holder_;
-    }
-
-    size_t input_string_length() const
-    {
-        return input_string_length_;
-    }
-
-    basic_found_interface_register& set_input_string_length(size_t const input_string_length)
-    {
-        input_string_length_ = input_string_length;
-        return *this;
-    }
-
-    string_view name() const
-    {
-        auto n = holder_->name();
-        return {n, n + input_string_length_};
-    }
+    unused,
+    whole_check,
+    duplicate_check
 };
 
-template <>
-class found_interface_register<true> : public basic_found_interface_register
+template <interface_register_find_flag Flag>
+static interface_register* find_impl(
+    interface_register* first, interface_register* last, //
+    char const* name, size_t const name_length)
 {
-    bool exact_;
+    using enum interface_register_find_flag;
 
-  public:
-    using basic_found_interface_register::basic_found_interface_register;
+    interface_register* found;
 
-    found_interface_register(interface_register* holder, bool const exact)
-        : basic_found_interface_register(holder)
-        , exact_(exact)
-    {
-    }
-
-    bool exact() const
-    {
-        return exact_;
-    }
-
-    string_view full_name() const
-    {
-        auto n   = holder_->name();
-        auto end = n + input_string_length_;
-        if (!exact_)
+    auto const has_duplicate = [=, &found] {
+        if (found->name()[name_length] != '\0')
         {
-            while (*end != '\0')
-                ++end;
+            auto const duplicate = find_impl<true>(found->next(), last, name, name_length);
+            return duplicate != last;
         }
-        return {n, end};
-    }
-};
+        return false;
+    };
 
-template <>
-class found_interface_register<false> : public basic_found_interface_register
+    if (Flag == whole_check || isdigit(name[name_length - 1]))
+        found = find_impl<false>(first, last, name, name_length);
+    else
+        found = find_impl<true>(first, last, name, name_length);
+
+    if constexpr (Flag == duplicate_check)
+        if (found != last && has_duplicate())
+            return last;
+
+    return found;
+}
+
+interface_register* find_unique(
+    interface_register* first, interface_register* last, //
+    char const* name, size_t const name_length)
 {
-  public:
-    found_interface_register(interface_register* holder, bool /*exact*/ = true)
-        : basic_found_interface_register(holder)
-    {
-    }
+    return find_impl<interface_register_find_flag::duplicate_check>(first, last, name, name_length);
+}
 
-    bool exact() const
-    {
-        ignore_unused(this);
-        return true;
-    }
-
-    string_view full_name() const
-    {
-        return name();
-    }
-};
+interface_register* find(
+    interface_register* first, interface_register* last, //
+    char const* name, size_t const name_length)
+{
+#if defined(_DEBUG) && 0
+    constexpr auto flag = interface_register_find_flag::duplicate_check;
+#else
+    constexpr auto flag = interface_register_find_flag::unused;
 #endif
-
-interface_register* find_unique(interface_register* first, interface_register* last, char const* name, size_t const length)
-{
-    interface_register* found;
-
-    if (isdigit(name[length - 1]))
-    {
-        found = find<false>(first, last, name, length);
-    }
-    else
-    {
-        found = find<true>(first, last, name, length);
-        if (found != last && found->name()[length] != '\0')
-        {
-            auto const duplicate = find<true>(found->next(), last, name, length);
-            if (duplicate != last)
-                return last;
-        }
-    }
-
-    return found;
+    return find_impl<flag>(first, last, name, name_length);
 }
-
-interface_register* find(interface_register* first, interface_register* last, char const* name, size_t const length)
-{
-    interface_register* found;
-
-    if (isdigit(name[length - 1]))
-        found = find<false>(first, last, name, length);
-    else
-        found = find<true>(first, last, name, length);
-
-    return found;
-}
-} // namespace native
 }

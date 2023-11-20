@@ -5,11 +5,11 @@
 namespace fd
 {
 template <class Call_T>
-void* get_vfunc(void* table_function, void* instance);
+void* get_vfunc(void* abstract_function, void* instance);
 
 #define GET_VFUNC(_CCV_, ...) \
     template <>               \
-    void* get_vfunc<_CCV_T(_CCV_)>(void* table_function, void* instance);
+    void* get_vfunc<_CCV_T(_CCV_)>(void* abstract_function, void* instance);
 
 #ifdef _MSC_VER
 _MEMBER_CALL(GET_VFUNC, , , )
@@ -19,7 +19,7 @@ _MEMBER_CALL(GET_VFUNC, , , )
 #undef GET_VFUNC
 
 template <typename Fn>
-void* get_vfunc(Fn table_function, void* instance)
+void* get_vfunc(Fn abstract_function, void* instance)
 #if 0
     requires(std::is_member_function_pointer_v<Fn>)
 #else
@@ -27,7 +27,7 @@ void* get_vfunc(Fn table_function, void* instance)
 #endif
 {
     using call_type = typename function_info<Fn>::call_type;
-    auto function   = unsafe_cast<void*>(table_function);
+    auto function   = unsafe_cast<void*>(abstract_function);
     return get_vfunc<call_type>(function, instance);
 }
 
@@ -146,7 +146,7 @@ struct vfunc<Fn, sizeof(void*)>
     }
 
     template <typename... Args>
-    auto operator()(Args&&... args) const noexcept(info::is_noexcept)
+    auto operator()(Args&&... args) const noexcept(info::no_throw)
 #ifdef _DEBUG
         -> std::invoke_result_t<Fn, object_type*, Args&&...>
 #else

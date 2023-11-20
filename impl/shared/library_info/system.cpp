@@ -1,5 +1,5 @@
 ﻿#include "library_info/system.h"
-#include "algorithm/find.h"
+#include "algorithm/find_pattern.h"
 #include "functional/cast.h"
 #include "iterator/unwrap.h"
 #include "memory/pattern.h"
@@ -10,40 +10,27 @@
 
 #include <Windows.h>
 
-#include <cassert>
-
 namespace fd
 {
 void* system_library_info::function(char const* name, size_t const length) const
 {
-    union
-    {
-        IMAGE_DOS_HEADER* dos_header;
-        uint8_t* base_address;
-    };
+    auto const base_address = (this->base());
 
-    base_address = safe_cast<uint8_t>(this->base());
+    library_data_dir_range const data_dirs(this->nt_header(base_address));
+    auto const& entry_export = data_dirs[IMAGE_DIRECTORY_ENTRY_EXPORT];
+    auto const export_dir    = safe_cast<IMAGE_EXPORT_DIRECTORY>(base_address + entry_export.VirtualAddress);
+    // auto const export_dir_end = export_dir_start+entry_export.Size;
 
-    union
-    {
-        IMAGE_EXPORT_DIRECTORY* export_dir;
-        uint8_t* virtual_addr_start;
-    };
-
-    auto const entry_export = this->directory(IMAGE_DIRECTORY_ENTRY_EXPORT);
-    virtual_addr_start      = base_address + entry_export->VirtualAddress;
-    // auto virtual_addr_end = virtual_addr_start + entry_export->Size;
-
-    auto const names = reinterpret_cast<uint32_t*>(base_address + export_dir->AddressOfNames);
-    auto const funcs = reinterpret_cast<uint32_t*>(base_address + export_dir->AddressOfFunctions);
-    auto const ords  = reinterpret_cast<uint16_t*>(base_address + export_dir->AddressOfNameOrdinals);
+    auto const names = safe_cast<uint32_t>(base_address + export_dir->AddressOfNames);
+    auto const funcs = safe_cast<uint32_t>(base_address + export_dir->AddressOfFunctions);
+    auto const ords  = safe_cast<uint16_t>(base_address + export_dir->AddressOfNameOrdinals);
 
     //----
 
     auto const last_offset = std::min(export_dir->NumberOfNames, export_dir->NumberOfFunctions);
     for (DWORD offset = 0; offset != last_offset; ++offset)
     {
-        auto const fn_name = base_address + names[offset];
+        auto const fn_name = safe_cast<char>(base_address + names[offset]);
         if (fn_name[length] != '\0')
             continue;
         if (memcmp(fn_name, name, length) != 0)
@@ -62,7 +49,7 @@ static void* find_rtti_descriptor(string_view const name, uint8_t* image_base, u
     uint8_t* ret;
     if (auto const space = name.find(' '); space == name.npos)
     {
-        ret = find(image_base, image_end, make_pattern(".?A", 1, "name, \"@@\""));
+        ret = find(image_base, image_end, make_pattern(".?A", 1, name, 0, "\"@@\""));
     }
     else
     {
@@ -94,6 +81,9 @@ void* system_library_info::vtable(char const* name, size_t length) const
     auto const image_start = ubegin(*this);
     auto const image_end   = uend(*this);
 
+    auto const nt = nt_header();
+    library_sections_range const sections(nt);
+
     rtti_descriptor = find_rtti_descriptor({name, length}, image_start, image_end);
 
     //---------
@@ -103,7 +93,7 @@ void* system_library_info::vtable(char const* name, size_t length) const
 
     // dos + section->VirtualAddress, section->SizeOfRawData
 
-    library_section_view const rdata(this->section(".rdata"), image_start);
+    library_section_view const rdata(find(sections, ".rdata"), image_start);
 
     auto const rdata_begin = ubegin(rdata);
     auto const rdata_end   = ubegin(rdata);
@@ -118,7 +108,7 @@ void* system_library_info::vtable(char const* name, size_t length) const
     if (addr2 == rdata_end)
         return nullptr;
 
-    library_section_view const text(this->section(".text"), image_start);
+    library_section_view const text(find(sections, ".text"), image_start);
     auto const test_end = uend(text);
     auto const found    = find(ubegin(text), test_end, xref(unsafe_cast<uintptr_t>(addr2) + 4));
     if (found == test_end)
@@ -129,6 +119,6 @@ void* system_library_info::vtable(char const* name, size_t length) const
 
 system_library_info literals::operator""_dll(wchar_t const* name, size_t length)
 {
-    return {name, length, L".dll", 4};
+    return {name, length, system_library_info::extension_tag()};
 }
 } // namespace fd

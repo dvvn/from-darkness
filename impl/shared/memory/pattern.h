@@ -4,7 +4,7 @@
 #include "container/span.h"
 #include "diagnostics/fatal.h"
 #include "iterator/unwrap.h"
-#include "memory/basic_pattern.h"
+#include "memory/pattern_fwd.h"
 #include "string/charconv.h"
 
 #include <boost/hana/append.hpp>
@@ -427,35 +427,35 @@ constexpr auto operator""_pat()
 template <typename... Args>
 constexpr auto make_pattern(Args const&... args)
 {
-    constexpr auto segments_count = ((std::same_as<Args, char> || std::constructible_from<span<char const>, Args const&>)+...);
+    constexpr auto segments_count = ((sizeof(Args) == sizeof(char) || std::constructible_from<span<char const>, Args const&>)+...);
 
     boost::hana::tuple<Args const&...> args_packed(args...);
 
-    auto const make_segment2 = [&]<typename T>(T const& str, auto unknown) {
+    auto const make_segment = [&]<typename T>(T const& str, detail::pattern_size_type val) {
         using std::begin;
         using std::end;
-        if constexpr (std::is_bounded_array_v<T>)
-            return pattern_segment<sizeof(T) - 1>(begin(str), end(str) - 1, unknown);
+        if constexpr (sizeof(T) == sizeof(char) && !std::is_class_v<T>)
+            return pattern_segment<sizeof(T)>(&str, &str + 1, val);
         else
-            return pattern_segment<sizeof(T)>(begin(str), end(str), unknown);
+            return pattern_segment<0>(begin(str), end(str) - std::is_bounded_array_v<T>, val);
     };
-
-    auto const make_segment = [&]<size_t I>(std::in_place_index_t<I>) {
+    auto const make_segment_at = [&]<size_t I>(std::in_place_index_t<I>) {
         constexpr auto index = I % 2 ? I + 1 : I;
         auto const& str      = boost::hana::at_c<index>(args_packed);
         auto const num       = boost::hana::at_c<index + 1>(args_packed);
-        return make_segment2(str, num);
+        return make_segment(str, num);
     };
+
     if constexpr (sizeof...(Args) % 2 == 0)
     {
         return [&]<size_t... I>(std::index_sequence<I...>) {
-            return pattern{make_segment(std::in_place_index<I>)...};
+            return pattern{make_segment_at(std::in_place_index<I>)...};
         }(std::make_index_sequence<segments_count>());
     }
     else
     {
         return [&]<size_t... I>(std::index_sequence<I...>) {
-            return pattern{make_segment(std::in_place_index<I>)..., make_segment2(boost::hana::back(args_packed), 0)};
+            return pattern{make_segment_at(std::in_place_index<I>)..., make_segment(boost::hana::back(args_packed), 0)};
         }(std::make_index_sequence<segments_count - 1>());
     }
 }

@@ -32,4 +32,9 @@ struct native_library_info : system_library_info
         return interface(name, Length - 1);
     }
 };
+
+inline namespace literals
+{
+native_library_info operator"" _dlln(wchar_t const* name, size_t length);
+} // namespace literals
 } // namespace fd

@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "container/array.h"
 #include "container/span.h"
 #include "string/view.h"
 
@@ -32,6 +33,33 @@ struct LDR_DATA_TABLE_ENTRY_FULL
 
 namespace fd
 {
+union library_base_address
+{
+    PVOID DllBase;
+    PIMAGE_DOS_HEADER DosHeader;
+    ULONG_PTR DllBaseAddress;
+
+    operator PVOID() const
+    {
+        return DllBase;
+    }
+
+    operator PIMAGE_DOS_HEADER() const
+    {
+        return DosHeader;
+    }
+
+    IMAGE_DOS_HEADER* operator->() const
+    {
+        return DosHeader;
+    }
+
+    void* operator+(ULONG_PTR other) const
+    {
+        return reinterpret_cast<void*>(DllBaseAddress + other);
+    }
+};
+
 class basic_library_info
 {
     union
@@ -41,10 +69,16 @@ class basic_library_info
     };
 
   public:
+    struct extension_tag
+    {
+    };
+
     basic_library_info(char const* name, size_t length, wchar_t* buffer);
     basic_library_info(wchar_t const* name, size_t length);
     // basic_library_info(char const* name, size_t name_length, wchar_t* name_buffer, wchar_t const* extension, size_t extension_length);
     basic_library_info(wchar_t const* name, size_t name_length, wchar_t const* extension, size_t extension_length);
+
+    basic_library_info(wchar_t const* name, size_t length, extension_tag);
 
     template <size_t Length>
     basic_library_info(wchar_t const (&name)[Length])
@@ -77,28 +111,49 @@ class basic_library_info
         return entry_ != nullptr;
     }
 
-    void* base() const;
+    IMAGE_DOS_HEADER* dos_header() const;
+    IMAGE_NT_HEADERS* nt_header() const;
+    IMAGE_NT_HEADERS* nt_header(IMAGE_DOS_HEADER const* dos) const;
+
+    library_base_address base() const;
+    static void* image_base(IMAGE_NT_HEADERS* nt);
     void* image_base() const;
     size_t length() const;
     wstring_view name() const;
     wstring_view path() const;
-    IMAGE_DATA_DIRECTORY* directory(size_t index) const;
-    IMAGE_SECTION_HEADER* section(char const* name, size_t length) const;
-
-    template <size_t Length>
-    IMAGE_SECTION_HEADER* section(char const (&name)[Length]) const
-    {
-        return section(name, Length - 1);
-    }
 };
 
 uint8_t* begin(basic_library_info const& info);
 uint8_t* end(basic_library_info const& info);
 
-span<uint8_t> make_library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base);
-
 struct library_section_view : span<uint8_t>
 {
     library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base);
 };
+
+struct library_sections_range : span<IMAGE_SECTION_HEADER>
+{
+    library_sections_range(IMAGE_NT_HEADERS* nt);
+};
+
+struct library_data_dir_range : span<IMAGE_DATA_DIRECTORY>
+{
+    library_data_dir_range(IMAGE_NT_HEADERS* nt);
+};
+
+IMAGE_SECTION_HEADER* find(library_sections_range sections, char const* name, size_t name_length);
+
+template <size_t L>
+IMAGE_SECTION_HEADER* find(library_sections_range const sections, char const (&name)[L])
+{
+    return find(sections, name, L - 1);
+}
+
+namespace detail
+{
+library_section_view make_section_view(void const* section, void* image_base);
+library_section_view make_section_view(IMAGE_SECTION_HEADER const* section, void* image_base);
+library_sections_range make_sections_range(void* nt);
+library_sections_range make_sections_range(IMAGE_NT_HEADERS* nt);
+} // namespace detail
 } // namespace fd

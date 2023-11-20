@@ -1,6 +1,8 @@
 ﻿#include "library_info/basic.h"
+#include "algorithm/char.h"
+#include "diagnostics/fatal.h"
 #include "functional/cast.h"
-#include "string/char.h"
+#include "iterator/unwrap.h"
 
 #include <algorithm>
 #include <cassert>
@@ -37,7 +39,7 @@ static bool equal(UNICODE_STRING const& ustr, size_t const offset, wchar_t const
 
 static bool equal(UNICODE_STRING const& ustr, wchar_t const* str, size_t const length)
 {
-    return size(ustr) == length && equal((ustr), 0, str, length);
+    return size(ustr) == length && equal(ustr, 0, str, length);
 }
 
 static bool equal(UNICODE_STRING const& ustr, wchar_t const* part1, size_t const part1_length, wchar_t const* part2, size_t const part2_length)
@@ -123,14 +125,15 @@ basic_library_info::basic_library_info(LPCTSTR const name, size_t const length)
     entry_full_ = find_library(name, length);
 }
 
-//basic_library_info::basic_library_info(char const* name, size_t const name_length, wchar_t* name_buffer, wchar_t const* extension, size_t const extension_length)
+// basic_library_info::basic_library_info(char const* name, size_t const name_length, wchar_t* name_buffer, wchar_t const* extension, size_t const
+// extension_length)
 //{
-//#ifdef _DEBUG
-//    validate_library_name(extension, extension_length);
-//#endif
-//    std::transform(name, name + name_length, name_buffer, tolower);
-//    entry_full_ = find_library(name_buffer, name_length, extension, extension_length);
-//}
+// #ifdef _DEBUG
+//     validate_library_name(extension, extension_length);
+// #endif
+//     std::transform(name, name + name_length, name_buffer, tolower);
+//     entry_full_ = find_library(name_buffer, name_length, extension, extension_length);
+// }
 
 basic_library_info::basic_library_info(wchar_t const* name, size_t const name_length, wchar_t const* extension, size_t const extension_length)
 {
@@ -141,24 +144,43 @@ basic_library_info::basic_library_info(wchar_t const* name, size_t const name_le
     entry_full_ = find_library(name, name_length, extension, extension_length);
 }
 
-void* basic_library_info::base() const
+basic_library_info::basic_library_info(wchar_t const* name, size_t const length, extension_tag)
+    : basic_library_info(name, length, L".dll", 4)
 {
-    return entry_full_->DllBase;
 }
 
-#define SET_DOS                              \
-    auto const dos = entry_full_->DosHeader; \
+IMAGE_DOS_HEADER* basic_library_info::dos_header() const
+{
+    auto const dos = entry_full_->DosHeader;
     assert(dos->e_magic == IMAGE_DOS_SIGNATURE);
+    return dos;
+}
 
-#define SET_NT                                                                                   \
-    SET_DOS;                                                                                     \
-    auto const nt = unsafe_cast<IMAGE_NT_HEADERS*>(entry_full_->DllBaseAddress + dos->e_lfanew); \
+IMAGE_NT_HEADERS* basic_library_info::nt_header() const
+{
+    return nt_header(dos_header());
+}
+
+IMAGE_NT_HEADERS* basic_library_info::nt_header(IMAGE_DOS_HEADER const* dos) const
+{
+    auto const nt = unsafe_cast<IMAGE_NT_HEADERS*>(entry_full_->DllBaseAddress + dos->e_lfanew);
     assert(nt->Signature == IMAGE_NT_SIGNATURE);
+    return nt;
+}
+
+library_base_address basic_library_info::base() const
+{
+    return {entry_full_->DllBase};
+}
+
+void* basic_library_info::image_base(IMAGE_NT_HEADERS* nt)
+{
+    return unsafe_cast<void*>(nt->OptionalHeader.ImageBase);
+}
 
 void* basic_library_info::image_base() const
 {
-    SET_NT;
-    return unsafe_cast<void*>(nt->OptionalHeader.ImageBase);
+    return image_base(nt_header());
 }
 
 size_t basic_library_info::length() const
@@ -178,28 +200,6 @@ auto basic_library_info::path() const -> wstring_view
     return {begin(buff), end(buff)};
 }
 
-IMAGE_DATA_DIRECTORY* basic_library_info::directory(size_t const index) const
-{
-    SET_NT;
-    return nt->OptionalHeader.DataDirectory + index;
-}
-
-IMAGE_SECTION_HEADER* basic_library_info::section(char const* name, size_t const length) const
-{
-    SET_NT;
-
-    auto begin     = IMAGE_FIRST_SECTION(nt);
-    auto const end = begin + nt->FileHeader.NumberOfSections;
-
-    for (; begin != end; ++begin)
-    {
-        if (equal(*begin, name, length))
-            return begin;
-    }
-
-    return nullptr;
-}
-
 uint8_t* begin(basic_library_info const& info)
 {
     return safe_cast<uint8_t>(info.image_base());
@@ -210,16 +210,51 @@ uint8_t* end(basic_library_info const& info)
     return begin(info) + info.length();
 }
 
-span<uint8_t> make_library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base)
-{
-    auto const section_start = safe_cast<uint8_t>(image_base) + section->VirtualAddress;
-    auto const section_end   = section_start + section->SizeOfRawData;
-
-    return {section_start, section_end};
-}
-
 library_section_view::library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base)
-    : span(make_library_section_view(section, image_base))
+    : span(safe_cast<uint8_t>(image_base) + section->VirtualAddress, section->SizeOfRawData)
 {
 }
+
+library_sections_range::library_sections_range(IMAGE_NT_HEADERS* nt)
+    : span(IMAGE_FIRST_SECTION(nt), nt->FileHeader.NumberOfSections)
+{
+}
+
+library_data_dir_range::library_data_dir_range(IMAGE_NT_HEADERS* nt)
+    : span(nt->OptionalHeader.DataDirectory)
+{
+}
+
+IMAGE_SECTION_HEADER* find(library_sections_range sections, char const* name, size_t const name_length)
+{
+    return std::find_if(ubegin(sections), uend(sections), [=](IMAGE_SECTION_HEADER const& header) {
+        return equal(header, name, name_length);
+    });
+}
+
+namespace detail
+{
+library_section_view make_section_view(void const* section, void* image_base)
+{
+    return {safe_cast<IMAGE_SECTION_HEADER>(section), image_base};
+}
+
+library_section_view make_section_view(IMAGE_SECTION_HEADER const* section, void* image_base)
+{
+    return {section, image_base};
+}
+
+library_sections_range make_sections_range(void* nt)
+{
+    auto nt1 = safe_cast<IMAGE_NT_HEADERS>(nt);
+    assert(nt1->Signature == IMAGE_NT_SIGNATURE);
+    return {nt1};
+}
+
+library_sections_range make_sections_range(IMAGE_NT_HEADERS* nt)
+{
+    return {nt};
+}
+} // namespace detail
+
 } // namespace fd
