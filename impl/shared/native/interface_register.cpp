@@ -1,10 +1,9 @@
 #include "native/interface_register.h"
 #include "algorithm/char.h"
+#include "iterator/unwrap.h"
 #include "string/view.h"
 
-namespace fd
-{
-inline namespace native
+namespace fd::native
 {
 void* interface_register::get() const
 {
@@ -20,40 +19,39 @@ interface_register* interface_register::next() const
 {
     return next_;
 }
-} // namespace native
 
-namespace detail
+enum class find_helper_flags : uint8_t
 {
-inline constexpr auto interface_version_char_table = [] {
-    auto table                 = isdigit_table;
-    char_table_get(table, '_') = true;
-    return table;
-}();
+    unused,
+    whole_check,
+    duplicate_check
+};
 
-static bool is_version_char(char c)
+template <typename Last>
+class find_helper
 {
-    return char_table_get(interface_version_char_table, c);
-}
-} // namespace detail
+    static constexpr auto check_first_char_table = [] {
+        auto table                         = detail::isdigit_table;
+        detail::char_table_get(table, '_') = true;
+        return table;
+    }();
 
-template <bool SkipVersion>
-static interface_register* find_impl(
-    interface_register* first, interface_register const* last, //
-    char const* name, size_t const name_length)
-{
-    constexpr auto check_first_char = [](char const* name_last_char) {
-        if constexpr (SkipVersion)
-            return detail::is_version_char(*name_last_char);
-        else
+    template <bool KnowVersion>
+    static bool check_first_version_char(char const* name_last_char, std::bool_constant<KnowVersion>)
+    {
+        if constexpr (KnowVersion)
             return *name_last_char == '\0';
-    };
+        else
+            return detail::char_table_get(check_first_char_table, *name_last_char);
+    }
 
-    constexpr auto check_version = [](char const* str) {
-        if constexpr (SkipVersion)
-        {
+    template <bool KnowVersion>
+    static auto check_version(char const* str, std::bool_constant<KnowVersion> ver)
+    {
+        if constexpr (!KnowVersion)
             for (;;)
             {
-                if (detail::is_version_char(*str))
+                if (check_first_version_char(str, ver))
                     continue;
 
                 if (*++str == '\0')
@@ -61,69 +59,81 @@ static interface_register* find_impl(
 
                 return false;
             }
-        }
-
         return true;
-    };
-
-    for (; first != last; first = first->next())
-    {
-        auto const src_name = first->name();
-
-        if (!check_first_char(src_name + name_length))
-            continue;
-        if (memcmp(src_name, name, name_length) != 0)
-            continue;
-        if (!check_version(src_name + name_length + 1))
-            continue;
-
-        break;
     }
-    return first;
-}
 
-enum class interface_register_find_flag : uint8_t
-{
-    unused,
-    whole_check,
-    duplicate_check
-};
+    interface_register* first_;
+    [[no_unique_address]] //
+    Last last_;
+    char const* name_;
+    size_t const name_length_;
 
-template <interface_register_find_flag Flag>
-static interface_register* find_impl(
-    interface_register* first, interface_register* last, //
-    char const* name, size_t const name_length)
-{
-    using enum interface_register_find_flag;
+    find_helper next(interface_register* next) const
+    {
+        if constexpr (!std::is_null_pointer_v<Last>)
+            verify_range(first_, last_);
+        return {next, last_, name_, name_length_};
+    }
 
-    interface_register* found;
+  public:
+    find_helper(interface_register* first, Last last, char const* name, size_t const name_length)
+        : first_{first}
+        , last_{last}
+        , name_{name}
+        , name_length_{name_length}
+    {
+    }
 
-    auto const has_duplicate = [=, &found] {
-        if (found->name()[name_length] != '\0')
+    template <bool KnowVersion>
+    interface_register* get(std::bool_constant<KnowVersion> ver)
+    {
+        for (; first_ != last_; first_ = first_->next())
         {
-            auto const duplicate = find_impl<true>(found->next(), last, name, name_length);
-            return duplicate != last;
+            auto const src_name = first_->name();
+
+            if (!check_first_version_char(src_name + name_length_, ver))
+                continue;
+            if (memcmp(src_name, name_, name_length_) != 0)
+                continue;
+            if (!check_version(src_name + name_length_ + 1, ver))
+                continue;
+
+            break;
         }
-        return false;
-    };
+        return first_;
+    }
 
-    if (Flag == whole_check || isdigit(name[name_length - 1]))
-        found = find_impl<false>(first, last, name, name_length);
-    else
-        found = find_impl<true>(first, last, name, name_length);
+    template <find_helper_flags Flag>
+    interface_register* get(std::integral_constant<find_helper_flags, Flag> = {})
+    {
+        constexpr auto know_version   = std::true_type();
+        constexpr auto unknow_version = std::false_type();
 
-    if constexpr (Flag == duplicate_check)
-        if (found != last && has_duplicate())
-            return last;
+        if constexpr (Flag != find_helper_flags::whole_check)
+        {
+            if (isdigit(name_[name_length_ - 1]))
+                return get(know_version);
+        }
 
-    return found;
-}
+        auto const found = get(unknow_version);
+
+        if constexpr (Flag == find_helper_flags::duplicate_check)
+            if (found != last_ && found->name()[name_length_] != '\0')
+            {
+                auto const duplicate = next(found->next()).get(unknow_version);
+                if (duplicate != last_)
+                    return last_;
+            }
+
+        return found;
+    }
+};
 
 interface_register* find_unique(
     interface_register* first, interface_register* last, //
     char const* name, size_t const name_length)
 {
-    return find_impl<interface_register_find_flag::duplicate_check>(first, last, name, name_length);
+    return find_helper(first, last, name, name_length).get<find_helper_flags::duplicate_check>();
 }
 
 interface_register* find(
@@ -131,10 +141,10 @@ interface_register* find(
     char const* name, size_t const name_length)
 {
 #if defined(_DEBUG) && 0
-    constexpr auto flag = interface_register_find_flag::duplicate_check;
+    constexpr auto flag = find_helper_flags::duplicate_check;
 #else
-    constexpr auto flag = interface_register_find_flag::unused;
+    constexpr auto flag = find_helper_flags::unused;
 #endif
-    return find_impl<flag>(first, last, name, name_length);
+    return find_helper(first, last, name, name_length).get<flag>();
 }
 }
