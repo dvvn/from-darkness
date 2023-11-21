@@ -13,12 +13,6 @@ struct vtable_call_type_for : std::type_identity<default_call_type_member>
 template <class Object>
 using vtable_call_type = typename vtable_call_type_for<Object>::type;
 
-template <typename Fn, size_t Index>
-struct vfunc_tag
-{
-    Fn fn;
-};
-
 template <class T>
 struct vtable
 {
@@ -26,41 +20,37 @@ struct vtable
     using table_pointer    = void**;
 
   private:
-    union
-    {
-        instance_pointer instance_;
-        table_pointer* vtable_;
-    };
+    basic_vtable<T> source_;
 
   public:
     vtable()
-        : instance_(nullptr)
+        : source_(nullptr)
     {
     }
 
     /*explicit*/ vtable(void* instance) requires(!std::is_void_v<T>)
-        : instance_(static_cast<instance_pointer>(instance))
+        : source_(static_cast<instance_pointer>(instance))
     {
     }
 
     vtable(instance_pointer instance)
-        : instance_(instance)
+        : source_(instance)
     {
     }
 
     instance_pointer operator->() const
     {
-        return instance_;
+        return source_.instance();
     }
 
     instance_pointer instance() const
     {
-        return instance_;
+        return source_.instance();
     }
 
     operator instance_pointer() const
     {
-        return instance_;
+        return source_.instance();
     }
 
     /*instance_pointer operator->() const
@@ -73,6 +63,7 @@ struct vtable
         return *vtable_;
     }*/
 
+#if 0
     table_pointer get() const
     {
         return *vtable_;
@@ -93,6 +84,7 @@ struct vtable
     {
         return make_mem_backup(*vtable_, other.get());
     }
+#endif
 };
 
 template <typename T>

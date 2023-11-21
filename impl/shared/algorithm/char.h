@@ -93,6 +93,12 @@ constexpr T char_table_get(array<T, default_char_table.size()> const& table, cha
     return table[-CHAR_MIN + c];
 }
 
+template <typename T>
+constexpr T& char_table_get(array<T, default_char_table.size()>& table, char const c)
+{
+    return table[-CHAR_MIN + c];
+}
+
 inline constexpr auto islower_table = make_char_table<'a', 'z'>(false, true);
 inline constexpr auto isupper_table = make_char_table<'A', 'Z'>(false, true);
 inline constexpr auto isdigit_table = make_char_table<'0', '9'>(false, true);

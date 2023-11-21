@@ -160,15 +160,17 @@ struct pattern_segment_unknown_bytes : std::integral_constant<detail::pattern_si
 template <>
 struct pattern_segment_unknown_bytes<-1>
 {
-    detail::pattern_size_type value;
+    using value_type = detail::pattern_size_type;
+
+    value_type value;
 
     template <detail::pattern_size_type BytesCount>
-    constexpr pattern_segment_unknown_bytes(std::integral_constant<detail::pattern_size_type, BytesCount>)
+    constexpr pattern_segment_unknown_bytes(std::integral_constant<value_type, BytesCount>)
         : value{BytesCount}
     {
     }
 
-    constexpr pattern_segment_unknown_bytes(detail::pattern_size_type const bytes_count)
+    constexpr pattern_segment_unknown_bytes(value_type const bytes_count)
         : value{bytes_count}
     {
     }

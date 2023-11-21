@@ -22,6 +22,20 @@ interface_register* interface_register::next() const
 }
 } // namespace native
 
+namespace detail
+{
+inline constexpr auto interface_version_char_table = [] {
+    auto table                 = isdigit_table;
+    char_table_get(table, '_') = true;
+    return table;
+}();
+
+static bool is_version_char(char c)
+{
+    return char_table_get(interface_version_char_table, c);
+}
+} // namespace detail
+
 template <bool SkipVersion>
 static interface_register* find_impl(
     interface_register* first, interface_register const* last, //
@@ -29,7 +43,7 @@ static interface_register* find_impl(
 {
     constexpr auto check_first_char = [](char const* name_last_char) {
         if constexpr (SkipVersion)
-            return isdigit(*name_last_char);
+            return detail::is_version_char(*name_last_char);
         else
             return *name_last_char == '\0';
     };
@@ -37,13 +51,12 @@ static interface_register* find_impl(
     constexpr auto check_version = [](char const* str) {
         if constexpr (SkipVersion)
         {
-            for (;; ++str)
+            for (;;)
             {
-                auto const c = *str;
-                if (isdigit(c))
+                if (detail::is_version_char(*str))
                     continue;
 
-                if (c == '\0')
+                if (*++str == '\0')
                     break;
 
                 return false;

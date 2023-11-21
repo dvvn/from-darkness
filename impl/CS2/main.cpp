@@ -12,6 +12,8 @@
 #include "hook/creator.h"
 #include "hooked/directx11.h"
 #include "hooked/winapi.h"
+#include "library_info/native.h"
+#include "native/schema_system.hpp"
 
 bool fd::run_context()
 {
@@ -30,6 +32,8 @@ bool fd::run_context()
         if (!context_holder.resume())
             unreachable();
     });
+
+    schema_system* schema_system = safe_cast_lazy(L"schemasystem"_dlln.interface("SchemaSystem"));
 
     auto const render_data = render_backend.data();
     win::window_info const main_window(system_backend.window());

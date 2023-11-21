@@ -55,7 +55,7 @@ win::com_ptr<IDXGIFactory> native_dx11_device_data::DXGI_factory() const
     device->GetAdapter(&adapter);
     win::com_ptr<IDXGIFactory> factory;
     adapter->GetParent(IID_PPV_ARGS(&factory));
-    return (factory);
+    return factory;
 }
 
 win::com_ptr<ID3D11Texture2D> native_dx11_device_data::back_buffer() const

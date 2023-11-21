@@ -1,5 +1,4 @@
 ﻿#include "library_info/basic.h"
-#include "algorithm/char.h"
 #include "diagnostics/fatal.h"
 #include "functional/cast.h"
 #include "iterator/unwrap.h"
@@ -235,5 +234,4 @@ library_sections_range make_sections_range(IMAGE_NT_HEADERS* nt)
     return {nt};
 }
 } // namespace detail
-
 } // namespace fd
