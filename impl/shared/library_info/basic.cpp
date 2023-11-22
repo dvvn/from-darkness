@@ -180,22 +180,22 @@ auto basic_library_info::data_dirs() const -> data_dir_range
     return {nt_header()};
 }
 
-library_section_view::library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base)
-    : span(safe_cast<uint8_t>(image_base) + section->VirtualAddress, section->SizeOfRawData)
-{
-}
-
-library_sections_range::library_sections_range(IMAGE_NT_HEADERS* nt)
-    : span(IMAGE_FIRST_SECTION(nt), nt->FileHeader.NumberOfSections)
-{
-}
-
-library_data_dir_range::library_data_dir_range(IMAGE_NT_HEADERS* nt)
+basic_library_info::data_dir_range::data_dir_range(IMAGE_NT_HEADERS* nt)
     : span(nt->OptionalHeader.DataDirectory)
 {
 }
 
-IMAGE_SECTION_HEADER* find(library_sections_range sections, char const* name, size_t const name_length)
+basic_library_info::sections_range::sections_range(IMAGE_NT_HEADERS* nt)
+    : span(IMAGE_FIRST_SECTION(nt), nt->FileHeader.NumberOfSections)
+{
+}
+
+basic_library_info::section_view::section_view(IMAGE_SECTION_HEADER const* section, void* image_base)
+    : span(safe_cast<uint8_t>(image_base) + section->VirtualAddress, section->SizeOfRawData)
+{
+}
+
+IMAGE_SECTION_HEADER* find(basic_library_info::sections_range sections, char const* name, size_t const name_length)
 {
     auto const sections_end = end(sections);
     auto const found        = std::find_if(begin(sections), sections_end, [=](IMAGE_SECTION_HEADER const& header) {

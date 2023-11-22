@@ -89,7 +89,7 @@ void* find(Info info, pattern<Segment...> const& pat, Callback callback = {})
     auto const last_section = uend(sections);
 
     auto const unwrap_first_section = [&first_section, image_base = info.image_base(nt_header)] {
-        typename Info::sections_view const section_view{first_section, image_base};
+        typename Info::section_view const section_view{first_section, image_base};
         return std::pair(ubegin(section_view), uend(section_view));
     };
 

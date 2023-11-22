@@ -16,7 +16,7 @@ void* system_library_info::function(char const* name, size_t const length) const
 {
     auto const base_address = (this->base());
 
-    library_data_dir_range const data_dirs(this->nt_header(base_address));
+    data_dir_range const data_dirs(this->nt_header(base_address));
     auto const& entry_export = data_dirs[IMAGE_DIRECTORY_ENTRY_EXPORT];
     auto const export_dir    = safe_cast<IMAGE_EXPORT_DIRECTORY>(base_address + entry_export.VirtualAddress);
     // auto const export_dir_end = export_dir_start+entry_export.Size;
@@ -82,7 +82,7 @@ void* system_library_info::vtable(char const* name, size_t length) const
     auto const image_end   = uend(*this);
 
     auto const nt = nt_header();
-    library_sections_range const sections(nt);
+    sections_range const sections(nt);
 
     rtti_descriptor = find_rtti_descriptor({name, length}, image_start, image_end);
 
@@ -93,7 +93,7 @@ void* system_library_info::vtable(char const* name, size_t length) const
 
     // dos + section->VirtualAddress, section->SizeOfRawData
 
-    library_section_view const rdata(find(sections, ".rdata"), image_start);
+    section_view const rdata(find(sections, ".rdata"), image_start);
 
     auto const rdata_begin = ubegin(rdata);
     auto const rdata_end   = ubegin(rdata);
@@ -108,7 +108,7 @@ void* system_library_info::vtable(char const* name, size_t length) const
     if (addr2 == rdata_end)
         return nullptr;
 
-    library_section_view const text(find(sections, ".text"), image_start);
+    section_view const text(find(sections, ".text"), image_start);
     auto const test_end = uend(text);
     auto const found    = find(ubegin(text), test_end, xref(unsafe_cast<uintptr_t>(addr2) + 4));
     if (found == test_end)
