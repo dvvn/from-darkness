@@ -96,35 +96,27 @@ static LDR_DATA_TABLE_ENTRY_FULL* find_library(T... args)
     return nullptr;
 }
 
-basic_library_info::basic_library_info(char const* name, size_t const length, wchar_t* buffer)
-{
-    std::transform(name, name + length, buffer, tolower);
-    entry_full_ = find_library(buffer, length);
-}
-
 basic_library_info::basic_library_info(LPCTSTR const name, size_t const length)
 {
     entry_full_ = find_library(name, length);
 }
 
-// basic_library_info::basic_library_info(char const* name, size_t const name_length, wchar_t* name_buffer, wchar_t const* extension, size_t const
-// extension_length)
-//{
-// #ifdef _DEBUG
-//     validate_library_name(extension, extension_length);
-// #endif
-//     std::transform(name, name + name_length, name_buffer, tolower);
-//     entry_full_ = find_library(name_buffer, name_length, extension, extension_length);
-// }
-
-basic_library_info::basic_library_info(wchar_t const* name, size_t const name_length, wchar_t const* extension, size_t const extension_length)
+basic_library_info::basic_library_info(wchar_t const* name, size_t const length, extension_tag ext)
 {
-    entry_full_ = find_library(name, name_length, extension, extension_length);
-}
+    wstring_view ext_str;
+    switch (ext.value)
+    {
+    case extension_tag::exe:
+        ext_str = L".exe";
+        break;
+    case extension_tag::dll:
+        ext_str = L".dll";
+        break;
+    default:
+        unreachable();
+    }
 
-basic_library_info::basic_library_info(wchar_t const* name, size_t const length, extension_tag)
-    : basic_library_info(name, length, L".dll", 4)
-{
+    entry_full_ = find_library(name, length, ext_str.data(), ext_str.length());
 }
 
 IMAGE_DOS_HEADER* basic_library_info::dos_header() const

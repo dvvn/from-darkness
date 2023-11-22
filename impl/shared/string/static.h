@@ -29,21 +29,20 @@ struct basic_static_cstring; // null terminated static string
 template <size_t Length, typename CharT>
 class basic_static_string
 {
-    using helper_string     = basic_string_view<CharT>;
     using helper_span       = span<CharT>;
     using helper_span_const = span<CharT const>;
 
     using buffer_type = CharT[Length];
 
-    template <typename... Args>
-    constexpr void assign_internal(Args&&... args) noexcept(noexcept(helper_string{std::forward<Args>(args)...}))
+    template <typename It>
+    constexpr void assign_internal(It first, It last)
     {
 #ifdef _DEBUG
         auto const old_size = size_;
 #endif
-        helper_string const helper{std::forward<Args>(args)...};
-        auto const buffer_end = std::copy(helper.begin(), helper.end(), std::begin(buffer_));
-        size_                 = static_cast<size_type>(helper.size());
+        auto const buffer_begin = std::begin(buffer_);
+        auto const buffer_end   = std::copy(first, last, buffer_begin);
+        size_                   = static_cast<size_type>(std::distance(buffer_begin, buffer_end));
 #ifdef _DEBUG
         if (size_ < old_size)
             std::fill(buffer_end, std::end(buffer_), static_cast<CharT>('\0'));
@@ -80,7 +79,7 @@ class basic_static_string
     using iterator       = pointer;
     using const_iterator = const_pointer;
 #endif
-    using traits_type = typename helper_string::traits_type;
+    using traits_type = typename std::basic_string_view<CharT>::traits_type;
 
     buffer_type buffer_;
     size_type size_;
@@ -91,24 +90,38 @@ class basic_static_string
     {
     }
 
-    template <typename... Args>
-    constexpr basic_static_string(Args&&... args) requires(sizeof...(Args) > 1 && std::constructible_from<helper_string, Args && ...>)
+    /*template <typename CharT2 = CharT>
+    constexpr basic_static_string(basic_static_string<Length, CharT2> const& other)
     {
         pre_construct();
-        assign_internal(std::forward<Args>(args)...);
+        assign_internal(other.begin(), other.end());
+    }*/
+
+    /*template <typename It>
+    constexpr basic_static_string(It first, It last) requires(std::convertible_to<std::iter_value_t<It>, value_type>)
+    {
+        pre_construct();
+        assign_internal(first, last);
+    }*/
+
+    template <typename It>
+    constexpr basic_static_string(It first, It last)
+    {
+        pre_construct();
+        assign_internal(first, last);
     }
 
-    constexpr basic_static_string(CharT const* source)
+    template <std::incrementable It>
+    constexpr basic_static_string(It source)
     {
         pre_construct();
-        assign_internal(source, Length);
+        assign_internal(source, std::next(source, Length));
     }
 
-    template <typename... Args>
-    constexpr basic_static_string& assign(Args&&... args) requires(std::constructible_from<helper_string, Args && ...>)
+    template <typename It>
+    constexpr basic_static_string& assign(It first, It last)
     {
-        pre_construct();
-        assign_internal(std::forward<Args>(args)...);
+        assign_internal(first, last);
         return *this;
     }
 
@@ -123,6 +136,11 @@ class basic_static_string
     }
 
     constexpr size_type size() const noexcept
+    {
+        return size_;
+    }
+
+    constexpr size_type length() const noexcept
     {
         return size_;
     }
@@ -204,7 +222,6 @@ class basic_static_string
 
 template <typename CharT, size_t Length>
 basic_static_string(CharT const (&)[Length]) -> basic_static_string<Length - 1, CharT>;
-
 #undef STATIC_STRING_DEBUG_ITER
 #endif
 

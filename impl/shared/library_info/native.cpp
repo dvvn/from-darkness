@@ -16,6 +16,6 @@ void* native_library_info::interface(char const* name, size_t const length) cons
 
 native_library_info literals::operator""_dlln(wchar_t const* name, size_t length)
 {
-    return {name, length, native_library_info::extension_tag()};
+    return {name, length, native_library_info::extension_tag_dll};
 }
 } // namespace fd

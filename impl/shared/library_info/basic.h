@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "container/span.h"
+#include "string/static.h"
 #include "string/view.h"
 
 #include <windows.h>
@@ -71,7 +72,7 @@ union library_base_address
         return DosHeader;
     }
 
-    void* operator+(ULONG_PTR other) const
+    void* operator+(ULONG_PTR const other) const
     {
         return reinterpret_cast<void*>(DllBaseAddress + other);
     }
@@ -97,14 +98,23 @@ class basic_library_info
 
     struct extension_tag
     {
+        enum value_type : uint8_t
+        {
+            dll,
+            exe
+        } value;
+
+        consteval extension_tag(value_type const val)
+            : value{val}
+        {
+        }
     };
 
-    basic_library_info(char const* name, size_t length, wchar_t* buffer);
-    basic_library_info(wchar_t const* name, size_t length);
-    // basic_library_info(char const* name, size_t name_length, wchar_t* name_buffer, wchar_t const* extension, size_t extension_length);
-    basic_library_info(wchar_t const* name, size_t name_length, wchar_t const* extension, size_t extension_length);
+    static constexpr auto extension_tag_dll = extension_tag::dll;
+    static constexpr auto extension_tag_exe = extension_tag::exe;
 
-    basic_library_info(wchar_t const* name, size_t length, extension_tag);
+    basic_library_info(wchar_t const* name, size_t length);
+    basic_library_info(wchar_t const* name, size_t length, extension_tag ext);
 
     template <size_t Length>
     basic_library_info(wchar_t const (&name)[Length])
@@ -112,25 +122,31 @@ class basic_library_info
     {
     }
 
+  private:
     template <size_t Length>
-    basic_library_info(char const (&name)[Length])
+    basic_library_info(static_wstring<Length> const& name)
+        : basic_library_info(name.data(), name.length())
     {
-        wchar_t buffer[Length - 1];
-        std::construct_at(this, name, Length - 1, buffer);
     }
 
-#if 0
-    template <size_t S>
-    basic_library_info(library_tag<S> const& tag)
+    template <size_t Length>
+    basic_library_info(static_wstring<Length> const& name, extension_tag const ext)
+        : basic_library_info(name.data(), name.length(), ext)
     {
-        auto constexpr buffer_length = tag.static_length() + file_extension_length;
-
-        char_type buffer[buffer_length];
-        tag.add_extension(buffer, file_extension);
-
-        entry_ = basic_library_info(buffer, buffer_length).entry_;
     }
-#endif
+
+  public:
+    template <size_t Length>
+    basic_library_info(static_string<Length> const& name)
+        : basic_library_info(static_wstring<Length>{name.begin(), name.end()})
+    {
+    }
+
+    template <size_t Length>
+    basic_library_info(static_string<Length> const& name, extension_tag const ext)
+        : basic_library_info(static_wstring<Length>{name.begin(), name.end()}, ext)
+    {
+    }
 
     explicit operator bool() const
     {

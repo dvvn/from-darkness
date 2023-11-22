@@ -1,5 +1,5 @@
 ﻿#include "gui/render/backend/own_dx11.h"
-#include "library_info/basic.h"
+#include "library_info/system.h"
 
 #include <cassert>
 
@@ -29,9 +29,10 @@ own_dx11_backend_data::own_dx11_backend_data(HWND hwnd)
         D3D_FEATURE_LEVEL_11_0,
         D3D_FEATURE_LEVEL_10_0,
     };
+
     auto res = DXGI_ERROR_UNSUPPORTED;
 #if defined(_DEBUG)
-    if (basic_library_info("D3D11_1SDKLayers.dll"))
+    if ("d3d11_1sdklayers"_dll)
         res = create_device_and_swap_chain(feature_levels, &sc_desc, D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_DEBUGGABLE, D3D_DRIVER_TYPE_HARDWARE);
     if (res == DXGI_ERROR_UNSUPPORTED)
 #endif

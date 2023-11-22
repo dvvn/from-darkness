@@ -38,5 +38,11 @@ struct native_library_info : system_library_info
 inline namespace literals
 {
 native_library_info operator"" _dlln(wchar_t const* name, size_t length);
+
+template <static_string Name>
+native_library_info operator"" _dlln()
+{
+    return {Name, native_library_info::extension_tag_dll};
+}
 } // namespace literals
 } // namespace fd

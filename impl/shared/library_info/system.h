@@ -34,5 +34,11 @@ class system_library_info : public basic_library_info
 inline namespace literals
 {
 system_library_info operator"" _dll(wchar_t const* name, size_t length);
+
+template <static_string Name>
+system_library_info operator"" _dll()
+{
+    return {Name, system_library_info::extension_tag_dll};
+}
 } // namespace literals
 } // namespace fd

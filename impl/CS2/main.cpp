@@ -35,11 +35,11 @@ bool fd::run_context()
             unreachable();
     });
 
-    auto const tier_dll                        = L"tier0"_dlln;
+    auto const tier_dll                        = "tier0"_dlln;
     native::cvar_system const* cvar_system     = safe_cast_lazy(tier_dll.interface("VEngineCvar"));
-    auto const engine_dll                      = L"engine2"_dlln;
+    auto const engine_dll                      = "engine2"_dlln;
     native::engine_client const* engine        = safe_cast_lazy(engine_dll.interface("Source2EngineToClient"));
-    auto const schemasystem_dll                = L"schemasystem"_dlln;
+    auto const schemasystem_dll                = "schemasystem"_dlln;
     native::schema_system const* schema_system = safe_cast_lazy(schemasystem_dll.interface("SchemaSystem"));
 
     auto const render_data = render_backend.data();
