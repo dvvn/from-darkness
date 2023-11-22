@@ -104,7 +104,7 @@ basic_library_info::basic_library_info(char const* name, size_t const length, wc
 
 basic_library_info::basic_library_info(LPCTSTR const name, size_t const length)
 {
-    entry_full_ = (find_library(name, length));
+    entry_full_ = find_library(name, length);
 }
 
 // basic_library_info::basic_library_info(char const* name, size_t const name_length, wchar_t* name_buffer, wchar_t const* extension, size_t const
@@ -166,26 +166,26 @@ size_t basic_library_info::length() const
     return entry_full_->SizeOfImage;
 }
 
-auto basic_library_info::name() const -> wstring_view
+wstring_view basic_library_info::name() const
 {
     auto const& buff = entry_full_->BaseDllName;
     return {begin(buff), end(buff)};
 }
 
-auto basic_library_info::path() const -> wstring_view
+wstring_view basic_library_info::path() const
 {
     auto const& buff = entry_full_->FullDllName;
     return {begin(buff), end(buff)};
 }
 
-uint8_t* begin(basic_library_info const& info)
+auto basic_library_info::sections() const -> sections_range
 {
-    return safe_cast<uint8_t>(info.image_base());
+    return {nt_header()};
 }
 
-uint8_t* end(basic_library_info const& info)
+auto basic_library_info::data_dirs() const -> data_dir_range
 {
-    return begin(info) + info.length();
+    return {nt_header()};
 }
 
 library_section_view::library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base)
@@ -205,33 +205,20 @@ library_data_dir_range::library_data_dir_range(IMAGE_NT_HEADERS* nt)
 
 IMAGE_SECTION_HEADER* find(library_sections_range sections, char const* name, size_t const name_length)
 {
-    return std::find_if(ubegin(sections), uend(sections), [=](IMAGE_SECTION_HEADER const& header) {
+    auto const sections_end = end(sections);
+    auto const found        = std::find_if(begin(sections), sections_end, [=](IMAGE_SECTION_HEADER const& header) {
         return equal(header, name, name_length);
     });
+    return found == sections_end ? nullptr : unwrap_iterator(found);
 }
 
-namespace detail
+uint8_t* begin(basic_library_info const& info)
 {
-library_section_view make_section_view(void const* section, void* image_base)
-{
-    return {safe_cast<IMAGE_SECTION_HEADER>(section), image_base};
+    return safe_cast<uint8_t>(info.image_base());
 }
 
-library_section_view make_section_view(IMAGE_SECTION_HEADER const* section, void* image_base)
+uint8_t* end(basic_library_info const& info)
 {
-    return {section, image_base};
+    return begin(info) + info.length();
 }
-
-library_sections_range make_sections_range(void* nt)
-{
-    auto nt1 = safe_cast<IMAGE_NT_HEADERS>(nt);
-    assert(nt1->Signature == IMAGE_NT_SIGNATURE);
-    return {nt1};
-}
-
-library_sections_range make_sections_range(IMAGE_NT_HEADERS* nt)
-{
-    return {nt};
-}
-} // namespace detail
 } // namespace fd

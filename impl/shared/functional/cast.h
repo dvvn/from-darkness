@@ -5,25 +5,25 @@
 namespace fd
 {
 template <typename T>
-constexpr T const* add_const(T* ptr)
+constexpr T const* as_const(T* ptr)
 {
     return ptr;
 }
 
 template <typename T>
-constexpr T const* add_const(T const* ptr)
+constexpr T const* as_const(T const* ptr)
 {
     return ptr;
 }
 
 template <typename T>
-constexpr T const& add_const(T& ptr)
+constexpr T const& as_const(T& ptr)
 {
     return ptr;
 }
 
 template <typename T>
-constexpr T const& add_const(T const& ptr)
+constexpr T const& as_const(T const& ptr)
 {
     return ptr;
 }

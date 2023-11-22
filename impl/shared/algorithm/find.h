@@ -51,7 +51,7 @@ bool on_found_byte(It& first_pos, ItRaw current_pos, std::reference_wrapper<Call
     return true;
 }
 
-template <bool Verify = true, typename It, typename Callback>
+template <typename It, typename Callback>
 It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, std::reference_wrapper<Callback> callback)
 {
     using cb_invoker  = find_callback_invoker<Callback, decltype(unwrap_iterator(rng_start))>;
@@ -59,8 +59,7 @@ It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, std:
 
     if constexpr (cb_invoker::invocable || cb_invoker2::invocable)
     {
-        if constexpr (Verify)
-            verify_range(rng_start, rng_end);
+        verify_range(rng_start, rng_end);
 
         auto u_rng_start     = unwrap_iterator(rng_start);
         auto const u_rng_end = unwrap_iterator(rng_end);
@@ -89,40 +88,37 @@ It find(It rng_start, It const rng_end, It2 const what_start, It2 const what_end
 {
     verify_range(what_start, what_end);
 
-    auto const callback_ref = std::ref(callback);
-
     auto const u_what_start = unwrap_iterator(what_start);
     auto const u_what_end   = unwrap_iterator(what_end);
 
     auto const what_front    = *u_what_start;
     auto const target_length = std::distance(u_what_start, u_what_end);
 
+    // verify_range(rng_start, rng_end);
+
+    auto const callback_ref = std::ref(callback);
+
     if (target_length == 1)
     {
         return detail::find_one_byte(rng_start, rng_start, what_front, callback_ref);
     }
-    // ReSharper disable once CppRedundantElseKeywordInsideCompoundStatement
-    else
+
+    auto u_rng_start          = unwrap_iterator(rng_start);
+    auto const u_rng_safe_end = unwrap_iterator(rng_end - target_length);
+
+    // verify_range(u_rng_start, u_rng_safe_end);
+
+    for (;;)
     {
-        verify_range(rng_start, rng_end);
+        auto const front_found = std::find(u_rng_start, u_rng_safe_end, what_front);
+        if (front_found == u_rng_safe_end)
+            return rng_end;
 
-        auto u_rng_start          = unwrap_iterator(rng_start);
-        auto const u_rng_safe_end = unwrap_iterator(rng_end - target_length);
-
-        verify_range(u_rng_start, u_rng_safe_end);
-
-        for (;;)
-        {
-            auto const front_found = std::find(u_rng_start, u_rng_safe_end, what_front);
-            if (front_found == u_rng_safe_end)
-                return rng_end;
-
-            if (!std::equal(u_what_start, u_what_end, u_rng_start))
-                ++u_rng_start;
-            else if (detail::on_found_byte(rng_start, front_found, callback_ref))
-                return rng_start;
-            u_rng_start = front_found + target_length;
-        }
+        if (!std::equal(u_what_start, u_what_end, u_rng_start))
+            ++u_rng_start;
+        else if (detail::on_found_byte(rng_start, front_found, callback_ref))
+            return rng_start;
+        u_rng_start = front_found + target_length;
     }
 }
 

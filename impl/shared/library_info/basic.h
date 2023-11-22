@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "container/array.h"
 #include "container/span.h"
 #include "string/view.h"
 
@@ -33,6 +32,24 @@ struct LDR_DATA_TABLE_ENTRY_FULL
 
 namespace fd
 {
+struct library_section_view : span<uint8_t>
+{
+    library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base);
+};
+
+struct library_sections_range : span<IMAGE_SECTION_HEADER>
+{
+    library_sections_range(IMAGE_NT_HEADERS* nt);
+};
+
+IMAGE_SECTION_HEADER* find(library_sections_range sections, char const* name, size_t name_length);
+
+template <size_t L>
+IMAGE_SECTION_HEADER* find(library_sections_range const sections, char const (&name)[L])
+{
+    return find(sections, name, L - 1);
+}
+
 union library_base_address
 {
     PVOID DllBase;
@@ -60,6 +77,11 @@ union library_base_address
     }
 };
 
+struct library_data_dir_range : span<IMAGE_DATA_DIRECTORY>
+{
+    library_data_dir_range(IMAGE_NT_HEADERS* nt);
+};
+
 class basic_library_info
 {
     union
@@ -69,6 +91,10 @@ class basic_library_info
     };
 
   public:
+    using sections_view  = library_section_view;
+    using sections_range = library_sections_range;
+    using data_dir_range = library_data_dir_range;
+
     struct extension_tag
     {
     };
@@ -121,39 +147,11 @@ class basic_library_info
     size_t length() const;
     wstring_view name() const;
     wstring_view path() const;
+
+    sections_range sections() const;
+    data_dir_range data_dirs() const;
 };
 
 uint8_t* begin(basic_library_info const& info);
 uint8_t* end(basic_library_info const& info);
-
-struct library_section_view : span<uint8_t>
-{
-    library_section_view(IMAGE_SECTION_HEADER const* section, void* image_base);
-};
-
-struct library_sections_range : span<IMAGE_SECTION_HEADER>
-{
-    library_sections_range(IMAGE_NT_HEADERS* nt);
-};
-
-struct library_data_dir_range : span<IMAGE_DATA_DIRECTORY>
-{
-    library_data_dir_range(IMAGE_NT_HEADERS* nt);
-};
-
-IMAGE_SECTION_HEADER* find(library_sections_range sections, char const* name, size_t name_length);
-
-template <size_t L>
-IMAGE_SECTION_HEADER* find(library_sections_range const sections, char const (&name)[L])
-{
-    return find(sections, name, L - 1);
-}
-
-namespace detail
-{
-library_section_view make_section_view(void const* section, void* image_base);
-library_section_view make_section_view(IMAGE_SECTION_HEADER const* section, void* image_base);
-library_sections_range make_sections_range(void* nt);
-library_sections_range make_sections_range(IMAGE_NT_HEADERS* nt);
-} // namespace detail
 } // namespace fd

@@ -13,6 +13,8 @@
 #include "hooked/directx11.h"
 #include "hooked/winapi.h"
 #include "library_info/native.h"
+#include "native/cvar.hpp"
+#include "native/engine_client.hpp"
 #include "native/schema_system.hpp"
 
 bool fd::run_context()
@@ -33,7 +35,12 @@ bool fd::run_context()
             unreachable();
     });
 
-    schema_system* schema_system = safe_cast_lazy(L"schemasystem"_dlln.interface("SchemaSystem"));
+    auto const tier_dll                        = L"tier0"_dlln;
+    native::cvar_system const* cvar_system     = safe_cast_lazy(tier_dll.interface("VEngineCvar"));
+    auto const engine_dll                      = L"engine2"_dlln;
+    native::engine_client const* engine        = safe_cast_lazy(engine_dll.interface("Source2EngineToClient"));
+    auto const schemasystem_dll                = L"schemasystem"_dlln;
+    native::schema_system const* schema_system = safe_cast_lazy(schemasystem_dll.interface("SchemaSystem"));
 
     auto const render_data = render_backend.data();
     win::window_info const main_window(system_backend.window());

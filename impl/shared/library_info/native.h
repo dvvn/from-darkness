@@ -5,18 +5,20 @@
 
 namespace fd
 {
-inline namespace native
+namespace native
 {
 class interface_register;
 }
 
 struct native_library_info : system_library_info
 {
+    using interface_register = native::interface_register;
+
     using system_library_info::system_library_info;
 
     interface_register* root_interface() const;
 
-    static void* interface(char const* name, size_t length, interface_register* root);
+    static void* interface(char const* name, size_t length, interface_register const* root);
 
     template <size_t Length>
     static void* interface(char const (&name)[Length], interface_register* root_interface)

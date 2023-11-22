@@ -33,37 +33,37 @@ bool equal(It u_start, pattern<Segment...> const& pat)
 template <typename Callback = uint8_t, typename It, class... Segment>
 It find(It rng_start, It const rng_end, pattern<Segment...> const& pat, Callback callback = {})
 {
-    auto const first_pattern_byte = *ubegin(boost::hana::front(pat.get()));
+    auto& first_pattern_segment   = boost::hana::front(pat.get());
+    auto const first_pattern_byte = *ubegin(first_pattern_segment);
     auto const callback_ref       = std::ref(callback);
+
+    using std::size;
 
     if constexpr (sizeof...(Segment) == 1)
     {
-        return detail::find_one_byte(rng_start, rng_end, first_pattern_byte, callback_ref);
+        if (size(first_pattern_segment) == 1)
+            return detail::find_one_byte(rng_start, rng_end, first_pattern_byte, callback_ref);
     }
-    else
+
+    verify_range(rng_start, rng_end);
+
+    auto const pat_size = size(pat);
+
+    auto u_rng_start          = unwrap_iterator(rng_start);
+    auto const u_rng_end_safe = unwrap_iterator(rng_end - pat_size);
+
+    // verify_range(u_rng_start, u_rng_end_safe);
+
+    for (;;)
     {
-        using std::size;
-
-        verify_range(rng_start, rng_end);
-
-        auto const pat_size = size(pat);
-
-        auto u_rng_start          = unwrap_iterator(rng_start);
-        auto const u_rng_end_safe = unwrap_iterator(rng_end - pat_size);
-
-        verify_range(u_rng_start, u_rng_end_safe);
-
-        for (;;)
-        {
-            auto const first_byte_found = std::find(u_rng_start, u_rng_end_safe, first_pattern_byte);
-            if (first_byte_found == u_rng_end_safe)
-                return rng_end;
-            if (!equal(first_byte_found, pat))
-                ++u_rng_start;
-            else if (detail::on_found_byte(rng_start, first_byte_found, callback_ref))
-                return rng_start;
-            u_rng_start = first_byte_found + pat_size;
-        }
+        auto const first_byte_found = std::find(u_rng_start, u_rng_end_safe, first_pattern_byte);
+        if (first_byte_found == u_rng_end_safe)
+            return rng_end;
+        if (!equal(first_byte_found, pat))
+            ++u_rng_start;
+        else if (detail::on_found_byte(rng_start, first_byte_found, callback_ref))
+            return rng_start;
+        u_rng_start = first_byte_found + pat_size;
     }
 }
 
@@ -74,67 +74,59 @@ It find(It rng_start, It const rng_end, pattern<Segment...> const& pat, Callback
 // }
 
 class basic_library_info;
-struct library_section_view;
-struct library_sections_range;
-
-namespace detail
-{
-library_sections_range make_sections_range(void* nt);
-library_section_view make_section_view(void const* section, void* image_base);
-} // namespace detail
 
 template <typename Callback = uint8_t, std::derived_from<basic_library_info> Info, class... Segment>
 void* find(Info info, pattern<Segment...> const& pat, Callback callback = {})
 {
-    auto const nt_header  = info.nt_header();
-    auto const image_base = info.image_base(nt_header);
-    auto const sections   = detail::make_sections_range(nt_header);
+    auto const& first_pattern_segment = boost::hana::front(pat.get());
+    auto const first_pattern_byte     = *ubegin(first_pattern_segment);
+    auto const callback_ref           = std::ref(callback);
 
-    auto const first_pattern_byte = *ubegin(boost::hana::front(pat.get()));
-    auto const callback_ref       = std::ref(callback);
+    auto const nt_header = info.nt_header();
+    typename Info::sections_range const sections{nt_header};
 
     auto first_section      = ubegin(sections);
     auto const last_section = uend(sections);
 
+    auto const unwrap_first_section = [&first_section, image_base = info.image_base(nt_header)] {
+        typename Info::sections_view const section_view{first_section, image_base};
+        return std::pair(ubegin(section_view), uend(section_view));
+    };
+
+    using std::size;
+
     if constexpr (sizeof...(Segment) == 1)
-    {
-        for (; first_section != last_section; ++first_section)
+        if (size(first_pattern_segment) == 1)
         {
-            auto const section_view = detail::make_section_view(first_section, image_base);
-            auto const section_end  = uend(section_view);
-
-            auto const found = detail::find_one_byte<false>(ubegin(section_view), section_end, first_pattern_byte, callback_ref);
-            if (found != section_end)
-                return found;
-        }
-    }
-    else
-    {
-        using std::size;
-
-        auto const pat_size = size(pat);
-
-        for (; first_section != last_section; ++first_section)
-        {
-            auto const section_view = detail::make_section_view(first_section, image_base);
-
-            auto section_start          = ubegin(section_view);
-            auto const section_end_safe = uend(section_view) - pat_size;
-
-            if (section_start <= section_end_safe)
-                continue;
-
-            for (;;)
+            for (; first_section != last_section; ++first_section)
             {
-                auto const first_byte_found = std::find(section_start, section_end_safe, first_pattern_byte);
-                if (first_byte_found == section_end_safe)
-                    break;
-                if (!equal(first_byte_found, pat))
-                    ++section_start;
-                else if (detail::on_found_byte(section_start, first_byte_found, callback_ref))
-                    return section_start;
-                section_start = first_byte_found + pat_size;
+                auto [section_start, section_end] = unwrap_first_section();
+                auto const found                  = detail::find_one_byte<false>(section_start, section_end, first_pattern_byte, callback_ref);
+                if (found != section_end)
+                    return found;
             }
+            return nullptr;
+        }
+
+    auto const pat_size = size(pat);
+    for (; first_section != last_section; ++first_section)
+    {
+        auto [section_start, section_end] = unwrap_first_section();
+        auto const section_end_safe       = section_end - pat_size;
+
+        if (section_start <= section_end_safe)
+            continue;
+
+        for (;;)
+        {
+            auto const first_byte_found = std::find(section_start, section_end_safe, first_pattern_byte);
+            if (first_byte_found == section_end_safe)
+                break;
+            if (!equal(first_byte_found, pat))
+                ++section_start;
+            else if (detail::on_found_byte(section_start, first_byte_found, callback_ref))
+                return section_start;
+            section_start = first_byte_found + pat_size;
         }
     }
 
