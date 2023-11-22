@@ -23,12 +23,6 @@ class system_library_info : public basic_library_info
     {
         return vtable(name, Length - 1);
     }
-
-    /*template <class T>
-    void *vtable(char const *name = __rscpp_type_name<T>()) const
-    {
-        return vtable(name, __builtin_strlen(name));
-    }*/
 };
 
 inline namespace literals
@@ -38,7 +32,7 @@ system_library_info operator"" _dll(wchar_t const* name, size_t length);
 template <static_string Name>
 system_library_info operator"" _dll()
 {
-    return {Name, system_library_info::extension_tag_dll};
+    return {Name, system_library_info::extension_tag::dll};
 }
 } // namespace literals
 } // namespace fd

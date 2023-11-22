@@ -98,9 +98,6 @@ class basic_library_info
         }
     };
 
-    static constexpr auto extension_tag_dll = extension_tag::dll;
-    static constexpr auto extension_tag_exe = extension_tag::exe;
-
     basic_library_info(wchar_t const* name, size_t length);
     basic_library_info(wchar_t const* name, size_t length, extension_tag ext);
 
