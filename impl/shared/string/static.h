@@ -3,7 +3,6 @@
 #if 1
 #include "container/array.h"
 #include "iterator/unwrap.h"
-#include "string/view.h"
 #else
 #define BOOST_STATIC_STRING_STANDALONE
 #include <boost/static_string.hpp>
@@ -29,9 +28,6 @@ struct basic_static_cstring; // null terminated static string
 template <size_t Length, typename CharT>
 class basic_static_string
 {
-    using helper_span       = span<CharT>;
-    using helper_span_const = span<CharT const>;
-
     using buffer_type = CharT[Length];
 
     template <typename It>
@@ -73,13 +69,12 @@ class basic_static_string
     using reference       = CharT&;
     using const_reference = CharT const&;
 #ifdef STATIC_STRING_DEBUG_ITER
-    using iterator       = typename helper_span::iterator;
-    using const_iterator = typename helper_span_const::iterator;
+    using iterator       = typename span<CharT>::iterator;
+    using const_iterator = typename span<CharT const>::iterator;
 #else
     using iterator       = pointer;
     using const_iterator = const_pointer;
 #endif
-    using traits_type = typename std::basic_string_view<CharT>::traits_type;
 
     buffer_type buffer_;
     size_type size_;
@@ -154,22 +149,22 @@ class basic_static_string
 #ifdef STATIC_STRING_DEBUG_ITER
     constexpr iterator begin() noexcept
     {
-        return helper_span{data(), size_}.begin();
+        return span{data(), size_}.begin();
     }
 
     constexpr const_iterator begin() const noexcept
     {
-        return helper_span_const{data(), size_}.begin();
+        return span{data(), size_}.begin();
     }
 
     constexpr iterator end() noexcept
     {
-        return helper_span{data(), size_}.end();
+        return span{data(), size_}.end();
     }
 
     constexpr const_iterator end() const noexcept
     {
-        return helper_span_const{data(), size_}.end();
+        return span{data(), size_}.end();
     }
 #else
     constexpr iterator begin() noexcept
