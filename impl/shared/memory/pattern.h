@@ -6,6 +6,7 @@
 #include "iterator/unwrap.h"
 #include "memory/pattern_fwd.h"
 #include "string/charconv.h"
+#include "string/static.h"
 
 #include <boost/hana/append.hpp>
 #include <boost/hana/back.hpp>
@@ -20,92 +21,6 @@ namespace fd
 {
 namespace detail
 {
-template <pattern_size_type S>
-struct pattern_string
-{
-    char buff[S];
-
-    template <pattern_size_type... I>
-    consteval pattern_string(char const* buff, std::index_sequence<I...>)
-        : buff{buff[I]...}
-    {
-    }
-
-    consteval pattern_string(char const* buff)
-        : pattern_string(buff, std::make_index_sequence<S>())
-    {
-    }
-
-    //--
-
-    // ReSharper disable once CppMemberFunctionMayBeStatic
-    constexpr pattern_size_type length() const
-    {
-        return S;
-    }
-
-    constexpr char const* begin() const
-    {
-        return std::begin(buff);
-    }
-
-    constexpr char const* end() const
-    {
-        return std::end(buff);
-    }
-
-    //--
-
-    constexpr pattern_size_type bytes_count() const
-    {
-        return std::count(begin(), end(), ' ') + 1;
-    }
-
-    constexpr pattern_size_type segements_count() const
-    {
-        pattern_size_type count = 1;
-        auto found              = false;
-
-        for (auto c : buff)
-        {
-            if (c == '?')
-            {
-                found = true;
-            }
-            else if (found)
-            {
-                ++count;
-                found = false;
-            }
-        }
-        return count;
-    }
-
-    constexpr pattern_size_type longest_segment() const
-    {
-        pattern_size_type length         = 0;
-        pattern_size_type current_length = 0;
-
-        for (auto c : buff)
-        {
-            if (c == ' ')
-            {
-                ++current_length;
-            }
-            else if (c == '?' && length < current_length)
-            {
-                length         = current_length;
-                current_length = 0;
-            }
-        }
-
-        return length;
-    }
-};
-
-template <size_t S>
-pattern_string(char const (&)[S]) -> pattern_string<S - 1>;
-
 struct pattern_segment_item
 {
     uint8_t byte;
@@ -363,17 +278,17 @@ struct transformed_pattern : array<pattern_segment_item, BytesCount>
 //     return pattern_segment<SegmentLength>(tmp_segment.begin, tmp_segment.end, tmp_segment.unknown);
 // }
 
-template <pattern_string Str>
+template <static_string Str>
 struct static_pattern
 {
-    static constexpr auto bytes = transformed_pattern<Str.bytes_count()>({Str.begin(), Str.end()});
+    static constexpr auto bytes_count = std::count(Str.begin(), Str.end(), ' ') + 1;
+    static constexpr auto bytes       = transformed_pattern<bytes_count>({Str.begin(), Str.end()});
 };
 
-template <pattern_string Str>
+template <static_string Str>
 constexpr auto make_pattern()
 {
-    constexpr auto bytes_count = Str.bytes_count();
-    constexpr transformed_pattern<bytes_count> bytes({Str.begin(), Str.end()});
+    constexpr auto& bytes = static_pattern<Str>::bytes;
 
     auto make_segment = []<size_t Skip>(std::in_place_index_t<Skip>) {
         constexpr auto tmp_segment    = bytes.segment(Skip);
@@ -389,7 +304,7 @@ constexpr auto make_pattern()
 
 inline namespace literals
 {
-template <detail::pattern_string Pattern>
+template <static_string Pattern>
 constexpr auto operator""_pat()
 {
 #ifndef _DEBUG
