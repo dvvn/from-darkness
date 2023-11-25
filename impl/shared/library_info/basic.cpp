@@ -31,38 +31,41 @@ static bool operator!(UNICODE_STRING const& ustr)
     return ustr.Buffer == nullptr;
 }
 
-static bool equal(UNICODE_STRING const& ustr, size_t const offset, wchar_t const* str, size_t const length)
+// template <typename It>
+// static bool equal(UNICODE_STRING const& ustr, size_t const offset, It first, It last)
+//{
+//     return std::equal(begin(ustr) + offset, end(ustr), first, last);
+// }
+//
+template <typename It>
+static bool equal(UNICODE_STRING const& ustr, It first, It last) requires(sizeof(std::iter_value_t<It>) == sizeof(wchar_t))
 {
-    return memcmp(data(ustr) + offset, str, length * sizeof(wchar_t)) == 0;
+    return std::equal(begin(ustr), end(ustr), first, last);
 }
 
-static bool equal(UNICODE_STRING const& ustr, wchar_t const* str, size_t const length)
+template <typename It>
+static bool equal(UNICODE_STRING const& ustr, It first1, It last1, It first2, It last2) requires(sizeof(std::iter_value_t<It>) == sizeof(wchar_t))
 {
-    return size(ustr) == length && equal(ustr, 0, str, length);
-}
-
-static bool equal(UNICODE_STRING const& ustr, wchar_t const* part1, size_t const part1_length, wchar_t const* part2, size_t const part2_length)
-{
-    if (size(ustr) != part1_length + part2_length)
+    auto const length1 = std::distance(first1, last1);
+    auto const length2 = std::distance(first2, last2);
+    if (size(ustr) != length1 + length2)
         return false;
     auto const check1 = [=] {
-        return equal(ustr, 0, part1, part1_length);
+        return std::equal(begin(ustr), end(ustr) - length2, first1, last1);
     };
     auto const check2 = [=] {
-        return equal(ustr, part1_length, part2, part2_length);
+        return std::equal(begin(ustr) + length1, end(ustr), first2, last2);
     };
-    return part1_length <= part2_length ? check1() && check2() : check2() && check1();
+    return length1 <= length2 ? check1() && check2() : check2() && check1();
 }
 
-static bool equal(IMAGE_SECTION_HEADER const& header, char const* name, size_t const length)
+template <typename It>
+static bool equal(IMAGE_SECTION_HEADER const& header, It first, It last) requires(sizeof(std::iter_value_t<It>) == sizeof(BYTE))
 {
+    size_t const length = std::distance(first, last);
     assert(length < std::size(header.Name));
 
-    if (header.Name[length] != '\0')
-        return false;
-    if (memcmp(header.Name, name, length) != 0)
-        return false;
-    return true;
+    return header.Name[length] == '\0' && std::equal(header.Name, header.Name + length, first, last);
 }
 
 namespace fd
@@ -96,27 +99,24 @@ static LDR_DATA_TABLE_ENTRY_FULL* find_library(T... args)
     return nullptr;
 }
 
-basic_library_info::basic_library_info(LPCTSTR const name, size_t const length)
+wstring_view basic_library_info::extension_tag::get() const
 {
-    entry_full_ = find_library(name, length);
+#ifdef _DEBUG
+    return to_string(value_);
+#else
+    return ext_;
+#endif
 }
 
-basic_library_info::basic_library_info(wchar_t const* name, size_t const length, extension_tag ext)
+basic_library_info::basic_library_info(wstring_view name)
 {
-    wstring_view ext_str;
-    switch (ext.value)
-    {
-    case extension_tag::exe:
-        ext_str = L".exe";
-        break;
-    case extension_tag::dll:
-        ext_str = L".dll";
-        break;
-    default:
-        unreachable();
-    }
+    entry_full_ = find_library(ubegin(name), uend(name));
+}
 
-    entry_full_ = find_library(name, length, ext_str.data(), ext_str.length());
+basic_library_info::basic_library_info(wstring_view name, extension_tag const ext)
+{
+    auto const ext_str = ext.get();
+    entry_full_        = find_library(ubegin(name), uend(name), ubegin(ext_str), uend(ext_str));
 }
 
 IMAGE_DOS_HEADER* basic_library_info::dos_header() const
@@ -195,18 +195,18 @@ basic_library_info::section_view::section_view(IMAGE_SECTION_HEADER const* secti
 {
 }
 
-IMAGE_SECTION_HEADER* find(basic_library_info::sections_range sections, char const* name, size_t const name_length)
+IMAGE_SECTION_HEADER* find(basic_library_info::sections_range sections, string_view name)
 {
-    auto const sections_end = end(sections);
-    auto const found        = std::find_if(begin(sections), sections_end, [=](IMAGE_SECTION_HEADER const& header) {
-        return equal(header, name, name_length);
+    auto const sections_end = uend(sections);
+    auto const found        = std::find_if(ubegin(sections), sections_end, [first = ubegin(name), last = uend(name)](IMAGE_SECTION_HEADER const& header) {
+        return equal(header, first, last);
     });
-    return found == sections_end ? nullptr : unwrap_iterator(found);
+    return found == sections_end ? nullptr : found;
 }
 
 uint8_t* begin(basic_library_info const& info)
 {
-    return safe_cast<uint8_t>(info.image_base());
+    return safe_cast_lazy(info.image_base());
 }
 
 uint8_t* end(basic_library_info const& info)

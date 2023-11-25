@@ -40,13 +40,13 @@ interface_register::iterator::iterator(interface_register const* current)
 {
 }
 
-interface_register::iterator& interface_register::iterator::operator++(int)
+auto interface_register::iterator::operator++(int) -> iterator&
 {
     current_ = current_->next_;
     return *this;
 }
 
-interface_register::iterator interface_register::iterator::operator++() const
+auto interface_register::iterator::operator++() const -> iterator
 {
     return current_->next_;
 }
@@ -77,50 +77,56 @@ inline constexpr auto interface_version_chars = [] {
     return table;
 }();
 
-static bool check_interface_version_char(char const* str_start)
+static bool check_interface_version_char(char c)
 {
-    return detail::char_table_get(interface_version_chars, *str_start);
+    return detail::char_table_get(interface_version_chars, c);
 }
 
 static bool check_interface_version(char const* version_start)
 {
     for (; *version_start != '\0'; ++version_start)
     {
-        if (!check_interface_version_char(version_start))
+        if (!check_interface_version_char(*version_start))
             return false;
     }
     return true;
 }
 
-interface_register::iterator find(interface_register const* current, char const* name, size_t const name_length)
+auto interface_register::find(string_view const name) const -> iterator
 {
-    return find(current, name, name_length, isdigit(name[name_length - 1]));
+    return find(name, isdigit(name.back()));
 }
 
-interface_register::iterator find(interface_register const* current, char const* name, size_t const name_length, bool const name_contains_version)
+auto interface_register::find(string_view name, bool const name_contains_version) const -> iterator
 {
-    auto const compare = [=]<bool ContainsVersion>(std::bool_constant<ContainsVersion>, interface_register const& reg) {
-        if constexpr (ContainsVersion)
-        {
-            if (reg.name_[name_length] != '\0')
-                return false;
-        }
-        else
-        {
-            if (!check_interface_version_char(reg.name_ + name_length))
-                return false;
-        }
-        if (memcmp(reg.name_, name, name_length) != 0)
-            return false;
+    auto const name_length = name.length();
 
-        if constexpr (!ContainsVersion)
-            if (!check_interface_version(reg.name_ + name_length + 1))
+    auto const compare = [name_length, name_first = ubegin(name), name_last = uend(name)] //
+        <bool ContainsVersion>(std::bool_constant<ContainsVersion>, interface_register const& reg) {
+            auto const reg_name_end = reg.name_ + name_length;
+
+            if constexpr (!ContainsVersion)
+            {
+                if (!check_interface_version_char(*reg_name_end))
+                    return false;
+            }
+            else
+            {
+                if (*reg_name_end != '\0')
+                    return false;
+            }
+            if (!std::equal(reg.name_, reg_name_end, name_first, name_last))
                 return false;
+            if constexpr (!ContainsVersion)
+            {
+                if (!check_interface_version(reg_name_end + 1))
+                    return false;
+            }
 
-        return true;
-    };
+            return true;
+        };
 
-    interface_register::iterator const first{current}, last{nullptr};
+    iterator const first{this}, last{nullptr};
 
     if (name_contains_version)
         return std::find_if(first, last, bind_front(compare, std::true_type()));
@@ -141,14 +147,24 @@ interface_register::iterator find(interface_register const* current, char const*
     return found;
 }
 
-interface_register::iterator begin(interface_register const* reg)
+interface_register::iterator begin(interface_register const& reg)
 {
-    return reg;
+    return &reg;
 }
 
-interface_register::iterator end(interface_register const* reg)
+interface_register::iterator end(interface_register const& reg)
 {
     (void)reg;
     return nullptr;
+}
+
+void* get(interface_register const& reg, string_view const name)
+{
+    auto target = reg.find(name);
+#ifdef _DEBUG
+    return target->try_get();
+#else
+    return target->get();
+#endif
 }
 }

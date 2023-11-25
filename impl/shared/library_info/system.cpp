@@ -12,7 +12,7 @@
 
 namespace fd
 {
-void* system_library_info::function(char const* name, size_t const length) const
+void* system_library_info::function(string_view name) const
 {
     auto const base_address = (this->base());
 
@@ -27,13 +27,17 @@ void* system_library_info::function(char const* name, size_t const length) const
 
     //----
 
+    auto const name_ufirst = ubegin(name);
+    auto const name_ulast  = uend(name);
+    auto const name_length = name.length();
+
     auto const last_offset = std::min(export_dir->NumberOfNames, export_dir->NumberOfFunctions);
     for (DWORD offset = 0; offset != last_offset; ++offset)
     {
-        auto const fn_name = safe_cast<char>(base_address + names[offset]);
-        if (fn_name[length] != '\0')
+        auto const fn_name_raw = safe_cast<char>(base_address + names[offset]);
+        if (fn_name_raw[name_length] != '\0')
             continue;
-        if (memcmp(fn_name, name, length) != 0)
+        if (!std::equal(fn_name_raw, fn_name_raw + name_length, name_ufirst, name_ulast))
             continue;
 
         void* fn = base_address + funcs[ords[offset]];
@@ -53,14 +57,16 @@ static void* find_rtti_descriptor(string_view const name, uint8_t* image_base, u
     }
     else
     {
-        auto const object_tag = [object_name = name.substr(0, space)] {
-            if (object_name == "struct")
-                return 'U';
-            if (object_name == "class")
-                return 'V';
-            // todo: union
+        auto const object_name = name.substr(0, space);
+        char object_tag;
+
+        if (object_name == "struct")
+            object_tag = 'U';
+        else if (object_name == "class")
+            object_tag = 'V';
+        else
             unreachable();
-        }();
+
         auto const class_name = name.substr(space + 1);
 
         array<char, 64> buff;
@@ -69,7 +75,7 @@ static void* find_rtti_descriptor(string_view const name, uint8_t* image_base, u
     return ret;
 }
 
-void* system_library_info::vtable(char const* name, size_t length) const
+void* system_library_info::vtable(string_view name) const
 {
     union
     {
@@ -84,7 +90,7 @@ void* system_library_info::vtable(char const* name, size_t length) const
     auto const nt = nt_header();
     sections_range const sections(nt);
 
-    rtti_descriptor = find_rtti_descriptor({name, length}, image_start, image_end);
+    rtti_descriptor = find_rtti_descriptor(name, image_start, image_end);
 
     //---------
 
@@ -119,6 +125,6 @@ void* system_library_info::vtable(char const* name, size_t length) const
 
 system_library_info literals::operator""_dll(wchar_t const* name, size_t length)
 {
-    return {name, length, system_library_info::extension_tag::dll};
+    return {{name, length}, system_library_info::extension_tag::dll};
 }
 } // namespace fd

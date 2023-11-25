@@ -4,10 +4,12 @@
 #include "string/static.h"
 #include "string/view.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
 #include <windows.h>
 #include <winternl.h>
 
 // ReSharper disable CppInconsistentNaming
+
 // see https://www.vergiliusproject.com/kernels/x64/Windows%2011/22H2%20(2022%20Update)/_LDR_DATA_TABLE_ENTRY
 struct LDR_DATA_TABLE_ENTRY_FULL
 {
@@ -90,33 +92,44 @@ class basic_library_info
         {
             dll,
             exe
-        } value;
+        };
 
+        friend constexpr wstring_view to_string(value_type value);
+
+      private:
+#ifdef _DEBUG
+        value_type value_;
+#else
+        wstring_view ext_;
+#endif
+
+      public:
         consteval extension_tag(value_type const val)
-            : value{val}
+            :
+#ifdef _DEBUG
+            value_(val)
+#else
+            ext_(to_string(val));
+#endif
         {
         }
+
+        wstring_view get() const;
     };
 
-    basic_library_info(wchar_t const* name, size_t length);
-    basic_library_info(wchar_t const* name, size_t length, extension_tag ext);
-
-    template <size_t Length>
-    basic_library_info(wchar_t const (&name)[Length])
-        : basic_library_info(name, Length - 1)
-    {
-    }
+    basic_library_info(wstring_view name);
+    basic_library_info(wstring_view name, extension_tag ext);
 
   private:
     template <size_t Length>
     basic_library_info(static_wstring<Length> const& name)
-        : basic_library_info(name.data(), name.length())
+        : basic_library_info(wstring_view(name))
     {
     }
 
     template <size_t Length>
     basic_library_info(static_wstring<Length> const& name, extension_tag const ext)
-        : basic_library_info(name.data(), name.length(), ext)
+        : basic_library_info(wstring_view{name}, ext)
     {
     }
 
@@ -153,15 +166,23 @@ class basic_library_info
     sections_range sections() const;
     [[deprecated]]
     data_dir_range data_dirs() const;
-};
+}; // namespace fd
 
-IMAGE_SECTION_HEADER* find(basic_library_info::sections_range sections, char const* name, size_t name_length);
-
-template <size_t L>
-IMAGE_SECTION_HEADER* find(basic_library_info::sections_range const sections, char const (&name)[L])
+constexpr wstring_view to_string(basic_library_info::extension_tag::value_type const value)
 {
-    return find(sections, name, L - 1);
+    using enum basic_library_info::extension_tag::value_type;
+    switch (value)
+    {
+    case dll:
+        return L".dll";
+    case exe:
+        return L".exe";
+    default:
+        return {nullptr, 1};
+    }
 }
+
+IMAGE_SECTION_HEADER* find(basic_library_info::sections_range sections, string_view name);
 
 uint8_t* begin(basic_library_info const& info);
 uint8_t* end(basic_library_info const& info);

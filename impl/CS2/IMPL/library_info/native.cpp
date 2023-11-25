@@ -3,8 +3,9 @@
 
 namespace fd
 {
-auto native_library_info::root_interface() const -> interface_register*
+auto native_library_info::root_interface() const -> interface_register const&
 {
-    return *static_cast<interface_register**>(resolve_relative_address(function("CreateInterface"), 3, 7));
+    auto const ptr = *static_cast<interface_register**>(resolve_relative_address(function("CreateInterface"), 3, 7));
+    return *ptr;
 }
 }

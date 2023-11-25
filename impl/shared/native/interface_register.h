@@ -1,4 +1,6 @@
 #pragma once
+#include "string/view.h"
+
 #include <cstddef>
 
 namespace fd::native
@@ -35,12 +37,12 @@ class interface_register
         bool operator==(iterator const& other) const;
     };
 
-    friend iterator find(interface_register const* current, char const* name, size_t name_length, bool name_contains_version);
+    iterator find(string_view name) const;
+    iterator find(string_view name, bool name_contains_version) const;
 };
 
-interface_register::iterator find(interface_register const* current, char const* name, size_t name_length);
-interface_register::iterator find(interface_register const* current, char const* name, size_t name_length, bool name_contains_version);
+interface_register::iterator begin(interface_register const& reg);
+interface_register::iterator end(interface_register const& reg);
 
-interface_register::iterator begin(interface_register const* reg);
-interface_register::iterator end(interface_register const* reg);
+void* get(interface_register const& reg, string_view name);
 } // namespace fd::native

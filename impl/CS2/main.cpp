@@ -15,6 +15,7 @@
 #include "library_info/native.h"
 #include "native/cvar.hpp"
 #include "native/engine_client.hpp"
+#include "native/interface_register.h"
 #include "native/schema_system.hpp"
 
 bool fd::run_context()
@@ -36,11 +37,11 @@ bool fd::run_context()
     });
 
     auto const tier_dll                        = "tier0"_dlln;
-    native::cvar_system const* cvar_system     = safe_cast_lazy(tier_dll.interface("VEngineCvar"));
+    native::cvar_system const* cvar_system     = safe_cast_lazy(get(tier_dll.root_interface(), "VEngineCvar"));
     auto const engine_dll                      = "engine2"_dlln;
-    native::engine_client const* engine        = safe_cast_lazy(engine_dll.interface("Source2EngineToClient"));
+    native::engine_client const* engine        = safe_cast_lazy(get(engine_dll.root_interface(), "Source2EngineToClient"));
     auto const schemasystem_dll                = "schemasystem"_dlln;
-    native::schema_system const* schema_system = safe_cast_lazy(schemasystem_dll.interface("SchemaSystem"));
+    native::schema_system const* schema_system = safe_cast_lazy(get(schemasystem_dll.root_interface(), "SchemaSystem"));
 
     auto const render_data = render_backend.data();
     win::window_info const main_window{system_backend.window()};
@@ -50,10 +51,10 @@ bool fd::run_context()
     hooked::DXGI_factory::create_swap_chain hk_create_swap_chain{&render_backend};
     if (!create_hook(&hook_backend, vfunc{&IDXGIFactory::CreateSwapChain, render_data->DXGI_factory()}, &hk_create_swap_chain))
         return false;
-    hooked::DXGI_swap_chain::resize_buffers hk_resize_buffers(&render_backend);
+    hooked::DXGI_swap_chain::resize_buffers hk_resize_buffers{&render_backend};
     if (!create_hook(&hook_backend, vfunc{&IDXGISwapChain::ResizeBuffers, render_data->swap_chain()}, &hk_resize_buffers))
         return false;
-    hooked::DXGI_swap_chain::present hk_present(bind(gui::present, &render_backend, &system_backend, &render_context, &menu));
+    hooked::DXGI_swap_chain::present hk_present{bind(gui::present, &render_backend, &system_backend, &render_context, &menu)};
     if (!create_hook(&hook_backend, vfunc{&IDXGISwapChain::Present, render_data->swap_chain()}, &hk_present))
         return false;
     hooked::winapi::wndproc hk_wndproc{&system_backend};
