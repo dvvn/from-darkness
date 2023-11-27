@@ -106,15 +106,11 @@ struct non_member_function;
     struct function_info<Ret(_CCV_*)(Args...) _NOEXCEPT_> : non_member_function_info<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(_CCV_), Ret, Args...> \
     {                                                                                                                                         \
     };
-#define _NON_MEMBER_THISCALL_HELPER(_CV_UNUSED_, _REF_, _NOEXCEPT_)                                                                                     \
-    template <typename Ret, typename... Args>                                                                                                           \
-    struct non_member_function<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(__thiscall), Ret, Args...> : std::type_identity<Ret(__thiscall*)(Args...) _NOEXCEPT_> \
-    {                                                                                                                                                   \
-    };                                                                                                                                                  \
-    template <typename Ret, typename Object, typename... Args>                                                                                          \
-    struct function_info<Ret(__thiscall*)(Object * _REF_, Args...) _NOEXCEPT_> :                                                                        \
-        member_function_info<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(__thiscall), Ret, Object _REF_, Args...>                                                \
-    {                                                                                                                                                   \
+#define _NON_MEMBER_THISCALL_HELPER(_CCV_, _CV_, _REF_, _NOEXCEPT_)                                      \
+    template <typename Ret, typename Object, typename... Args>                                           \
+    struct function_info<Ret(_CCV_*)(Object _CV_ * _REF_, Args...) _NOEXCEPT_> :                         \
+        member_function_info<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(_CCV_), Ret, Object _CV_ _REF_, Args...> \
+    {                                                                                                    \
     };
 
 #ifdef _MSC_VER
@@ -123,13 +119,26 @@ _MEMBER_CALL_CV_REF_NOEXCEPT(_MEMBER_CCV_HELPER)
 _NON_MEMBER_CALL(_NON_MEMBER_CCV_HELPER, , , )
 _NON_MEMBER_CALL(_NON_MEMBER_CCV_HELPER, , , noexcept)
 
-#define _NON_MEMBER_THISCALL_REF(FUNC, NOEXCEPT_OPT) \
-    _EMIT_THISCALL(FUNC, , , NOEXCEPT_OPT)           \
-    _EMIT_THISCALL(FUNC, , &, NOEXCEPT_OPT)          \
-    _EMIT_THISCALL(FUNC, , &&, NOEXCEPT_OPT)
-_NON_MEMBER_THISCALL_REF(_NON_MEMBER_THISCALL_HELPER, )
-_NON_MEMBER_THISCALL_REF(_NON_MEMBER_THISCALL_HELPER, noexcept)
-#undef _NON_MEMBER_THISCALL_REF
+#define _NON_MEMBER_CALL_THISCALL_CV(FUNC, REF_OPT, NOEXCEPT_OPT) \
+    _EMIT_THISCALL(FUNC, , REF_OPT, NOEXCEPT_OPT)                 \
+    _EMIT_THISCALL(FUNC, const, REF_OPT, NOEXCEPT_OPT)            \
+    _EMIT_THISCALL(FUNC, volatile, REF_OPT, NOEXCEPT_OPT)         \
+    _EMIT_THISCALL(FUNC, const volatile, REF_OPT, NOEXCEPT_OPT)
+
+#define _NON_MEMBER_CALL_CV_THISCALL_REF(FUNC, NOEXCEPT_OPT) \
+    _NON_MEMBER_CALL_THISCALL_CV(FUNC, , NOEXCEPT_OPT)       \
+    _NON_MEMBER_CALL_THISCALL_CV(FUNC, &, NOEXCEPT_OPT)      \
+    _NON_MEMBER_CALL_THISCALL_CV(FUNC, &&, NOEXCEPT_OPT)
+
+#ifdef __cpp_noexcept_function_type
+#define _NON_MEMBER_CALL_THISCALL_CV_REF_NOEXCEPT(FUNC) \
+    _NON_MEMBER_CALL_CV_THISCALL_REF(FUNC, )            \
+    _NON_MEMBER_CALL_CV_THISCALL_REF(FUNC, noexcept)
+#else // __cpp_noexcept_function_type
+#define _NON_MEMBER_CALL_THISCALL_CV_REF_NOEXCEPT(FUNC) _NON_MEMBER_CALL_CV_THISCALL_REF(FUNC, )
+#endif // __cpp_noexcept_function_type
+
+_NON_MEMBER_CALL_THISCALL_CV_REF_NOEXCEPT(_NON_MEMBER_THISCALL_HELPER)
 
 #else
 

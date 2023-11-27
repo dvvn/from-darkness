@@ -18,7 +18,7 @@ class wndproc final : public basic_hook_callback
     }
 
     LRESULT operator()(
-        WNDPROC const original, //
+        auto const& original, //
         HWND window, UINT message, WPARAM wparam, LPARAM lparam) const noexcept
     {
         // todo: check are unput must be blocked before update

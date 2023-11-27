@@ -1,9 +1,7 @@
 ﻿#pragma once
 #include "noncopyable.h"
-#include "functional/invoke_on.h"
 
 #include <atomic>
-#include <concepts>
 
 namespace fd
 {
@@ -22,23 +20,12 @@ class basic_hook_callback : public noncopyable
     void exit() noexcept;
 };
 
-template <std::derived_from<basic_hook_callback> Callback, typename... Args>
-auto invoke_hook_callback(Callback& callback, Args&&... args)
+namespace detail
 {
-    using fn_ret = std::invoke_result<Callback&, Args&&...>;
-    if constexpr (std::is_void_v<fn_ret>)
-    {
-        callback.enter();
-        callback(std::forward<Args>(args)...);
-        callback.exit();
-    }
-    else
-    {
-        callback.enter();
-        invoke_on const lazy_exit(object_state::destruct(), [&] {
-            callback.exit();
-        });
-        return callback(std::forward<Args>(args)...);
-    }
-}
+    template <typename Callback>
+concept callback_can_enter_exit = requires(Callback c) {
+    c.enter();
+    c.exit();
+};
+} // namespace detail
 } // namespace fd
