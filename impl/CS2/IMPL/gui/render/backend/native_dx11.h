@@ -31,7 +31,7 @@ class native_dx11_device_data
     win::com_ptr<ID3D11Texture2D> back_buffer() const;
 };
 
-class native_dx11_backend final : basic_dx11_backend, public noncopyable
+class basic_native_dx11_backend : basic_dx11_backend
 {
     native_dx11_device_data data_;
 
@@ -42,9 +42,10 @@ class native_dx11_backend final : basic_dx11_backend, public noncopyable
     bool create_render_target(ID3D11Texture2D* back_buffer, D3D11_RENDER_TARGET_VIEW_DESC const* target_view_desc);
     bool create_render_target(ID3D11Texture2D* back_buffer);
 
-  public:
-    native_dx11_backend(native_dx11_device_data data);
+  protected:
+    basic_native_dx11_backend(native_dx11_device_data&& data);
 
+  public:
     using basic_dx11_backend::new_frame;
 
     void render(ImDrawData* draw_data);
@@ -54,4 +55,12 @@ class native_dx11_backend final : basic_dx11_backend, public noncopyable
     native_dx11_device_data const* data() const;
 };
 
+template <class Context>
+struct native_dx11_backend final : basic_native_dx11_backend, noncopyable
+{
+    native_dx11_backend(Context*, native_dx11_device_data data)
+        : basic_native_dx11_backend{std::move(data)}
+    {
+    }
+};
 } // namespace fd::gui

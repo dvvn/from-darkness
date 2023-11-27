@@ -1,18 +1,35 @@
 ﻿#pragma once
 #include "noncopyable.h"
 #include "gui/render/backend/basic_win32.h"
-#include "winapi/window_info.h"
 
 namespace fd::gui
 {
-class native_win32_backend final : public basic_win32_backend, public noncopyable
+class basic_native_win32_backend : public basic_win32_backend
 {
+    class main_window_finder;
+    static HWND find_main_window() noexcept;
+
     HWND window_;
 
-  public:
-    native_win32_backend();
-    native_win32_backend(HWND window);
+  protected:
+    basic_native_win32_backend();
+    basic_native_win32_backend(HWND window);
 
+  public:
     HWND window() const;
 };
-} // namespace fd
+
+template <class Context>
+struct native_win32_backend final : basic_native_win32_backend, noncopyable
+{
+    native_win32_backend(Context*)
+    {
+    }
+
+    native_win32_backend(Context*, HWND window)
+        : basic_native_win32_backend{window}
+    {
+    }
+};
+
+} // namespace fd::gui

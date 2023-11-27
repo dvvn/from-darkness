@@ -17,6 +17,7 @@
 #include "native/engine_client.hpp"
 #include "native/interface_register.h"
 #include "native/schema_system.hpp"
+#include "winapi/window_info.h"
 
 bool fd::run_context()
 {
@@ -28,8 +29,8 @@ bool fd::run_context()
 #endif
 
     gui::render_context render_context;
-    gui::native_win32_backend system_backend;
-    gui::native_dx11_backend render_backend{L"rendersystemdx11"_dll};
+    gui::native_win32_backend system_backend{&render_context};
+    gui::native_dx11_backend render_backend{&render_context, L"rendersystemdx11"_dll};
 
     auto menu = gui::make_menu_example([] {
         if (!context_holder.resume())

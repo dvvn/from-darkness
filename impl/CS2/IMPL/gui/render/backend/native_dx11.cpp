@@ -71,7 +71,7 @@ void native_dx11_device_data::setup_devie()
     d3d_device_->GetImmediateContext(&device_context_);
 }
 
-bool native_dx11_backend::init_render_target(ID3D11Texture2D* back_buffer)
+bool basic_native_dx11_backend::init_render_target(ID3D11Texture2D* back_buffer)
 {
     DXGI_SWAP_CHAIN_DESC swap_chain_desc;
     data_.swap_chain()->GetDesc(&swap_chain_desc);
@@ -102,18 +102,18 @@ bool native_dx11_backend::init_render_target(ID3D11Texture2D* back_buffer)
     return create_render_target(back_buffer, nullptr);
 }
 
-bool native_dx11_backend::create_render_target(ID3D11Texture2D* back_buffer, D3D11_RENDER_TARGET_VIEW_DESC const* target_view_desc)
+bool basic_native_dx11_backend::create_render_target(ID3D11Texture2D* back_buffer, D3D11_RENDER_TARGET_VIEW_DESC const* target_view_desc)
 {
     auto const result = data_.d3d_device()->CreateRenderTargetView(back_buffer, target_view_desc, &render_target_);
     return SUCCEEDED(result);
 }
 
-bool native_dx11_backend::create_render_target(ID3D11Texture2D* back_buffer)
+bool basic_native_dx11_backend::create_render_target(ID3D11Texture2D* back_buffer)
 {
     return create_render_target(back_buffer, render_target_desc_ ? render_target_desc_.operator->() : nullptr);
 }
 
-native_dx11_backend::native_dx11_backend(native_dx11_device_data data)
+basic_native_dx11_backend::basic_native_dx11_backend(native_dx11_device_data&& data)
     : basic_dx11_backend(data.d3d_device(), data.device_context())
     , data_(std::move(data))
 {
@@ -122,31 +122,31 @@ native_dx11_backend::native_dx11_backend(native_dx11_device_data data)
         assert(0 && "failed to create render target view");
 }
 
-// native_dx11_backend::native_dx11_backend(system_library_info info)
-//     : native_dx11_backend(native_dx11_device_data(info))
+// basic_native_dx11_backend::basic_native_dx11_backend(system_library_info info)
+//     : basic_native_dx11_backend(native_dx11_device_data(info))
 //{
 // }
 
-void native_dx11_backend::render(ImDrawData* draw_data)
+void basic_native_dx11_backend::render(ImDrawData* draw_data)
 {
     data_.device_context()->OMSetRenderTargets(1, &render_target_, nullptr);
     basic_dx11_backend::render(draw_data);
 }
 
-void native_dx11_backend::resize()
+void basic_native_dx11_backend::resize()
 {
     auto const bb = data_.back_buffer();
     if (!create_render_target(bb))
         assert(0 && "failed to create render target view");
 }
 
-void native_dx11_backend::reset()
+void basic_native_dx11_backend::reset()
 {
     render_target_.reset(); // release?
     // basic_dx11_backend::reset(); //ImGui_ImplDX11_InvalidateDeviceObjects
 }
 
-native_dx11_device_data const* native_dx11_backend::data() const
+native_dx11_device_data const* basic_native_dx11_backend::data() const
 {
     return &data_;
 }
