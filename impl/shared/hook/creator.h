@@ -8,13 +8,15 @@ namespace fd
 template <class Backend, class Callback>
 bool create_hook(Backend* backend, hook_info<Callback> const& info, Callback* callback)
 {
-    auto original = backend->create(info.target(), info.replace());
-    if (!original)
-        return false;
-    auto& data    = detail::unique_hook_proxy_data<Callback>;
-    data.original = original;
-    data.callback = callback;
-    return true;
+    auto original      = backend->create(info.target(), info.replace());
+    auto const created = static_cast<bool>(original);
+    if (created)
+    {
+        auto& data    = detail::unique_hook_proxy_data<Callback>;
+        data.original = original;
+        data.callback = callback;
+    }
+    return created;
 }
 
 template <FD_HOOK_PROXY_TEMPLATE class Proxy, class Backend, class Target, class Callback>

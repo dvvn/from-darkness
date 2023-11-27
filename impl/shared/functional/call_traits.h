@@ -331,7 +331,7 @@ using default_call_type_member     = function_info<detail::call_type_sample>::ca
 using default_call_type_non_member = function_info<decltype(&detail::call_type_sample::fn)>::call_type;
 
 template <typename Fn, typename... Args>
-auto invoke(Fn&& fn, safe_cast_t<void, typename function_info<std::decay_t<Fn>>::object_type*> instance, Args&&... args)
+auto invoke(Fn&& fn, safe_cast_result<void, typename function_info<std::decay_t<Fn>>::object_type*> instance, Args&&... args)
 {
     using object_type = typename function_info<std::decay_t<Fn>>::object_type;
 

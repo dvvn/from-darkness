@@ -206,7 +206,7 @@ IMAGE_SECTION_HEADER* find(basic_library_info::sections_range sections, string_v
 
 uint8_t* begin(basic_library_info const& info)
 {
-    return safe_cast_lazy(info.image_base());
+    return safe_cast_from(info.image_base());
 }
 
 uint8_t* end(basic_library_info const& info)

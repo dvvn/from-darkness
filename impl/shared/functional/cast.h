@@ -302,7 +302,7 @@ struct unsafe_cast_impl<To, false> : unsafe_cast_direct<To>
 };
 
 template <typename From, template <typename> class Impl>
-struct auto_cast
+struct custom_cast
 {
     From from;
 
@@ -328,7 +328,7 @@ struct auto_cast
 };
 
 template <template <typename> class Impl>
-inline constexpr auto lazy_cast = []<typename From>(From from) -> invoke_cast<auto_cast<From, Impl>> {
+inline constexpr auto cast_to = []<typename From>(From from) -> invoke_cast<custom_cast<From, Impl>> {
     return {from};
 };
 } // namespace detail
@@ -350,11 +350,11 @@ struct remove_rvalue_reference<T&&> : std::type_identity<T>
 
 template <typename To>
 inline constexpr detail::safe_cast_impl<To> safe_cast;
-inline constexpr auto safe_cast_lazy = detail::lazy_cast<detail::safe_cast_impl>;
+inline constexpr auto safe_cast_from = detail::cast_to<detail::safe_cast_impl>;
 template <typename To>
 inline constexpr detail::unsafe_cast_impl<To> unsafe_cast;
-inline constexpr auto unsafe_cast_lazy = detail::lazy_cast<detail::unsafe_cast_impl>;
+inline constexpr auto unsafe_cast_from = detail::cast_to<detail::unsafe_cast_impl>;
 
 template <typename To, typename From>
-using safe_cast_t = std::invoke_result_t<detail::safe_cast_impl<To>, From>;
+using safe_cast_result = std::invoke_result_t<detail::safe_cast_impl<To>, From>;
 } // namespace fd

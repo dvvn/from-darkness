@@ -8,7 +8,6 @@ AlignConsecutiveMacros: AcrossComments
 AlignConsecutiveBitFields: AcrossComments #AcrossEmptyLinesAndComments
 #AlignConsecutiveDeclarations: AcrossComments
 BreakAfterAttributes: Always
-RequiresExpressionIndentation: OuterScope
 AlignArrayOfStructures: Right
 AlignEscapedNewlines: Left
 FixNamespaceComments: true
@@ -44,7 +43,11 @@ BraceWrapping:
   AfterFunction: true
   BeforeLambdaBody: false
 RequiresClausePosition: WithPreceding
+#AllowShortCompoundRequirementOnASingleLine: true
+RequiresExpressionIndentation: OuterScope
 KeepEmptyLinesAtTheStartOfBlocks: false
+SpaceBeforeParens: ControlStatements
+#  AfterRequiresInClause: false
 #QualifierAlignment: Right ###let reshareper do this work
 QualifierAlignment: Custom
 QualifierOrder:

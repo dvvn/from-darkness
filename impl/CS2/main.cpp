@@ -37,11 +37,11 @@ bool fd::run_context()
     });
 
     auto const tier_dll                        = "tier0"_dlln;
-    native::cvar_system const* cvar_system     = safe_cast_lazy(get(tier_dll.root_interface(), "VEngineCvar"));
+    native::cvar_system const* cvar_system     = safe_cast_from(get(tier_dll.root_interface(), "VEngineCvar"));
     auto const engine_dll                      = "engine2"_dlln;
-    native::engine_client const* engine        = safe_cast_lazy(get(engine_dll.root_interface(), "Source2EngineToClient"));
+    native::engine_client const* engine        = safe_cast_from(get(engine_dll.root_interface(), "Source2EngineToClient"));
     auto const schemasystem_dll                = "schemasystem"_dlln;
-    native::schema_system const* schema_system = safe_cast_lazy(get(schemasystem_dll.root_interface(), "SchemaSystem"));
+    native::schema_system const* schema_system = safe_cast_from(get(schemasystem_dll.root_interface(), "SchemaSystem"));
 
     auto const render_data = render_backend.data();
     win::window_info const main_window{system_backend.window()};
