@@ -71,14 +71,28 @@ struct com_ptr_ref
     {
         return ptr_->get();
     }
+
+    T* operator->() const
+    {
+        return ptr_;
+    }
 };
 
-template <class T>
-// ReSharper disable once CppInconsistentNaming
-void** IID_PPV_ARGS_Helper(com_ptr_ref<T> pp) noexcept requires(std::convertible_to<T, IUnknown*>)
+// ReSharper disable CppInconsistentNaming
+
+template <std::derived_from<IUnknown> T>
+void** IID_PPV_ARGS_Helper(com_ptr_ref<com_ptr<T>> pp) noexcept
 {
     return reinterpret_cast<void**>(static_cast<IUnknown**>(pp));
 }
+
+template <std::derived_from<IUnknown> T>
+void** IID_PPV_ARGS_Helper(com_ptr_ref<com_ptr<T> const> pp) noexcept
+{
+    return reinterpret_cast<void**>(static_cast<IUnknown**>(pp));
+}
+
+// ReSharper restore CppInconsistentNaming
 
 template <typename T>
 struct com_ptr
@@ -157,8 +171,7 @@ struct com_ptr
 
     com_ptr& operator=(com_ptr const& other)
     {
-        std::destroy_at(this);
-        std::construct_at(this, other);
+        attach(other.ptr_);
         return *this;
     }
 
@@ -198,10 +211,10 @@ struct com_ptr
         return get();
     }
 
-    operator pointer() const
+    /*operator pointer() const
     {
         return get();
-    }
+    }*/
 
     reference operator*() const
     {
@@ -233,8 +246,15 @@ struct com_ptr
     {
         return {this};
     }
+
+    void attach(pointer other)
+    {
+        release();
+        ptr_ = other;
+        on_copy();
+    }
 };
 
 template <typename T>
 com_ptr(T*) -> com_ptr<T>;
-} // namespace fd
+} // namespace fd::win

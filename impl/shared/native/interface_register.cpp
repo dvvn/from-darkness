@@ -40,15 +40,17 @@ interface_register::iterator::iterator(interface_register const* current)
 {
 }
 
-auto interface_register::iterator::operator++(int) -> iterator&
+auto interface_register::iterator::operator++(int) -> iterator
+{
+    auto const curr = current_;
+    current_        = current_->next_;
+    return curr;
+}
+
+auto interface_register::iterator::operator++() -> iterator&
 {
     current_ = current_->next_;
     return *this;
-}
-
-auto interface_register::iterator::operator++() const -> iterator
-{
-    return current_->next_;
 }
 
 interface_register const& interface_register::iterator::operator*() const
@@ -102,7 +104,8 @@ auto interface_register::find(string_view name, bool const name_contains_version
     auto const name_length = name.length();
 
     auto const compare = [name_length, name_first = ubegin(name), name_last = uend(name)] //
-        <bool ContainsVersion>(std::bool_constant<ContainsVersion>, interface_register const& reg) {
+        <bool ContainsVersion>                                                            //
+        (std::bool_constant<ContainsVersion>, interface_register const& reg) {
             auto const reg_name_end = reg.name_ + name_length;
 
             if constexpr (!ContainsVersion)

@@ -4,7 +4,7 @@
 
 struct IDXGISwapChain;
 
-namespace fd::inline native
+namespace fd::native
 {
 struct dx11_swap_chain
 {

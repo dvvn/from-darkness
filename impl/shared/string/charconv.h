@@ -7,9 +7,9 @@
 namespace fd
 {
 template <size_t S, typename T>
-constexpr std::from_chars_result from_chars(char const (&buff)[S], T& out)
+constexpr std::from_chars_result from_chars(char const (&buff)[S], T& out, int const base = 10)
 {
-    return std::from_chars(std::begin(buff), std::end(buff) - 1, out);
+    return std::from_chars(std::begin(buff), std::end(buff) - (*std::rbegin(buff) == '\0'), out, base);
 }
 
 namespace detail
@@ -41,7 +41,7 @@ struct from_char_cache
     {
         T tmp       = 0;
         auto result = to(tmp, base);
-        if (result.ec != std::errc())
+        if (result.ec != std::errc{})
             unreachable();
         return tmp;
     }
@@ -64,7 +64,7 @@ constexpr T from_chars()
 }
 
 template <char... C>
-constexpr void from_chars(auto& out, auto base_wrapped = std::in_place_index<10>)
+constexpr void from_chars(std::integral auto& out, auto base_wrapped = std::in_place_index<10>)
 {
     using type         = std::decay_t<decltype(out)>;
     constexpr int base = detail::extract_index(base_wrapped);

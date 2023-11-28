@@ -24,7 +24,10 @@ class create_swap_chain : public basic_hook_callback
         IUnknown* device, DXGI_SWAP_CHAIN_DESC* desc, IDXGISwapChain** swap_chain) const //
     {
         render_backend_->reset();
-        return original(device, desc, swap_chain);
+        auto result = original(device, desc, swap_chain);
+        if (SUCCEEDED(result))
+            render_backend_->data().attach_swap_chain(*swap_chain);
+        return result;
     }
 };
 } // namespace DXGI_factory

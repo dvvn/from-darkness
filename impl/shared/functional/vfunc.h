@@ -34,6 +34,33 @@ void* get_vfunc(Fn abstract_function, void* instance)
 
 void* get_vfunc(size_t index, void* instance);
 
+namespace detail
+{
+template <class T>
+class pointer_extractor
+{
+    T* value_;
+
+  public:
+    pointer_extractor(T* instance)
+        : value_{instance}
+    {
+    }
+
+    template <class Packed>
+    pointer_extractor(Packed&& instance) requires requires { static_cast<T*>(instance.get()); }
+        : value_{instance.get()}
+    {
+    }
+
+    operator T*() const
+    {
+        return value_;
+    }
+};
+
+} // namespace detail
+
 template <typename Fn, size_t FnSize = sizeof(Fn)>
 struct vfunc
 {
@@ -50,6 +77,8 @@ struct vfunc<Fn, sizeof(void*)>
     using object_type = typename info::object_type;
 
   private:
+    using instance_extractor = detail::pointer_extractor<object_type>;
+
     union
     {
         function_type func_;
@@ -59,19 +88,19 @@ struct vfunc<Fn, sizeof(void*)>
     basic_vtable<object_type> source_;
 
   public:
-    vfunc(size_t const index, object_type* instance)
+    vfunc(size_t const index, instance_extractor instance)
         : func_ptr_(get_vfunc(index, instance))
         , source_(instance)
     {
     }
 
-    vfunc(function_type function, object_type* instance)
+    vfunc(function_type function, instance_extractor instance)
         : func_ptr_(get_vfunc(function, instance))
         , source_(instance)
     {
     }
 
-    vfunc(function_type function, object_type* instance, std::in_place_t)
+    vfunc(function_type function, instance_extractor instance, std::in_place_t)
         : func_(function)
         , source_(instance)
     {

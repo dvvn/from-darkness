@@ -27,8 +27,8 @@ class interface_register
         iterator();
         iterator(interface_register const* current);
 
-        iterator& operator++(int);
-        iterator operator++() const;
+        iterator operator++(int);
+        iterator& operator++();
 
         interface_register const& operator*() const;
         interface_register const* operator->() const;

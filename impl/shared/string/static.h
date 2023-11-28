@@ -8,19 +8,13 @@
 #include <boost/static_string.hpp>
 #endif
 
+#include <cassert>
+
 namespace fd
 {
 #ifdef BOOST_STATIC_STRING_HPP
 using boost::static_strings::basic_static_string;
 #else
-
-#if defined(_MSC_VER)
-#if _ITERATOR_DEBUG_LEVEL != 0
-#define STATIC_STRING_DEBUG_ITER
-#endif
-#elif defined(_DEBUG)
-#define STATIC_STRING_DEBUG
-#endif
 
 template <size_t Length, typename CharT>
 struct basic_static_cstring; // null terminated static string
@@ -68,13 +62,9 @@ class basic_static_string
     using const_pointer   = CharT const*;
     using reference       = CharT&;
     using const_reference = CharT const&;
-#ifdef STATIC_STRING_DEBUG_ITER
+
     using iterator       = typename span<CharT>::iterator;
     using const_iterator = typename span<CharT const>::iterator;
-#else
-    using iterator       = pointer;
-    using const_iterator = const_pointer;
-#endif
 
     buffer_type buffer_;
     size_type size_;
@@ -135,6 +125,11 @@ class basic_static_string
         return size_;
     }
 
+    constexpr bool empty() const noexcept
+    {
+        return size_ == 0;
+    }
+
     constexpr size_type length() const noexcept
     {
         return size_;
@@ -146,7 +141,6 @@ class basic_static_string
         return Length;
     }
 
-#ifdef STATIC_STRING_DEBUG_ITER
     constexpr iterator begin() noexcept
     {
         return span{data(), size_}.begin();
@@ -166,27 +160,6 @@ class basic_static_string
     {
         return span{data(), size_}.end();
     }
-#else
-    constexpr iterator begin() noexcept
-    {
-        return data();
-    }
-
-    constexpr const_iterator begin() const noexcept
-    {
-        return data();
-    }
-
-    constexpr iterator end() noexcept
-    {
-        return data() + size_;
-    }
-
-    constexpr const_iterator end() const noexcept
-    {
-        return data() + size_;
-    }
-#endif
 
 #ifdef _MSC_VER
     // ReSharper disable CppInconsistentNaming
@@ -196,7 +169,7 @@ class basic_static_string
         return ubegin(buffer_);
     }
 
-    constexpr pointer _Unchecked_begin() const noexcept
+    constexpr const_pointer _Unchecked_begin() const noexcept
     {
         return ubegin(buffer_);
     }
@@ -206,18 +179,45 @@ class basic_static_string
         return _Unchecked_begin() + size_;
     }
 
-    constexpr pointer _Unchecked_end() const noexcept
+    constexpr const_pointer _Unchecked_end() const noexcept
     {
         return _Unchecked_begin() + size_;
     }
 
     // ReSharper restore CppInconsistentNaming
 #endif
+
+    constexpr void push_back(value_type chr)
+    {
+        assert(size_ < Length);
+        buffer_[size_] = chr;
+        ++size_;
+    }
+
+    template <typename It>
+    constexpr basic_static_string& append(It first, It last)
+    {
+        auto const extra_size = std::distance(first, last);
+        assert(size_ + extra_size <= Length);
+        std::copy(first, last, buffer_ + size_);
+        size_ += extra_size;
+        return *this;
+    }
 };
+
+template <size_t Length, typename CharT, typename Other>
+constexpr bool operator==(basic_static_string<Length, CharT> const& left, Other const& right) requires(std::same_as<std::iter_value_t<Other>, CharT>)
+{
+    using std::equal;
+    auto right_end = uend(right);
+    if constexpr (std::is_bounded_array_v<Other>)
+        if (*std::prev(right_end) == '\0')
+            --right_end;
+    return equal(ubegin(left), uend(left), ubegin(right), right_end);
+}
 
 template <typename CharT, size_t Length>
 basic_static_string(CharT const (&)[Length]) -> basic_static_string<Length - 1, CharT>;
-#undef STATIC_STRING_DEBUG_ITER
 #endif
 
 template <size_t Length>

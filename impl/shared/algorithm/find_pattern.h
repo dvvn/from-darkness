@@ -14,7 +14,7 @@ bool equal(It mem, pattern_segment<Bytes, UnknownBytes> const& segment, Next con
     using std::begin;
     using std::end;
 
-    auto const ok = std::equal(begin(segment), end(segment), mem);
+    auto const ok = std::equal(ubegin(segment), uend(segment), mem);
 
     if constexpr (sizeof...(Next) == 0)
         return ok;
@@ -60,8 +60,11 @@ It find(It rng_start, It const rng_end, pattern<Segment...> const& pat, Callback
         if (first_byte_found == u_rng_end_safe)
             return rng_end;
         if (!equal(first_byte_found, pat))
+        {
             ++u_rng_start;
-        else if (detail::on_found_byte(rng_start, first_byte_found, callback_ref))
+            continue;
+        }
+        if (detail::on_found_byte(rng_start, first_byte_found, callback_ref))
             return rng_start;
         u_rng_start = first_byte_found + pat_size;
     }
@@ -90,7 +93,7 @@ void* find(Info info, pattern<Segment...> const& pat, Callback callback = {})
 
     auto const unwrap_first_section = [&first_section, image_base = info.image_base(nt_header)] {
         typename Info::section_view const section_view{first_section, image_base};
-        return std::pair(ubegin(section_view), uend(section_view));
+        return std::pair{ubegin(section_view), uend(section_view)};
     };
 
     using std::size;
@@ -115,19 +118,20 @@ void* find(Info info, pattern<Segment...> const& pat, Callback callback = {})
         auto const section_end_safe       = section_end - pat_size;
 
         if (section_start <= section_end_safe)
-            continue;
-
-        for (;;)
-        {
-            auto const first_byte_found = std::find(section_start, section_end_safe, first_pattern_byte);
-            if (first_byte_found == section_end_safe)
-                break;
-            if (!equal(first_byte_found, pat))
-                ++section_start;
-            else if (detail::on_found_byte(section_start, first_byte_found, callback_ref))
-                return section_start;
-            section_start = first_byte_found + pat_size;
-        }
+            for (;;)
+            {
+                auto const first_byte_found = std::find(section_start, section_end_safe, first_pattern_byte);
+                if (first_byte_found == section_end_safe)
+                    break;
+                if (!equal(first_byte_found, pat))
+                {
+                    section_start = first_byte_found + 1;
+                    continue;
+                }
+                if (detail::on_found_byte(section_start, first_byte_found, callback_ref))
+                    return section_start;
+                section_start = first_byte_found + pat_size;
+            }
     }
 
     return nullptr;

@@ -48,12 +48,12 @@ void own_dx11_backend_data::create_render_target()
 {
     win::com_ptr<ID3D11Texture2D> back_buffer;
     swap_chain_->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
-    device_->CreateRenderTargetView(back_buffer, nullptr, &render_target_);
+    device_->CreateRenderTargetView(back_buffer.get(), nullptr, &render_target_);
 }
 
 own_dx11_backend::own_dx11_backend(HWND hwnd)
     : own_dx11_backend_data(hwnd)
-    , basic_dx11_backend(device_, device_context_)
+    , basic_dx11_backend(device_.get(), device_context_.get())
     // ReSharper disable once CppPossiblyUnintendedObjectSlicing
     , last_size_(win::window_info(hwnd).size())
 {
@@ -63,7 +63,7 @@ void own_dx11_backend::render(ImDrawData* draw_data)
 {
     device_context_->OMSetRenderTargets(1, &render_target_, nullptr);
     constexpr FLOAT color[] = {0, 0, 0, 1};
-    device_context_->ClearRenderTargetView(render_target_, color);
+    device_context_->ClearRenderTargetView(render_target_.get(), color);
 
     basic_dx11_backend::render(draw_data);
 
