@@ -64,6 +64,9 @@ bool fd::run_context()
 
     if (!hook_backend.enable())
         return false;
+
+    log("loaded!");
+
     if (!context_holder.pause())
         return false;
 

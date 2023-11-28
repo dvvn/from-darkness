@@ -54,18 +54,26 @@ It find(It rng_start, It const rng_end, pattern<Segment...> const& pat, Callback
 
     // verify_range(u_rng_start, u_rng_end_safe);
 
+    using cb_invoker1 = detail::find_callback_invoker<Callback, decltype(u_rng_start)>;
+    using cb_invoker2 = detail::find_callback_invoker<Callback, It>;
+
     for (;;)
     {
         auto const first_byte_found = std::find(u_rng_start, u_rng_end_safe, first_pattern_byte);
         if (first_byte_found == u_rng_end_safe)
             return rng_end;
+
         if (!equal(first_byte_found, pat))
         {
-            ++u_rng_start;
+            u_rng_start = first_byte_found + 1;
             continue;
         }
-        if (detail::on_found_byte(rng_start, first_byte_found, callback_ref))
+        if (cb_invoker1::invocable ? cb_invoker1::call(callback_ref, u_rng_start) : cb_invoker2::invocable ? cb_invoker2::call(callback_ref, rng_start) : true)
+        {
+            rewrap_iterator(rng_start, first_byte_found);
             return rng_start;
+        }
+
         u_rng_start = first_byte_found + pat_size;
     }
 }
@@ -103,9 +111,9 @@ void* find(Info info, pattern<Segment...> const& pat, Callback callback = {})
         {
             for (; first_section != last_section; ++first_section)
             {
-                auto [section_start, section_end] = unwrap_first_section();
-                auto const found                  = detail::find_one_byte<false>(section_start, section_end, first_pattern_byte, callback_ref);
-                if (found != section_end)
+                auto [u_section_start, u_section_end] = unwrap_first_section();
+                auto const found                      = detail::find_one_byte<false>(u_section_start, u_section_end, first_pattern_byte, callback_ref);
+                if (found != u_section_end)
                     return found;
             }
             return nullptr;
@@ -114,24 +122,37 @@ void* find(Info info, pattern<Segment...> const& pat, Callback callback = {})
     auto const pat_size = size(pat);
     for (; first_section != last_section; ++first_section)
     {
-        auto [section_start, section_end] = unwrap_first_section();
-        auto const section_end_safe       = section_end - pat_size;
+        auto [u_section_start, u_section_end] = unwrap_first_section();
+        auto const u_section_end_safe         = u_section_end - pat_size;
 
-        if (section_start <= section_end_safe)
-            for (;;)
+        using cb_invoker = detail::find_callback_invoker<Callback, decltype(u_section_start)>;
+
+        if (u_section_start == u_section_end_safe)
+        {
+            if (!equal(u_section_start, pat))
+                continue;
+            if (!cb_invoker::call(callback_ref, u_section_start))
+                continue;
+            return u_section_start;
+        }
+
+        if (u_section_start > u_section_end_safe)
+            continue;
+
+        for (;;)
+        {
+            auto const first_byte_found = std::find(u_section_start, u_section_end_safe, first_pattern_byte);
+            if (first_byte_found == u_section_end_safe)
+                break;
+            if (!equal(first_byte_found, pat))
             {
-                auto const first_byte_found = std::find(section_start, section_end_safe, first_pattern_byte);
-                if (first_byte_found == section_end_safe)
-                    break;
-                if (!equal(first_byte_found, pat))
-                {
-                    section_start = first_byte_found + 1;
-                    continue;
-                }
-                if (detail::on_found_byte(section_start, first_byte_found, callback_ref))
-                    return section_start;
-                section_start = first_byte_found + pat_size;
+                u_section_start = first_byte_found + 1;
+                continue;
             }
+            if (cb_invoker::call(callback_ref, first_byte_found))
+                return first_byte_found;
+            u_section_start = first_byte_found + pat_size;
+        }
     }
 
     return nullptr;

@@ -16,48 +16,24 @@ class find_callback_invoker
   public:
     static constexpr bool invocable = invocable_arg || invocable_raw;
 
-    static auto call(Callback& callback, V found)
+    static auto call(std::reference_wrapper<Callback> callback, V found)
     {
         if constexpr (invocable_arg)
             return std::invoke(callback, found);
         else if constexpr (invocable_raw)
             return std::invoke(callback);
+        else
+            return true;
     }
 };
-
-template <typename It, typename ItRaw, typename Callback>
-bool on_found_byte(It& first_pos, ItRaw current_pos, std::reference_wrapper<Callback> callback)
-{
-    using cb_invoker  = find_callback_invoker<Callback, ItRaw>;
-    using cb_invoker2 = find_callback_invoker<Callback, It>;
-
-    if constexpr (cb_invoker::invocable)
-    {
-        if (!cb_invoker::call(callback, current_pos))
-            return false;
-        rewrap_iterator(first_pos, current_pos);
-    }
-    else if constexpr (cb_invoker2::invocable)
-    {
-        rewrap_iterator(first_pos, current_pos);
-        if (!cb_invoker2::call(callback, first_pos))
-            return false;
-    }
-    else
-    {
-        rewrap_iterator(first_pos, current_pos);
-    }
-
-    return true;
-}
 
 template <typename It, typename Callback>
 It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, std::reference_wrapper<Callback> callback)
 {
-    using cb_invoker  = find_callback_invoker<Callback, decltype(unwrap_iterator(rng_start))>;
+    using cb_invoker1 = find_callback_invoker<Callback, decltype(unwrap_iterator(rng_start))>;
     using cb_invoker2 = find_callback_invoker<Callback, It>;
 
-    if constexpr (cb_invoker::invocable || cb_invoker2::invocable)
+    if constexpr (cb_invoker1::invocable || cb_invoker2::invocable)
     {
         verify_range(rng_start, rng_end);
 
@@ -70,10 +46,13 @@ It find_one_byte(It rng_start, It const rng_end, uint8_t const first_value, std:
             if (pos_found == u_rng_end)
                 return rng_end;
 
-            if (on_found_byte(rng_start, pos_found, callback))
+            if (cb_invoker1::invocable ? cb_invoker1::call(callback, u_rng_start) : cb_invoker2::invocable ? cb_invoker2::call(callback, rng_start) : true)
+            {
+                rewrap_iterator(rng_start, pos_found);
                 return rng_start;
+            }
 
-            u_rng_start = pos_found;
+            u_rng_start = pos_found + 1;
         }
     }
     else
@@ -108,16 +87,24 @@ It find(It rng_start, It const rng_end, It2 const what_start, It2 const what_end
 
     // verify_range(u_rng_start, u_rng_safe_end);
 
+    using cb_invoker1 = detail::find_callback_invoker<Callback, decltype(u_rng_start)>;
+    using cb_invoker2 = detail::find_callback_invoker<Callback, It>;
+
     for (;;)
     {
         auto const front_found = std::find(u_rng_start, u_rng_safe_end, what_front);
         if (front_found == u_rng_safe_end)
             return rng_end;
-
         if (!std::equal(u_what_start, u_what_end, u_rng_start))
-            ++u_rng_start;
-        else if (detail::on_found_byte(rng_start, front_found, callback_ref))
+        {
+            u_rng_start = rng_start + 1;
+            continue;
+        }
+        if (cb_invoker1::invocable ? cb_invoker1::call(callback, u_rng_start) : cb_invoker2::invocable ? cb_invoker2::call(callback, rng_start) : true)
+        {
+            rewrap_iterator(rng_start, front_found);
             return rng_start;
+        }
         u_rng_start = front_found + target_length;
     }
 }
