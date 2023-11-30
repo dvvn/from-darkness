@@ -339,11 +339,11 @@ macro(Dependency_Load_Imgui)
             target_link_libraries(imgui ${_link_libs})
         endif()
         target_include_directories(imgui ${_include_dirs})
-
+        
         FD_append_dep("imgui::imgui")
     endif()
 
-    set(_custom_config ${_FD_SHARED_DIR}/gui/config.h)
+    set(_custom_config ${_FD_SHARED_DIR}/external/imgui_config.h)
     if(NOT EXISTS ${_custom_config})
         message(FATAL_ERROR "imgui cstom config not found!")
     endif()

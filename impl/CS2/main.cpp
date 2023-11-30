@@ -1,23 +1,23 @@
+#include "tier1/functional/bind.h"
+#include "tier1/functional/vtable.h"
+#include "tier1/winapi/window_info.h"
+#include "tier2/debug/console.h"
+#include "tier2/debug/log.h"
+#include "tier2/gui/present.h"
+#include "tier2/gui/render/backend/native_dx11.h"
+#include "tier2/gui/render/backend/native_win32.h"
+#include "tier2/gui/render/context.h"
+#include "tier2/hook/backend/minhook.h"
+#include "tier2/hook/creator.h"
+#include "tier2/library_info/native.h"
+#include "tier2/native/cvar.hpp"
+#include "tier2/native/engine_client.hpp"
+#include "tier2/native/interface_register.h"
+#include "tier2/native/schema_system.hpp"
+#include "tier3/hooked/directx11.h"
+#include "tier3/hooked/winapi.h"
 #include "dll_context.h"
 #include "menu_example.h"
-#include "debug/console.h"
-#include "debug/log.h"
-#include "functional/bind.h"
-#include "functional/vtable.h"
-#include "gui/present.h"
-#include "gui/render/backend/native_dx11.h"
-#include "gui/render/backend/native_win32.h"
-#include "gui/render/context.h"
-#include "hook/backend/minhook.h"
-#include "hook/creator.h"
-#include "hooked/directx11.h"
-#include "hooked/winapi.h"
-#include "library_info/native.h"
-#include "native/cvar.hpp"
-#include "native/engine_client.hpp"
-#include "native/interface_register.h"
-#include "native/schema_system.hpp"
-#include "winapi/window_info.h"
 
 bool fd::run_context()
 {
@@ -32,7 +32,7 @@ bool fd::run_context()
     gui::native_win32_backend system_backend{&render_context};
     gui::native_dx11_backend render_backend{&render_context, "rendersystemdx11"_dlln};
 
-    auto menu = gui::make_menu_example([] {
+    auto menu = make_menu_example([] {
         if (!context_holder.resume())
             unreachable();
     });

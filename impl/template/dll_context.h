@@ -1,5 +1,5 @@
 #pragma once
-#include "noncopyable.h"
+#include "tier1/noncopyable.h"
 
 #include <Windows.h>
 
@@ -10,7 +10,7 @@
 
 FD_DLLMAIN();
 
-namespace fd
+namespace FD_TIER(3)
 {
 static bool run_context();
 

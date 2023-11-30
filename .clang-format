@@ -62,9 +62,10 @@ IncludeBlocks: Regroup
 IncludeCategories:
   - Regex: '"[^\/\\]*\.h.*"'
     Priority: 0
+    SortPriority: 1
   - Regex: '".*[\/\\].*"'
     Priority: 0
-    SortPriority: 1
+    SortPriority: 0
   - Regex: '<boost/.*>'
     Priority: 1
   - Regex: '<fmt/.*>'
