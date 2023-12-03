@@ -1,7 +1,7 @@
 ﻿#include "tier1/memory/address.h"
-#include "tier2/algorithm/find_pattern.h"
+#include "tier1/pattern/make.h"
 #include "tier2/gui/render/backend/native_dx11.h"
-#include "tier2/library_info/native.h"
+#include "tier2/library_info.h"
 #include "tier2/native/dx11_swap_chain.h"
 
 #include <d3d11.h>
@@ -17,10 +17,10 @@ native_dx11_device_data::native_dx11_device_data(IDXGISwapChain* sc)
     setup_devie();
 }
 
-static IDXGISwapChain* find_native_swap_chain(basic_library_info info)
+static IDXGISwapChain* find_native_swap_chain(library_info info)
 {
     assert(info.name() == L"rendersystemdx11.dll");
-    auto const addr = find(info, "66 0F 7F 05 ? ? ? ? 66 0F 7F 0D ? ? ? ? 48 89 35"_pat);
+    auto const addr = info.find("66 0F 7F 05 ? ? ? ? 66 0F 7F 0D ? ? ? ? 48 89 35"_pat);
     assert(addr != nullptr); // nullptr only for range style
     auto const abs_addr = resolve_relative_address(addr, 0x4, 0x8);
     assert(abs_addr != nullptr);

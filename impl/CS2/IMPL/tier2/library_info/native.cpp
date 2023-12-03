@@ -3,9 +3,9 @@
 
 namespace FD_TIER(2)
 {
-auto native_library_info::root_interface() const -> interface_register const&
+auto native_library_info::root_interface() const -> interface_register*
 {
     auto const ptr = *static_cast<interface_register**>(resolve_relative_address(function("CreateInterface"), 3, 7));
-    return *ptr;
+    return ptr;
 }
 }

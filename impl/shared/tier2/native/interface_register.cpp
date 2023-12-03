@@ -41,6 +41,7 @@ interface_register::iterator::iterator(interface_register const* current)
 
 auto interface_register::iterator::operator++(int) -> iterator
 {
+    assert(current_ != nullptr);
     auto const curr = current_;
     current_        = current_->next_;
     return curr;
@@ -48,17 +49,20 @@ auto interface_register::iterator::operator++(int) -> iterator
 
 auto interface_register::iterator::operator++() -> iterator&
 {
+    assert(current_ != nullptr);
     current_ = current_->next_;
     return *this;
 }
 
 interface_register const& interface_register::iterator::operator*() const
 {
+    assert(current_ != nullptr);
     return *current_;
 }
 
 interface_register const* interface_register::iterator::operator->() const
 {
+    assert(current_ != nullptr);
     return current_;
 }
 
@@ -158,6 +162,11 @@ interface_register::iterator end(interface_register const& reg)
 {
     (void)reg;
     return nullptr;
+}
+
+basic_interface::basic_interface(interface_register::iterator current, string_view name, void** ptr)
+{
+    *ptr = current->find(name)->try_get();
 }
 
 void* get(interface_register const& reg, string_view const name)

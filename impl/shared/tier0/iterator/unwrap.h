@@ -56,6 +56,7 @@ concept can_use_ranges_uend = requires(T obj) {
 } // namespace detail
 
 template <typename It>
+[[deprecated]]
 constexpr decltype(auto) unwrap_iterator(It&& it)
 {
 #ifdef _MSC_VER
@@ -65,6 +66,7 @@ constexpr decltype(auto) unwrap_iterator(It&& it)
 }
 
 template <typename It, typename ItRaw>
+[[deprecated]]
 constexpr void rewrap_iterator(It& it, ItRaw&& it_raw)
 {
 #ifdef _MSC_VER
@@ -81,8 +83,8 @@ constexpr auto ubegin(Rng&& rng)
 {
 #ifdef _MSC_VER
     if constexpr (detail::has_unchecked_begin<Rng&&>)
-        return static_cast<Rng&&>(rng)._Unchecked_begin();
-    else if constexpr (detail::has_unchecked_begin<Rng&&>)
+        return std::forward<Rng>(rng)._Unchecked_begin();
+    else if constexpr (detail::can_use_ranges_ubegin<Rng&&>)
         return std::ranges::_Ubegin(std::forward<Rng>(rng));
 #else
 
@@ -90,7 +92,7 @@ constexpr auto ubegin(Rng&& rng)
     else
     {
         using std::begin;
-        return unwrap_iterator(begin(static_cast<Rng&&>(rng)));
+        return unwrap_iterator(begin(std::forward<Rng>(rng)));
     }
 }
 
@@ -102,8 +104,8 @@ constexpr auto uend(Rng&& rng)
 {
 #ifdef _MSC_VER
     if constexpr (detail::has_unchecked_end<Rng&&>)
-        return static_cast<Rng&&>(rng)._Unchecked_end();
-    else if constexpr (detail::has_unchecked_end<Rng&&>)
+        return std::forward<Rng>(rng)._Unchecked_end();
+    else if constexpr (detail::can_use_ranges_uend<Rng&&>)
         return std::ranges::_Uend(std::forward<Rng>(rng));
 #else
 
@@ -111,11 +113,12 @@ constexpr auto uend(Rng&& rng)
     else
     {
         using std::end;
-        return unwrap_iterator(end(static_cast<Rng&&>(rng)));
+        return unwrap_iterator(end(std::forward<Rng>(rng)));
     }
 }
 
 template <typename It, typename It2>
+[[deprecated]]
 constexpr void verify_range(It const& it, It2 const& it2)
 {
 #ifdef _MSC_VER

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "tier0/core.h"
-
+#include "tier1/concepts.h"
 #if 1
 #include "tier0/iterator/unwrap.h"
 #include "tier1/container/array.h"
@@ -33,11 +33,11 @@ class basic_static_string
         auto const old_size = size_;
 #endif
         auto const buffer_begin = std::begin(buffer_);
-        auto const buffer_end   = std::copy(first, last, buffer_begin);
-        size_                   = static_cast<size_type>(std::distance(buffer_begin, buffer_end));
+        auto const buffer_last  = std::copy(first, last, buffer_begin);
+        size_                   = static_cast<size_type>(std::distance(buffer_begin, buffer_last));
 #ifdef _DEBUG
         if (size_ < old_size)
-            std::fill(buffer_end, std::end(buffer_), static_cast<CharT>('\0'));
+            std::fill(buffer_last, std::end(buffer_), static_cast<CharT>('\0'));
 #endif
     }
 
@@ -137,9 +137,8 @@ class basic_static_string
         return size_;
     }
 
-    constexpr size_type max_size() const noexcept
+    static size_type max_size() noexcept
     {
-        (void)this;
         return Length;
     }
 
@@ -205,17 +204,44 @@ class basic_static_string
         size_ += extra_size;
         return *this;
     }
+
+    template <typename It>
+    constexpr basic_static_string& append(It first, size_type count)
+    {
+        assert(size_ + count <= Length);
+        std::copy_n(first, count, buffer_ + size_);
+        size_ += count;
+        return *this;
+    }
+
+    template <typename Rng>
+    constexpr basic_static_string& append(Rng const& rng)
+    {
+        auto rng_last = uend(rng);
+        if constexpr (std::is_bounded_array_v<Rng>)
+            if (*std::prev(rng_last) == '\0')
+                --rng_last;
+        return append(ubegin(rng), rng_last);
+    }
 };
+
+template <size_t Length, typename CharT>
+class basic_static_string<Length, CharT const>;
+
+template <typename CharT>
+class basic_static_string<0, CharT>;
+
+template <typename CharT>
+class basic_static_string<-1, CharT>;
 
 template <size_t Length, typename CharT, typename Other>
 constexpr bool operator==(basic_static_string<Length, CharT> const& left, Other const& right) requires(std::same_as<std::iter_value_t<Other>, CharT>)
 {
-    using std::equal;
-    auto right_end = uend(right);
+    auto right_last = uend(right);
     if constexpr (std::is_bounded_array_v<Other>)
-        if (*std::prev(right_end) == '\0')
-            --right_end;
-    return equal(ubegin(left), uend(left), ubegin(right), right_end);
+        if (*std::prev(right_last) == '\0')
+            --right_last;
+    return std::equal(ubegin(left), uend(left), ubegin(right), right_last);
 }
 
 template <typename CharT, size_t Length>
@@ -228,4 +254,91 @@ template <size_t Length>
 using static_wstring = basic_static_string<Length, wchar_t>;
 template <size_t Length>
 using static_u8string = basic_static_string<Length, char8_t>;
+
+template <class Result, class... S>
+struct to_static_string_result;
+
+template <size_t Length, typename CharT, class... S>
+struct to_static_string_result<CharT[Length], S...> :
+    to_static_string_result<
+        basic_static_string<Length - 1, std::remove_const_t<CharT>>, //
+        S...>
+{
+};
+
+template <size_t Length, typename CharT>
+struct to_static_string_result<basic_static_string<Length, CharT>> : std::type_identity<basic_static_string<Length, CharT>>
+{
+};
+
+template <size_t Length, typename CharT>
+struct to_static_string_result<basic_static_string<Length, CharT> const> : std::type_identity<basic_static_string<Length, CharT>>
+{
+};
+
+template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r, class... S>
+struct to_static_string_result<basic_static_string<Length_l, CharT_l>, basic_static_string<Length_r, CharT_r>, S...> :
+    to_static_string_result<
+        basic_static_string<
+            Length_l + Length_r,
+            std::conditional_t<
+                sizeof(CharT_l) >= sizeof(CharT_r), //
+                CharT_l, CharT_r>>,
+        S...>
+{
+};
+
+template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r, class... S>
+struct to_static_string_result<basic_static_string<Length_l, CharT_l> const, basic_static_string<Length_r, CharT_r>, S...> :
+    to_static_string_result<
+        basic_static_string<
+            Length_l + Length_r, //
+            CharT_l> const,
+        S...>
+{
+};
+
+template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r, class... S>
+struct to_static_string_result<basic_static_string<Length_l, CharT_l>, CharT_r[Length_r], S...> :
+    to_static_string_result<
+        basic_static_string<
+            Length_l + Length_r - 1,
+            std::conditional_t<
+                sizeof(CharT_l) >= sizeof(CharT_r), //
+                CharT_l, std::remove_const_t<CharT_r>>>,
+        S...>
+{
+};
+
+template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r, class... S>
+struct to_static_string_result<basic_static_string<Length_l, CharT_l> const, CharT_r[Length_r], S...> :
+    to_static_string_result<
+        basic_static_string<
+            Length_l + Length_r - 1, //
+            CharT_l> const,
+        S...>
+{
+};
+
+template <typename CharT = void>
+inline constexpr auto to_static_string = []<typename... Str>(Str const&... str) ->
+    typename to_static_string_result<basic_static_string<0, CharT> const, Str...>::type {
+        typename to_static_string_result<basic_static_string<0, CharT> const, Str...>::type out_str;
+        (out_str.append(str), ...);
+        return out_str;
+    };
+
+template <>
+inline constexpr auto to_static_string<void> = []<typename... Str>(Str const&... str) -> typename to_static_string_result<Str...>::type {
+    typename to_static_string_result<Str...>::type out_str;
+    (out_str.append(str), ...);
+    return out_str;
+};
+
+template <typename CharT_out = void, typename... Str>
+constexpr complete auto to_string(Str const&... str) ->
+    typename to_static_string_result<basic_static_string<0, std::conditional_t<std::is_void_v<CharT_out>, char, CharT_out>>, Str...>::type
+{
+    return to_static_string<CharT_out>(str...);
+}
 } // namespace FD_TIER(1)

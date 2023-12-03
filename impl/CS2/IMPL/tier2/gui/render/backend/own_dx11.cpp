@@ -1,5 +1,7 @@
 ﻿#include "tier2/gui/render/backend/own_dx11.h"
-#include "tier2/library_info/system.h"
+#ifdef _DEBUG
+#include "tier2/library_info.h"
+#endif
 
 #include <cassert>
 
@@ -31,7 +33,7 @@ own_dx11_backend_data::own_dx11_backend_data(HWND hwnd)
     };
 
     auto res = DXGI_ERROR_UNSUPPORTED;
-#if defined(_DEBUG)
+#ifdef _DEBUG
     if ("d3d11_1sdklayers"_dll)
         res = create_device_and_swap_chain(feature_levels, &sc_desc, D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_DEBUGGABLE, D3D_DRIVER_TYPE_HARDWARE);
     if (res == DXGI_ERROR_UNSUPPORTED)
