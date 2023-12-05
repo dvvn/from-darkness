@@ -34,6 +34,7 @@ set(_FD_OUT_DIR ${_FD_ROOT_DIR}/.out)
 
 set(_FD_TEMPLATE_DIR ${_FD_IMPL_DIR}/template)
 set(_FD_SHARED_DIR ${_FD_IMPL_DIR}/shared)
+set(_FD_EXTERNAL_DIR ${_FD_IMPL_DIR}/external)
 set(_FD_PROJECT_DIR ${_FD_IMPL_DIR}/${_FD_TARGET})
 set(_FD_PROJECT_IMPL_DIR ${_FD_PROJECT_DIR}/IMPL)
 
@@ -343,16 +344,15 @@ macro(Dependency_Load_Imgui)
         FD_append_dep("imgui::imgui")
     endif()
 
-    set(_custom_config ${_FD_SHARED_DIR}/external/imgui_config.h)
-    if(NOT EXISTS ${_custom_config})
-        message(FATAL_ERROR "imgui cstom config not found!")
+    set(_imgui_config_name imgui_config.h)
+    if(NOT EXISTS ${_FD_EXTERNAL_DIR}/${_imgui_config_name})
+        message(FATAL_ERROR "imgui custom config not found!")
     endif()
-    target_compile_definitions(imgui PUBLIC
-        IMGUI_USER_CONFIG="${_custom_config}"
-    )
+    target_include_directories(imgui PUBLIC ${_FD_EXTERNAL_DIR})
+    target_compile_definitions(imgui PUBLIC IMGUI_USER_CONFIG="${_imgui_config_name}")
 endmacro()
 
-macro(Load_IMPL)
+macro(Load_SHARED)
     set(_nat_name fd_deps)
     foreach(_lib ${_FD_DEPS_DIRS})
         string(REPLACE "/" "\\" _natjmc_lib \"${_lib}*\")
@@ -369,7 +369,7 @@ macro(Load_IMPL)
 
     add_library(FD_SHARED ${_global_nat} ${_shared_src} ${_shared_nat})
     target_link_libraries(FD_SHARED PUBLIC ${_FD_DEPS})
-    target_include_directories(FD_SHARED PUBLIC ${_FD_SHARED_DIR} ${_FD_DEPS_INCLUDE})
+    target_include_directories(FD_SHARED PUBLIC ${_FD_SHARED_DIR} ${_FD_EXTERNAL_DIR} ${_FD_DEPS_INCLUDE})
     
     file(GLOB_RECURSE _project_src ${_FD_PROJECT_IMPL_DIR}/*.cpp)
     file(GLOB_RECURSE _project_nat ${_FD_PROJECT_IMPL_DIR}/*.nat*)
@@ -377,13 +377,13 @@ macro(Load_IMPL)
 
     list(LENGTH _project_add _project_add_count)
     if(_project_add_count EQUAL 0)
-        set(_FD_IMPL FD_SHARED)
-        target_include_directories(${_FD_IMPL} INTERFACE ${_FD_PROJECT_IMPL_DIR})
+        set(_FD_SHARED_TARGET FD_SHARED)
+        target_include_directories(${_FD_SHARED_TARGET} INTERFACE ${_FD_PROJECT_IMPL_DIR})
     else()
-        set(_FD_IMPL FD_${_FD_TARGET}_IMPL)
-        add_library(${_FD_IMPL} ${_project_add})
-        target_link_libraries(${_FD_IMPL} PUBLIC FD_SHARED)
-        target_include_directories(${_FD_IMPL} PUBLIC ${_FD_PROJECT_IMPL_DIR})
+        set(_FD_SHARED_TARGET FD_${_FD_TARGET}_IMPL)
+        add_library(${_FD_SHARED_TARGET} ${_project_add})
+        target_link_libraries(${_FD_SHARED_TARGET} PUBLIC FD_SHARED)
+        target_include_directories(${_FD_SHARED_TARGET} PUBLIC ${_FD_PROJECT_IMPL_DIR})
     endif()
 endmacro()
 
@@ -391,9 +391,9 @@ set(BOOST_RUNTIME_LINK static)
 #set(BOOST_ENABLE_MPI ON)
 Dependency_Load_Boost(
     #thread
-    algorithm
+    #algorithm
     container
-    filesystem
+    #filesystem
     #json
     #sort
     #io
@@ -401,11 +401,12 @@ Dependency_Load_Boost(
     #qvm
     #fusion
     hana
-    static_string
-    unordered
+    mp11
+    #static_string
+    #unordered
     nowide
     lambda2
-    vmd
+    #vmd
     preprocessor
 )
 
@@ -499,11 +500,11 @@ Dependency_Load_Imgui()
 # -------------------
 
 macro(Finish_library _name)
-    target_link_libraries(${_name} PUBLIC ${_FD_IMPL})
+    target_link_libraries(${_name} PUBLIC ${_FD_SHARED_TARGET})
     target_include_directories(${_name} PUBLIC ${_FD_PROJECT_DIR} ${_FD_TEMPLATE_DIR})
 endmacro()
 
-Load_IMPL()
+Load_SHARED()
 
 if(EXISTS ${_FD_PROJECT_DIR}/main.cpp)
     add_library(FD_${_FD_TARGET} SHARED ${_FD_PROJECT_DIR}/main.cpp)

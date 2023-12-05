@@ -1,11 +1,11 @@
 #pragma once
 
-#include "tier1/functional/bind.h"
-#include "tier1/string/view.h"
-#include "tier2/gui/menu.h"
-#include "tier2/gui/menu/tab.h"
+#include "functional/bind.h"
+#include "gui/menu.h"
+#include "gui/menu/tab.h"
+#include "string/view.h"
 
-namespace FD_TIER(3)
+namespace fd
 {
 template <typename UnloadHandler>
 auto make_menu_example(UnloadHandler&& unload_handler)

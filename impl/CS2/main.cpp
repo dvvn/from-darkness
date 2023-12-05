@@ -1,22 +1,22 @@
-#include "tier1/functional/bind.h"
-#include "tier1/functional/vtable.h"
-#include "tier1/winapi/window_info.h"
-#include "tier2/debug/console.h"
-#include "tier2/debug/log.h"
-#include "tier2/gui/present.h"
-#include "tier2/gui/render/backend/native_dx11.h"
-#include "tier2/gui/render/backend/native_win32.h"
-#include "tier2/gui/render/context.h"
-#include "tier2/hook/backend/minhook.h"
-#include "tier2/hook/creator.h"
-#include "tier2/library_info/native.h"
-#include "tier2/native/cvar.hpp"
-#include "tier2/native/engine_client.hpp"
-#include "tier2/native/interface_register.h"
-#include "tier2/native/schema_system.hpp"
-#include "tier3/hooked/directx11.h"
-#include "tier3/hooked/winapi.h"
+#include "debug/console.h"
+#include "debug/log.h"
+#include "functional/bind.h"
+#include "functional/vtable.h"
+#include "gui/present.h"
+#include "gui/render/backend/native_dx11.h"
+#include "gui/render/backend/native_win32.h"
+#include "gui/render/context.h"
+#include "hook/backend/minhook.h"
+#include "hook/creator.h"
+#include "hooked/directx11.h"
+#include "hooked/winapi.h"
+#include "library_info/engine.h"
+#include "library_info/schema_system.h"
+#include "library_info/tier0.h"
+#include "native/schema_system.hpp"
+#include "winapi/window_info.h"
 #include "dll_context.h"
+#include "library_info_native.h"
 #include "menu_example.h"
 
 bool fd::run_context()
@@ -37,12 +37,12 @@ bool fd::run_context()
             unreachable();
     });
 
-    auto const tier_dll = "tier0"_dlln;
-    native::interface<native::cvar_system> cvar_system{tier_dll.root_interface(), "VEngineCvar"};
-    auto const engine_dll = "engine2"_dlln;
-    native::interface<native::engine_client> engine{engine_dll.root_interface(), "Source2EngineToClient"};
-    auto const schemasystem_dll = "schemasystem"_dlln;
-    native::interface<native::schema_system> schema_system{schemasystem_dll.root_interface(), "SchemaSystem"};
+    tier0_library_info const tier_dll;
+    auto const cvar_system = tier_dll.interface().cvar_system();
+    engine_library_info const engine_dll;
+    auto const engine = engine_dll.interface().engine();
+    schema_system_library_info const schemasystem_dll;
+    auto const schema_system = schemasystem_dll.interface().schema_system();
 
     auto const& render_data = render_backend.data();
     win::window_info const main_window{system_backend.window()};
