@@ -2,7 +2,6 @@
 
 #include "diagnostics/fatal.h"
 #include "functional/call_traits.h"
-#include "functional/invoke_on.h"
 #include "hook/callback.h"
 #include "hook/info.h"
 
@@ -12,10 +11,10 @@ template <typename Fn, size_t FnSize>
 struct vfunc;
 }
 
-namespace fd
-{
 #define FD_HOOK_PROXY_TEMPLATE template <typename Fn>
 
+namespace fd
+{
 namespace detail
 {
 template <typename Fn>
@@ -55,26 +54,22 @@ class original_func_invoker<Fn, true> : public noncopyable
 {
     using info = function_info<Fn>;
 
-    using object_type = typename info::object_type;
+    using object_type   = typename info::object_type;
+    using instance_type = std::conditional_t<std::is_const_v<object_type>, void const, void>;
 
-    union
-    {
-        Fn original_full_;
-        void* original_;
-    };
+    Fn original_;
 
     union
     {
         object_type* object_;
-        void const* instance_;
+        instance_type* instance_;
     };
 
   public:
-    original_func_invoker(void* original, void const* proxy)
-        : original_(original)
+    original_func_invoker(void* original, instance_type* proxy)
+        : original_(unsafe_cast_from(original))
         , instance_(proxy)
     {
-        static_assert(sizeof(Fn) == sizeof(void*));
     }
 
     template <typename... Args>
@@ -86,7 +81,7 @@ class original_func_invoker<Fn, true> : public noncopyable
 #endif
     {
         return invoke(
-            original_full_,
+            original_,
 #if defined(FD_SPOOF_RETURN_ADDRESS) || defined(_DEBUG)
             object_,
 #else
@@ -115,7 +110,7 @@ class original_func_invoker<Fn, false> : public noncopyable
 
   public:
     original_func_invoker(void* original)
-        : original_(unsafe_cast<Fn>(original))
+        : original_(unsafe_cast_from(original))
     {
     }
 
@@ -146,39 +141,6 @@ original_func_invoker(Fn, Object*) -> original_func_invoker<Fn, true>;
 
 template <typename Fn>
 original_func_invoker(Fn) -> original_func_invoker<Fn, false>;
-
-template <typename Callback>
-decltype(auto) make_hook_callback_invoker(Callback* callback)
-{
-    if constexpr (!detail::callback_can_enter_exit<Callback>)
-    {
-        return *callback;
-    }
-    else
-    {
-        return [callback]<typename... Args>(Args&&... args) {
-#ifdef _DEBUG
-            using fn_ret = std::invoke_result_t<Callback&, Args&&...>;
-            if constexpr (std::is_void_v<fn_ret>)
-            {
-                callback->enter();
-                std::invoke(*callback, std::forward<Args>(args)...);
-                callback->exit();
-            }
-            else
-#endif
-            {
-                callback->enter();
-                invoke_on const lazy_exit{
-                    object_state::destruct(), //
-                    [callback_ = callback] {
-                        callback_->exit();
-                    }};
-                return std::invoke(*callback, std::forward<Args>(args)...);
-            }
-        };
-    }
-}
 
 template <typename Callback, class Proxy, typename... Args>
 auto invoke_hook_proxy(Proxy* proxy, Args... args)

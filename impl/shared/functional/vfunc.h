@@ -31,7 +31,15 @@ void* get_vfunc(Fn abstract_function, void* instance)
     return get_vfunc<call_type>(function, instance);
 }
 
-void* get_vfunc(size_t index, void* instance);
+inline void** get_vtable(void* instance)
+{
+    return *static_cast<void***>(instance);
+}
+
+inline void* get_vfunc(size_t const index, void* instance)
+{
+    return get_vtable(instance)[index];
+}
 
 namespace detail
 {
@@ -57,14 +65,10 @@ class pointer_extractor
         return value_;
     }
 };
-
 } // namespace detail
 
 template <typename Fn, size_t FnSize = sizeof(Fn)>
-struct vfunc
-{
-    // WIP
-};
+struct vfunc;
 
 template <typename Fn>
 struct vfunc<Fn, sizeof(void*)>

@@ -11,12 +11,13 @@
 #include "hooked/directx11.h"
 #include "hooked/winapi.h"
 #include "library_info/engine.h"
+#include "library_info/render_system_dx11.h"
 #include "library_info/schema_system.h"
 #include "library_info/tier0.h"
 #include "native/schema_system.hpp"
 #include "winapi/window_info.h"
+//
 #include "dll_context.h"
-#include "library_info_native.h"
 #include "menu_example.h"
 
 bool fd::run_context()
@@ -28,9 +29,11 @@ bool fd::run_context()
     log_activator log_activator;
 #endif
 
+    render_system_dx11_library_info const rendersystemdx11_dll;
+
     gui::render_context render_context;
     gui::native_win32_backend system_backend{&render_context};
-    gui::native_dx11_backend render_backend{&render_context, "rendersystemdx11"_dlln};
+    gui::native_dx11_backend render_backend{&render_context, rendersystemdx11_dll};
 
     auto menu = make_menu_example([] {
         if (!context_holder.resume())

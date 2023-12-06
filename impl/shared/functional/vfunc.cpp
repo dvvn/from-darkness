@@ -6,7 +6,7 @@
 
 #include <boost/preprocessor/repeat.hpp>
 
-namespace FD_NAMESPACE
+namespace fd
 {
 template <class Call_T>
 struct vfunc_index_resolver;
@@ -21,21 +21,11 @@ static size_t get_vfunc_index(void* function) noexcept
     return std::invoke(unsafe_cast<function_type>(function), &resolver);
 }
 
-static void** get_vtable(void* instance)
-{
-    return *static_cast<void***>(instance);
-}
-
 template <class Call_T>
 static void* get_vfunc_impl(void* abstract_function, void* instance)
 {
     auto const function_index = get_vfunc_index<Call_T>(abstract_function);
     return get_vtable(instance)[function_index];
-}
-
-void* get_vfunc(size_t const index, void* instance)
-{
-    return get_vtable(instance)[index];
 }
 
 #define GET_VFUNC_IMPL(_CCV_, ...)                                          \
@@ -68,4 +58,4 @@ _MEMBER_CALL(VFUNC_INDEX_RESOLVER, , , ) // NOLINT(cppcoreguidelines-virtual-cla
 #undef GET_VFUNC_IMPL
 #undef GET_INDEX_FN
 #undef VFUNC_INDEX_RESOLVER
-} // namespace FD_NAMESPACE
+} // namespace fd

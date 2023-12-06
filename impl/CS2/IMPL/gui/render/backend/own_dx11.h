@@ -43,7 +43,7 @@ class own_dx11_backend final : own_dx11_backend_data, public basic_dx11_backend
     own_dx11_backend(HWND hwnd);
 
     using basic_dx11_backend::new_frame;
-    void render(ImDrawData* draw_data);
+    void render(draw_data* data);
     void resize(win::window_size_simple const& size);
 };
 } // namespace fd::gui

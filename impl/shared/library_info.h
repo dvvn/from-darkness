@@ -126,6 +126,29 @@ class library_info
         return CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY_FULL, InMemoryOrderLinks);
     }
 
+  protected:
+    template <class Lib /*= library_info*/>
+    class basic_object_getter
+    {
+      protected:
+        Lib const* linfo_;
+
+      public:
+        basic_object_getter(Lib const* linfo)
+            : linfo_{linfo}
+        {
+        }
+    };
+
+    struct basic_pattern_getter : basic_object_getter<library_info>
+    {
+        using basic_object_getter::linfo_;
+
+      protected:
+        template <class... Segment>
+        auto find(pattern<Segment...> const& pat) const -> void*;
+    };
+
   public:
     struct extension
     {
@@ -257,20 +280,18 @@ class library_info
     }
 
     void* function(string_view name) const;
-    void* vtable(string_view name) const;
+    // void* vtable(string_view name) const;
 
   private:
     template <typename Fn>
     void* sections_find(Fn fn) const;
 
   public:
-    template <class... Segment>
-    auto find(pattern<Segment...> const& pat) const -> void*;
     auto find(section_string name) const -> IMAGE_SECTION_HEADER const*;
 };
 
 template <class... Segment>
-void* library_info::find(pattern<Segment...> const& pat) const
+void* library_info::basic_pattern_getter::find(pattern<Segment...> const& pat) const
 {
     decltype(auto) front_pattern_segment = pat.front().view();
     auto const front_pattern_byte        = front_pattern_segment.front();
@@ -279,13 +300,13 @@ void* library_info::find(pattern<Segment...> const& pat) const
     {
         if (front_pattern_segment.size() == 1)
         {
-            return sections_find([front_pattern_byte]<typename T>(T const section_first, T const section_last) -> T {
+            return linfo_->sections_find([front_pattern_byte]<typename T>(T const section_first, T const section_last) -> T {
                 return std::find(section_first, section_last, front_pattern_byte);
             });
         }
     }
 
-    return sections_find([front_pattern_byte, &pat, pattern_length = pat.length()]<typename T>(T section_first, T const section_last) -> T {
+    return linfo_->sections_find([front_pattern_byte, &pat, pattern_length = pat.length()]<typename T>(T section_first, T const section_last) -> T {
         auto const section_last_safe = section_last - pattern_length;
 
         if (section_first == section_last_safe)
@@ -371,6 +392,7 @@ inline void* library_info::function(string_view const name) const
     return nullptr;
 }
 
+#if 0
 inline void* library_info::vtable(string_view name) const
 {
     union
@@ -435,6 +457,7 @@ inline void* library_info::vtable(string_view name) const
 
     return (addr3);
 }
+#endif
 
 template <typename Fn>
 void* library_info::sections_find(Fn fn) const

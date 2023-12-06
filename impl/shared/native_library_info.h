@@ -6,38 +6,19 @@ namespace fd
 {
 class native_library_info : public library_info
 {
-    native::interface_register* root_interface() const;
-
   protected:
-    class basic_interface_getter
+    class basic_interface_getter : public basic_object_getter<native_library_info>
     {
+        using basic_object_getter::linfo_;
+
+        native::interface_register* root_interface() const;
+
       protected:
-        native_library_info const* linfo_;
-
-      public:
-        basic_interface_getter(native_library_info const* linfo)
-            : linfo_{linfo}
-        {
-        }
+        void* find(string_view name) const;
     };
-
-    struct interface_string : string_view
-    {
-        constexpr interface_string(char const* name, size_t length)
-            : string_view(name, length)
-        {
-        }
-    };
-
-    static constexpr interface_string operator"" _ifc(char const* name, size_t length)
-    {
-        return {name, length};
-    }
 
   public:
     using library_info::library_info;
-
-    void* find(interface_string name) const;
 };
 
 inline namespace literals

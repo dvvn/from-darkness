@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "functional/cast.h"
-#include "library_info/interface.h"
-#include "library_info/root_interface.h"
+#include "library_info/impl/interface.h"
+#include "library_info/impl/root_interface.h"
 #include "native/engine_client.hpp"
 
 namespace fd

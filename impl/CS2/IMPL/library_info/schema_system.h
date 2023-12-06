@@ -1,8 +1,10 @@
 ﻿#pragma once
 #include "functional/cast.h"
-#include "library_info/interface.h"
-#include "library_info/root_interface.h"
+#include "library_info/impl/interface.h"
+#include "library_info/impl/root_interface.h"
 #include "native/schema_system.hpp"
+
+#undef interface
 
 namespace fd
 {
@@ -12,7 +14,7 @@ class schema_system_library_info : public native_library_info
     {
         native::schema_system* schema_system() const
         {
-            return safe_cast_from(linfo_->find("SchemaSystem"_ifc));
+            return safe_cast_from(find("SchemaSystem"_ifc));
         }
     };
 

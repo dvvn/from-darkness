@@ -1,10 +1,9 @@
 ﻿#pragma once
 
-
 #include "concepts.h"
 #if 1
-#include "iterator/unwrap.h"
 #include "container/array.h"
+#include "iterator/unwrap.h"
 #else
 #define BOOST_STATIC_STRING_STANDALONE
 #include <boost/static_string.hpp>

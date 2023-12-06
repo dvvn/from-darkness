@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-
 #ifdef _DEBUG
 #include "noncopyable.h"
 
@@ -98,4 +97,4 @@ void log(fmt::wformat_string<Args...> fmt, Args&&... args)
     log(fmt.get(), fmt::wformat_args(fmt::make_wformat_args(args...)));
 }
 #endif
-} // namespace FD_TIER2(debug)
+} // namespace fd::inline debug

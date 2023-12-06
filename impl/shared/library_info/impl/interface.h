@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "algorithm/char.h"
 #include "native/interface_register.h"
-#include "library_info_native.h"
+#include "native_library_info.h"
 
 #include <cassert>
 
@@ -13,14 +13,14 @@ struct interface_version_table : isdigit_table
 {
     constexpr interface_version_table()
     {
-        operator[]('_') = true;
+        set('_', true);
     }
 };
 
 inline constexpr char_table_wrapper<interface_version_table> interface_version;
 } // namespace detail
 
-inline void* native_library_info::find(interface_string const name) const
+inline void* native_library_info::basic_interface_getter::find(string_view const name) const
 {
     auto const name_length = name.length();
 
@@ -58,7 +58,7 @@ inline void* native_library_info::find(interface_string const name) const
     };
 
     native::interface_register* found;
-    auto const root_ifc              = root_interface();
+    auto const root_ifc              = this->root_interface();
     auto const name_contains_version = isdigit(name.back());
     if (name_contains_version)
         found = find(std::true_type(), root_ifc);

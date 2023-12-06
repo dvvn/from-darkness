@@ -61,13 +61,13 @@ own_dx11_backend::own_dx11_backend(HWND hwnd)
 {
 }
 
-void own_dx11_backend::render(ImDrawData* draw_data)
+void own_dx11_backend::render(draw_data* data)
 {
     device_context_->OMSetRenderTargets(1, &render_target_, nullptr);
     constexpr FLOAT color[] = {0, 0, 0, 1};
     device_context_->ClearRenderTargetView(render_target_.get(), color);
 
-    basic_dx11_backend::render(draw_data);
+    basic_dx11_backend::render(data);
 
     swap_chain_->Present(1, 0);
 }
