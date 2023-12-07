@@ -1,10 +1,10 @@
 ﻿#pragma once
-#include "iterator/unwrap.h"
-#include "concepts.h"
 #include "container/array.h"
 #include "container/span.h"
 #include "diagnostics/fatal.h"
 #include "functional/bind.h"
+#include "pattern/fwd.h"
+#include "concepts.h"
 #include "noncopyable.h"
 
 #include <boost/hana/front.hpp>
@@ -17,14 +17,6 @@
 
 namespace fd
 {
-#ifdef _DEBUG
-using pattern_size_type       = size_t;
-using pattern_difference_type = ptrdiff_t;
-#else
-using pattern_size_type       = uint8_t;
-using pattern_difference_type = int8_t;
-#endif
-
 template <pattern_size_type BytesCount>
 struct pattern_segment_bytes : array<uint8_t, BytesCount>, std::conditional_t<BytesCount <= sizeof(void*) * 2, std::type_identity<void>, noncopyable>
 {
@@ -34,12 +26,11 @@ struct pattern_segment_bytes : array<uint8_t, BytesCount>, std::conditional_t<By
     constexpr pattern_segment_bytes(It known_from, It known_to)
         : array<uint8_t, BytesCount>()
     {
-        auto u_begin = ubegin(*this);
         assert(std::distance(known_from, known_to) == BytesCount);
         if constexpr (BytesCount == 1)
-            *u_begin = *known_from;
+            this->front() = *known_from;
         else
-            std::copy(known_from, known_to, u_begin);
+            std::copy(known_from, known_to, this->data());
     }
 
     pattern_segment_bytes(pattern_segment_bytes&& other) noexcept
@@ -117,8 +108,8 @@ struct pattern_segment
 
   public:
     template <typename It>
-    constexpr pattern_segment(It known_first, It known_last, unknown_bytes_storage unknown_bytes = {})
-        : known_bytes_{known_first, known_last}
+    constexpr pattern_segment(It known_first, size_type known_length, unknown_bytes_storage unknown_bytes = {})
+        : known_bytes_{known_first, known_length}
         , unknown_bytes_{std::move(unknown_bytes)}
     {
     }
@@ -152,14 +143,24 @@ struct pattern_segment
 #endif
 #endif
 
+    [[deprecated]]
     constexpr known_bytes_storage const& view() const
     {
         return known_bytes_;
     }
 
+    [[deprecated]]
     constexpr size_type unknown() const
     {
         return unknown_bytes_.value;
+    }
+
+    template <typename It>
+    bool equal(It it) const
+    {
+        auto const bytes_first  = known_bytes_.data();
+        auto const bytes_length = known_bytes_.size();
+        return std::equal(bytes_first, bytes_first + bytes_length, it);
     }
 
     constexpr size_type length() const
@@ -212,9 +213,11 @@ struct pattern
 
     constexpr size_type length() const
     {
+#ifdef _DEBUG
         if constexpr ((complete<pattern_segment_constant_size<Segment>> && ...))
             return (pattern_segment_constant_size<Segment>::size + ...);
         else
+#endif
             return boost::hana::unpack(bytes_, [](Segment const&... segment) -> size_type {
                 return (segment.length() + ...);
             });
@@ -229,8 +232,7 @@ struct pattern
     bool equal(T const* mem) const
     {
         auto const equal_impl = [&mem](auto& self, auto& segment, auto&... next) -> size_type {
-            auto& view = segment.view();
-            if (!std::equal(ubegin(view), uend(view), mem))
+            if (!segment.equal(mem))
                 return false;
             if constexpr (sizeof...(next) == 0)
                 return true;

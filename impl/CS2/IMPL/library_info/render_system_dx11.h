@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "algorithm/address.h"
+#include "library_info/impl/pattern.h"
 #include "native/DXGI_swap_chain.h"
 #include "pattern/make.h"
 #include "native_library_info.h"

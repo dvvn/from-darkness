@@ -1,6 +1,6 @@
 ﻿---
 BasedOnStyle: Microsoft
-Standard: Latest
+Standard: Auto #Latest
 PointerAlignment: Left
 ReferenceAlignment: Pointer
 AlignConsecutiveAssignments: AcrossComments #Consecutive
@@ -17,7 +17,7 @@ BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: AfterColon
 RemoveSemicolon: true
 AlignAfterOpenBracket: AlwaysBreak #Align #BlockIndent
-AllowShortLambdasOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: None #Empty
 SeparateDefinitionBlocks: Always
 BinPackArguments: true
 BinPackParameters: true

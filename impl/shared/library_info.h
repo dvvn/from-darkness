@@ -1,12 +1,9 @@
 ﻿#pragma once
 
-#include "container/span.h"
 #include "functional/cast.h"
 #include "memory/xref.h"
-#include "pattern/make.h"
-#include "string/static.h"
+#include "pattern/fwd.h"
 #include "string/view.h"
-#include "pattern.h"
 
 #include <windows.h>
 #include <winternl.h>
@@ -66,11 +63,6 @@ inline bool operator!(UNICODE_STRING const& ustr)
     return ustr.Buffer == nullptr;
 }
 
-namespace fd::native
-{
-class interface_register;
-}
-
 namespace fd
 {
 union library_base_address1
@@ -127,101 +119,58 @@ class library_info
     }
 
   protected:
-    template <class Lib /*= library_info*/>
     class basic_object_getter
     {
       protected:
-        Lib const* linfo_;
+        library_info const* linfo_;
 
       public:
-        basic_object_getter(Lib const* linfo)
+        basic_object_getter(library_info const* linfo)
             : linfo_{linfo}
         {
         }
     };
 
-    struct basic_pattern_getter : basic_object_getter<library_info>
+    struct basic_section_getter : basic_object_getter
     {
-        using basic_object_getter::linfo_;
+        using pointer = IMAGE_SECTION_HEADER const*;
+
+      protected:
+        pointer find(string_view name) const;
+
+      public:
+        pointer rdata() const
+        {
+            return find(".rdata");
+        }
+
+        pointer text() const
+        {
+            return find(".text");
+        }
+    };
+
+    class basic_pattern_getter : protected basic_section_getter
+    {
+        template <typename Fn>
+        void* find_in_section(Fn fn) const;
+        template <typename Fn>
+        void* find_anywhere(Fn fn) const;
 
       protected:
         template <class... Segment>
         auto find(pattern<Segment...> const& pat) const -> void*;
     };
 
+    struct basic_function_getter : basic_object_getter
+    {
+      protected:
+        void* find(string_view name) const;
+    };
+
   public:
-    struct extension
-    {
-        static constexpr static_wstring dll = L".dll";
-        static constexpr static_wstring exe = L".exe";
-    };
-
-    struct section_string : string_view
-    {
-    };
-
-    struct section
-    {
-        static constexpr section_string rdata{".rdata"};
-        static constexpr section_string text{".text"};
-    };
-
-    library_info(wstring_view const name)
-    {
-        auto const name_first = ubegin(name);
-        auto const name_last  = uend(name);
-
-        auto const root_list = module_list();
-        for (auto list_entry = root_list->Flink; list_entry != root_list; list_entry = list_entry->Flink)
-        {
-            auto const entry = ldr_table(list_entry);
-            if (!entry->BaseDllName)
-                continue;
-            if (!std::equal(name_first, name_last, begin(entry->BaseDllName), end(entry->BaseDllName)))
-                continue;
-
-            entry_full_ = entry;
-            return;
-        }
-
-        entry_full_ = nullptr;
-    }
-
-    library_info(wstring_view const name, wstring_view const ext)
-    {
-        using std::equal;
-        using std::size;
-
-        auto const name_length      = size(name);
-        auto const ext_length       = size(ext);
-        auto const full_name_length = name_length + ext_length;
-
-        auto const name_first = ubegin(name);
-        auto const name_last  = uend(name);
-
-        auto const ext_first = ubegin(ext);
-        auto const ext_last  = uend(ext);
-
-        auto const root_list = module_list();
-        for (auto list_entry = root_list->Flink; list_entry != root_list; list_entry = list_entry->Flink)
-        {
-            auto const entry = ldr_table(list_entry);
-            if (!entry->BaseDllName)
-                continue;
-            if (full_name_length != size(entry->BaseDllName))
-                continue;
-            auto const entry_first = ubegin(entry->BaseDllName);
-            if (!equal(ext_first, ext_last, entry_first + name_length))
-                continue;
-            if (!equal(name_first, name_last, entry_first))
-                continue;
-
-            entry_full_ = entry;
-            return;
-        }
-
-        entry_full_ = nullptr;
-    }
+    library_info(wstring_view name);
+    library_info(wstring_view name, wstring_view ext);
 
     template <std::derived_from<library_info> Other>
     library_info(Other other)
@@ -261,135 +210,105 @@ class library_info
         return unsafe_cast_from(nt->OptionalHeader.ImageBase);
     }
 
-  public:
-    /*ULONG size() const
+    /*uint8_t* begin() const
     {
-        return entry_full_->SizeOfImage;
+        return safe_cast_from(entry_full_->DllBase);
+    }
+
+    uint8_t* end() const
+    {
+        return unsafe_cast_from(entry_full_->DllBaseAddress + entry_full_->SizeOfImage);
     }*/
 
+    uint8_t* data() const
+    {
+        return safe_cast_from(entry_full_->DllBase);
+    }
+
+    ULONG size() const
+    {
+        return entry_full_->SizeOfImage;
+    }
+
+  public:
     wstring_view name() const
     {
+        using std::data;
+        using std::size;
         auto const& buff = entry_full_->BaseDllName;
-        return {ubegin(buff), uend(buff)};
+        return {data(buff), size(buff)};
     }
 
     wstring_view path() const
     {
+        using std::data;
+        using std::size;
         auto const& buff = entry_full_->FullDllName;
-        return {ubegin(buff), uend(buff)};
+        return {data(buff), size(buff)};
     }
 
-    void* function(string_view name) const;
     // void* vtable(string_view name) const;
-
-  private:
-    template <typename Fn>
-    void* sections_find(Fn fn) const;
-
-  public:
-    auto find(section_string name) const -> IMAGE_SECTION_HEADER const*;
 };
 
-template <class... Segment>
-void* library_info::basic_pattern_getter::find(pattern<Segment...> const& pat) const
+inline library_info::library_info(wstring_view const name)
 {
-    decltype(auto) front_pattern_segment = pat.front().view();
-    auto const front_pattern_byte        = front_pattern_segment.front();
+    auto const name_first = name.data();
+    auto const name_last  = name_first + name.length();
 
-    if constexpr (sizeof...(Segment) == 1)
+    auto const root_list = module_list();
+    for (auto list_entry = root_list->Flink; list_entry != root_list; list_entry = list_entry->Flink)
     {
-        if (front_pattern_segment.size() == 1)
-        {
-            return linfo_->sections_find([front_pattern_byte]<typename T>(T const section_first, T const section_last) -> T {
-                return std::find(section_first, section_last, front_pattern_byte);
-            });
-        }
-    }
-
-    return linfo_->sections_find([front_pattern_byte, &pat, pattern_length = pat.length()]<typename T>(T section_first, T const section_last) -> T {
-        auto const section_last_safe = section_last - pattern_length;
-
-        if (section_first == section_last_safe)
-        {
-            if (pat.equal(section_first))
-                return section_first;
-        }
-        else if (section_first < section_last_safe)
-            for (;;)
-            {
-                auto const section_front_pattern_byte = std::find(section_first, section_last_safe, front_pattern_byte);
-                if (section_front_pattern_byte == section_last_safe)
-                    break;
-                if (pat.equal(section_front_pattern_byte))
-                    return section_front_pattern_byte;
-
-                section_first = section_front_pattern_byte + 1;
-            }
-
-        return section_last;
-    });
-}
-
-inline namespace literals
-{
-#ifdef _DEBUG
-inline library_info operator"" _dll(wchar_t const* name, size_t length)
-{
-    return {
-        wstring_view{name, length},
-        library_info::extension::dll
-    };
-}
-#else
-template <static_wstring Name>
-library_info operator"" _dll()
-{
-    return {Name + library_info::extension::dll};
-}
-#endif
-
-template <static_string Name>
-library_info operator"" _dll()
-{
-    return {Name + library_info::extension::dll};
-}
-
-} // namespace literals
-
-inline void* library_info::function(string_view const name) const
-{
-    auto const base_address = entry_full_->DllBaseAddress;
-
-    auto const& data_dirs    = (nt_header()->OptionalHeader.DataDirectory);
-    auto const& entry_export = data_dirs[IMAGE_DIRECTORY_ENTRY_EXPORT];
-    auto const export_dir    = unsafe_cast<IMAGE_EXPORT_DIRECTORY*>(base_address + entry_export.VirtualAddress);
-    // auto const export_dir_end = export_dir_start+entry_export.Size;
-
-    auto const names = unsafe_cast<uint32_t*>(base_address + export_dir->AddressOfNames);
-    auto const funcs = unsafe_cast<uint32_t*>(base_address + export_dir->AddressOfFunctions);
-    auto const ords  = unsafe_cast<uint16_t*>(base_address + export_dir->AddressOfNameOrdinals);
-
-    //----
-
-    auto const name_length = name.length();
-    auto const name_first  = ubegin(name);
-    auto const name_last   = uend(name);
-
-    auto const last_offset = std::min(export_dir->NumberOfNames, export_dir->NumberOfFunctions);
-    for (DWORD offset = 0; offset != last_offset; ++offset)
-    {
-        auto const fn_name_raw = unsafe_cast<char const*>(base_address + names[offset]);
-        if (fn_name_raw[name_length] != '\0')
+        auto const entry = ldr_table(list_entry);
+        if (!entry->BaseDllName)
             continue;
-        if (!std::equal(name_first, name_last, fn_name_raw))
+        using pointer = wstring_view::const_pointer;
+        if (!std::equal<pointer, pointer>(name_first, name_last, begin(entry->BaseDllName), end(entry->BaseDllName)))
             continue;
 
-        auto const fn = base_address + funcs[ords[offset]];
-        // assert(fn > virtual_addr_start && fn < virtual_addr_end); // fwd export not implemented
-        return unsafe_cast_from(fn);
+        entry_full_ = entry;
+        return;
     }
 
-    return nullptr;
+    entry_full_ = nullptr;
+}
+
+inline library_info::library_info(wstring_view const name, wstring_view const ext)
+{
+    using std::data;
+    using std::size;
+
+    auto const name_length = size(name);
+    auto const name_first  = data(name);
+    auto const name_last   = name_first + name_length;
+
+    auto const ext_length = size(ext);
+    auto const ext_first  = data(ext);
+    auto const ext_last   = ext_first + ext_length;
+
+    auto const full_name_length = name_length + ext_length;
+
+    auto const root_list = module_list();
+    for (auto list_entry = root_list->Flink; list_entry != root_list; list_entry = list_entry->Flink)
+    {
+        using std::equal;
+
+        auto const entry = ldr_table(list_entry);
+        if (!entry->BaseDllName)
+            continue;
+        if (full_name_length != size(entry->BaseDllName))
+            continue;
+
+        auto const entry_first = data(entry->BaseDllName);
+        if (!equal(ext_first, ext_last, entry_first + name_length))
+            continue;
+        if (!equal(name_first, name_last, entry_first))
+            continue;
+
+        entry_full_ = entry;
+        return;
+    }
+
+    entry_full_ = nullptr;
 }
 
 #if 0
@@ -459,52 +378,4 @@ inline void* library_info::vtable(string_view name) const
 }
 #endif
 
-template <typename Fn>
-void* library_info::sections_find(Fn fn) const
-{
-    auto const nt       = nt_header();
-    auto const img_base = safe_cast<uint8_t>(image_base());
-
-    auto first_section      = IMAGE_FIRST_SECTION(nt);
-    auto const last_section = first_section + nt->FileHeader.NumberOfSections;
-
-    for (; first_section != last_section; ++first_section)
-    {
-        auto section_first      = img_base + first_section->VirtualAddress;
-        auto const section_last = section_first + first_section->SizeOfRawData;
-
-        auto const found = fn(section_first, section_last);
-        if (found == section_last)
-            continue;
-        return found;
-    }
-
-    return nullptr;
-}
-
-inline IMAGE_SECTION_HEADER const* library_info::find(section_string const name) const
-{
-    auto const name_length = name.length();
-
-    assert(name_length < sizeof(IMAGE_SECTION_HEADER::Name));
-
-    auto const nt = nt_header();
-
-    auto first_section      = IMAGE_FIRST_SECTION(nt);
-    auto const last_section = first_section + nt->FileHeader.NumberOfSections;
-
-    auto const name_first = ubegin(name);
-    auto const name_last  = uend(name);
-
-    for (; first_section != last_section; ++first_section)
-    {
-        if (first_section->Name[name_length] != '\0')
-            continue;
-        if (!std::equal(name_first, name_last, first_section->Name))
-            continue;
-        return first_section;
-    }
-
-    return nullptr;
-}
 } // namespace fd

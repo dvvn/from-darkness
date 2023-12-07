@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <iterator>
 #include <utility>
 
@@ -76,6 +75,7 @@ constexpr void rewrap_iterator(It& it, ItRaw&& it_raw)
 }
 
 template <typename Rng>
+[[deprecated]]
 constexpr decltype(auto) ubegin(Rng&& rng)
 #ifdef _DEBUG
     requires(detail::can_access_unwrapped_iterator<Rng &&>)
@@ -97,6 +97,7 @@ constexpr decltype(auto) ubegin(Rng&& rng)
 }
 
 template <typename Rng>
+[[deprecated]]
 constexpr decltype(auto) uend(Rng&& rng)
 #ifdef _DEBUG
     requires(detail::can_access_unwrapped_iterator<Rng &&>)

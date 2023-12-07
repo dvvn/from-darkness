@@ -3,7 +3,6 @@
 #include "concepts.h"
 #if 1
 #include "container/array.h"
-#include "iterator/unwrap.h"
 #else
 #define BOOST_STATIC_STRING_STANDALONE
 #include <boost/static_string.hpp>
@@ -54,7 +53,7 @@ class basic_static_string
             Length <= UINT16_MAX, uint16_t, //
             std::conditional_t<
                 Length <= UINT32_MAX, uint32_t, //
-                uint64_t>>>;
+                uint64_t> > >;
 
     using difference_type = std::make_signed_t<size_type>;
 
@@ -166,12 +165,12 @@ class basic_static_string
 
     constexpr pointer _Unchecked_begin() noexcept
     {
-        return ubegin(buffer_);
+        return (buffer_);
     }
 
     constexpr const_pointer _Unchecked_begin() const noexcept
     {
-        return ubegin(buffer_);
+        return (buffer_);
     }
 
     constexpr pointer _Unchecked_end() noexcept
@@ -204,8 +203,8 @@ class basic_static_string
         return *this;
     }
 
-    template <typename It>
-    constexpr basic_static_string& append(It first, size_type count)
+    template <typename It, std::integral N>
+    constexpr basic_static_string& append(It first, N count)
     {
         assert(size_ + count <= Length);
         if constexpr (std::random_access_iterator<It>)
@@ -218,23 +217,36 @@ class basic_static_string
 
     template <typename Rng>
     constexpr basic_static_string& append(Rng const& rng)
+#ifdef _DEBUG
+        requires requires { std::data(rng); }
+#endif
     {
-        return append(ubegin(rng), uendstr(rng));
+        using std::data;
+        using std::size;
+
+        auto rng_size = size(rng);
+        if constexpr (std::is_bounded_array_v<Rng>)
+        {
+            if (rng[rng_size - 1] == '\0')
+                --rng_size;
+        }
+
+        return append(data(rng), rng_size);
     }
 };
 
-template <typename T>
-decltype(auto) uendstr(T&& str)
-{
-    decltype(auto) ret = uend(std::forward<T>(str));
-    if constexpr (std::is_bounded_array_v<std::remove_cv_t<T>>)
-    {
-        auto back_it = std::prev(ret);
-        if (*back_it == '\0')
-            ret = std::move(back_it);
-    }
-    return std::forward<decltype(ret)>(ret);
-}
+// template <typename T>
+// decltype(auto) uendstr(T&& str)
+//{
+//     decltype(auto) ret = uend(std::forward<T>(str));
+//     if constexpr (std::is_bounded_array_v<std::remove_cv_t<T> >)
+//     {
+//         auto back_it = std::prev(ret);
+//         if (*back_it == '\0')
+//             ret = std::move(back_it);
+//     }
+//     return std::forward<decltype(ret)>(ret);
+// }
 
 template <typename CharT_l, typename CharT_r>
 struct string_join_char :
@@ -253,24 +265,24 @@ struct string_join_result;
 template <size_t Length, typename CharT, class... S>
 struct string_join_result<CharT[Length], S...> :
     string_join_result<
-        basic_static_string<Length - 1, std::remove_const_t<CharT>>, //
+        basic_static_string<Length - 1, std::remove_const_t<CharT> >, //
         S...>
 {
 };
 
 template <size_t Length, typename CharT>
-struct string_join_result<basic_static_string<Length, CharT>> : std::type_identity<basic_static_string<Length, CharT>>
+struct string_join_result<basic_static_string<Length, CharT> > : std::type_identity<basic_static_string<Length, CharT> >
 {
 };
 
 template <size_t Length, typename CharT>
-struct string_join_result<basic_static_string<Length, CharT> const> : std::type_identity<basic_static_string<Length, CharT>>
+struct string_join_result<basic_static_string<Length, CharT> const> : std::type_identity<basic_static_string<Length, CharT> >
 {
 };
 
 template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r, class... S>
 struct string_join_result<basic_static_string<Length_l, CharT_l>, basic_static_string<Length_r, CharT_r>, S...> :
-    string_join_result<basic_static_string<Length_l + Length_r, string_join_char_t<CharT_l, CharT_r>>, S...>
+    string_join_result<basic_static_string<Length_l + Length_r, string_join_char_t<CharT_l, CharT_r> >, S...>
 {
 };
 
@@ -282,7 +294,7 @@ struct string_join_result<basic_static_string<Length_l, CharT_l> const, basic_st
 
 template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r, class... S>
 struct string_join_result<basic_static_string<Length_l, CharT_l>, CharT_r[Length_r], S...> :
-    string_join_result<basic_static_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r>>, S...>
+    string_join_result<basic_static_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r> >, S...>
 {
 };
 
@@ -301,17 +313,19 @@ class basic_static_string<0, CharT>;
 template <typename CharT>
 class basic_static_string<-1, CharT>;
 
+#if 0
 template <size_t Length, typename CharT, typename Other>
 constexpr bool operator==(basic_static_string<Length, CharT> const& left, Other const& right) requires(std::same_as<std::iter_value_t<Other>, CharT>)
 {
-    return std::equal(ubegin(left), uend(left), ubegin(right), uendstr(right));
+     return std::equal(ubegin(left), uend(left), ubegin(right), uendstr(right));
 }
+#endif
 
 template <size_t Length_l, typename CharT_l, typename CharT_r, size_t Length_r>
 constexpr auto operator+(basic_static_string<Length_l, CharT_l> const& str_l, basic_static_string<Length_r, CharT_r> const& str_r)
-    -> basic_static_string<Length_l + Length_r, string_join_char_t<CharT_l, CharT_r>>
+    -> basic_static_string<Length_l + Length_r, string_join_char_t<CharT_l, CharT_r> >
 {
-    basic_static_string<Length_l + Length_r, string_join_char_t<CharT_l, CharT_r>> ret;
+    basic_static_string<Length_l + Length_r, string_join_char_t<CharT_l, CharT_r> > ret;
     ret.append(str_l);
     ret.append(str_r);
     return ret;
@@ -319,9 +333,9 @@ constexpr auto operator+(basic_static_string<Length_l, CharT_l> const& str_l, ba
 
 template <size_t Length_l, typename CharT_l, typename CharT_r, size_t Length_r>
 constexpr auto operator+(basic_static_string<Length_l, CharT_l> const& str_l, CharT_r const (&str_r)[Length_r])
-    -> basic_static_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r>>
+    -> basic_static_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r> >
 {
-    basic_static_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r>> ret;
+    basic_static_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r> > ret;
     ret.append(str_l);
     ret.append(str_r, Length_r - 1);
     return ret;
@@ -329,9 +343,9 @@ constexpr auto operator+(basic_static_string<Length_l, CharT_l> const& str_l, Ch
 
 template <typename CharT_l, size_t Length_l, size_t Length_r, typename CharT_r>
 constexpr auto operator+(CharT_l const (&str_l)[Length_l], basic_static_string<Length_r, CharT_r> const& str_r)
-    -> basic_static_string<Length_l - 1 + Length_r, string_join_char_t<CharT_l, CharT_r>>
+    -> basic_static_string<Length_l - 1 + Length_r, string_join_char_t<CharT_l, CharT_r> >
 {
-    basic_static_string<Length_l - 1 + Length_r, string_join_char_t<CharT_l, CharT_r>> ret;
+    basic_static_string<Length_l - 1 + Length_r, string_join_char_t<CharT_l, CharT_r> > ret;
     ret.append(str_l, Length_l - 1);
     ret.append(str_r);
     return ret;

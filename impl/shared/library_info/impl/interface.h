@@ -9,9 +9,10 @@ namespace fd
 {
 namespace detail
 {
-struct interface_version_table : isdigit_table
+struct interface_version_table : basic_char_table<bool>
 {
     constexpr interface_version_table()
+        : basic_char_table{isdigit.table()}
     {
         set('_', true);
     }
@@ -24,41 +25,44 @@ inline void* native_library_info::basic_interface_getter::find(string_view const
 {
     auto const name_length = name.length();
 
-    auto const find = [name_length, name_first = ubegin(name)]<bool ContainsVersion>(std::bool_constant<ContainsVersion>, native::interface_register* reg) {
-        for (; reg != nullptr; reg = reg->next())
-        {
-            auto const reg_name      = reg->name();
-            auto const reg_name_last = reg_name + name_length;
+    auto const find = [name_length, name_first = name.data()] //
+        <bool ContainsVersion>                                //
+        (std::bool_constant<ContainsVersion>, native::interface_register * reg) {
+            for (; reg != nullptr; reg = reg->next())
+            {
+                auto const reg_name      = reg->name();
+                auto const reg_name_last = reg_name + name_length;
 
-            if constexpr (!ContainsVersion)
-            {
-                if (!detail::interface_version(*reg_name_last))
-                    goto _SKIP_BREAK;
-            }
-            else
-            {
-                if (*reg_name_last != '\0')
-                    goto _SKIP_BREAK;
-            }
-            if (!std::equal(reg_name, reg_name_last, name_first))
-                goto _SKIP_BREAK;
-            if constexpr (!ContainsVersion)
-            {
-                for (auto version_start = reg_name_last + 1; *version_start != '\0'; ++version_start)
+                if constexpr (!ContainsVersion)
                 {
-                    if (!detail::interface_version(*version_start))
+                    if (!detail::interface_version(*reg_name_last))
                         goto _SKIP_BREAK;
                 }
+                else
+                {
+                    if (*reg_name_last != '\0')
+                        goto _SKIP_BREAK;
+                }
+                if (!std::equal(reg_name, reg_name_last, name_first))
+                    goto _SKIP_BREAK;
+                if constexpr (!ContainsVersion)
+                {
+                    for (auto version_start = reg_name_last + 1; *version_start != '\0'; ++version_start)
+                    {
+                        if (!detail::interface_version(*version_start))
+                            goto _SKIP_BREAK;
+                    }
+                }
+                break;
+            _SKIP_BREAK:
+                (void)0;
             }
-            break;
-        _SKIP_BREAK:
-            (void)0;
-        }
-        return reg;
-    };
+            return reg;
+        };
 
     native::interface_register* found;
-    auto const root_ifc              = this->root_interface();
+    auto const root_ifc = this->root_interface();
+
     auto const name_contains_version = isdigit(name.back());
     if (name_contains_version)
         found = find(std::true_type(), root_ifc);
@@ -80,4 +84,4 @@ inline void* native_library_info::basic_interface_getter::find(string_view const
     assert(found);
     return found->get();
 }
-}
+} // namespace fd

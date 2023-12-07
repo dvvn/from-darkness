@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "container/array.h"
-#include "iterator/unwrap.h"
 
 #include <algorithm>
 #include <cassert>
@@ -49,7 +48,6 @@ struct basic_char_table : array<T, UCHAR_MAX + 1>
         assert(abs_first < abs_last);
 
         auto const first_it = base_array::data();
-
         return {first_it + abs_first, first_it + abs_last};
     }
 
@@ -96,6 +94,8 @@ struct basic_char_table : array<T, UCHAR_MAX + 1>
     }
 };
 
+namespace detail
+{
 template <typename T>
 inline constexpr void* default_char_table = nullptr;
 
@@ -115,7 +115,7 @@ inline constexpr auto default_char_table<bool> = [] {
     return ret;
 }();
 
-struct islower_table : basic_char_table<bool>
+struct islower_table final : basic_char_table<bool>
 {
     constexpr islower_table()
         : basic_char_table{default_char_table<bool>}
@@ -124,7 +124,7 @@ struct islower_table : basic_char_table<bool>
     }
 };
 
-struct isupper_table : basic_char_table<bool>
+struct isupper_table final : basic_char_table<bool>
 {
     constexpr isupper_table()
         : basic_char_table{default_char_table<bool>}
@@ -133,7 +133,7 @@ struct isupper_table : basic_char_table<bool>
     }
 };
 
-struct isdigit_table : basic_char_table<bool>
+struct isdigit_table final : basic_char_table<bool>
 {
     constexpr isdigit_table()
         : basic_char_table{default_char_table<bool>}
@@ -142,7 +142,7 @@ struct isdigit_table : basic_char_table<bool>
     }
 };
 
-struct isxdigit_table : basic_char_table<bool>
+struct isxdigit_table final : basic_char_table<bool>
 {
     constexpr isxdigit_table()
         : basic_char_table{default_char_table<bool>}
@@ -153,7 +153,7 @@ struct isxdigit_table : basic_char_table<bool>
     }
 };
 
-struct tolower_table : basic_char_table<char>
+struct tolower_table final : basic_char_table<char>
 {
     constexpr tolower_table()
         : basic_char_table{default_char_table<char>}
@@ -164,7 +164,7 @@ struct tolower_table : basic_char_table<char>
     }
 };
 
-struct toupper_table : basic_char_table<char>
+struct toupper_table final : basic_char_table<char>
 {
     constexpr toupper_table()
         : basic_char_table{default_char_table<char>}
@@ -174,6 +174,7 @@ struct toupper_table : basic_char_table<char>
         });
     }
 };
+} // namespace detail
 
 template <class T>
 class char_table_wrapper
@@ -186,13 +187,18 @@ class char_table_wrapper
     {
         return table_[val];
     }
+
+    constexpr T& table() const
+    {
+        return table_;
+    }
 };
 
-inline constexpr char_table_wrapper<islower_table> islower;
-inline constexpr char_table_wrapper<isupper_table> isupper;
-inline constexpr char_table_wrapper<isdigit_table> isdigit;
-inline constexpr char_table_wrapper<isxdigit_table> isxdigit;
+inline constexpr char_table_wrapper<detail::islower_table> islower;
+inline constexpr char_table_wrapper<detail::isupper_table> isupper;
+inline constexpr char_table_wrapper<detail::isdigit_table> isdigit;
+inline constexpr char_table_wrapper<detail::isxdigit_table> isxdigit;
 
-inline constexpr char_table_wrapper<toupper_table> toupper;
-inline constexpr char_table_wrapper<tolower_table> tolower;
+inline constexpr char_table_wrapper<detail::toupper_table> toupper;
+inline constexpr char_table_wrapper<detail::tolower_table> tolower;
 } // namespace fd
