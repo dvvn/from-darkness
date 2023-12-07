@@ -12,13 +12,13 @@ class tier0_library_info : public native_library_info
     {
         native::cvar_system* cvar_system() const
         {
-            return safe_cast_from(linfo_->find("VEngineCvar"_ifc));
+            return safe_cast_from(find("VEngineCvar"));
         }
     };
 
   public:
     tier0_library_info()
-        : native_library_info{L"tier0"_dll}
+        : native_library_info{L"tier0.dll"}
     {
     }
 

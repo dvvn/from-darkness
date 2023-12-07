@@ -14,13 +14,13 @@ class schema_system_library_info : public native_library_info
     {
         native::schema_system* schema_system() const
         {
-            return safe_cast_from(find("SchemaSystem"_ifc));
+            return safe_cast_from(find("SchemaSystem"));
         }
     };
 
   public:
     schema_system_library_info()
-        : native_library_info{L"schemasystem"_dll}
+        : native_library_info{L"schemasystem.dll"}
     {
     }
 

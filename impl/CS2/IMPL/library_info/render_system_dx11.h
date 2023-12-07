@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "memory/address.h"
+#include "algorithm/address.h"
 #include "native/DXGI_swap_chain.h"
 #include "pattern/make.h"
 #include "native_library_info.h"
@@ -25,7 +25,7 @@ class render_system_dx11_library_info : public native_library_info
 
   public:
     render_system_dx11_library_info()
-        : native_library_info{L"rendersystemdx11"_dll}
+        : native_library_info{L"rendersystemdx11.dll"}
     {
     }
 

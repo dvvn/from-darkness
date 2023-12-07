@@ -12,13 +12,13 @@ class engine_library_info : public native_library_info
     {
         native::engine_client* engine() const
         {
-            return safe_cast_from(linfo_->find("Source2EngineToClient"_ifc));
+            return safe_cast_from(find("Source2EngineToClient"));
         }
     };
 
   public:
     engine_library_info()
-        : native_library_info{L"engine2"_dll}
+        : native_library_info{L"engine2.dll"}
     {
     }
 
