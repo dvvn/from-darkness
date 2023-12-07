@@ -155,10 +155,9 @@ class transformed_pattern
         return count;
     }
 
-    template <typename It>
     struct segment_view
     {
-        using iterator = It; // pattern_segment_item const* /*typename array<pattern_segment_item, BytesCount>::const_iterator*/;
+        using iterator = pattern_segment_item const*;
 
         iterator first;
         iterator last;
@@ -170,7 +169,7 @@ class transformed_pattern
         }*/
     };
 
-    constexpr auto segment(size_t skip = 0) const -> segment_view<pattern_segment_item const*>
+    constexpr segment_view segment(size_t skip = 0) const
     {
         auto const first = buffer_.data();
         auto const last  = first + buffer_.size();
@@ -200,7 +199,7 @@ constexpr auto make_pattern()
     constexpr auto make_segment = []<size_t Skip>(std::in_place_index_t<Skip>) {
         constexpr auto tmp_segment    = bytes.segment(Skip);
         constexpr auto segment_length = std::distance(tmp_segment.first, tmp_segment.last);
-        return pattern_segment<segment_length, tmp_segment.jump>(tmp_segment.first, tmp_segment.last);
+        return pattern_segment<segment_length, tmp_segment.jump>{tmp_segment.first};
     };
     constexpr auto segments_count = bytes.segments_count();
     return [&]<size_t... I>(std::index_sequence<I...>) {
@@ -232,7 +231,7 @@ constexpr auto make_pattern(Args const&... args)
     auto const make_segment = [&]<typename T>(T const& str, pattern_size_type val) {
         if constexpr (sizeof(T) == sizeof(char) && !std::is_class_v<T>)
         {
-            return pattern_segment<sizeof(T), -1>{&str, &str + 1, val};
+            return pattern_segment<sizeof(T), -1>{&str, val};
         }
         else
         {
@@ -243,7 +242,10 @@ constexpr auto make_pattern(Args const&... args)
             if constexpr (std::is_bounded_array_v<T>)
                 if (str_data[str_length - 1] == '\0')
                     --str_length;
-            return pattern_segment<-1, -1>{str_data, str_length, val};
+            return pattern_segment<-1, -1>{
+                {str_data, str_length},
+                val
+            };
         }
     };
     auto const make_segment_at = [&]<size_t I>(std::in_place_index_t<I>) {

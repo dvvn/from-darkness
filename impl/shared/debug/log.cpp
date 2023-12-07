@@ -75,4 +75,4 @@ void log(fmt::wstring_view fmt, fmt::wformat_args fmt_args, std::wostream* out)
 {
     do_log(fmt, fmt_args, out ? out : &std::wcout);
 }
-} // namespace FD_TIER2(debug)
+} // namespace fd::inline debug

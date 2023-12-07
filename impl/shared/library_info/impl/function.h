@@ -1,12 +1,16 @@
 ﻿#pragma once
 
+#include "library_info.h"
+
+#include <algorithm>
+
 namespace fd
 {
 inline void* library_info::basic_function_getter::find(string_view const name) const
 {
-    auto const base_address = entry_full_->DllBaseAddress;
+    auto const base_address = linfo_->data();
 
-    auto const& data_dirs    = (nt_header()->OptionalHeader.DataDirectory);
+    auto const& data_dirs    = (linfo_->nt_header()->OptionalHeader.DataDirectory);
     auto const& entry_export = data_dirs[IMAGE_DIRECTORY_ENTRY_EXPORT];
     auto const export_dir    = unsafe_cast<IMAGE_EXPORT_DIRECTORY*>(base_address + entry_export.VirtualAddress);
     // auto const export_dir_end = export_dir_start+entry_export.Size;

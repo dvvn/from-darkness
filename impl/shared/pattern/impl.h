@@ -17,24 +17,45 @@
 
 namespace fd
 {
+template <class Segment>
+struct pattern_segment_constant_size;
+
+template <>
+struct pattern_segment_constant_size<pattern_segment<-1, -1>>;
+
+template <pattern_size_type UnknownBytes>
+struct pattern_segment_constant_size<pattern_segment<-1, UnknownBytes>>;
+
+template <pattern_size_type Bytes>
+struct pattern_segment_constant_size<pattern_segment<Bytes, -1>>;
+
+template <pattern_size_type Bytes, pattern_size_type UnknownBytes>
+struct pattern_segment_constant_size<pattern_segment<Bytes, UnknownBytes>>
+{
+    static constexpr pattern_size_type known   = Bytes;
+    static constexpr pattern_size_type unknown = UnknownBytes;
+
+    static constexpr pattern_size_type size = Bytes + UnknownBytes;
+};
+
 template <pattern_size_type BytesCount>
-struct pattern_segment_bytes : array<uint8_t, BytesCount>, std::conditional_t<BytesCount <= sizeof(void*) * 2, std::type_identity<void>, noncopyable>
+struct pattern_segment_bytes : array<uint8_t, BytesCount>, noncopyable
 {
     using size_type = pattern_size_type;
 
     template <typename It>
-    constexpr pattern_segment_bytes(It known_from, It known_to)
-        : array<uint8_t, BytesCount>()
+    constexpr pattern_segment_bytes(It from)
     {
-        assert(std::distance(known_from, known_to) == BytesCount);
         if constexpr (BytesCount == 1)
-            this->front() = *known_from;
+            this->front() = *from;
+        else if constexpr (std::random_access_iterator<It>)
+            std::copy(from, from + BytesCount, this->data());
         else
-            std::copy(known_from, known_to, this->data());
+            std::copy_n(from, BytesCount, this->data());
     }
 
     pattern_segment_bytes(pattern_segment_bytes&& other) noexcept
-        : array<uint8_t, BytesCount>(std::move(other))
+        : array<uint8_t, BytesCount>{std::move(other)}
     {
     }
 
@@ -61,6 +82,7 @@ struct pattern_segment_bytes<0>;
 template <>
 struct pattern_segment_bytes<-1> : span<char const>
 {
+    using size_type = pattern_size_type;
     using span::span;
 };
 
@@ -94,6 +116,9 @@ struct pattern_segment_unknown_bytes<-1>
 template <pattern_size_type Bytes, pattern_size_type UnknownBytes>
 struct pattern_segment
 {
+    template <class... Segment>
+    friend struct pattern;
+
     using known_bytes_storage   = pattern_segment_bytes<Bytes>;
     using unknown_bytes_storage = pattern_segment_unknown_bytes<UnknownBytes>;
 
@@ -107,9 +132,8 @@ struct pattern_segment
     unknown_bytes_storage unknown_bytes_;
 
   public:
-    template <typename It>
-    constexpr pattern_segment(It known_first, size_type known_length, unknown_bytes_storage unknown_bytes = {})
-        : known_bytes_{known_first, known_length}
+    constexpr pattern_segment(known_bytes_storage known_bytes, unknown_bytes_storage unknown_bytes = {})
+        : known_bytes_{std::move(known_bytes)}
         , unknown_bytes_{std::move(unknown_bytes)}
     {
     }
@@ -169,27 +193,6 @@ struct pattern_segment
     }
 };
 
-template <class Segment>
-struct pattern_segment_constant_size;
-
-template <>
-struct pattern_segment_constant_size<pattern_segment<-1, -1>>;
-
-template <pattern_size_type UnknownBytes>
-struct pattern_segment_constant_size<pattern_segment<-1, UnknownBytes>>;
-
-template <pattern_size_type Bytes>
-struct pattern_segment_constant_size<pattern_segment<Bytes, -1>>;
-
-template <pattern_size_type Bytes, pattern_size_type UnknownBytes>
-struct pattern_segment_constant_size<pattern_segment<Bytes, UnknownBytes>>
-{
-    static constexpr pattern_size_type known   = Bytes;
-    static constexpr pattern_size_type unknown = UnknownBytes;
-
-    static constexpr pattern_size_type size = Bytes + UnknownBytes;
-};
-
 template <class... Segment>
 struct pattern
 {
@@ -206,6 +209,7 @@ struct pattern
     {
     }
 
+    [[deprecated]]
     constexpr auto get() const -> storage_type const&
     {
         return bytes_;
@@ -225,13 +229,13 @@ struct pattern
 
     constexpr auto& front() const
     {
-        return boost::hana::front(bytes_);
+        return boost::hana::front(bytes_).known_bytes_;
     }
 
     template <typename T>
     bool equal(T const* mem) const
     {
-        auto const equal_impl = [&mem](auto& self, auto& segment, auto&... next) -> size_type {
+        auto const equal_impl = [&mem](auto& self, auto& segment, auto&... next) -> bool {
             if (!segment.equal(mem))
                 return false;
             if constexpr (sizeof...(next) == 0)

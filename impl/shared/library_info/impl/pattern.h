@@ -40,8 +40,8 @@ void* library_info::basic_pattern_getter::find_anywhere(Fn fn) const
 template <class... Segment>
 void* library_info::basic_pattern_getter::find(pattern<Segment...> const& pat) const
 {
-    decltype(auto) front_segment = pat.front().view();
-    auto const front_byte        = front_segment.front();
+    auto const& front_segment = pat.front();
+    auto const front_byte     = front_segment.front();
 
     if constexpr (sizeof...(Segment) == 1)
     {

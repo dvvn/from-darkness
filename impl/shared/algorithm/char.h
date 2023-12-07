@@ -22,13 +22,12 @@ struct basic_char_table : array<T, UCHAR_MAX + 1>
   protected:
     using base_array = array<T, UCHAR_MAX + 1>;
 
+    using base_array::operator[];
+    using base_array::at;
+
   public:
     using pointer   = typename base_array::pointer;
     using size_type = typename base_array::size_type;
-
-  protected:
-    using base_array::operator[];
-    using base_array::at;
 
   private:
     static constexpr size_type get_index(char const chr)
@@ -86,12 +85,6 @@ struct basic_char_table : array<T, UCHAR_MAX + 1>
         auto const [first_it, last_it] = get_range(first, last);
         std::transform(first_it, last_it, first_it, fn);
     }
-
-    template <typename Fn>
-    constexpr void transform(Fn fn)
-    {
-        std::ranges::transform(*this, base_array::data(), fn);
-    }
 };
 
 namespace detail
@@ -102,9 +95,12 @@ inline constexpr void* default_char_table = nullptr;
 template <>
 inline constexpr auto default_char_table<char> = [] {
     basic_char_table<char> ret;
-    ret.transform([c = CHAR_MIN](char& c_ref) mutable {
-        c_ref = c++;
-    });
+
+    auto const data       = ret.data();
+    auto const last_index = ret.size();
+    for (uint16_t index = 0; index != last_index; ++index)
+        data[index] = CHAR_MIN + index;
+
     return ret;
 }();
 
@@ -188,7 +184,7 @@ class char_table_wrapper
         return table_[val];
     }
 
-    constexpr T& table() const
+    constexpr T const& table() const
     {
         return table_;
     }

@@ -1,8 +1,10 @@
 ﻿#pragma once
 
 #include "concepts.h"
+
 #if 1
 #include "container/array.h"
+#include "container/span.h"
 #else
 #define BOOST_STATIC_STRING_STANDALONE
 #include <boost/static_string.hpp>

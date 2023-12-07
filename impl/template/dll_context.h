@@ -1,5 +1,5 @@
 #pragma once
-#include "tier1/noncopyable.h"
+#include "noncopyable.h"
 
 #include <Windows.h>
 

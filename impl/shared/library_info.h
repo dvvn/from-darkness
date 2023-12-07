@@ -150,8 +150,11 @@ class library_info
         }
     };
 
-    class basic_pattern_getter : protected basic_section_getter
+    class basic_pattern_getter : public basic_section_getter
     {
+        using basic_section_getter::rdata;
+        using basic_section_getter::text;
+
         template <typename Fn>
         void* find_in_section(Fn fn) const;
         template <typename Fn>
@@ -261,8 +264,7 @@ inline library_info::library_info(wstring_view const name)
         auto const entry = ldr_table(list_entry);
         if (!entry->BaseDllName)
             continue;
-        using pointer = wstring_view::const_pointer;
-        if (!std::equal<pointer, pointer>(name_first, name_last, begin(entry->BaseDllName), end(entry->BaseDllName)))
+        if (!std::equal(name_first, name_last, begin(entry->BaseDllName), end(entry->BaseDllName)))
             continue;
 
         entry_full_ = entry;

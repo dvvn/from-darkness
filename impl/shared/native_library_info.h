@@ -1,5 +1,5 @@
 #pragma once
-
+#include "library_info/impl/function.h"
 #include "library_info.h"
 
 namespace fd
@@ -20,15 +20,14 @@ class native_library_info : public library_info
         }
     };
 
-    class basic_interface_getter : basic_function_getter
+    class basic_interface_getter : public basic_function_getter
     {
+        using basic_function_getter::create_interface;
+
         native::interface_register* root_interface() const;
 
       protected:
         void* find(string_view name) const;
-
-      public:
-        using basic_object_getter::basic_object_getter;
     };
 
   public:

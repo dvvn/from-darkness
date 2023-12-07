@@ -5,6 +5,8 @@
 #include "pattern/make.h"
 #include "native_library_info.h"
 
+#include <cassert>
+
 namespace fd
 {
 class render_system_dx11_library_info : public native_library_info

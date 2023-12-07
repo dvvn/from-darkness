@@ -5,7 +5,7 @@
 
 #include <cassert>
 
-constexpr char const* to_string(MH_STATUS const status)
+inline char const* to_string(MH_STATUS const status)
 {
     auto msg = MH_StatusToString(status);
     if (msg[2] == '_' /*MH_*/)

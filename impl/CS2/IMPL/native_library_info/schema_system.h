@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "functional/cast.h"
-#include "library_info/impl/interface.h"
-#include "library_info/impl/root_interface.h"
 #include "native/schema_system.hpp"
+#include "native_library_info/impl/interface.h"
+#include "native_library_info/impl/root_interface.h"
 
 #undef interface
 
