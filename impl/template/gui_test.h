@@ -1,13 +1,13 @@
 #pragma once
 
-#include "tier1/winapi/window_info.h"
-#include "tier2/debug/log.h"
-#include "tier2/gui/present.h"
-#include "tier2/gui/render/backend/own_win32.h"
-#include "tier2/gui/render/context.h"
+#include "debug/log.h"
+#include "gui/present.h"
+#include "gui/render/backend/own_win32.h"
+#include "gui/render/context.h"
+#include "winapi/window_info.h"
 #include "menu_example.h"
 
-namespace FD_TIER(3)
+namespace fd
 {
 template <class RenderBackend>
 bool run_test()
@@ -39,4 +39,4 @@ bool run_test()
 
     return true;
 }
-} // namespace FD_TIER(3)
+} // namespace fd

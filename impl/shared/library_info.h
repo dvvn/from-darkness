@@ -2,7 +2,7 @@
 
 #include "functional/cast.h"
 #include "memory/xref.h"
-#include "pattern/fwd.h"
+#include "pattern/basic_holder.h"
 #include "string/view.h"
 
 #include <windows.h>
@@ -65,33 +65,6 @@ inline bool operator!(UNICODE_STRING const& ustr)
 
 namespace fd
 {
-union library_base_address1
-{
-    PVOID DllBase;
-    PIMAGE_DOS_HEADER DosHeader;
-    ULONG_PTR DllBaseAddress;
-
-    operator PVOID() const
-    {
-        return DllBase;
-    }
-
-    operator PIMAGE_DOS_HEADER() const
-    {
-        return DosHeader;
-    }
-
-    IMAGE_DOS_HEADER* operator->() const
-    {
-        return DosHeader;
-    }
-
-    void* operator+(ULONG_PTR const other) const
-    {
-        return reinterpret_cast<void*>(DllBaseAddress + other);
-    }
-};
-
 class library_info
 {
     union

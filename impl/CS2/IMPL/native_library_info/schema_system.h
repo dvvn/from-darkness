@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "functional/cast.h"
-#include "native/schema_system.hpp"
+#include "native/schema_system.h"
 #include "native_library_info/impl/interface.h"
 #include "native_library_info/impl/root_interface.h"
 

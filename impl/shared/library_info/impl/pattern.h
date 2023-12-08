@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "pattern/impl.h"
+#include "pattern/find.h"
 #include "library_info.h"
 
 namespace fd
@@ -40,43 +40,9 @@ void* library_info::basic_pattern_getter::find_anywhere(Fn fn) const
 template <class... Segment>
 void* library_info::basic_pattern_getter::find(pattern<Segment...> const& pat) const
 {
-    auto const& front_segment = pat.front();
-    auto const front_byte     = front_segment.front();
-
-    if constexpr (sizeof...(Segment) == 1)
-    {
-        if (front_segment.size() == 1)
-        {
-            auto simple_fn = [front_byte]<typename T>(T const first, T const last) -> T {
-                return std::find(first, last, front_byte);
-            };
-            // return find_anywhere(fn);
-            return find_in_section(simple_fn);
-        }
-    }
-
-    auto full_fn = [front_byte, &pat, pattern_length = pat.length()]<typename T>(T first, T const last) -> T {
-        auto const last_safe = last - pattern_length;
-
-        if (first < last_safe)
-            for (;;)
-            {
-                auto const front_byte_found = std::find(first, last_safe, front_byte);
-                if (pat.equal(front_byte_found))
-                    return front_byte_found;
-                if (front_byte_found == last_safe)
-                    return last;
-
-                first = front_byte_found + 1;
-            }
-
-        if (first == last_safe)
-            if (pat.equal(first))
-                return first;
-
-        return last;
-    };
-    // return find_anywhere(full_fn);
-    return find_in_section(full_fn);
+    // return find_anywhere(....);
+    return find_in_section([&pat]<typename T>(T const first, T const last) -> T {
+        return find_pattern(first, last, pat);
+    });
 }
-}
+} // namespace fd

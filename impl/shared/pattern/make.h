@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "pattern/impl.h"
+#include "pattern/holder.h"
 #include "string/static.h"
 
 #include <boost/hana/back.hpp>
@@ -101,7 +101,7 @@ class transformed_pattern
                 break;
             }
 
-            store_byte(std::in_place_index<1>, std::in_place_index<3>);
+            store_byte(std::in_place_index<2>, std::in_place_index<3>);
         }
 
 #if 0
@@ -268,4 +268,4 @@ constexpr auto make_pattern(Args const&... args)
         }(std::make_index_sequence<segments_count - 1>());
     }
 }
-}
+} // namespace fd

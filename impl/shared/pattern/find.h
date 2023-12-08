@@ -1,48 +1,49 @@
 #pragma once
 
-#include "algorithm/find.h"
 #include "pattern/equal.h"
 
 namespace fd
 {
-template <typename Callback = find_callback_gap, typename It, class... Segment>
-It find(It rng_first, It const rng_last, pattern<Segment...> const& pat, Callback callback = {})
+template <typename It, class... Segment>
+It find(It rng_first, It const rng_last, pattern<Segment...> const& pat)
 {
-    decltype(auto) front_pattern_segment = pat.front().view();
-    auto const front_pattern_byte        = front_pattern_segment.front();
+    using std::equal;
+    using std::find;
+
+    auto const& front_segment = pat.template get<0>();
+    auto const& front_bytes   = front_segment.get();
+    auto const front_byte     = front_bytes.front();
 
     if constexpr (sizeof...(Segment) == 1)
     {
-        if (front_pattern_segment.size() == 1)
-            return find_byte<false>(rng_first, rng_last, front_pattern_byte, std::ref(callback));
+        if (front_segment.known() == 1)
+            return find(rng_first, rng_last, front_byte);
     }
+    auto const pattern_length = pat.length();
+    auto const rng_last_safe  = rng_last - pattern_length;
 
-    verify_range(rng_first, rng_last);
-
-    auto const pattern_length = pat.size();
-
-    auto u_rng_first           = unwrap_iterator(rng_first);
-    auto const u_rng_last_safe = unwrap_iterator(rng_last) - pattern_length;
-
-    // verify_range(u_rng_first, u_rng_last_safe);
-
-    for (;;)
-    {
-        auto const u_rng_front_pattern_byte = std::find(u_rng_first, u_rng_last_safe, front_pattern_byte);
-        if (u_rng_front_pattern_byte == u_rng_last_safe)
-            return rng_last;
-        if (!equal(u_rng_front_pattern_byte, pat))
+    if (rng_first < rng_last_safe)
+        for (;;)
         {
-            u_rng_first = u_rng_front_pattern_byte + 1;
-            continue;
+            auto const front_byte_found = find(rng_first, rng_last_safe, front_byte);
+            if (equal(pat, front_byte_found))
+                return front_byte_found;
+            if (front_byte_found == rng_last_safe)
+                return rng_last;
+
+            rng_first = front_byte_found + 1;
         }
-        if (!invoke_find_callback(callback, u_rng_front_pattern_byte))
-        {
-            u_rng_first = u_rng_front_pattern_byte + pattern_length;
-            continue;
-        }
-        rewrap_iterator(rng_first, u_rng_front_pattern_byte);
-        return rng_first;
-    }
+
+    if (rng_first == rng_last_safe)
+        if (equal(pat, rng_first))
+            return rng_first;
+
+    return rng_last;
 }
+
+template <typename It, class... Segment>
+It find_pattern(It rng_first, It const rng_last, pattern<Segment...> const& pat)
+{
+    return find(rng_first, rng_last, pat);
 }
+} // namespace fd

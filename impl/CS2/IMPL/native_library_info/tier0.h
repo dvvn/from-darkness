@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "functional/cast.h"
-#include "native/cvar.hpp"
+#include "native/cvar.h"
 #include "native_library_info/impl/interface.h"
 #include "native_library_info/impl/root_interface.h"
 
@@ -27,4 +27,4 @@ class tier0_library_info : public native_library_info
         return {this};
     }
 };
-}
+} // namespace fd

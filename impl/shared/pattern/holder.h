@@ -2,41 +2,23 @@
 #include "container/array.h"
 #include "container/span.h"
 #include "diagnostics/fatal.h"
-#include "functional/bind.h"
-#include "pattern/fwd.h"
+#include "pattern/basic_holder.h"
 #include "concepts.h"
 #include "noncopyable.h"
 
-#include <boost/hana/front.hpp>
 #include <boost/hana/tuple.hpp>
 #include <boost/hana/unpack.hpp>
 
 #include <algorithm>
-#include <cassert>
 #include <ranges>
 
 namespace fd
 {
-template <class Segment>
-struct pattern_segment_constant_size;
-
-template <>
-struct pattern_segment_constant_size<pattern_segment<-1, -1>>;
-
-template <pattern_size_type UnknownBytes>
-struct pattern_segment_constant_size<pattern_segment<-1, UnknownBytes>>;
-
-template <pattern_size_type Bytes>
-struct pattern_segment_constant_size<pattern_segment<Bytes, -1>>;
-
-template <pattern_size_type Bytes, pattern_size_type UnknownBytes>
-struct pattern_segment_constant_size<pattern_segment<Bytes, UnknownBytes>>
+template <typename S, S SizeL, S SizeR>
+constexpr auto operator+(std::integral_constant<S, SizeL>, std::integral_constant<S, SizeR>) -> std::integral_constant<S, SizeL + SizeR>
 {
-    static constexpr pattern_size_type known   = Bytes;
-    static constexpr pattern_size_type unknown = UnknownBytes;
-
-    static constexpr pattern_size_type size = Bytes + UnknownBytes;
-};
+    return {};
+}
 
 template <pattern_size_type BytesCount>
 struct pattern_segment_bytes : array<uint8_t, BytesCount>, noncopyable
@@ -54,25 +36,25 @@ struct pattern_segment_bytes : array<uint8_t, BytesCount>, noncopyable
             std::copy_n(from, BytesCount, this->data());
     }
 
-    pattern_segment_bytes(pattern_segment_bytes&& other) noexcept
+    constexpr pattern_segment_bytes(pattern_segment_bytes&& other) noexcept
         : array<uint8_t, BytesCount>{std::move(other)}
     {
     }
 
-    pattern_segment_bytes& operator=(pattern_segment_bytes&& other) noexcept
+    constexpr pattern_segment_bytes& operator=(pattern_segment_bytes&& other) noexcept
     {
         this->swap(other);
         return *this;
     }
 
-    static constexpr size_type size()
+    static constexpr std::integral_constant<size_type, BytesCount> size()
     {
-        return BytesCount;
+        return {};
     }
 
-    static constexpr size_type max_size()
+    static constexpr std::integral_constant<size_type, BytesCount> max_size()
     {
-        return BytesCount;
+        return {};
     }
 };
 
@@ -100,6 +82,11 @@ struct pattern_segment_unknown_bytes<-1>
     using value_type = pattern_size_type;
 
     value_type value;
+
+    constexpr operator value_type() const noexcept
+    {
+        return value;
+    }
 
     template <value_type BytesCount>
     constexpr pattern_segment_unknown_bytes(std::integral_constant<value_type, BytesCount>)
@@ -138,58 +125,34 @@ struct pattern_segment
     {
     }
 
-#if 0
-    constexpr known_iterator begin() const
-    {
-        return known_bytes_.begin();
-    }
-
-    constexpr known_iterator end() const
-    {
-        return known_bytes_.end();
-    }
-
-    constexpr size_type size() const
-    {
-        return known_bytes_.size();
-    }
-
-#ifdef _MSC_VER
-    constexpr known_pointer _Unchecked_begin() const noexcept
-    {
-        return known_bytes_._Unchecked_begin();
-    }
-
-    constexpr known_pointer _Unchecked_end() const noexcept
-    {
-        return known_bytes_._Unchecked_end();
-    }
-#endif
-#endif
-
-    [[deprecated]]
-    constexpr known_bytes_storage const& view() const
+    constexpr known_bytes_storage const& get() const
     {
         return known_bytes_;
     }
 
+    constexpr auto known() const -> std::conditional_t<
+        Bytes == -1, //
+        size_type, std::integral_constant<size_type, Bytes>>
+    {
+        return known_bytes_.size();
+    }
+
+    constexpr auto unknown() const -> std::conditional_t<
+        UnknownBytes == -1, //
+        size_type, std::integral_constant<size_type, UnknownBytes>>
+    {
+        return unknown_bytes_;
+    }
+
     [[deprecated]]
-    constexpr size_type unknown() const
+    constexpr auto length() const -> std::conditional_t<
+        Bytes == -1 || UnknownBytes == -1, //
+        size_type, std::integral_constant<size_type, Bytes + UnknownBytes>>
     {
-        return unknown_bytes_.value;
-    }
-
-    template <typename It>
-    bool equal(It it) const
-    {
-        auto const bytes_first  = known_bytes_.data();
-        auto const bytes_length = known_bytes_.size();
-        return std::equal(bytes_first, bytes_first + bytes_length, it);
-    }
-
-    constexpr size_type length() const
-    {
-        return known_bytes_.size() + unknown_bytes_.value;
+        if constexpr (Bytes == -1 || UnknownBytes == -1)
+            return known() + unknown();
+        else
+            return {};
     }
 };
 
@@ -209,45 +172,33 @@ struct pattern
     {
     }
 
-    [[deprecated]]
-    constexpr auto get() const -> storage_type const&
+    constexpr storage_type const& get() const
     {
         return bytes_;
     }
 
-    constexpr size_type length() const
+    template <pattern_size_type Index>
+    constexpr auto& get() const
     {
-#ifdef _DEBUG
+        return boost::hana::at_c<Index>(bytes_);
+    }
+
+    constexpr auto length() const
+    {
         if constexpr ((complete<pattern_segment_constant_size<Segment>> && ...))
-            return (pattern_segment_constant_size<Segment>::size + ...);
+            return (pattern_segment_constant_size<Segment>::length + ...);
+        else if constexpr (sizeof...(Segment) == 1)
+            return get<0>().length();
         else
-#endif
             return boost::hana::unpack(bytes_, [](Segment const&... segment) -> size_type {
-                return (segment.length() + ...);
+                return (static_cast<size_type>(segment.length()) + ...);
             });
     }
 
+    [[deprecated]]
     constexpr auto& front() const
     {
-        return boost::hana::front(bytes_).known_bytes_;
-    }
-
-    template <typename T>
-    bool equal(T const* mem) const
-    {
-        auto const equal_impl = [&mem](auto& self, auto& segment, auto&... next) -> bool {
-            if (!segment.equal(mem))
-                return false;
-            if constexpr (sizeof...(next) == 0)
-                return true;
-            else
-            {
-                mem += segment.length();
-                return self(self, next...);
-            }
-        };
-        auto const equal_impl_ref = std::ref(equal_impl);
-        return boost::hana::unpack(bytes_, bind_front(equal_impl_ref, equal_impl_ref));
+        return get<0>().known_bytes_;
     }
 };
 } // namespace fd

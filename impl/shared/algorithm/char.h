@@ -32,7 +32,7 @@ struct basic_char_table : array<T, UCHAR_MAX + 1>
   private:
     static constexpr size_type get_index(char const chr)
     {
-#if 0
+#if 1
         return -CHAR_MIN + chr;
 #else
         return static_cast<unsigned char>(chr);

@@ -201,7 +201,7 @@ class basic_static_string
         auto const extra_size = std::distance(first, last);
         assert(size_ + extra_size <= Length);
         std::copy(first, last, buffer_ + size_);
-        size_ += extra_size;
+        size_ += static_cast<size_type>(extra_size);
         return *this;
     }
 
@@ -213,7 +213,7 @@ class basic_static_string
             std::copy(first, first + count, buffer_ + size_);
         else
             std::copy_n(first, count, buffer_ + size_);
-        size_ += count;
+        size_ += static_cast<size_type>(count);
         return *this;
     }
 
@@ -229,8 +229,8 @@ class basic_static_string
         auto rng_size = size(rng);
         if constexpr (std::is_bounded_array_v<Rng>)
         {
-            if (rng[rng_size - 1] == '\0')
-                --rng_size;
+            assert(rng[rng_size - 1] == '\0');
+            --rng_size;
         }
 
         return append(data(rng), rng_size);
@@ -315,15 +315,37 @@ class basic_static_string<0, CharT>;
 template <typename CharT>
 class basic_static_string<-1, CharT>;
 
-#if 0
-template <size_t Length, typename CharT, typename Other>
-constexpr bool operator==(basic_static_string<Length, CharT> const& left, Other const& right) requires(std::same_as<std::iter_value_t<Other>, CharT>)
+template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r>
+constexpr bool operator==(basic_static_string<Length_l, CharT_l> const& str_l, basic_static_string<Length_r, CharT_r> const& str_r)
 {
-     return std::equal(ubegin(left), uend(left), ubegin(right), uendstr(right));
+    auto const l_length = str_l.length();
+    if (l_length == str_r.length())
+    {
+        auto const l_data = str_l.data();
+        return std::equal(l_data, l_data + l_length, str_r.data());
+    }
+    return false;
 }
-#endif
 
 template <size_t Length_l, typename CharT_l, typename CharT_r, size_t Length_r>
+constexpr bool operator==(basic_static_string<Length_l, CharT_l> const& str_l, CharT_r const (&str_r)[Length_r])
+{
+    constexpr auto r_length = Length_r - 1;
+    assert(str_r[r_length] == '\0');
+
+    if constexpr (Length_l >= r_length)
+    {
+        auto const l_length = str_l.length();
+        if (l_length == r_length)
+        {
+            auto const l_data = str_l.data();
+            return std::equal(l_data, l_data + r_length, str_r);
+        }
+    }
+    return false;
+}
+
+template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r>
 constexpr auto operator+(basic_static_string<Length_l, CharT_l> const& str_l, basic_static_string<Length_r, CharT_r> const& str_r)
     -> basic_static_string<Length_l + Length_r, string_join_char_t<CharT_l, CharT_r> >
 {
@@ -337,9 +359,11 @@ template <size_t Length_l, typename CharT_l, typename CharT_r, size_t Length_r>
 constexpr auto operator+(basic_static_string<Length_l, CharT_l> const& str_l, CharT_r const (&str_r)[Length_r])
     -> basic_static_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r> >
 {
-    basic_static_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r> > ret;
+    constexpr auto r_length = Length_r - 1;
+    assert(str_r[r_length] == '\0');
+    basic_static_string<Length_l + r_length, string_join_char_t<CharT_l, CharT_r> > ret;
     ret.append(str_l);
-    ret.append(str_r, Length_r - 1);
+    ret.append(str_r, r_length);
     return ret;
 }
 
@@ -347,8 +371,10 @@ template <typename CharT_l, size_t Length_l, size_t Length_r, typename CharT_r>
 constexpr auto operator+(CharT_l const (&str_l)[Length_l], basic_static_string<Length_r, CharT_r> const& str_r)
     -> basic_static_string<Length_l - 1 + Length_r, string_join_char_t<CharT_l, CharT_r> >
 {
-    basic_static_string<Length_l - 1 + Length_r, string_join_char_t<CharT_l, CharT_r> > ret;
-    ret.append(str_l, Length_l - 1);
+    constexpr auto l_length = Length_l - 1;
+    assert(str_r[l_length] == '\0');
+    basic_static_string<l_length + Length_r, string_join_char_t<CharT_l, CharT_r> > ret;
+    ret.append(str_l, l_length);
     ret.append(str_r);
     return ret;
 }
