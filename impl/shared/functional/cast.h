@@ -121,7 +121,7 @@ struct safe_cast_simple_ref
 };
 
 template <typename P, size_t Count = 0>
-struct pointers_count : std::integral_constant<size_t, Count>
+struct pointers_count : integral_constant<size_t, Count>
 {
 };
 
@@ -139,12 +139,12 @@ template <typename P, size_t Count = 1, bool = std::is_pointer_v<P>>
 struct remove_pointer;
 
 template <typename P>
-struct remove_pointer<P, 0, true> : std::type_identity<P>
+struct remove_pointer<P, 0, true> : type_identity<P>
 {
 };
 
 template <typename P, size_t Count>
-struct remove_pointer<P, Count, false> : std::type_identity<P>
+struct remove_pointer<P, Count, false> : type_identity<P>
 {
 };
 
@@ -172,26 +172,26 @@ inline constexpr bool are_pointer_const_v = are_pointer_const<P, Index, Pointers
 template <typename T, typename Ptr, size_t Index = 0, size_t Limit = pointers_count<Ptr>::value>
 struct make_pointer_like :
     make_pointer_like<
-        std::conditional_t<are_pointer_const_v<Ptr, Index, Limit>, T const*, T*>, //
+        conditional_t<are_pointer_const_v<Ptr, Index, Limit>, T const*, T*>, //
         Ptr, Index + 1, Limit>
 {
 };
 
 template <typename T, typename Ptr, size_t Limit>
-struct make_pointer_like<T, Ptr, Limit, Limit> : std::type_identity<T>
+struct make_pointer_like<T, Ptr, Limit, Limit> : type_identity<T>
 {
 };
 
 template <typename T, typename P1, typename P2, size_t Index = 0, size_t Limit = pointers_count<P2>::value>
 struct rewrap_pointer_like :
     rewrap_pointer_like<
-        std::conditional_t<are_pointer_const_v<P1, Index, Limit> || are_pointer_const_v<P2, Index, Limit>, T const*, T*>, //
+        conditional_t<are_pointer_const_v<P1, Index, Limit> || are_pointer_const_v<P2, Index, Limit>, T const*, T*>, //
         P1, P2, Index + 1, Limit>
 {
 };
 
 template <typename T, typename P1, typename P2, size_t Limit>
-struct rewrap_pointer_like<T, P1, P2, Limit, Limit> : std::type_identity<T>
+struct rewrap_pointer_like<T, P1, P2, Limit, Limit> : type_identity<T>
 {
 };
 
@@ -306,7 +306,7 @@ struct custom_cast
     From from;
 
     template <typename To>
-    To operator()(std::type_identity<To>) const
+    To operator()(type_identity<To>) const
 #ifdef _DEBUG
         requires(std::invocable<Impl<To>, From const&>)
 #endif
@@ -316,7 +316,7 @@ struct custom_cast
     }
 
     template <typename To>
-    To operator()(std::type_identity<To>)
+    To operator()(type_identity<To>)
 #ifdef _DEBUG
         requires(std::invocable<Impl<To>, From&>)
 #endif
@@ -333,17 +333,17 @@ inline constexpr auto cast_to = []<typename From>(From from) -> invoke_cast<cust
 } // namespace detail
 
 template <typename T>
-struct remove_rvalue_reference : std::type_identity<T>
+struct remove_rvalue_reference : type_identity<T>
 {
 };
 
 template <typename T>
-struct remove_rvalue_reference<T&> : std::type_identity<T&>
+struct remove_rvalue_reference<T&> : type_identity<T&>
 {
 };
 
 template <typename T>
-struct remove_rvalue_reference<T&&> : std::type_identity<T>
+struct remove_rvalue_reference<T&&> : type_identity<T>
 {
 };
 

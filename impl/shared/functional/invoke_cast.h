@@ -1,5 +1,6 @@
 #pragma once
 
+#include "type_traits.h"
 
 #include <concepts>
 #include <utility>
@@ -25,22 +26,22 @@ class invoke_cast
     template <typename Ret>
     constexpr operator Ret() &&
 #ifdef _DEBUG
-        requires std::invocable<Fn, std::type_identity<Ret>>
+        requires std::invocable<Fn, type_identity<Ret>>
 #endif
     {
-        return func_(std::type_identity<Ret>());
+        return func_(type_identity<Ret>());
     }
 
     template <typename Ret>
     constexpr bool operator==(Ret other) &&
 #ifdef _DEBUG
-        requires std::invocable<Fn, std::type_identity<Ret>>
+        requires std::invocable<Fn, type_identity<Ret>>
 #endif
     {
-        return func_(std::type_identity<Ret>()) == other;
+        return func_(type_identity<Ret>()) == other;
     }
 };
 
 template <typename Fn>
 invoke_cast(Fn&&) -> invoke_cast<Fn>;
-}
+} // namespace fd

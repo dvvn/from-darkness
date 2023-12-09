@@ -1,8 +1,8 @@
 #pragma once
 
 // #define FD_SPOOF_RETURN_ADDRESS
-#include "concepts.h"
 #include "functional/cast.h"
+#include "concepts.h"
 
 #ifdef FD_SPOOF_RETURN_ADDRESS
 #include <x86RetSpoof.h>
@@ -87,7 +87,7 @@ struct non_member_function;
 #define _MEMBER_CCV_HELPER(_CCV_, _CV_, _REF_, _NOEXCEPT_)                                               \
     template <typename Ret, typename Object, typename... Args>                                           \
     struct member_function<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(_CCV_), Ret, Object _CV_ _REF_, Args...> : \
-        std::type_identity<Ret (_CCV_ Object::*)(Args...) _CV_ _REF_ _NOEXCEPT_>                         \
+        type_identity<Ret (_CCV_ Object::*)(Args...) _CV_ _REF_ _NOEXCEPT_>                              \
     {                                                                                                    \
     };                                                                                                   \
     template <typename Ret, typename Object, typename... Args>                                           \
@@ -98,7 +98,7 @@ struct non_member_function;
 
 #define _NON_MEMBER_CCV_HELPER(_CCV_, _CV_UNUSED_, _REF_UNUSED_, _NOEXCEPT_)                                                                  \
     template <typename Ret, typename... Args>                                                                                                 \
-    struct non_member_function<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(_CCV_), Ret, Args...> : std::type_identity<Ret(_CCV_*)(Args...) _NOEXCEPT_> \
+    struct non_member_function<_NOEXCEPT_BOOL(_NOEXCEPT_), _CCV_T(_CCV_), Ret, Args...> : type_identity<Ret(_CCV_*)(Args...) _NOEXCEPT_>      \
     {                                                                                                                                         \
     };                                                                                                                                        \
     template <typename Ret, typename... Args>                                                                                                 \
@@ -172,7 +172,7 @@ decltype(auto) try_spoof_member_return_address(void* function, Object* instance,
     }
     else
     {
-        using obj_t = std::conditional_t<forwarded<Object>, dummy_class, Object>;
+        using obj_t = conditional_t<forwarded<Object>, dummy_class, Object>;
         using fn_t  = member_function_t<Call_T, Ret, obj_t, Args...>;
         return std::invoke(unsafe_cast<fn_t>(function), unsafe_cast<obj_t*>(instance), args...);
     }
@@ -222,7 +222,7 @@ struct function_arg : function_arg<Index - 1, T...>
 };
 
 template <typename T, typename... Next>
-struct function_arg<0, T, Next...> : std::type_identity<T>
+struct function_arg<0, T, Next...> : type_identity<T>
 {
 };
 } // namespace detail
@@ -311,13 +311,13 @@ struct dummy_class final
 template <bool Noexcept, class Call_T, typename Ret, class Object, typename... Args>
 constexpr auto decay_function_info_helper(member_function_info<Noexcept, Call_T, Ret, Object, Args...> info) -> decltype(info)
 {
-    return {};
+    return info;
 }
 
 template <bool Noexcept, class Call_T, typename Ret, typename... Args>
 constexpr auto decay_function_info_helper(non_member_function_info<Noexcept, Call_T, Ret, Args...> info) -> decltype(info)
 {
-    return {};
+    return info;
 }
 
 struct call_type_sample

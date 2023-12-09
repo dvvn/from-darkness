@@ -1,6 +1,7 @@
 ﻿---
 BasedOnStyle: Microsoft
 Standard: Auto #Latest
+DerivePointerAlignment: true
 PointerAlignment: Left
 ReferenceAlignment: Pointer
 AlignConsecutiveAssignments: AcrossComments #Consecutive

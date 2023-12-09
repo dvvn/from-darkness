@@ -4,6 +4,7 @@
 #include "functional/call_traits.h"
 #include "hook/callback.h"
 #include "hook/info.h"
+#include "type_traits.h"
 
 namespace fd
 {
@@ -24,22 +25,22 @@ template <typename Proxy>
 struct hook_proxy_target;
 
 template <typename Fn>
-struct hook_proxy_target<hook_proxy<Fn>> : std::type_identity<Fn>
+struct hook_proxy_target<hook_proxy<Fn>> : type_identity<Fn>
 {
 };
 
 template <typename Fn>
-struct hook_proxy_target<hook_proxy<Fn> const> : std::type_identity<Fn>
+struct hook_proxy_target<hook_proxy<Fn> const> : type_identity<Fn>
 {
 };
 
 template <typename Fn>
-struct hook_proxy_target<hook_proxy<Fn> volatile> : std::type_identity<Fn>
+struct hook_proxy_target<hook_proxy<Fn> volatile> : type_identity<Fn>
 {
 };
 
 template <typename Fn>
-struct hook_proxy_target<hook_proxy<Fn> volatile const> : std::type_identity<Fn>
+struct hook_proxy_target<hook_proxy<Fn> volatile const> : type_identity<Fn>
 {
 };
 
@@ -55,7 +56,7 @@ class original_func_invoker<Fn, true> : public noncopyable
     using info = function_info<Fn>;
 
     using object_type   = typename info::object_type;
-    using instance_type = std::conditional_t<std::is_const_v<object_type>, void const, void>;
+    using instance_type = conditional_t<std::is_const_v<object_type>, void const, void>;
 
     Fn original_;
 
@@ -67,8 +68,8 @@ class original_func_invoker<Fn, true> : public noncopyable
 
   public:
     original_func_invoker(void* original, instance_type* proxy)
-        : original_(unsafe_cast_from(original))
-        , instance_(proxy)
+        : original_{unsafe_cast_from(original)}
+        , instance_{proxy}
     {
     }
 
@@ -110,12 +111,12 @@ class original_func_invoker<Fn, false> : public noncopyable
 
   public:
     original_func_invoker(void* original)
-        : original_(unsafe_cast_from(original))
+        : original_{unsafe_cast_from(original)}
     {
     }
 
     original_func_invoker(Fn original)
-        : original_(original)
+        : original_{original}
     {
     }
 
@@ -174,7 +175,7 @@ auto invoke_hook_proxy(Proxy* proxy, Args... args)
     };
 
 template <typename Callback, typename Fn, typename... Args>
-auto invoke_hook_proxy(std::type_identity<Fn> /*target*/, Args... args)
+auto invoke_hook_proxy(type_identity<Fn> /*target*/, Args... args)
 {
     using original_invoker = original_func_invoker<Fn, false>;
 
@@ -224,7 +225,7 @@ _NON_MEMBER_CALL_THISCALL_CV_REF_NOEXCEPT(HOOK_PROXY_STATIC_THISCALL) // macro f
 } // namespace detail
 
 template <typename Callback, class Proxy, typename Func, bool Inner = false>
-hook_info<Callback> prepare_hook(Func fn, std::bool_constant<Inner> = {}) requires(Inner || complete<Proxy>)
+hook_info<Callback> prepare_hook(Func fn, bool_constant<Inner> = {}) requires(Inner || complete<Proxy>)
 {
     return {unsafe_cast<void*>(fn), unsafe_cast<void*>(&Proxy::template proxy<Callback>)};
 }
@@ -232,18 +233,18 @@ hook_info<Callback> prepare_hook(Func fn, std::bool_constant<Inner> = {}) requir
 template <typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy, typename Func>
 hook_info<Callback> prepare_hook(Func fn) requires(complete<Proxy<Func>>)
 {
-    return prepare_hook<Callback, Proxy<Func>>(fn, std::true_type{});
+    return prepare_hook<Callback, Proxy<Func>>(fn, true_type{});
 }
 
 template <typename Callback, class Proxy, typename Func, size_t FuncSize>
 hook_info<Callback> prepare_hook(vfunc<Func, FuncSize> target)
 {
-    return prepare_hook<Callback, Proxy, Func>(target, std::true_type{});
+    return prepare_hook<Callback, Proxy, Func>(target, true_type{});
 }
 
 template <typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy, typename Func, size_t FuncSize>
 hook_info<Callback> prepare_hook(vfunc<Func, FuncSize> target)
 {
-    return prepare_hook<Callback, Proxy<Func>, Func>(target, std::true_type{});
+    return prepare_hook<Callback, Proxy<Func>, Func>(target, true_type{});
 }
 } // namespace fd

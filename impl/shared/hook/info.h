@@ -47,10 +47,10 @@ class hook_info
     }
 
     hook_info(void* target, void* replace)
-        : target_(target)
-        , replace_(replace)
+        : target_{target}
+        , replace_{replace}
 #ifdef _DEBUG
-        , proxy_data_(std::addressof(detail::unique_hook_proxy_data<Callback>))
+        , proxy_data_{std::addressof(detail::unique_hook_proxy_data<Callback>)}
 #endif
     {
     }
