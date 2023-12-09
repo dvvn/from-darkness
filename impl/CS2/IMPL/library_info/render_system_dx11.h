@@ -1,9 +1,8 @@
 ﻿#pragma once
 #include "algorithm/address.h"
-#include "library_info/impl/pattern.h"
+#include "library_info/pattern.h"
 #include "native/DXGI_swap_chain.h"
 #include "pattern/make.h"
-#include "native_library_info.h"
 
 #include <cassert>
 
@@ -37,4 +36,4 @@ class render_system_dx11_library_info : public native_library_info
         return {this};
     }
 };
-}
+} // namespace fd

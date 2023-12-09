@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "functional/cast.h"
 #include "native/cvar.h"
-#include "native_library_info/impl/interface.h"
-#include "native_library_info/impl/root_interface.h"
+#include "library_info/interface.h"
+#include "library_info/root_interface.h"
 
 namespace fd
 {

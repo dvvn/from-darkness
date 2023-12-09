@@ -5,6 +5,7 @@
 #include "pattern/basic_holder.h"
 #include "concepts.h"
 #include "noncopyable.h"
+#include "type_traits.h"
 
 #include <boost/hana/tuple.hpp>
 #include <boost/hana/unpack.hpp>
@@ -14,16 +15,14 @@
 
 namespace fd
 {
-template <typename S, S SizeL, S SizeR>
-constexpr auto operator+(std::integral_constant<S, SizeL>, std::integral_constant<S, SizeR>) -> std::integral_constant<S, SizeL + SizeR>
-{
-    return {};
-}
-
-template <pattern_size_type BytesCount>
+template <size_t BytesCount>
 struct pattern_segment_bytes : array<uint8_t, BytesCount>, noncopyable
 {
-    using size_type = pattern_size_type;
+#ifdef FD_NATIVE_PATTERN_SIZE
+    using size_type = size_t;
+#else
+    using size_type = detail::small_type<size_t, BytesCount>;
+#endif
 
     template <typename It>
     constexpr pattern_segment_bytes(It from)
@@ -47,12 +46,12 @@ struct pattern_segment_bytes : array<uint8_t, BytesCount>, noncopyable
         return *this;
     }
 
-    static constexpr std::integral_constant<size_type, BytesCount> size()
+    static constexpr integral_constant<size_type, BytesCount> size()
     {
         return {};
     }
 
-    static constexpr std::integral_constant<size_type, BytesCount> max_size()
+    static constexpr integral_constant<size_type, BytesCount> max_size()
     {
         return {};
     }
@@ -64,22 +63,38 @@ struct pattern_segment_bytes<0>;
 template <>
 struct pattern_segment_bytes<-1> : span<char const>
 {
-    using size_type = pattern_size_type;
     using span::span;
 };
 
-template <pattern_size_type BytesCount>
-struct pattern_segment_unknown_bytes : std::integral_constant<pattern_size_type, BytesCount>
+#ifdef FD_NATIVE_PATTERN_SIZE
+template <size_t BytesCount>
+struct pattern_segment_unknown_bytes : integral_constant<size_t, BytesCount>
 {
-    constexpr pattern_segment_unknown_bytes(std::integral_constant<pattern_size_type, BytesCount> = {})
+    using size_type = size_t;
+
+    constexpr pattern_segment_unknown_bytes(integral_constant<size_t, BytesCount> = {})
     {
     }
 };
+#else
+template <size_t BytesCount>
+struct pattern_segment_unknown_bytes : detail::small_integral_constant<size_t, BytesCount>
+{
+    using size_type = detail::small_type<size_t, BytesCount>;
 
+    template <typename N>
+    constexpr pattern_segment_unknown_bytes(integral_constant<N, BytesCount>)
+    {
+    }
+
+    pattern_segment_unknown_bytes() = default;
+};
+#endif
 template <>
 struct pattern_segment_unknown_bytes<-1>
 {
-    using value_type = pattern_size_type;
+    using value_type = size_t;
+    using size_type  = size_t;
 
     value_type value;
 
@@ -89,7 +104,7 @@ struct pattern_segment_unknown_bytes<-1>
     }
 
     template <value_type BytesCount>
-    constexpr pattern_segment_unknown_bytes(std::integral_constant<value_type, BytesCount>)
+    constexpr pattern_segment_unknown_bytes(integral_constant<value_type, BytesCount>)
         : value{BytesCount}
     {
     }
@@ -100,16 +115,12 @@ struct pattern_segment_unknown_bytes<-1>
     }
 };
 
-template <pattern_size_type Bytes, pattern_size_type UnknownBytes>
+template <size_t Bytes, size_t UnknownBytes>
 struct pattern_segment
 {
-    template <class... Segment>
-    friend struct pattern;
-
     using known_bytes_storage   = pattern_segment_bytes<Bytes>;
     using unknown_bytes_storage = pattern_segment_unknown_bytes<UnknownBytes>;
 
-    using size_type      = pattern_size_type;
     using known_iterator = typename known_bytes_storage::const_iterator;
     using known_pointer  = typename known_bytes_storage::const_pointer;
 
@@ -130,38 +141,20 @@ struct pattern_segment
         return known_bytes_;
     }
 
-    constexpr auto known() const -> std::conditional_t<
-        Bytes == -1, //
-        size_type, std::integral_constant<size_type, Bytes>>
+    constexpr auto known() const -> typename known_bytes_storage::size_type
     {
         return known_bytes_.size();
     }
 
-    constexpr auto unknown() const -> std::conditional_t<
-        UnknownBytes == -1, //
-        size_type, std::integral_constant<size_type, UnknownBytes>>
+    constexpr auto unknown() const -> typename unknown_bytes_storage::size_type
     {
         return unknown_bytes_;
-    }
-
-    [[deprecated]]
-    constexpr auto length() const -> std::conditional_t<
-        Bytes == -1 || UnknownBytes == -1, //
-        size_type, std::integral_constant<size_type, Bytes + UnknownBytes>>
-    {
-        if constexpr (Bytes == -1 || UnknownBytes == -1)
-            return known() + unknown();
-        else
-            return {};
     }
 };
 
 template <class... Segment>
-struct pattern
+class pattern
 {
-    using size_type = pattern_size_type;
-
-  private:
     using storage_type = boost::hana::tuple<Segment...>;
 
     storage_type bytes_;
@@ -177,7 +170,7 @@ struct pattern
         return bytes_;
     }
 
-    template <pattern_size_type Index>
+    template <size_t Index>
     constexpr auto& get() const
     {
         return boost::hana::at_c<Index>(bytes_);
@@ -190,15 +183,9 @@ struct pattern
         else if constexpr (sizeof...(Segment) == 1)
             return get<0>().length();
         else
-            return boost::hana::unpack(bytes_, [](Segment const&... segment) -> size_type {
-                return (static_cast<size_type>(segment.length()) + ...);
+            return boost::hana::unpack(bytes_, [](Segment const&... segment) -> size_t {
+                return (static_cast<size_t>(segment.length()) + ...);
             });
-    }
-
-    [[deprecated]]
-    constexpr auto& front() const
-    {
-        return get<0>().known_bytes_;
     }
 };
 } // namespace fd

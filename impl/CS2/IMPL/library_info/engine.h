@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include "functional/cast.h"
+#include "library_info/interface.h"
+#include "library_info/root_interface.h"
 #include "native/engine_client.h"
-#include "native_library_info/impl/interface.h"
-#include "native_library_info/impl/root_interface.h"
 
 namespace fd
 {
@@ -27,4 +27,4 @@ class engine_library_info : public native_library_info
         return {this};
     }
 };
-}
+} // namespace fd

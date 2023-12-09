@@ -1,7 +1,7 @@
 ﻿#pragma once
 
+#include "library_info/construct.h"
 #include "string/static.h"
-#include "library_info.h"
 
 namespace fd
 {
@@ -29,4 +29,4 @@ library_info operator"" _dll()
     return {Name + L".dll"};
 }
 } // namespace literals
-}
+} // namespace fd

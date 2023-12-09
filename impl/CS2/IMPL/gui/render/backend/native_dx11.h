@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "gui/render/backend/basic_dx11.h"
-#include "native_library_info/render_system_dx11.h"
+#include "library_info/render_system_dx11.h"
 #include "winapi/com_ptr.h"
 #include "noncopyable.h"
 #include "optional.h"

@@ -1,9 +1,12 @@
 ﻿#pragma once
 #include "algorithm/char.h"
+#include "library_info/function.h"
 #include "native/interface_register.h"
-#include "native_library_info.h"
+#include "type_traits.h"
 
 #include <cassert>
+
+#undef interface
 
 namespace fd
 {
@@ -27,20 +30,20 @@ inline void* native_library_info::basic_interface_getter::find(string_view const
 
     auto const find = [name_length, name_first = name.data()] //
         <bool ContainsVersion>                                //
-        (std::bool_constant<ContainsVersion>, native::interface_register * reg) {
+        (bool_constant<ContainsVersion>, native::interface_register * reg) {
             for (; reg != nullptr; reg = reg->next())
             {
                 auto const reg_name      = reg->name();
                 auto const reg_name_last = reg_name + name_length;
 
-                if constexpr (!ContainsVersion)
+                if (ContainsVersion)
                 {
-                    if (!detail::interface_version(*reg_name_last))
+                    if (*reg_name_last != '\0')
                         goto _SKIP_BREAK;
                 }
                 else
                 {
-                    if (*reg_name_last != '\0')
+                    if (!detail::interface_version(*reg_name_last))
                         goto _SKIP_BREAK;
                 }
                 if (!std::equal(reg_name, reg_name_last, name_first))

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "library_info.h"
+#include "library_info/holder.h"
 
 #include <algorithm>
 
@@ -21,8 +21,8 @@ inline void* library_info::basic_function_getter::find(string_view const name) c
 
     //----
 
-    auto const name_length = name.length();
     auto const name_first  = name.data();
+    auto const name_length = name.length();
     auto const name_last   = name_first + name_length;
 
     auto const last_offset = std::min(export_dir->NumberOfNames, export_dir->NumberOfFunctions);
@@ -41,4 +41,4 @@ inline void* library_info::basic_function_getter::find(string_view const name) c
 
     return nullptr;
 }
-}
+} // namespace fd

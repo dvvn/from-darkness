@@ -1,49 +1,49 @@
 ﻿#pragma once
 
-#include <cstddef>
+#include "type_traits.h"
+
+// #define FD_NATIVE_PATTERN_SIZE
 
 namespace fd
 {
-#ifdef _DEBUG
-using pattern_size_type       = size_t;
-using pattern_difference_type = ptrdiff_t;
-#else
-using pattern_size_type       = uint8_t;
-using pattern_difference_type = int8_t;
-#endif
-
-template <pattern_size_type BytesCount>
+template <size_t BytesCount>
 struct pattern_segment_bytes;
 
-template <pattern_size_type BytesCount>
+template <size_t BytesCount>
 struct pattern_segment_unknown_bytes;
 
-template <pattern_size_type Bytes, pattern_size_type UnknownBytes>
+template <size_t Bytes, size_t UnknownBytes>
 struct pattern_segment;
 
 template <class... Segment>
-struct pattern;
+class pattern;
 
 template <class Segment>
-struct pattern_segment_constant_size;
+class pattern_segment_constant_size;
 
 template <>
-struct pattern_segment_constant_size<pattern_segment<-1, -1>>;
+class pattern_segment_constant_size<pattern_segment<-1, -1>>;
 
-template <pattern_size_type UnknownBytes>
-struct pattern_segment_constant_size<pattern_segment<-1, UnknownBytes>>;
+template <size_t UnknownBytes>
+class pattern_segment_constant_size<pattern_segment<-1, UnknownBytes>>;
 
-template <pattern_size_type Bytes>
-struct pattern_segment_constant_size<pattern_segment<Bytes, -1>>;
+template <size_t Bytes>
+class pattern_segment_constant_size<pattern_segment<Bytes, -1>>;
 
-template <pattern_size_type Bytes, pattern_size_type UnknownBytes>
-struct pattern_segment_constant_size<pattern_segment<Bytes, UnknownBytes>>
+template <size_t Bytes, size_t UnknownBytes>
+class pattern_segment_constant_size<pattern_segment<Bytes, UnknownBytes>>
 {
-    static constexpr std::integral_constant<pattern_size_type, Bytes> known;
-    static constexpr std::integral_constant<pattern_size_type, UnknownBytes> unknown ;
+#ifdef FD_NATIVE_PATTERN_SIZE
+    template <size_t S>
+    using integral_constant = integral_constant<size_t, S>;
+#else
+    template <size_t S>
+    using integral_constant = detail::small_integral_constant<size_t, S>;
+#endif
+  public:
+    static constexpr integral_constant<Bytes> known;
+    static constexpr integral_constant<UnknownBytes> unknown;
 
-    [[deprecated]] //
-    static constexpr pattern_size_type size = Bytes + UnknownBytes;
-    static constexpr std::integral_constant<pattern_size_type, Bytes + UnknownBytes> length;
+    static constexpr integral_constant<Bytes + UnknownBytes> length;
 };
 } // namespace fd

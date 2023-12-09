@@ -1,6 +1,6 @@
 ﻿#pragma once
+#include "library_info/holder.h"
 #include "pattern/find.h"
-#include "library_info.h"
 
 namespace fd
 {
@@ -15,8 +15,8 @@ void* library_info::basic_pattern_getter::find_in_section(Fn fn) const
 
     for (; first_section != last_section; ++first_section)
     {
-        auto first      = img_base + first_section->VirtualAddress;
-        auto const last = first + first_section->SizeOfRawData;
+        auto const first = img_base + first_section->VirtualAddress;
+        auto const last  = first + first_section->SizeOfRawData;
 
         auto const found = fn(first, last);
         if (found == last)
@@ -30,8 +30,11 @@ void* library_info::basic_pattern_getter::find_in_section(Fn fn) const
 template <typename Fn>
 void* library_info::basic_pattern_getter::find_anywhere(Fn fn) const
 {
-    auto mem_first      = linfo_->data();
-    auto const mem_last = mem_first + linfo_->size();
+    using std::data;
+    using std::size;
+
+    auto const mem_first = linfo_->data();
+    auto const mem_last  = mem_first + linfo_->size();
 
     auto found = fn(mem_first, mem_last);
     return found == mem_last ? nullptr : found;
@@ -45,4 +48,5 @@ void* library_info::basic_pattern_getter::find(pattern<Segment...> const& pat) c
         return find_pattern(first, last, pat);
     });
 }
+
 } // namespace fd

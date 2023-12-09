@@ -1,6 +1,6 @@
 ﻿#include "gui/render/backend/own_dx11.h"
 #ifdef _DEBUG
-#include "library_info/impl/literals.h"
+#include "library_info/literals.h"
 #endif
 
 #include <cassert>

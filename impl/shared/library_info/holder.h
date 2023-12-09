@@ -1,67 +1,11 @@
 ﻿#pragma once
 
 #include "functional/cast.h"
-#include "memory/xref.h"
+#include "library_info/core.h"
 #include "pattern/basic_holder.h"
 #include "string/view.h"
 
-#include <windows.h>
-#include <winternl.h>
-
-#include <algorithm>
 #include <cassert>
-
-#undef interface
-
-// ReSharper disable CppInconsistentNaming
-
-// see https://www.vergiliusproject.com/kernels/x64/Windows%2011/22H2%20(2022%20Update)/_LDR_DATA_TABLE_ENTRY
-typedef struct _LDR_DATA_TABLE_ENTRY_FULL
-{
-    LIST_ENTRY InLoadOrderLinks;
-    LIST_ENTRY InMemoryOrderLinks;
-    LIST_ENTRY InInitializationOrderLinks;
-
-    union
-    {
-        PVOID DllBase;
-        PIMAGE_DOS_HEADER DosHeader;
-        ULONG_PTR DllBaseAddress;
-    };
-
-    PVOID EntryPoint;
-
-    ULONG SizeOfImage;
-    UNICODE_STRING FullDllName;
-    UNICODE_STRING BaseDllName;
-} LDR_DATA_TABLE_ENTRY_FULL, *PLDR_DATA_TABLE_ENTRY_FULL;
-
-// ReSharper restore CppInconsistentNaming
-
-inline wchar_t* data(UNICODE_STRING const& ustr)
-{
-    return ustr.Buffer;
-}
-
-inline USHORT size(UNICODE_STRING const& ustr)
-{
-    return ustr.Length / sizeof(wchar_t);
-}
-
-inline wchar_t* begin(UNICODE_STRING const& ustr)
-{
-    return ustr.Buffer;
-}
-
-inline wchar_t* end(UNICODE_STRING const& ustr)
-{
-    return ustr.Buffer + size(ustr);
-}
-
-inline bool operator!(UNICODE_STRING const& ustr)
-{
-    return ustr.Buffer == nullptr;
-}
 
 namespace fd
 {
@@ -73,23 +17,8 @@ class library_info
         LDR_DATA_TABLE_ENTRY* entry_;
     };
 
-    static LIST_ENTRY* module_list()
-    {
-#ifdef _WIN64
-        auto const mem = reinterpret_cast<TEB*>(__readgsqword(FIELD_OFFSET(NT_TIB64, Self)));
-        auto const ldr = mem->ProcessEnvironmentBlock->Ldr;
-#else
-        auto const mem = reinterpret_cast<PEB*>(__readfsdword(FIELD_OFFSET(NT_TIB32, Self)));
-        auto const ldr = mem->Ldr;
-#endif
-
-        return &ldr->InMemoryOrderModuleList;
-    }
-
-    static LDR_DATA_TABLE_ENTRY_FULL* ldr_table(LIST_ENTRY* entry)
-    {
-        return CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY_FULL, InMemoryOrderLinks);
-    }
+    static LIST_ENTRY* module_list();
+    static LDR_DATA_TABLE_ENTRY_FULL* ldr_table(LIST_ENTRY* entry);
 
   protected:
     class basic_object_getter
@@ -149,10 +78,7 @@ class library_info
     library_info(wstring_view name, wstring_view ext);
 
     template <std::derived_from<library_info> Other>
-    library_info(Other other)
-        : entry_{other.entry_}
-    {
-    }
+    library_info(Other other);
 
     explicit operator bool() const
     {
@@ -174,11 +100,6 @@ class library_info
         assert(nt->Signature == IMAGE_NT_SIGNATURE);
         return nt;
     }
-
-    /*library_base_address base() const
-    {
-        return {entry_full_->DllBase};
-    }*/
 
     void* image_base() const
     {
@@ -225,66 +146,6 @@ class library_info
 
     // void* vtable(string_view name) const;
 };
-
-inline library_info::library_info(wstring_view const name)
-{
-    auto const name_first = name.data();
-    auto const name_last  = name_first + name.length();
-
-    auto const root_list = module_list();
-    for (auto list_entry = root_list->Flink; list_entry != root_list; list_entry = list_entry->Flink)
-    {
-        auto const entry = ldr_table(list_entry);
-        if (!entry->BaseDllName)
-            continue;
-        if (!std::equal(name_first, name_last, begin(entry->BaseDllName), end(entry->BaseDllName)))
-            continue;
-
-        entry_full_ = entry;
-        return;
-    }
-
-    entry_full_ = nullptr;
-}
-
-inline library_info::library_info(wstring_view const name, wstring_view const ext)
-{
-    using std::data;
-    using std::size;
-
-    auto const name_length = size(name);
-    auto const name_first  = data(name);
-    auto const name_last   = name_first + name_length;
-
-    auto const ext_length = size(ext);
-    auto const ext_first  = data(ext);
-    auto const ext_last   = ext_first + ext_length;
-
-    auto const full_name_length = name_length + ext_length;
-
-    auto const root_list = module_list();
-    for (auto list_entry = root_list->Flink; list_entry != root_list; list_entry = list_entry->Flink)
-    {
-        using std::equal;
-
-        auto const entry = ldr_table(list_entry);
-        if (!entry->BaseDllName)
-            continue;
-        if (full_name_length != size(entry->BaseDllName))
-            continue;
-
-        auto const entry_first = data(entry->BaseDllName);
-        if (!equal(ext_first, ext_last, entry_first + name_length))
-            continue;
-        if (!equal(name_first, name_last, entry_first))
-            continue;
-
-        entry_full_ = entry;
-        return;
-    }
-
-    entry_full_ = nullptr;
-}
 
 #if 0
 inline void* library_info::vtable(string_view name) const
@@ -352,5 +213,35 @@ inline void* library_info::vtable(string_view name) const
     return (addr3);
 }
 #endif
+
+namespace native
+{
+class interface_register;
+}
+
+class native_library_info : public library_info
+{
+  protected:
+    struct function_getter : basic_function_getter
+    {
+        void* create_interface() const
+        {
+            return find("CreateInterface");
+        }
+    };
+
+    class basic_interface_getter : public function_getter
+    {
+        using function_getter::create_interface;
+
+        native::interface_register* root_interface() const;
+
+      protected:
+        void* find(string_view name) const;
+    };
+
+  public:
+    using library_info::library_info;
+};
 
 } // namespace fd

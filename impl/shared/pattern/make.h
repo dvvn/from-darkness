@@ -33,7 +33,7 @@ struct pattern_segment_item
     }
 };
 
-template <pattern_size_type BytesCount>
+template <size_t BytesCount>
 class transformed_pattern
 {
     array<pattern_segment_item, BytesCount> buffer_;
@@ -45,8 +45,6 @@ class transformed_pattern
     }
 
   public:
-    using size_type = pattern_size_type;
-
     constexpr transformed_pattern(span<char const> const pattern) // todo: raw iterators
         : buffer_{}
     {
@@ -59,7 +57,13 @@ class transformed_pattern
         auto byte0           = pattern.data();
         auto const last_byte = byte0 + pattern.size_bytes();
 
-        auto const store_byte = [&]<size_t Num, size_t Offset>(std::in_place_index_t<Num>, std::in_place_index_t<Offset>) {
+        // resharper ignore 'typename N'
+#ifdef __RESHARPER__
+        // ReSharper disable once CppInconsistentNaming
+        using N = size_t;
+#endif
+
+        auto const store_byte = [&]<typename N, N Num, N Offset>(integral_constant<N, Num>, integral_constant<N, Offset>) {
             if (*byte0 == '?')
             {
                 if constexpr (Num != 1)
@@ -84,64 +88,30 @@ class transformed_pattern
             auto const byte1 = byte0 + 1;
             if (byte1 == last_byte)
             {
-                store_byte(std::in_place_index<1>, std::in_place_index<0>);
+                store_byte(1_c, 0_c);
                 break;
             }
 
             if (*byte1 == ' ')
             {
-                store_byte(std::in_place_index<1>, std::in_place_index<2>);
+                store_byte(1_c, 2_c);
                 continue;
             }
 
             auto const byte2 = byte1 + 1;
             if (byte2 == last_byte)
             {
-                store_byte(std::in_place_index<2>, std::in_place_index<0>);
+                store_byte(2_c, 0_c);
                 break;
             }
 
-            store_byte(std::in_place_index<2>, std::in_place_index<3>);
+            store_byte(2_c, 3_c);
         }
-
-#if 0
-        std::ranges::for_each(splitted, [it = buffer_.data()](auto const byte_rng) mutable {
-            auto const byte_ptr = std::ranges::data(byte_rng);
-
-            const auto store_byte = [=]<size_t Num>(std::in_place_index_t<Num>) {
-                if (*byte_ptr == '?')
-                {
-                    if constexpr (Num == 2)
-                        assert(*std::next(byte_ptr) == '?');
-                    it->unknown = true;
-                }
-                else
-                {
-                    auto const err = std::from_chars(byte_ptr, byte_ptr + Num, it->byte, 16);
-                    assert(err.ec == std::errc{});
-                    it->unknown = false;
-                }
-            };
-
-            switch (std::ranges::distance(byte_rng))
-            {
-            case 1:
-                store_byte(std::in_place_index<1>);
-                break;
-            case 2:
-                store_byte(std::in_place_index<2>);
-                break;
-            default:
-                unreachable();
-            }
-            ++it;
-        });
-#endif
     }
 
-    constexpr size_type segments_count() const
+    constexpr size_t segments_count() const
     {
-        size_type count = 0;
+        size_t count = 0;
 
         auto first      = buffer_.data();
         auto const last = first + buffer_.size();
@@ -161,7 +131,7 @@ class transformed_pattern
 
         iterator first;
         iterator last;
-        size_type jump;
+        size_t jump;
 
         /*constexpr pattern_size_type length() const
         {
@@ -180,13 +150,13 @@ class transformed_pattern
             auto const next = std::find_if(end, last, pattern_segment_item_unknown<false>);
 
             if (skip == 0)
-                return {it, end, static_cast<size_type>(std::distance(end, next))};
+                return {it, end, static_cast<size_t>(std::distance(end, next))};
 
             it = next;
             --skip;
         }
 
-        return {first, last, skip == 0 ? 0 : BytesCount};
+        return {first, last, skip == 0 ? 0u : BytesCount};
     }
 };
 
@@ -196,15 +166,15 @@ constexpr auto make_pattern()
     constexpr auto bytes_count = std::count(Str.data(), Str.data() + Str.length(), ' ') + 1;
     constexpr transformed_pattern<bytes_count> bytes{Str};
 
-    constexpr auto make_segment = []<size_t Skip>(std::in_place_index_t<Skip>) {
+    constexpr auto make_segment = []<size_t Skip>(integral_constant<size_t, Skip>) {
         constexpr auto tmp_segment    = bytes.segment(Skip);
         constexpr auto segment_length = std::distance(tmp_segment.first, tmp_segment.last);
         return pattern_segment<segment_length, tmp_segment.jump>{tmp_segment.first};
     };
     constexpr auto segments_count = bytes.segments_count();
-    return [&]<size_t... I>(std::index_sequence<I...>) {
-        return pattern{make_segment(std::in_place_index<I>)...};
-    }(std::make_index_sequence<segments_count>());
+    return [&]<size_t... Index>(std::index_sequence<Index...>) {
+        return pattern{make_segment(integral_constant<size_t, Index>{})...};
+    }(std::make_index_sequence<segments_count>{});
 }
 } // namespace detail
 
@@ -226,9 +196,9 @@ constexpr auto make_pattern(Args const&... args)
 {
     constexpr auto segments_count = ((sizeof(Args) == sizeof(char) || std::constructible_from<span<char const>, Args const&>)+...);
 
-    boost::hana::tuple<Args const&...> args_packed(args...);
+    boost::hana::tuple<Args const&...> args_packed{args...};
 
-    auto const make_segment = [&]<typename T>(T const& str, pattern_size_type val) {
+    auto const make_segment = [&]<typename T>(T const& str, size_t val) {
         if constexpr (sizeof(T) == sizeof(char) && !std::is_class_v<T>)
         {
             return pattern_segment<sizeof(T), -1>{&str, val};
@@ -248,7 +218,7 @@ constexpr auto make_pattern(Args const&... args)
             };
         }
     };
-    auto const make_segment_at = [&]<size_t I>(std::in_place_index_t<I>) {
+    auto const make_segment_at = [&]<size_t I>(integral_constant<size_t, I>) {
         constexpr auto index = I % 2 ? I + 1 : I;
         auto const& str      = boost::hana::at_c<index>(args_packed);
         auto const num       = boost::hana::at_c<index + 1>(args_packed);
@@ -258,13 +228,13 @@ constexpr auto make_pattern(Args const&... args)
     if constexpr (sizeof...(Args) % 2 == 0)
     {
         return [&]<size_t... I>(std::index_sequence<I...>) {
-            return pattern{make_segment_at(std::in_place_index<I>)...};
+            return pattern{make_segment_at(integral_constant<size_t, I>{})...};
         }(std::make_index_sequence<segments_count>());
     }
     else
     {
         return [&]<size_t... I>(std::index_sequence<I...>) {
-            return pattern{make_segment_at(std::in_place_index<I>)..., make_segment(boost::hana::back(args_packed), 0)};
+            return pattern{make_segment_at(integral_constant<size_t, I>{})..., make_segment(boost::hana::back(args_packed), 0)};
         }(std::make_index_sequence<segments_count - 1>());
     }
 }

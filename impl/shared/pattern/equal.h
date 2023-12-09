@@ -4,7 +4,7 @@
 
 namespace fd
 {
-template <typename It, pattern_size_type BytesCount>
+template <typename It, size_t BytesCount>
 bool equal(pattern_segment_bytes<BytesCount> const& bytes, It it)
 {
     auto const first  = bytes.data();
@@ -12,7 +12,7 @@ bool equal(pattern_segment_bytes<BytesCount> const& bytes, It it)
     return std::equal(first, first + length, it);
 }
 
-template <typename It, pattern_size_type Bytes, pattern_size_type UnknownBytes>
+template <typename It, size_t Bytes, size_t UnknownBytes>
 bool equal(pattern_segment<Bytes, UnknownBytes> const& segment, It it)
 {
 #ifdef _DEBUG
@@ -39,16 +39,8 @@ bool equal(pattern<Segment...> const& pat, It it)
             else
                 return self(self, offset + segment.known() + segment.unknown(), next...);
         };
-        constexpr auto constant_size = (complete<pattern_segment_constant_size<Segment>> && ...);
         return boost::hana::unpack(pat.get(), [&equal_fn](Segment const&... segment) -> bool {
-#if 0
-            return equal_fn(equal_fn, std::conditional_t<constant_size, std::integral_constant<pattern_size_type, 0>, pattern_size_type>{}, segment...);
-#else
-            if constexpr (constant_size)
-                return equal_fn(equal_fn, std::integral_constant<pattern_size_type, 0>{}, segment...);
-            else
-                return equal_fn(equal_fn, static_cast<pattern_size_type>(0), segment...);
-#endif
+            return equal_fn(equal_fn, 0_c, segment...);
         });
     }
 }
