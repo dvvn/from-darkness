@@ -73,6 +73,29 @@ class library_info
         void* find(string_view name) const;
     };
 
+    template <class... T>
+    class packed_objects
+    {
+        void* buff_[sizeof...(T)];
+
+      public:
+        packed_objects(T*... obj)
+            : buff_{obj...}
+        {
+        }
+
+        template <class Out>
+        operator Out() const
+#ifdef _DEBUG
+            requires(std::constructible_from<Out, T*...>)
+#endif
+        {
+            return [&]<size_t... I>(std::index_sequence<I...>) -> Out {
+                return {static_cast<T*>(buff_[I])...};
+            }(std::make_index_sequence<sizeof...(T)>{});
+        }
+    };
+
   public:
     library_info(wstring_view name);
     library_info(wstring_view name, wstring_view ext);
@@ -217,7 +240,8 @@ inline void* library_info::vtable(string_view name) const
 namespace native
 {
 class interface_register;
-}
+
+} // namespace native
 
 class native_library_info : public library_info
 {
@@ -238,6 +262,13 @@ class native_library_info : public library_info
 
       protected:
         void* find(string_view name) const;
+
+        template <class T>
+        T* find() const;
+
+        template <class... T>
+        requires(sizeof...(T) > 1)
+        packed_objects<T...> find() const;
     };
 
   public:

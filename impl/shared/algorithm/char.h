@@ -25,6 +25,8 @@ struct basic_char_table : array<T, Size + 1>
     constexpr std::pair<pointer, pointer> get_range(char const front, char const back)
     {
         assert(front < back);
+        assert(front >= 0);
+        assert(back <= Size);
         auto const it = base_array::data();
         return {it + front, it + back + 1};
     }
@@ -38,7 +40,7 @@ struct basic_char_table : array<T, Size + 1>
         requires(Size <= Size1)
 #endif
     {
-        std::copy_n(other.data(), this->size(), this->data());
+        std::copy(other.data(), other.data() + this->size(), this->data());
     }
 
     constexpr T operator[](char const c) const
@@ -83,9 +85,8 @@ template <typename T, size_t Size = CHAR_MAX>
 inline constexpr auto default_char_table = [] {
     basic_char_table<T, Size> ret;
 
-    auto const& sample    = default_char_table<T, CHAR_MAX>;
-    auto const ret_length = ret.size();
-    std::copy_n(sample.data(), ret_length, ret.data());
+    auto const& sample = default_char_table<T, CHAR_MAX>;
+    std::copy_n(sample.data(), sample.data() + ret.size(), ret.data());
 
     return ret;
 }();

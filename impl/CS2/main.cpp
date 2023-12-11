@@ -9,6 +9,7 @@
 #include "hook/backend/minhook.h"
 #include "hook/creator.h"
 #include "hooked/directx11.h"
+#include "hooked/game_entity_system.h"
 #include "hooked/winapi.h"
 #include "library_info/construct.h"
 #include "library_info/engine.h"
@@ -43,15 +44,13 @@ bool fd::context::run()
     tier0_library_info const tier_dll;
     auto const cvar_system = tier_dll.interface().cvar_system();
     engine_lib const engine_dll;
-    auto const engine = engine_dll.interface().engine();
+    auto const engine_dll_interfaces = engine_dll.interface().known();
     schema_system_library_info const schemasystem_dll;
     auto const schema_system = schemasystem_dll.interface().schema_system();
 
-    auto const& render_data = render_backend.data();
-    win::window_info const main_window{system_backend.window()};
-
     hook_backend_minhook hook_backend;
 
+    auto const& render_data = render_backend.data();
     hooked::DXGI_factory::create_swap_chain hk_create_swap_chain{&render_backend};
     if (!create_hook(hook_backend, vfunc{&IDXGIFactory::CreateSwapChain, render_data.DXGI_factory()}, &hk_create_swap_chain))
         return false;
@@ -61,8 +60,16 @@ bool fd::context::run()
     hooked::DXGI_swap_chain::present hk_present{bind(gui::present, &render_backend, &system_backend, &render_context, &menu)};
     if (!create_hook(hook_backend, vfunc{&IDXGISwapChain::Present, render_data.swap_chain()}, &hk_present))
         return false;
+    win::window_info const main_window{system_backend.window()};
     hooked::winapi::wndproc hk_wndproc{&system_backend};
     if (!create_hook(hook_backend, main_window.proc(), &hk_wndproc))
+        return false;
+    using cache_entity_fn = void* (native::game_resource_service::*)(native::entity_instance*, native::CBaseHandle);
+    hooked::game_entity_system::on_add_entity<void> hk_on_add_entity;
+    if (!create_hook(hook_backend, vfunc<cache_entity_fn>{14, engine_dll_interfaces.game_resource_service}, &hk_on_add_entity))
+        return false;
+    hooked::game_entity_system::on_remove_entity<void> hk_on_remove_entity;
+    if (!create_hook(hook_backend, vfunc<cache_entity_fn>{15, engine_dll_interfaces.game_resource_service}, &hk_on_remove_entity))
         return false;
 
     if (!hook_backend.enable())

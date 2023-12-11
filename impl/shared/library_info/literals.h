@@ -16,14 +16,14 @@ inline library_info operator"" _dll(wchar_t const* name, size_t length)
     };
 }
 #else
-template <static_wstring Name>
+template <constant_wstring Name>
 library_info operator"" _dll()
 {
     return {Name + L".dll"};
 }
 #endif
 
-template <static_string Name>
+template <constant_string Name>
 library_info operator"" _dll()
 {
     return {Name + L".dll"};

@@ -10,8 +10,14 @@ namespace fd
 {
 class render_system_dx11_library_info : public native_library_info
 {
-    struct pattern_getter : basic_pattern_getter
+    class pattern_getter : public basic_pattern_getter
     {
+        struct known_objects
+        {
+            IDXGISwapChain* DXGI_swap_chain;
+        };
+
+      public:
         IDXGISwapChain* DXGI_swap_chain() const
         {
             auto const addr = find("66 0F 7F 05 ? ? ? ? 66 0F 7F 0D ? ? ? ? 48 89 35"_pat);

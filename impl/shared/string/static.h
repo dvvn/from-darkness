@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #if 1
-#include "container/array.h"
 #include "container/span.h"
 #else
 #include "type_traits/small_type.h"
@@ -14,6 +13,14 @@
 
 namespace fd
 {
+template <typename CharT_l, typename CharT_r>
+struct string_join_char : conditional<sizeof(CharT_l) >= sizeof(CharT_r), CharT_l, CharT_r>
+{
+};
+
+template <typename CharT_l, typename CharT_r>
+using string_join_char_t = typename string_join_char<CharT_l, CharT_r>::type;
+
 #ifdef BOOST_STATIC_STRING_HPP
 using boost::static_strings::basic_static_string;
 
@@ -23,6 +30,19 @@ constexpr auto size(basic_static_string<Length, T> const&) -> integral_constant<
     return {};
 }
 #else
+namespace detail
+{
+template <class It, typename Ptr>
+using select_iterator = conditional_t<
+#ifdef _MSC_VER
+    _ITERATOR_DEBUG_LEVEL >= 1
+#else
+    sizeof(It) != sizeof(Ptr)
+#endif
+        && std::is_trivially_destructible_v<It>,
+    It, Ptr>;
+} // namespace detail
+
 template <size_t Length, typename CharT>
 struct basic_static_cstring; // null terminated static string
 
@@ -37,9 +57,9 @@ class basic_static_string
 #ifdef _DEBUG
         auto const old_size = size_;
 #endif
-        auto const buffer_begin = std::begin(buffer_);
-        auto const buffer_last  = std::copy(first, last, buffer_begin);
-        size_                   = static_cast<size_type>(std::distance(buffer_begin, buffer_last));
+        auto const buffer_first = std::data(buffer_);
+        auto const buffer_last  = std::copy(first, last, buffer_first);
+        size_                   = static_cast<size_type>(std::distance(buffer_first, buffer_last));
 #ifdef _DEBUG
         if (size_ < old_size)
             std::fill(buffer_last, std::end(buffer_), static_cast<CharT>('\0'));
@@ -53,16 +73,6 @@ class basic_static_string
 #endif
     }
 
-    template <class It, typename Ptr>
-    using select_iterator = conditional_t<
-#ifdef _MSC_VER
-        _ITERATOR_DEBUG_LEVEL >= 1
-#else
-        sizeof(It) != sizeof(Ptr)
-#endif
-            && std::is_trivially_destructible_v<It>,
-        It, Ptr>;
-
   public:
     using size_type       = small_type<size_t, Length>;
     using difference_type = /*small_type<ptrdiff_t, Length>*/ ptrdiff_t;
@@ -73,8 +83,8 @@ class basic_static_string
     using reference       = CharT&;
     using const_reference = CharT const&;
 
-    using iterator       = select_iterator<typename span<CharT>::iterator, pointer>;
-    using const_iterator = select_iterator<typename span<CharT const>::iterator, const_pointer>;
+    using iterator       = detail::select_iterator<typename span<CharT>::iterator, pointer>;
+    using const_iterator = detail::select_iterator<typename span<CharT const>::iterator, const_pointer>;
 
     buffer_type buffer_;
     size_type size_;
@@ -243,14 +253,7 @@ class basic_static_string
     }
 };
 
-template <typename CharT_l, typename CharT_r>
-struct string_join_char : conditional<sizeof(CharT_l) >= sizeof(CharT_r), CharT_l, CharT_r>
-{
-};
-
-template <typename CharT_l, typename CharT_r>
-using string_join_char_t = typename string_join_char<CharT_l, CharT_r>::type;
-
+#if 0
 template <class Result, class... S>
 struct string_join_result;
 
@@ -292,6 +295,7 @@ struct string_join_result<basic_static_string<Length_l, CharT_l> const, CharT_r[
     string_join_result<basic_static_string<Length_l + Length_r - 1, CharT_l> const, S...>
 {
 };
+#endif
 
 template <size_t Length, typename CharT>
 class basic_static_string<Length, CharT const>;
@@ -376,4 +380,177 @@ template <size_t Length>
 using static_wstring = basic_static_string<Length, wchar_t>;
 template <size_t Length>
 using static_u8string = basic_static_string<Length, char8_t>;
+
+template <size_t Length, typename CharT>
+class basic_constant_string
+{
+    using buffer_type = CharT[Length];
+
+  public:
+    using size_type       = small_type<size_t, Length>;
+    using difference_type = /*small_type<ptrdiff_t, Length>*/ ptrdiff_t;
+
+    using value_type      = CharT;
+    using pointer         = CharT*;
+    using const_pointer   = CharT const*;
+    using reference       = CharT&;
+    using const_reference = CharT const&;
+
+    using iterator       = detail::select_iterator<typename span<CharT>::iterator, pointer>;
+    using const_iterator = detail::select_iterator<typename span<CharT const>::iterator, const_pointer>;
+
+    buffer_type buffer_;
+
+    constexpr basic_constant_string()
+        : buffer_{}
+    {
+    }
+
+    template <typename It>
+    constexpr basic_constant_string(It first, It last)
+    {
+        assert(std::distance(first, last) == Length);
+        std::copy(first, last, std::data(buffer_));
+    }
+
+    template <std::incrementable It>
+    constexpr basic_constant_string(It source)
+    {
+        if constexpr (std::random_access_iterator<It>)
+            std::copy(source, source + Length, std::data(buffer_));
+        else
+            std::copy_n(source, Length, std::data(buffer_));
+    }
+
+    constexpr pointer data() noexcept
+    {
+        return std::data(buffer_);
+    }
+
+    constexpr const_pointer data() const noexcept
+    {
+        return std::data(buffer_);
+    }
+
+    constexpr integral_constant<size_type, Length> size() const noexcept
+    {
+        return {};
+    }
+
+    constexpr integral_constant<size_type, Length> length() const noexcept
+    {
+        return {};
+    }
+
+    static integral_constant<size_type, Length> max_size() noexcept
+    {
+        return {};
+    }
+
+    constexpr iterator begin() noexcept
+    {
+        if constexpr (std::is_pointer_v<iterator>)
+            return data();
+        else
+            return span{buffer_}.begin();
+    }
+
+    constexpr const_iterator begin() const noexcept
+    {
+        if constexpr (std::is_pointer_v<const_iterator>)
+            return data();
+        else
+            return span{buffer_}.begin();
+    }
+
+    constexpr iterator end() noexcept
+    {
+        if constexpr (std::is_pointer_v<iterator>)
+            return data() + Length;
+        else
+            return span{buffer_}.end();
+    }
+
+    constexpr const_iterator end() const noexcept
+    {
+        if constexpr (std::is_pointer_v<const_iterator>)
+            return data() + Length;
+        else
+            return span{buffer_}.end();
+    }
+
+#ifdef _MSC_VER
+    // ReSharper disable CppInconsistentNaming
+
+    constexpr pointer _Unchecked_begin() noexcept
+    {
+        return data();
+    }
+
+    constexpr const_pointer _Unchecked_begin() const noexcept
+    {
+        return data();
+    }
+
+    constexpr pointer _Unchecked_end() noexcept
+    {
+        return data() + Length;
+    }
+
+    constexpr const_pointer _Unchecked_end() const noexcept
+    {
+        return data() + Length;
+    }
+
+    // ReSharper restore CppInconsistentNaming
+#endif
+};
+
+template <size_t Length_l, typename CharT_l, typename CharT_r, size_t Length_r>
+constexpr auto operator+(basic_constant_string<Length_l, CharT_l> const& str_l, CharT_r const (&str_r)[Length_r])
+    -> basic_constant_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r> >
+{
+    constexpr auto r_length = Length_r - 1;
+    assert(str_r[r_length] == '\0');
+    basic_static_string<Length_l + r_length, string_join_char_t<CharT_l, CharT_r> > ret;
+    auto dst_it = ret.data();
+    dst_it      = std::copy(str_l.data(), str_l.data() + str_l.size(), dst_it);
+    /*dst_it   =*/std::copy(str_r, str_r + r_length, dst_it);
+    return ret;
+}
+
+template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r>
+constexpr bool operator==(basic_constant_string<Length_l, CharT_l> const& str_l, basic_constant_string<Length_r, CharT_r> const& str_r)
+{
+    if constexpr (Length_l == Length_r)
+    {
+        auto const l_data = str_l.data();
+        return std::equal(l_data, l_data + Length_l, str_r.data());
+    }
+    return false;
+}
+
+template <size_t Length_l, typename CharT_l, typename CharT_r, size_t Length_r>
+constexpr bool operator==(basic_constant_string<Length_l, CharT_l> const& str_l, CharT_r const (&str_r)[Length_r])
+{
+    constexpr auto r_length = Length_r - 1;
+    assert(str_r[r_length] == '\0');
+
+    if constexpr (Length_l == r_length)
+    {
+        auto const l_data = str_l.data();
+        return std::equal(l_data, l_data + r_length, str_r);
+    }
+    return false;
+}
+
+template <typename CharT, size_t Length>
+basic_constant_string(CharT const (&)[Length]) -> basic_constant_string<Length - 1, CharT>;
+
+template <size_t Length>
+using constant_string = basic_constant_string<Length, char>;
+template <size_t Length>
+using constant_wstring = basic_constant_string<Length, wchar_t>;
+template <size_t Length>
+using constant_u8string = basic_constant_string<Length, char8_t>;
 } // namespace fd

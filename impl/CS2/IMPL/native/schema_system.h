@@ -108,4 +108,4 @@ class schema_system
         return vfunc<fn_t>{13, this}(module_name, nullptr);
     }
 };
-}
+} // namespace fd::native::inline cs2

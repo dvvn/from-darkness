@@ -164,7 +164,7 @@ class transformed_pattern
     }
 };
 
-template <static_string Str>
+template <constant_string Str>
 constexpr auto make_pattern()
 {
     constexpr auto bytes_count = std::count(Str.data(), Str.data() + Str.length(), ' ') + 1;
@@ -184,7 +184,7 @@ constexpr auto make_pattern()
 
 inline namespace literals
 {
-template <static_string Pattern>
+template <constant_string Pattern>
 constexpr auto operator""_pat()
 {
 #ifndef _DEBUG

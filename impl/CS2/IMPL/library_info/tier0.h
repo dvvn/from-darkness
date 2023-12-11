@@ -1,18 +1,29 @@
 ﻿#pragma once
-#include "functional/cast.h"
-#include "native/cvar.h"
 #include "library_info/interface.h"
 #include "library_info/root_interface.h"
+#include "native/cvar.h"
 
 namespace fd
 {
+template <>
+struct native::interface_name<native::cvar_system>
+{
+    static constexpr auto& value = "VEngineCvar";
+};
+
 class tier0_library_info : public native_library_info
 {
-    struct interface_getter : basic_interface_getter
+    class interface_getter : public basic_interface_getter
     {
+        struct known_interfaces
+        {
+            native::cvar_system* cvar_system;
+        };
+
+      public:
         native::cvar_system* cvar_system() const
         {
-            return safe_cast_from(find("VEngineCvar"));
+            return find<native::cvar_system>();
         }
     };
 
