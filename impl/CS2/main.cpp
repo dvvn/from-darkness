@@ -20,7 +20,7 @@
 #include "dll_context.h"
 #include "menu_example.h"
 
-bool fd::run_context()
+bool fd::context::run()
 {
 #ifdef _DEBUG
     system_console console;
@@ -35,8 +35,8 @@ bool fd::run_context()
     gui::native_win32_backend system_backend{&render_context};
     gui::native_dx11_backend render_backend{&render_context, rendersystemdx11_dll};
 
-    auto menu = make_menu_example([] {
-        if (!context_holder.resume())
+    auto menu = make_menu_example([=] {
+        if (!this->resume())
             unreachable();
     });
 
@@ -70,7 +70,7 @@ bool fd::run_context()
 
     log("loaded!");
 
-    if (!context_holder.pause())
+    if (!this->pause())
         return false;
 
     return true;
