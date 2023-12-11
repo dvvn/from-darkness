@@ -82,19 +82,19 @@ template <typename... Args>
 void log(fmt::u8format_string<Args...> fmt, Args&&... args)
 {
     auto in = fmt.get();
-    log(reinterpret_cast<fmt::string_view&>(in), fmt::format_args(fmt::make_format_args(args...)));
+    log(reinterpret_cast<fmt::string_view&>(in), fmt::format_args{fmt::make_format_args(args...)});
 }
 
 template <typename... Args>
 void log(fmt::format_string<Args...> fmt, Args&&... args)
 {
-    log(fmt.get(), fmt::format_args(fmt::make_format_args(args...)));
+    log(fmt.get(), fmt::format_args{fmt::make_format_args(args...)});
 }
 
 template <typename... Args>
 void log(fmt::wformat_string<Args...> fmt, Args&&... args)
 {
-    log(fmt.get(), fmt::wformat_args(fmt::make_wformat_args(args...)));
+    log(fmt.get(), fmt::wformat_args{fmt::make_wformat_args(args...)});
 }
 #endif
 } // namespace fd::inline debug

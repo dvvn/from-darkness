@@ -4,7 +4,6 @@
 #include "functional/call_traits.h"
 #include "hook/callback.h"
 #include "hook/info.h"
-#include "type_traits.h"
 
 namespace fd
 {

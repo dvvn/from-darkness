@@ -2,10 +2,14 @@
 
 #include "pattern/holder.h"
 #include "string/static.h"
+#include "type_traits/integral_constant_literal.h"
 
 #include <boost/hana/back.hpp>
 
 #include <charconv>
+#ifdef _DEBUG
+#include <ranges>
+#endif
 
 namespace fd
 {

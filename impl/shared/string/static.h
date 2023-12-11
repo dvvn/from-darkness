@@ -3,8 +3,9 @@
 #if 1
 #include "container/array.h"
 #include "container/span.h"
-#include "type_traits.h"
 #else
+#include "type_traits/small_type.h"
+
 #define BOOST_STATIC_STRING_STANDALONE
 #include <boost/static_string.hpp>
 #endif
@@ -17,7 +18,7 @@ namespace fd
 using boost::static_strings::basic_static_string;
 
 template <size_t Length, typename T>
-constexpr auto size(basic_static_string<Length, T> const&) -> integral_constant<detail::small_type<T, Length>, Length>
+constexpr auto size(basic_static_string<Length, T> const&) -> integral_constant<small_type<T, Length>, Length>
 {
     return {};
 }
@@ -63,8 +64,8 @@ class basic_static_string
         It, Ptr>;
 
   public:
-    using size_type       = detail::small_type<size_t, Length>;
-    using difference_type = /*detail::small_type<ptrdiff_t, Length>*/ ptrdiff_t;
+    using size_type       = small_type<size_t, Length>;
+    using difference_type = /*small_type<ptrdiff_t, Length>*/ ptrdiff_t;
 
     using value_type      = CharT;
     using pointer         = CharT*;

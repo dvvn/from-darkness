@@ -8,19 +8,11 @@
 
 namespace fd
 {
-template <size_t S>
-[[deprecated]]
-constexpr size_t strlen(char const (&str)[S]) noexcept
-{
-    assert(*std::rbegin(str) == '\0');
-    return S - 1;
-}
-
-template <typename T>
-struct basic_char_table : array<T, UCHAR_MAX + 1>
+template <typename T, size_t Size = CHAR_MAX>
+struct basic_char_table : array<T, Size + 1>
 {
   protected:
-    using base_array = array<T, UCHAR_MAX + 1>;
+    using base_array = array<T, Size + 1>;
 
     using base_array::operator[];
     using base_array::at;
@@ -30,40 +22,33 @@ struct basic_char_table : array<T, UCHAR_MAX + 1>
     using size_type = typename base_array::size_type;
 
   private:
-    static constexpr size_type get_index(char const chr)
+    constexpr std::pair<pointer, pointer> get_range(char const front, char const back)
     {
-#if 1
-        return -CHAR_MIN + chr;
-#else
-        return static_cast<unsigned char>(chr);
-#endif
-    }
-
-    constexpr std::pair<pointer, pointer> get_range(char const first, char const last)
-    {
-        auto const abs_first = get_index(first);
-        auto const abs_last  = get_index(last) + 1;
-
-        assert(abs_first < abs_last);
-
-        auto const first_it = base_array::data();
-        return {first_it + abs_first, first_it + abs_last};
+        assert(front < back);
+        auto const it = base_array::data();
+        return {it + front, it + back + 1};
     }
 
   public:
-    /*constexpr basic_char_table()
-        : base_array{}
+    basic_char_table() = default;
+
+    template <typename T1, size_t Size1>
+    constexpr basic_char_table(basic_char_table<T1, Size1> const& other)
+#ifdef _DEBUG
+        requires(Size <= Size1)
+#endif
     {
-    }*/
+        std::copy_n(other.data(), this->size(), this->data());
+    }
 
     constexpr T operator[](char const c) const
     {
-        return base_array::operator[](get_index(c));
+        return base_array::operator[](c);
     }
 
     constexpr T& operator[](char const c)
     {
-        return base_array::operator[](get_index(c));
+        return base_array::operator[](c);
     }
 
     //---
@@ -73,39 +58,51 @@ struct basic_char_table : array<T, UCHAR_MAX + 1>
         operator[](index) = value;
     }
 
-    constexpr void set(char const first, char const last, T const value)
+    constexpr void set(char const front, char const back, T const value)
     {
-        auto const [first_it, last_it] = get_range(first, last);
+        auto const [first_it, last_it] = get_range(front, back);
         std::fill(first_it, last_it, value);
     }
 
-    template <typename Fn>
-    constexpr void transform(char const first, char const last, Fn fn)
+    constexpr void set(char const front, char const back, char const new_front, char const new_back)
     {
-        auto const [first_it, last_it] = get_range(first, last);
-        std::transform(first_it, last_it, first_it, fn);
+        assert(back - front == new_back - new_front);
+        auto [first_it, last_it]         = get_range(front, back);
+        auto [new_first_it, new_last_it] = get_range(new_front, new_back);
+        std::copy(new_first_it, new_last_it, first_it);
     }
 };
 
+template <typename T, size_t Size>
+requires(Size > CHAR_MAX)
+struct basic_char_table<T, Size>;
+
 namespace detail
 {
+template <typename T, size_t Size = CHAR_MAX>
+inline constexpr auto default_char_table = [] {
+    basic_char_table<T, Size> ret;
+
+    auto const& sample    = default_char_table<T, CHAR_MAX>;
+    auto const ret_length = ret.size();
+    std::copy_n(sample.data(), ret_length, ret.data());
+
+    return ret;
+}();
+
 template <typename T>
-inline constexpr void* default_char_table = nullptr;
+inline constexpr auto default_char_table<T, CHAR_MAX> = [] {
+    basic_char_table<T> ret;
 
-template <>
-inline constexpr auto default_char_table<char> = [] {
-    basic_char_table<char> ret;
-
-    auto const data       = ret.data();
     auto const last_index = ret.size();
-    for (uint16_t index = 0; index != last_index; ++index)
-        data[index] = CHAR_MIN + index;
+    for (size_t index = 0; index != last_index; ++index)
+        ret[static_cast<char>(index)] = static_cast<char>(index);
 
     return ret;
 }();
 
 template <>
-inline constexpr auto default_char_table<bool> = [] {
+inline constexpr auto default_char_table<bool, CHAR_MAX> = [] {
     basic_char_table<bool> ret;
     ret.fill(false);
     return ret;
@@ -154,9 +151,7 @@ struct tolower_table final : basic_char_table<char>
     constexpr tolower_table()
         : basic_char_table{default_char_table<char>}
     {
-        transform('A', 'F', [](char const c) {
-            return c + ('A' - 'a');
-        });
+        set('A', 'Z', 'a', 'z');
     }
 };
 
@@ -165,9 +160,7 @@ struct toupper_table final : basic_char_table<char>
     constexpr toupper_table()
         : basic_char_table{default_char_table<char>}
     {
-        transform('a', 'f', [](char const c) {
-            return c - ('a' - 'A');
-        });
+        set('a', 'z', 'A', 'Z');
     }
 };
 } // namespace detail
@@ -195,6 +188,31 @@ inline constexpr char_table_wrapper<detail::isupper_table> isupper;
 inline constexpr char_table_wrapper<detail::isdigit_table> isdigit;
 inline constexpr char_table_wrapper<detail::isxdigit_table> isxdigit;
 
-inline constexpr char_table_wrapper<detail::toupper_table> toupper;
 inline constexpr char_table_wrapper<detail::tolower_table> tolower;
+inline constexpr char_table_wrapper<detail::toupper_table> toupper;
+
+namespace detail
+{
+struct char_to_num_table : basic_char_table<uint8_t, '9' + 1>
+{
+    constexpr char_to_num_table()
+        : basic_char_table{default_char_table<char>}
+    {
+        set('0', '9', 0, 9);
+    }
+};
+
+inline constexpr char_table_wrapper<char_to_num_table> char_to_num;
+
+template <char... C>
+struct chars_literal_to_num<uint64_t, C...>
+{
+    static constexpr uint64_t value = [] {
+        uint64_t num = 0;
+        ((num = char_to_num(C) + num * 10), ...);
+        return num;
+    }();
+};
+
+} // namespace detail
 } // namespace fd

@@ -2,8 +2,6 @@
 
 #include "pattern/holder.h"
 
-#include <cassert>
-
 namespace fd
 {
 template <typename It, size_t BytesCount>

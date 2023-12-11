@@ -35,6 +35,8 @@ set(_FD_OUT_DIR ${_FD_ROOT_DIR}/.out)
 set(_FD_TEMPLATE_DIR ${_FD_IMPL_DIR}/template)
 set(_FD_SHARED_DIR ${_FD_IMPL_DIR}/shared)
 set(_FD_EXTERNAL_DIR ${_FD_IMPL_DIR}/external)
+set(_FD_TESTS_DIR ${_FD_IMPL_DIR}/tests)
+
 set(_FD_PROJECT_DIR ${_FD_IMPL_DIR}/${_FD_TARGET})
 set(_FD_PROJECT_IMPL_DIR ${_FD_PROJECT_DIR}/IMPL)
 
@@ -375,12 +377,13 @@ macro(Load_SHARED)
     file(GLOB_RECURSE _project_nat ${_FD_PROJECT_IMPL_DIR}/*.nat*)
     set(_project_add ${_project_src} ${_project_nat})
 
+    set(_FD_SHARED_TARGET FD_${_FD_TARGET}_IMPL)
     list(LENGTH _project_add _project_add_count)
     if(_project_add_count EQUAL 0)
-        set(_FD_SHARED_TARGET FD_SHARED)
+        add_library(${_FD_SHARED_TARGET} INTERFACE)
+        target_link_libraries(${_FD_SHARED_TARGET} INTERFACE FD_SHARED)
         target_include_directories(${_FD_SHARED_TARGET} INTERFACE ${_FD_PROJECT_IMPL_DIR})
     else()
-        set(_FD_SHARED_TARGET FD_${_FD_TARGET}_IMPL)
         add_library(${_FD_SHARED_TARGET} ${_project_add})
         target_link_libraries(${_FD_SHARED_TARGET} PUBLIC FD_SHARED)
         target_include_directories(${_FD_SHARED_TARGET} PUBLIC ${_FD_PROJECT_IMPL_DIR})
@@ -499,12 +502,21 @@ Dependency_Load_Imgui()
 
 # -------------------
 
+Load_SHARED()
+
+if(EXISTS ${_FD_TESTS_DIR}/main.cpp)
+
+else()
+file(GLOB_RECURSE _tests_src ${_FD_TESTS_DIR}/*.cpp)
+add_library(FD_TESTS ${_tests_src})
+target_link_libraries(FD_TESTS PUBLIC ${_FD_SHARED_TARGET})
+endif()
+
 macro(Finish_library _name)
-    target_link_libraries(${_name} PUBLIC ${_FD_SHARED_TARGET})
+    target_link_libraries(${_name} PUBLIC ${_FD_SHARED_TARGET} FD_TESTS)
     target_include_directories(${_name} PUBLIC ${_FD_PROJECT_DIR} ${_FD_TEMPLATE_DIR})
 endmacro()
 
-Load_SHARED()
 
 if(EXISTS ${_FD_PROJECT_DIR}/main.cpp)
     add_library(FD_${_FD_TARGET} SHARED ${_FD_PROJECT_DIR}/main.cpp)

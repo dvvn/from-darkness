@@ -1,8 +1,12 @@
 ﻿#pragma once
 
-#include "type_traits.h"
+#define FD_PATTERN_NATIVE_SIZE
 
-// #define FD_NATIVE_PATTERN_SIZE
+#ifdef FD_PATTERN_NATIVE_SIZE
+#include "type_traits/integral_constant.h"
+#else
+#include "type_traits/small_type.h"
+#endif
 
 namespace fd
 {
@@ -33,12 +37,12 @@ class pattern_segment_constant_size<pattern_segment<Bytes, -1>>;
 template <size_t Bytes, size_t UnknownBytes>
 class pattern_segment_constant_size<pattern_segment<Bytes, UnknownBytes>>
 {
-#ifdef FD_NATIVE_PATTERN_SIZE
+#ifdef FD_PATTERN_NATIVE_SIZE
     template <size_t S>
     using integral_constant = integral_constant<size_t, S>;
 #else
     template <size_t S>
-    using integral_constant = detail::small_integral_constant<size_t, S>;
+    using integral_constant = integral_constant<small_type<size_t, S>, S>;
 #endif
   public:
     static constexpr integral_constant<Bytes> known;

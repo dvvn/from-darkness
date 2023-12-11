@@ -1,5 +1,8 @@
 #pragma once
 #include "functional/invoke_cast.h"
+#include "type_traits/conditional.h"
+#include "type_traits/integral_constant.h"
+#include "type_traits/remove_pointer.h"
 
 namespace fd
 {
@@ -134,32 +137,6 @@ template <typename P, size_t Count>
 struct pointers_count<P* const, Count> : pointers_count<P, Count + 1>
 {
 };
-
-template <typename P, size_t Count = 1, bool = std::is_pointer_v<P>>
-struct remove_pointer;
-
-template <typename P>
-struct remove_pointer<P, 0, true> : type_identity<P>
-{
-};
-
-template <typename P, size_t Count>
-struct remove_pointer<P, Count, false> : type_identity<P>
-{
-};
-
-template <typename P, size_t Count>
-struct remove_pointer<P* const, Count, true> : remove_pointer<P, Count - 1>
-{
-};
-
-template <typename P, size_t Count>
-struct remove_pointer<P*, Count, true> : remove_pointer<P, Count - 1>
-{
-};
-
-template <typename P, size_t Count = 0>
-using remove_pointer_t = typename remove_pointer<P, Count>::type;
 
 template <typename P, size_t Index, size_t PointersCount = pointers_count<P>::value>
 struct are_pointer_const : std::is_const<remove_pointer_t<P, PointersCount - Index>>

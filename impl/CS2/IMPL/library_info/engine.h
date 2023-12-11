@@ -6,7 +6,7 @@
 
 namespace fd
 {
-class engine_library_info : public native_library_info
+class engine_lib : public native_library_info
 {
     struct interface_getter : basic_interface_getter
     {
@@ -17,7 +17,7 @@ class engine_library_info : public native_library_info
     };
 
   public:
-    engine_library_info()
+    engine_lib()
         : native_library_info{L"engine2.dll"}
     {
     }

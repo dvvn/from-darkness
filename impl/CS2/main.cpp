@@ -42,7 +42,7 @@ bool fd::run_context()
 
     tier0_library_info const tier_dll;
     auto const cvar_system = tier_dll.interface().cvar_system();
-    engine_library_info const engine_dll;
+    engine_lib const engine_dll;
     auto const engine = engine_dll.interface().engine();
     schema_system_library_info const schemasystem_dll;
     auto const schema_system = schemasystem_dll.interface().schema_system();

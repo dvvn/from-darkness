@@ -1,27 +1,24 @@
 ﻿#pragma once
 #include "container/array.h"
 #include "container/span.h"
-#include "diagnostics/fatal.h"
 #include "pattern/basic_holder.h"
 #include "concepts.h"
 #include "noncopyable.h"
-#include "type_traits.h"
 
 #include <boost/hana/tuple.hpp>
 #include <boost/hana/unpack.hpp>
 
 #include <algorithm>
-#include <ranges>
 
 namespace fd
 {
 template <size_t BytesCount>
 struct pattern_segment_bytes : array<uint8_t, BytesCount>, noncopyable
 {
-#ifdef FD_NATIVE_PATTERN_SIZE
+#ifdef FD_PATTERN_NATIVE_SIZE
     using size_type = size_t;
 #else
-    using size_type = detail::small_type<size_t, BytesCount>;
+    using size_type = small_type<size_t, BytesCount>;
 #endif
 
     template <typename It>
@@ -66,7 +63,7 @@ struct pattern_segment_bytes<-1> : span<char const>
     using span::span;
 };
 
-#ifdef FD_NATIVE_PATTERN_SIZE
+#ifdef FD_PATTERN_NATIVE_SIZE
 template <size_t BytesCount>
 struct pattern_segment_unknown_bytes : integral_constant<size_t, BytesCount>
 {
@@ -78,9 +75,9 @@ struct pattern_segment_unknown_bytes : integral_constant<size_t, BytesCount>
 };
 #else
 template <size_t BytesCount>
-struct pattern_segment_unknown_bytes : detail::small_integral_constant<size_t, BytesCount>
+struct pattern_segment_unknown_bytes : integral_constant<small_type<size_t, BytesCount>, BytesCount>
 {
-    using size_type = detail::small_type<size_t, BytesCount>;
+    using size_type = small_type<size_t, BytesCount>;
 
     template <typename N>
     constexpr pattern_segment_unknown_bytes(integral_constant<N, BytesCount>)

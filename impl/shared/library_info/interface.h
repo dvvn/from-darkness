@@ -2,7 +2,6 @@
 #include "algorithm/char.h"
 #include "library_info/function.h"
 #include "native/interface_register.h"
-#include "type_traits.h"
 
 #include <cassert>
 
