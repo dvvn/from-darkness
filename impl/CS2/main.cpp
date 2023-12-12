@@ -1,5 +1,6 @@
 #include "debug/console.h"
 #include "debug/log.h"
+#include "entity_cache/holder.h"
 #include "functional/bind.h"
 #include "functional/vtable.h"
 #include "gui/present.h"
@@ -30,22 +31,23 @@ bool fd::context::run()
     log_activator log_activator;
 #endif
 
-    render_system_dx11_library_info const rendersystemdx11_dll;
+    render_system_dx11_lib const rendersystemdx11_dll;
 
     gui::render_context render_context;
     gui::native_win32_backend system_backend{&render_context};
     gui::native_dx11_backend render_backend{&render_context, rendersystemdx11_dll};
-
     auto menu = make_menu_example([=] {
         if (!this->resume())
             unreachable();
     });
 
-    tier0_library_info const tier_dll;
+    entity_cache ent_cache;
+
+    tier0_lib const tier_dll;
     auto const [cvar_system] = tier_dll.interface();
     engine_lib const engine_dll;
     auto const [engine, game_resources] = engine_dll.interface();
-    schema_system_library_info const schemasystem_dll;
+    schema_system_lib const schemasystem_dll;
     auto const [schema_system] = schemasystem_dll.interface();
 
     hook_backend_minhook hook_backend;
@@ -66,10 +68,10 @@ bool fd::context::run()
     if (!hook_creator(main_window.proc(), &hk_wndproc))
         return false;
     using cache_entity_vfunc = vfunc<void* (native::game_resource_service::*)(native::entity_instance*, native::CBaseHandle)>;
-    hooked::game_entity_system::on_add_entity<void> hk_on_add_entity;
+    hooked::game_entity_system::on_add_entity hk_on_add_entity{&ent_cache};
     if (!hook_creator(cache_entity_vfunc{14, game_resources}, &hk_on_add_entity))
         return false;
-    hooked::game_entity_system::on_remove_entity<void> hk_on_remove_entity;
+    hooked::game_entity_system::on_remove_entity hk_on_remove_entity{&ent_cache};
     if (!hook_creator(cache_entity_vfunc{15, game_resources}, &hk_on_remove_entity))
         return false;
 

@@ -15,7 +15,7 @@ class interface_register;
 } // namespace native
 
 class library_info;
-class native_library_info;
+struct native_library_info;
 
 namespace detail
 {
@@ -290,11 +290,6 @@ inline void* library_info::vtable(string_view name) const
 struct native_library_info : library_info
 {
     using library_info::library_info;
-
-    template <class>
-    void shit()
-    {
-    }
 };
 } // namespace fd
 

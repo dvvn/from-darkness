@@ -1,9 +1,7 @@
 #pragma once
 
-
-
 // ReSharper disable once CppUnusedIncludeDirective
-#include "external/boost_vector.h"
+#include "boost_vector.h"
 
 #include <boost/container/static_vector.hpp>
 

@@ -30,7 +30,7 @@ class native_dx11_device_data : public noncopyable
     using texture2d_ptr    = win::com_ptr<ID3D11Texture2D>;
     using DXGI_factory_ptr = win::com_ptr<IDXGIFactory>;
 
-    using source_library = render_system_dx11_library_info;
+    using source_library = render_system_dx11_lib;
 
     native_dx11_device_data(IDXGISwapChain* sc)
         : swap_chain_(sc)

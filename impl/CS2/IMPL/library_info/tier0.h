@@ -5,7 +5,7 @@
 namespace fd
 {
 template <>
-struct detail::library_interface_getter<struct tier0_library_info> : library_interface_getter<>
+struct detail::library_interface_getter<struct tier0_lib> : library_interface_getter<>
 {
     using library_interface_getter<>::get;
 
@@ -21,14 +21,14 @@ struct detail::library_interface_getter<struct tier0_library_info> : library_int
     }
 };
 
-struct tier0_library_info : native_library_info
+struct tier0_lib : native_library_info
 {
-    tier0_library_info()
+    tier0_lib()
         : native_library_info{L"tier0.dll"}
     {
     }
 
-    detail::library_interface_getter<tier0_library_info> interface() const
+    detail::library_interface_getter<tier0_lib> interface() const
     {
         return {this};
     }
