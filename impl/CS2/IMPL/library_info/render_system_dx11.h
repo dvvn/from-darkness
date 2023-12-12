@@ -9,7 +9,7 @@
 namespace fd
 {
 template <>
-struct detail::library_pattern_getter<struct render_system_dx11_library_info> : library_pattern_getter<>
+struct detail::library_pattern_getter<struct render_system_dx11_lib> : library_pattern_getter<>
 {
     IDXGISwapChain* DXGI_swap_chain() const
     {
@@ -24,14 +24,14 @@ struct detail::library_pattern_getter<struct render_system_dx11_library_info> : 
     }
 };
 
-struct render_system_dx11_library_info : native_library_info
+struct render_system_dx11_lib : native_library_info
 {
-    render_system_dx11_library_info()
+    render_system_dx11_lib()
         : native_library_info{L"rendersystemdx11.dll"}
     {
     }
 
-    detail::library_pattern_getter<render_system_dx11_library_info> pattern() const
+    detail::library_pattern_getter<render_system_dx11_lib> pattern() const
     {
         return {this};
     }

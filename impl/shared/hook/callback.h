@@ -3,14 +3,14 @@
 #include "noncopyable.h"
 
 #include <atomic>
-#include <cassert>
 
 namespace fd
 {
 class basic_hook_callback : public noncopyable
 {
-    std::memory_order order_;
-    std::atomic<size_t> called_;
+    static constexpr auto memory_order = std::memory_order_relaxed;
+
+    std::atomic_size_t called_;
 
   protected:
     ~basic_hook_callback()
@@ -20,15 +20,13 @@ class basic_hook_callback : public noncopyable
         {
             // nothing here
         }
-        while (called_.load(order_) != 0);
+        while (called_.load(memory_order) != 0);
     }
 
   public:
     basic_hook_callback()
-        : order_{std::memory_order::relaxed}
-        , called_{0}
+        : called_{0}
     {
-        assert(called_.is_lock_free());
     }
 
     void enter() noexcept

@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 namespace fd::native::inline cs2
 {
@@ -8,9 +9,9 @@ class game_entity_system;
 class game_resource_service
 {
   public:
-    game_entity_system* get_game_entity_system()
+    game_entity_system* get_game_entity_system() const
     {
-        return 0; // CPointer(this).GetField<CGameEntitySystem*>(platform::Constant(0x58, 0x50));
+        return reinterpret_cast<game_entity_system*>(reinterpret_cast<uintptr_t>(this) + 0x58);
     }
 };
-}
+} // namespace fd::native::inline cs2

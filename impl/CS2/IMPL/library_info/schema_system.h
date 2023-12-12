@@ -5,7 +5,7 @@
 namespace fd
 {
 template <>
-struct detail::library_interface_getter<struct schema_system_library_info> : library_interface_getter<>
+struct detail::library_interface_getter<struct schema_system_lib> : library_interface_getter<>
 {
     using library_interface_getter<>::get;
 
@@ -21,14 +21,14 @@ struct detail::library_interface_getter<struct schema_system_library_info> : lib
     }
 };
 
-struct schema_system_library_info : native_library_info
+struct schema_system_lib : native_library_info
 {
-    schema_system_library_info()
+    schema_system_lib()
         : native_library_info{L"schemasystem.dll"}
     {
     }
 
-    detail::library_interface_getter<schema_system_library_info> interface() const
+    detail::library_interface_getter<schema_system_lib> interface() const
     {
         return {this};
     }
