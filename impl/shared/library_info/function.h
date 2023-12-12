@@ -4,9 +4,9 @@
 
 #include <algorithm>
 
-namespace fd
+namespace fd::detail
 {
-inline void* library_info::basic_function_getter::find(string_view const name) const
+inline void* library_function_getter<>::find(string_view const name) const
 {
     auto const base_address = linfo_->data();
 
@@ -41,4 +41,4 @@ inline void* library_info::basic_function_getter::find(string_view const name) c
 
     return nullptr;
 }
-} // namespace fd
+} // namespace fd::detail

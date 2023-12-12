@@ -224,25 +224,25 @@ _NON_MEMBER_CALL_THISCALL_CV_REF_NOEXCEPT(HOOK_PROXY_STATIC_THISCALL) // macro f
 } // namespace detail
 
 template <typename Callback, class Proxy, typename Func, bool Inner = false>
-hook_info<Callback> prepare_hook(Func fn, bool_constant<Inner> = {}) requires(Inner || complete<Proxy>)
+hook_info<Callback> prepare_hook(Func const fn, bool_constant<Inner> = {}) requires(Inner || complete<Proxy>)
 {
     return {unsafe_cast<void*>(fn), unsafe_cast<void*>(&Proxy::template proxy<Callback>)};
 }
 
 template <typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy, typename Func>
-hook_info<Callback> prepare_hook(Func fn) requires(complete<Proxy<Func>>)
+hook_info<Callback> prepare_hook(Func const fn) requires(complete<Proxy<Func>>)
 {
     return prepare_hook<Callback, Proxy<Func>>(fn, true_type{});
 }
 
 template <typename Callback, class Proxy, typename Func, size_t FuncSize>
-hook_info<Callback> prepare_hook(vfunc<Func, FuncSize> target)
+hook_info<Callback> prepare_hook(vfunc<Func, FuncSize> const target)
 {
     return prepare_hook<Callback, Proxy, Func>(target, true_type{});
 }
 
 template <typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy, typename Func, size_t FuncSize>
-hook_info<Callback> prepare_hook(vfunc<Func, FuncSize> target)
+hook_info<Callback> prepare_hook(vfunc<Func, FuncSize> const target)
 {
     return prepare_hook<Callback, Proxy<Func>, Func>(target, true_type{});
 }

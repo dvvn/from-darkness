@@ -304,32 +304,33 @@ struct custom_cast
 };
 
 template <template <typename> class Impl>
-inline constexpr auto cast_to = []<typename From>(From from) -> invoke_cast<custom_cast<From, Impl>> {
-    return {from};
+struct make_cast_from
+{
+    template <typename From>
+    using lazy = invoke_cast<custom_cast<From, Impl>>;
+
+    template <typename From>
+    constexpr lazy<From> operator()(From from) const
+    {
+        return {from};
+    }
 };
+
+using make_safe_cast_from   = make_cast_from<safe_cast_impl>;
+using make_unsafe_cast_from = make_cast_from<unsafe_cast_impl>;
 } // namespace detail
 
-template <typename T>
-struct remove_rvalue_reference : type_identity<T>
-{
-};
-
-template <typename T>
-struct remove_rvalue_reference<T&> : type_identity<T&>
-{
-};
-
-template <typename T>
-struct remove_rvalue_reference<T&&> : type_identity<T>
-{
-};
+template <typename From>
+using safe_cast_lazy = detail::make_safe_cast_from::lazy<From>;
+template <typename From>
+using unsafe_cast_lazy = detail::make_unsafe_cast_from::lazy<From>;
 
 template <typename To>
 inline constexpr detail::safe_cast_impl<To> safe_cast;
-inline constexpr auto safe_cast_from = detail::cast_to<detail::safe_cast_impl>;
+inline constexpr detail::make_safe_cast_from safe_cast_from;
 template <typename To>
 inline constexpr detail::unsafe_cast_impl<To> unsafe_cast;
-inline constexpr auto unsafe_cast_from = detail::cast_to<detail::unsafe_cast_impl>;
+inline constexpr detail::make_unsafe_cast_from unsafe_cast_from;
 
 template <typename To, typename From>
 using safe_cast_result = std::invoke_result_t<detail::safe_cast_impl<To>, From>;

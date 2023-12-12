@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-
 #include <concepts>
 
 namespace fd

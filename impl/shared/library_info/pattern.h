@@ -2,14 +2,11 @@
 #include "library_info/holder.h"
 #include "pattern/find.h"
 
-namespace fd
+namespace fd::detail
 {
 template <typename Fn>
-void* library_info::basic_pattern_getter::find_in_section(Fn fn) const
+void* find_in_section(IMAGE_NT_HEADERS* const nt, uint8_t* const img_base, Fn fn)
 {
-    auto const nt       = linfo_->nt_header();
-    auto const img_base = safe_cast<uint8_t>(linfo_->image_base());
-
     auto first_section      = IMAGE_FIRST_SECTION(nt);
     auto const last_section = first_section + nt->FileHeader.NumberOfSections;
 
@@ -28,25 +25,30 @@ void* library_info::basic_pattern_getter::find_in_section(Fn fn) const
 }
 
 template <typename Fn>
-void* library_info::basic_pattern_getter::find_anywhere(Fn fn) const
+void* find_in_section(IMAGE_NT_HEADERS* const nt, void* const img_base, Fn fn)
+{
+    using fn_pass = conditional_t<sizeof(Fn) <= sizeof(void*) * 2u && std::is_trivially_copyable_v<Fn>, Fn, std::add_lvalue_reference_t<Fn>>;
+    return find_in_section<fn_pass>(nt, safe_cast<uint8_t>(img_base), fn);
+}
+
+template <typename Fn>
+void* find_anywhere(uint8_t* const first, size_t const length, Fn fn)
 {
     using std::data;
     using std::size;
 
-    auto const mem_first = linfo_->data();
-    auto const mem_last  = mem_first + linfo_->size();
+    auto const last = first + length;
 
-    auto found = fn(mem_first, mem_last);
-    return found == mem_last ? nullptr : found;
+    auto found = fn(first, last);
+    return found == last ? nullptr : found;
 }
 
 template <class... Segment>
-void* library_info::basic_pattern_getter::find(pattern<Segment...> const& pat) const
+void* library_pattern_getter<>::find(pattern<Segment...> const& pat) const
 {
     // return find_anywhere(....);
-    return find_in_section([&pat]<typename T>(T const first, T const last) -> T {
+    return find_in_section(linfo_->nt_header(), linfo_->image_base(), [&pat](uint8_t* const first, uint8_t* const last) -> void* {
         return find_pattern(first, last, pat);
     });
 }
-
-} // namespace fd
+} // namespace fd::detail

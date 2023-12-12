@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "algorithm/char.h"
 #include "library_info/function.h"
-#include "library_info/interface_name.h"
 #include "native/interface_register.h"
 
 #include <cassert>
@@ -108,31 +107,19 @@ inline void* find_interface(interface_register* const root_ifc, string_view cons
 }
 } // namespace native
 
-inline void* native_library_info::basic_interface_getter::find(string_view const name) const
+namespace detail
 {
-    return find_interface(root_interface(), name);
+inline safe_cast_lazy<void*> library_interface_getter<>::get(string_view const name) const
+{
+    return (find_interface(root_interface(), name));
 }
 
-// template <typename... Name>
-// requires(sizeof...(Name) > 1)
-// array<void*, sizeof...(Name)> native_library_info::basic_interface_getter::find(Name const&... name) const
-//{
+// template <class... T>
+// requires(sizeof...(T) > 1)
+// auto library_interface_getter<native_library_info>::find() const -> packed_objects<T...>
+// {
 //     auto const root = root_interface();
-//     return {find_interface(root, name)...};
+//     return {safe_cast_from(find_interface(root, native::interface_name<T>::value))...};
 // }
-
-template <class T>
-T* native_library_info::basic_interface_getter::find() const
-{
-    return safe_cast_from(find_interface(root_interface(), native::interface_name<T>::value));
-}
-
-template <class... T>
-requires(sizeof...(T) > 1)
-auto native_library_info::basic_interface_getter::find() const -> packed_objects<T...>
-{
-    auto const root = root_interface();
-    return {safe_cast_from(find_interface(root, native::interface_name<T>::value))...};
-}
-
+} // namespace detail
 } // namespace fd

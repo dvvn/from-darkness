@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "library_info/interface.h"
-#include "library_info/interface_name.h"
 #include "library_info/root_interface.h"
 #include "native/engine_client.h"
 #include "native/game_resource_service.h"
@@ -8,54 +7,43 @@
 namespace fd
 {
 template <>
-struct native::interface_name<native::engine_client>
+struct detail::library_interface_getter<struct engine_lib> : library_interface_getter<>
 {
-    static constexpr auto& value = "Source2EngineToClient";
-};
+    using library_interface_getter<>::get;
 
-template <>
-struct native::interface_name<native::game_resource_service>
-{
-    static constexpr auto& value = "GameResourceServiceClient";
-};
-
-class engine_lib final : public native_library_info
-{
-    class interface_getter : public basic_interface_getter
+    native::engine_client* engine() const
     {
-        struct known_interfaces
-        {
-            native::engine_client* engine;
-            native::game_resource_service* game_resource_service;
-        };
+        return get("Source2EngineToClient");
+    }
 
-      public:
-        native::engine_client* engine() const
-        {
-            return find<native::engine_client>();
-        }
+    native::game_resource_service* game_resource_service() const
+    {
+        return get("GameResourceServiceClient");
+    }
 
-        native::game_resource_service* game_resource_service() const
-        {
-            return find<native::game_resource_service>();
-        }
+    template <size_t I>
+    native::engine_client* get() const requires(I == 0u)
+    {
+        return engine();
+    }
 
-        known_interfaces known() const
-        {
-            return find<native::engine_client, native::game_resource_service>();
-        }
-    };
+    template <size_t I>
+    native::game_resource_service* get() const requires(I == 1u)
+    {
+        return game_resource_service();
+    }
+};
 
-  public:
+struct engine_lib final : native_library_info
+{
     engine_lib()
         : native_library_info{L"engine2.dll"}
     {
     }
 
-    interface_getter interface() const
+    detail::library_interface_getter<engine_lib> interface() const
     {
         return {this};
     }
 };
-
 } // namespace fd

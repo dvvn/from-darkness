@@ -1,39 +1,34 @@
 ﻿#pragma once
-#include "library_info/interface.h"
 #include "library_info/root_interface.h"
 #include "native/cvar.h"
 
 namespace fd
 {
 template <>
-struct native::interface_name<native::cvar_system>
+struct detail::library_interface_getter<struct tier0_library_info> : library_interface_getter<>
 {
-    static constexpr auto& value = "VEngineCvar";
+    using library_interface_getter<>::get;
+
+    native::cvar_system* cvar_system() const
+    {
+        return get("VEngineCvar");
+    }
+
+    template <size_t I>
+    native::cvar_system* get() const requires(I == 0u)
+    {
+        return cvar_system();
+    }
 };
 
-class tier0_library_info : public native_library_info
+struct tier0_library_info : native_library_info
 {
-    class interface_getter : public basic_interface_getter
-    {
-        struct known_interfaces
-        {
-            native::cvar_system* cvar_system;
-        };
-
-      public:
-        native::cvar_system* cvar_system() const
-        {
-            return find<native::cvar_system>();
-        }
-    };
-
-  public:
     tier0_library_info()
         : native_library_info{L"tier0.dll"}
     {
     }
 
-    interface_getter interface() const
+    detail::library_interface_getter<tier0_library_info> interface() const
     {
         return {this};
     }

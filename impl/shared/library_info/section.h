@@ -5,9 +5,9 @@
 #include <algorithm>
 #include <cassert>
 
-namespace fd
+namespace fd::detail
 {
-inline auto library_info::basic_section_getter::find(string_view name) const -> pointer
+inline auto library_section_getter::find(string_view name) const -> pointer
 {
     using std::data;
     using std::equal;
@@ -35,4 +35,4 @@ inline auto library_info::basic_section_getter::find(string_view name) const -> 
 
     return nullptr;
 }
-} // namespace fd
+} // namespace fd::detail

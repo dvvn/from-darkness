@@ -3,12 +3,10 @@
 #include "library_info/construct.h"
 #include "string/static.h"
 
-namespace fd
-{
-inline namespace literals
+namespace fd::inline literals
 {
 #ifdef _DEBUG
-inline library_info operator"" _dll(wchar_t const* name, size_t length)
+inline library_info operator"" _dll(wchar_t const* name, size_t const length)
 {
     return {
         wstring_view{name, length},
@@ -28,5 +26,4 @@ library_info operator"" _dll()
 {
     return {Name + L".dll"};
 }
-} // namespace literals
-} // namespace fd
+} // namespace fd::inline literals
