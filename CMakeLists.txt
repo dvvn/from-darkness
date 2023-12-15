@@ -112,7 +112,7 @@ endmacro()
 set(_FD_DEPS_INCLUDE)
 macro(FD_append_dep_include _inc_append)
     list(APPEND _FD_DEPS_INCLUDE ${_inc_append})
-    message(DEBUG "${_inc_append} directory included")
+    message(DEBUG "${_inc_append} directory included") 
 endmacro()
 
 set(_FD_DEPS_DIRS)
@@ -121,8 +121,9 @@ macro(FD_append_dep_dir _dir_append)
 endmacro()
 
 #todo: current drive name
-set(_GIT_DIR "C:/git" CACHE STRING "The repos storage")
+set(_GIT_DIR "C:/Dev/Git" CACHE STRING "The repos storage")
 macro(Run_git _work_dir)
+    set(_argn ${ARGN})
     execute_process(
             COMMAND             ${GIT_EXECUTABLE} ${ARGN}
             WORKING_DIRECTORY   ${_work_dir}
@@ -219,7 +220,7 @@ macro(Dependency_Load _owner _name)
 
     Check_directory_empty(${_source_dir})
     if(_DIR_EMPTY)
-        Run_git(${_GIT_DIR} clone --branch origin/${_git_branch} ${_GIT_ARGS} --shallow-submodules --single-branch ${_url} ${_subdir})
+        Run_git(${_GIT_DIR} clone --branch ${_git_branch} ${_GIT_ARGS} --shallow-submodules --single-branch ${_url} ${_subdir})
         if(_GIT_ERROR)
             file(REMOVE_RECURSE ${_source_dir})
             Git_error()
