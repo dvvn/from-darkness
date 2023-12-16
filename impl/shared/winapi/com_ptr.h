@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include <functional>
 #include <utility>
 
@@ -42,7 +40,7 @@ struct com_ptr_ref
 
   public:
     com_ptr_ref(T* ptr)
-        : ptr_(ptr)
+        : ptr_{ptr}
     {
     }
 
@@ -109,7 +107,7 @@ struct com_ptr
         return ptr_->Release();
     }
 
-    void on_copy()
+    void add_ref()
     {
         ptr_->AddRef();
     }
@@ -122,52 +120,25 @@ struct com_ptr
     }
 
     com_ptr(nullptr_t = {})
-        : ptr_(nullptr)
+        : ptr_{nullptr}
     {
     }
 
-    /*template <typename P>
-    explicit com_ptr(P&& ptr) noexcept(std::is_rvalue_reference_v<P&&>) requires(std::is_pointer_v<P> && std::constructible_from<pointer, P>)
-        : ptr_(ptr)
-    {
-        if constexpr (std::is_lvalue_reference_v<P&&>)
-            on_copy();
-    }*/
-
-    explicit com_ptr(pointer const& ptr) noexcept
-        : ptr_(ptr)
-    {
-        on_copy();
-    }
-
-    explicit com_ptr(pointer&& ptr) noexcept
-        : ptr_(ptr)
+    explicit com_ptr(pointer ptr) noexcept
+        : ptr_{ptr}
     {
     }
 
-    com_ptr(pointer const& ptr, std::in_place_t) noexcept
-        : com_ptr(ptr)
-    {
-    }
-
-    com_ptr(pointer&& ptr, std::in_place_t) noexcept
-        : com_ptr(std::move(ptr))
+    com_ptr(pointer ptr, std::in_place_t) noexcept
+        : ptr_{ptr}
     {
     }
 
     com_ptr(com_ptr const& other)
-        : com_ptr(other.ptr_)
+        : ptr_{other.ptr_}
     {
+        add_ref();
     }
-
-    /*template <typename P>
-    com_ptr& operator=(P* ptr) requires(std::assignable_from<pointer&, P*>)
-    {
-        if (ptr_)
-            do_release();
-        ptr_ = ptr;
-        return *this;
-    }*/
 
     com_ptr& operator=(com_ptr const& other)
     {
@@ -176,7 +147,7 @@ struct com_ptr
     }
 
     com_ptr(com_ptr&& other) noexcept
-        : com_ptr(std::exchange(other.ptr_, nullptr))
+        : ptr_{std::exchange(other.ptr_, nullptr)}
     {
     }
 
@@ -251,7 +222,7 @@ struct com_ptr
     {
         release();
         ptr_ = other;
-        on_copy();
+        add_ref();
     }
 };
 

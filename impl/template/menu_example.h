@@ -6,33 +6,25 @@
 namespace fd
 {
 template <typename UnloadHandler>
-auto make_menu_example(UnloadHandler&& unload_handler)
+auto make_menu_example(UnloadHandler unload_handler)
 {
+    using gui::detail::obj_holder;
     using namespace gui;
 
+    constexpr auto make_item = [](string_view name, string_view str) {
+        return tab_bar_item{
+            name, //
+            [str] {
+                ImGui::TextUnformatted(str);
+            }};
+    };
+
     return menu{
-        [] {
-            menu_tab("Tab1", [] {
-                menu_tab_item("One", [] {
-                    ImGui::TextUnformatted("Tab1 text");
-                    ImGui::TextUnformatted("Tab1 text2");
-                });
-                menu_tab_item("Two", [] {
-                    ImGui::TextUnformatted("Tab1 text3");
-                    ImGui::TextUnformatted("Tab1 text4");
-                });
-            });
-            menu_tab("Tab2", [] {
-                menu_tab_item("One", [] {
-                    ImGui::TextUnformatted("Tab2 text");
-                    ImGui::TextUnformatted("Tab2 text2");
-                });
-                menu_tab_item("Two", [] {
-                    ImGui::TextUnformatted("Tab2 text3");
-                    ImGui::TextUnformatted("Tab2 text4");
-                });
-            });
-        },
-        std::forward<UnloadHandler>(unload_handler)};
+        obj_holder{
+            tab_bar{"Tab1", make_item("Tab1_1", "Text1"), make_item("Tab1_2", "Text2")},
+            tab_bar{"Tab2", make_item("Tab2_1", "Text1")},
+            tab_bar{"Tab3", make_item("Tab3_1", "Text1"), make_item("Tab3_2", "Text2"), make_item("Tab3_3", "Text3")}},
+        std::move(unload_handler)
+    };    
 }
 } // namespace fd

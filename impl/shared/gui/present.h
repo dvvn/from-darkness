@@ -8,10 +8,10 @@ inline constexpr auto present = //
         RenderB* render_backend, SystemB* system_backend, RenderCtx* render_context, Menu* menu) -> void {
     render_backend->new_frame();
     system_backend->new_frame();
-    menu->new_frame();
+    //menu->new_frame();
 
     render_context->begin_frame();
-    if (menu->visible())
+    //if (menu->visible())
         menu->render();
     render_context->end_frame();
 

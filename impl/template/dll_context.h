@@ -8,7 +8,9 @@
 
 namespace fd
 {
-class context : public noncopyable
+namespace detail
+{
+class dll_context : public noncopyable
 {
     HINSTANCE instance_;
 
@@ -25,7 +27,7 @@ class context : public noncopyable
 
   public:
     // ReSharper disable once CppPossiblyUninitializedMember
-    context()
+    dll_context()
     {
     }
 
@@ -45,7 +47,7 @@ class context : public noncopyable
         thread_   = CreateThread(
             nullptr, 0,
             [](LPVOID this_ptr) -> DWORD {
-                auto const ctx     = static_cast<context *>(this_ptr);
+                auto const ctx     = static_cast<dll_context *>(this_ptr);
                 auto const success = ctx->run();
                 ctx->stop(success);
             },
@@ -54,18 +56,17 @@ class context : public noncopyable
     }
 };
 
-namespace detail
-{
-// ReSharper disable once CppInconsistentNaming
-inline context __context;
+inline dll_context dll_context_instance;
 } // namespace detail
+
+using context = detail::dll_context;
 } // namespace fd
 
 // ReSharper disable once CppInconsistentNaming
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD const reason, LPCVOID const reserved)
 {
-    using fd::detail::__context;
+    using fd::detail::dll_context_instance;
 
     // ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
     switch (reason)
@@ -73,7 +74,7 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD const reason, LPCVOID const reserv
     case DLL_PROCESS_ATTACH: {
         // Initialize once for each new process.
         // Return FALSE to fail DLL load.
-        if (!__context.start(instance))
+        if (!dll_context_instance.start(instance))
             return FALSE;
         break;
     }

@@ -5,14 +5,11 @@
 #include "gui/render/context.h"
 #include "winapi/window_info.h"
 #include "menu_example.h"
+//
+#include "exe_context.h"
 
-int main(int argc, int* argv)
+bool fd::context::run()
 {
-    (void)argc;
-    (void)argv;
-
-    using namespace fd;
-
 #ifdef _DEBUG
     log_activator log_activator;
 #endif
@@ -34,5 +31,5 @@ int main(int argc, int* argv)
         gui::present(&render_bk, &system_bk, &render_ctx, &menu);
     }
 
-    return EXIT_SUCCESS;
+    return true;
 }

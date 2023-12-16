@@ -1,82 +1,67 @@
 ﻿#pragma once
-#include "gui/menu/item_id.h"
 #include "noncopyable.h"
 
 #include <imgui.h>
 
 namespace fd::gui
 {
-template <class Callback, class UnloadHandler>
+template <class Callback, typename UnloadHandler>
 class menu final : public noncopyable
 {
+    Callback data_;
+    UnloadHandler unload_handler_;
+
     bool visible_;
-    bool next_visible_;
 
-    [[no_unique_address]] //
-    Callback callback_;
-    [[no_unique_address]] //
-    UnloadHandler unload_;
-
-    void render_unload_button()
+    static void render_debug()
     {
-        /*if (!ImGui::BeginChild(menu_item_id(__LINE__)))
-            return;*/
+#ifndef IMGUI_DISABLE_DEMO_WINDOWS
+        ImGui::ShowDemoWindow();
+#endif
+    }
 
-        if (ImGui::Button("Unload"))
-            std::invoke(unload_);
+    void render_data() const
+    {
+        data_();
+    }
 
-        // ImGui::EndChild();
+    void render_unload_button() const
+    {
+        if constexpr (std::invocable<UnloadHandler>)
+        {
+            if (ImGui::Button("Unload"))
+                unload_handler_();
+        }
     }
 
   public:
-    menu(Callback callback, UnloadHandler unload)
-        : visible_(false)
-        , next_visible_(true)
-        , callback_(std::move(callback))
-        , unload_(std::move(unload))
+    template <typename CallbackFwd, typename UnloadHandlerFwd>
+    menu(CallbackFwd&& data, UnloadHandlerFwd&& unload_handler, bool const visible = true)
+        : data_{std::forward<CallbackFwd>(data)}
+        , unload_handler_{std::forward<UnloadHandlerFwd>(unload_handler)}
+        , visible_{visible}
     {
     }
 
     void toggle()
     {
-        next_visible_ = !next_visible_;
-    }
-
-    void new_frame()
-    {
-        visible_ = next_visible_;
-    }
-
-    bool visible() const
-    {
-        return visible_;
+        visible_ = !visible_;
     }
 
     void render()
     {
-        assert(visible_);
-#ifndef IMGUI_DISABLE_DEMO_WINDOWS
-        ImGui::ShowDemoWindow();
-#endif
-        if (ImGui::Begin("WIP", &next_visible_, ImGuiWindowFlags_AlwaysAutoResize))
+        if (!visible_)
+            return;
+        render_debug();
+        if (ImGui::Begin("WIP", &visible_, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            std::invoke(callback_);
-            if constexpr (std::invocable<UnloadHandler>)
-                render_unload_button();
+            render_data();
+            render_unload_button();
         }
         ImGui::End();
     }
-
-    // void render(basic_menu_item* item)
-    //{
-    //     item->render();
-    // }
-    //
-    // void render(menu_item_getter const* items)
-    //{
-    //     ImGui::PushID(items);
-    //     apply(*items);
-    //     ImGui::PopID();
-    // }
 };
-} // namespace FD_TIER_GUI()
+
+template <class Callback, typename UnloadHandler>
+menu(Callback const&, UnloadHandler const&) -> menu<Callback, UnloadHandler>;
+} // namespace fd::gui

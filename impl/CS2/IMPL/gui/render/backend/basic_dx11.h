@@ -2,6 +2,8 @@
 
 #include <imgui_impl_dx11.h>
 
+#include <cassert>
+
 #pragma comment(lib, "d3d11.lib")
 
 namespace fd::gui
@@ -38,4 +40,4 @@ class basic_dx11_backend
         ImGui_ImplDX11_InvalidateDeviceObjects();
     }
 };
-}
+} // namespace fd::gui
