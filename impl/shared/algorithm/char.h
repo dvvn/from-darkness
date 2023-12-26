@@ -22,13 +22,12 @@ struct basic_char_table : array<T, Size + 1>
     using size_type = typename base_array::size_type;
 
   private:
-    constexpr std::pair<pointer, pointer> get_range(char const front, char const back)
+    constexpr std::pair<pointer, size_type> get_range(char const front, char const back)
     {
         assert(front < back);
         assert(front >= 0);
         assert(back <= Size);
-        auto const it = base_array::data();
-        return {it + front, it + back + 1};
+        return {base_array::data() + front, static_cast<size_type>(back) - static_cast<size_type>(front) + 1};
     }
 
   public:
@@ -40,7 +39,7 @@ struct basic_char_table : array<T, Size + 1>
         requires(Size <= Size1)
 #endif
     {
-        std::copy(other.data(), other.data() + this->size(), this->data());
+        std::copy_n(other.data(), this->size(), this->data());
     }
 
     constexpr T operator[](char const c) const
@@ -62,16 +61,16 @@ struct basic_char_table : array<T, Size + 1>
 
     constexpr void set(char const front, char const back, T const value)
     {
-        auto const [first_it, last_it] = get_range(front, back);
-        std::fill(first_it, last_it, value);
+        auto const [it, count] = get_range(front, back);
+        std::fill_n(it, count, value);
     }
 
     constexpr void set(char const front, char const back, char const new_front, char const new_back)
     {
-        assert(back - front == new_back - new_front);
-        auto [first_it, last_it]         = get_range(front, back);
-        auto [new_first_it, new_last_it] = get_range(new_front, new_back);
-        std::copy(new_first_it, new_last_it, first_it);
+        auto [dst_it, count]  = get_range(front, back);
+        auto [src_it, count2] = get_range(new_front, new_back);
+        assert(count == count2);
+        std::copy_n(src_it, count, dst_it);
     }
 };
 
@@ -81,38 +80,45 @@ struct basic_char_table<T, Size>;
 
 namespace detail
 {
+template <typename T, size_t Size>
+constexpr void init_default_char_table(basic_char_table<T, Size>& table)
+{
+    auto const last_index = table.size();
+    for (size_t index = 0; index != last_index; ++index)
+        table[static_cast<char>(index)] = static_cast<T>(index);
+}
+
+template <size_t Size>
+constexpr void init_default_char_table(basic_char_table<bool, Size>& table)
+{
+    table.fill(false);
+}
+
 template <typename T, size_t Size = CHAR_MAX>
-inline constexpr auto default_char_table = [] {
-    basic_char_table<T, Size> ret;
+struct default_char_table : basic_char_table<T, Size>
+{
+    constexpr default_char_table()
+    {
+        init_default_char_table(*this);
+    }
 
-    auto const& sample = default_char_table<T, CHAR_MAX>;
-    std::copy_n(sample.data(), sample.data() + ret.size(), ret.data());
-
-    return ret;
-}();
+    template <typename T1, size_t Size1>
+    constexpr default_char_table(basic_char_table<T1, Size1> const& sample)
+#ifdef _DEBUG
+        requires(Size <= Size1)
+#endif
+    {
+        std::copy_n(sample.data(), this->size(), this->data());
+    }
+};
 
 template <typename T>
-inline constexpr auto default_char_table<T, CHAR_MAX> = [] {
-    basic_char_table<T> ret;
-
-    auto const last_index = ret.size();
-    for (size_t index = 0; index != last_index; ++index)
-        ret[static_cast<char>(index)] = static_cast<char>(index);
-
-    return ret;
-}();
-
-template <>
-inline constexpr auto default_char_table<bool, CHAR_MAX> = [] {
-    basic_char_table<bool> ret;
-    ret.fill(false);
-    return ret;
-}();
+inline constexpr default_char_table<T> default_char_table_v;
 
 struct islower_table final : basic_char_table<bool>
 {
     constexpr islower_table()
-        : basic_char_table{default_char_table<bool>}
+        : basic_char_table{default_char_table_v<bool>}
     {
         set('a', 'z', true);
     }
@@ -121,7 +127,7 @@ struct islower_table final : basic_char_table<bool>
 struct isupper_table final : basic_char_table<bool>
 {
     constexpr isupper_table()
-        : basic_char_table{default_char_table<bool>}
+        : basic_char_table{default_char_table_v<bool>}
     {
         set('A', 'Z', true);
     }
@@ -130,7 +136,7 @@ struct isupper_table final : basic_char_table<bool>
 struct isdigit_table final : basic_char_table<bool>
 {
     constexpr isdigit_table()
-        : basic_char_table{default_char_table<bool>}
+        : basic_char_table{default_char_table_v<bool>}
     {
         set('0', '9', true);
     }
@@ -139,7 +145,7 @@ struct isdigit_table final : basic_char_table<bool>
 struct isxdigit_table final : basic_char_table<bool>
 {
     constexpr isxdigit_table()
-        : basic_char_table{default_char_table<bool>}
+        : basic_char_table{default_char_table_v<bool>}
     {
         set('0', '9', true);
         set('a', 'f', true);
@@ -150,7 +156,7 @@ struct isxdigit_table final : basic_char_table<bool>
 struct tolower_table final : basic_char_table<char>
 {
     constexpr tolower_table()
-        : basic_char_table{default_char_table<char>}
+        : basic_char_table{default_char_table_v<char>}
     {
         set('A', 'Z', 'a', 'z');
     }
@@ -159,7 +165,7 @@ struct tolower_table final : basic_char_table<char>
 struct toupper_table final : basic_char_table<char>
 {
     constexpr toupper_table()
-        : basic_char_table{default_char_table<char>}
+        : basic_char_table{default_char_table_v<char>}
     {
         set('a', 'z', 'A', 'Z');
     }
@@ -197,7 +203,7 @@ namespace detail
 struct char_to_num_table : basic_char_table<uint8_t, '9' + 1>
 {
     constexpr char_to_num_table()
-        : basic_char_table{default_char_table<char>}
+        : basic_char_table{default_char_table_v<uint8_t>}
     {
         set('0', '9', 0, 9);
     }
