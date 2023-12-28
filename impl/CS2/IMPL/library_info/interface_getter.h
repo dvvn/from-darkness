@@ -4,9 +4,10 @@
 
 namespace fd
 {
-inline auto native_library_info::basic_interface_getter::root_interface() const -> native::interface_register*
+inline native_library_info::basic_interface_getter::basic_interface_getter(library_info const* linfo)
+    : root_interface_{*static_cast<native::interface_register**>(resolve_relative_address(basic_function_getter{linfo}.create_interface(), 3, 7))}
 {
     auto const ptr = *static_cast<native::interface_register**>(resolve_relative_address(create_interface(), 3, 7));
     return ptr;
 }
-} // namespace fd::detail
+} // namespace fd

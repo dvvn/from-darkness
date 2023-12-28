@@ -12,7 +12,11 @@ class library_info;
 
 namespace detail
 {
-struct library_object_getter
+struct library_object_getter_tag
+{
+};
+
+struct library_object_getter : library_object_getter_tag
 {
   protected:
     library_info const* linfo_;
@@ -34,6 +38,153 @@ requires(Index != 0 && requires(Getter g) { g.template get<Index>(); } == false)
 struct library_object_getter_tuple_size<Getter, Index> : integral_constant<size_t, Index>
 {
 };
+
+template <class Lib = library_info>
+struct library_section_getter;
+template <class Lib>
+library_section_getter(Lib const*) -> library_section_getter<Lib>;
+
+template <class Lib = library_info>
+struct library_pattern_getter;
+template <class Lib>
+library_pattern_getter(Lib const*) -> library_pattern_getter<Lib>;
+
+template <class Lib = library_info>
+struct library_function_getter;
+template <class Lib>
+    using basic_object_getter_tag = detail::library_object_getter_tag;
+    using basic_object_getter     = detail::library_object_getter;
+
+    struct basic_function_getter;
+    struct basic_section_getter;
+    struct basic_pattern_getter;
+
+library_function_getter(Lib const*) -> library_function_getter<Lib>;
+
+template <class Lib = native_library_info>
+struct library_interface_getter;
+template <class Lib>
+library_interface_getter(Lib const*) -> library_interface_getter<Lib>;
+
+template <>
+struct library_section_getter<library_info> : library_object_getter
+{
+    using pointer = IMAGE_SECTION_HEADER const*;
+
+    pointer find(string_view name) const;
+
+    pointer rdata() const
+    {
+        return find(".rdata");
+    }
+
+    pointer text() const
+    {
+        return find(".text");
+    }
+};
+
+template <>
+struct library_pattern_getter<library_info> : library_section_getter<>
+{
+    template <class... Segment>
+    auto find(pattern<Segment...> const& pat) const -> void*;
+};
+
+template <>
+struct library_function_getter<library_info> : library_object_getter
+{
+    void* find(string_view name) const;
+};
+
+template <>
+struct library_function_getter<native_library_info> : library_function_getter<>
+{
+    void* create_interface() const
+    {
+        return find("CreateInterface");
+    }
+};
+
+template <>
+struct library_interface_getter<native_library_info> : library_function_getter<native_library_info>
+{
+    safe_cast_lazy<void*> get(string_view name /*= native::interface_name<T>::value*/) const;
+
+  private:
+    native::interface_register* root_interface() const;
+    using library_function_getter::find;
+};
+
+template <class Lib = library_info>
+struct library_section_getter;
+template <class Lib>
+library_section_getter(Lib const*) -> library_section_getter<Lib>;
+
+template <class Lib = library_info>
+struct library_pattern_getter;
+template <class Lib>
+library_pattern_getter(Lib const*) -> library_pattern_getter<Lib>;
+
+template <class Lib = library_info>
+struct library_function_getter;
+template <class Lib>
+library_function_getter(Lib const*) -> library_function_getter<Lib>;
+
+template <class Lib = native_library_info>
+struct library_interface_getter;
+template <class Lib>
+library_interface_getter(Lib const*) -> library_interface_getter<Lib>;
+
+template <>
+struct library_section_getter<library_info> : library_object_getter
+{
+    using pointer = IMAGE_SECTION_HEADER const*;
+
+    pointer find(string_view name) const;
+
+    pointer rdata() const
+    {
+        return find(".rdata");
+    }
+
+    pointer text() const
+    {
+        return find(".text");
+    }
+};
+
+template <>
+struct library_pattern_getter<library_info> : library_section_getter<>
+{
+    template <class... Segment>
+    auto find(pattern<Segment...> const& pat) const -> void*;
+};
+
+template <>
+struct library_function_getter<library_info> : library_object_getter
+{
+    void* find(string_view name) const;
+};
+
+template <>
+struct library_function_getter<native_library_info> : library_function_getter<>
+{
+    void* create_interface() const
+    {
+        return find("CreateInterface");
+    }
+};
+
+template <>
+struct library_interface_getter<native_library_info> : library_function_getter<native_library_info>
+{
+    safe_cast_lazy<void*> get(string_view name /*= native::interface_name<T>::value*/) const;
+
+  private:
+    native::interface_register* root_interface() const;
+    using library_function_getter::find;
+};
 } // namespace detail
 
 class library_info
@@ -48,12 +199,6 @@ class library_info
     static LDR_DATA_TABLE_ENTRY_FULL* ldr_table(LIST_ENTRY* entry);
 
   protected:
-    using basic_object_getter = detail::library_object_getter;
-
-    struct basic_function_getter;
-    struct basic_section_getter;
-    struct basic_pattern_getter;
-
     template <class... T>
     class packed_objects
     {
@@ -76,6 +221,11 @@ class library_info
             }(std::make_index_sequence<sizeof...(T)>{});
         }
     };
+
+  public:
+  protected:
+    struct basic_function_getter;
+    class basic_interface_getter;
 
   public:
     library_info(wstring_view name);
@@ -218,21 +368,16 @@ inline void* library_info::vtable(string_view name) const
 
 class native_library_info : public library_info
 {
-  protected:
-    struct basic_function_getter;
-    struct basic_interface_getter;
-
-  public:
     using library_info::library_info;
 };
 } // namespace fd
 
-template <size_t I, std::derived_from<fd::detail::library_object_getter> Getter>
+template <size_t I, std::derived_from<fd::detail::library_object_getter_tag> Getter>
 struct std::tuple_element<I, Getter> : type_identity<decltype(declval<Getter>().template get<I>())>
 {
 };
 
-template <std::derived_from<fd::detail::library_object_getter> Getter>
+template <std::derived_from<fd::detail::library_object_getter_tag> Getter>
 struct std::tuple_size<Getter> : fd::detail::library_object_getter_tuple_size<Getter>
 {
 };

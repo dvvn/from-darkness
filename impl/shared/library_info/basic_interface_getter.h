@@ -119,24 +119,21 @@ inline void* find_interface(interface_register* const root_interface, string_vie
 }
 } // namespace native
 
-struct native_library_info::basic_interface_getter : basic_function_getter
+class native_library_info::basic_interface_getter : public basic_object_getter_tag
 {
-    static safe_cast_lazy<void*> get(native::interface_register* const root_interface, string_view const interface_name)
-    {
-        return find_interface(root_interface, interface_name);
-    }
+    native::interface_register* root_interface_;
+
+  public:
+    basic_interface_getter(library_info const* linfo);
 
     safe_cast_lazy<void*> get(string_view const name) const
     {
-#ifdef _DEBUG
-        static std::pair<void const*, native::interface_register*> cached;
-        if (cached.first != this)
-            cached = {this, root_interface()};
-        return find_interface(cached.second, name);
-#else
-        return find_interface(root_interface(), name);
-#endif
+        return find_interface(root_interface_, name);
     }
+};
+
+namespace detail
+{
 
   private:
     using basic_function_getter::create_interface;
