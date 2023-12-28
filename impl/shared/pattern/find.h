@@ -5,9 +5,8 @@
 namespace fd
 {
 template <typename It, class... Segment>
-It find(It rng_first, It const rng_last, pattern<Segment...> const& pat)
+It find(It rng_first, It const rng_last, pattern<Segment...> const& pat) noexcept
 {
-    using std::equal;
     using std::find;
 
     auto const& front_segment = pat.template get<0>();
@@ -21,6 +20,8 @@ It find(It rng_first, It const rng_last, pattern<Segment...> const& pat)
     }
     auto const pattern_length = pat.length();
     auto const rng_last_safe  = rng_last - pattern_length;
+
+    using std::equal;
 
     if (rng_first < rng_last_safe)
         for (;;)
@@ -42,7 +43,7 @@ It find(It rng_first, It const rng_last, pattern<Segment...> const& pat)
 }
 
 template <typename It, class... Segment>
-It find_pattern(It rng_first, It const rng_last, pattern<Segment...> const& pat)
+It find_pattern(It rng_first, It const rng_last, pattern<Segment...> const& pat) noexcept
 {
     return find(rng_first, rng_last, pat);
 }

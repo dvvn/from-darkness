@@ -1,11 +1,12 @@
 ﻿#pragma once
 
 #include "pattern/holder.h"
+#include "type_traits/integral_constant_literal.h"
 
 namespace fd
 {
 template <typename It, size_t BytesCount>
-bool equal(pattern_segment_bytes<BytesCount> const& bytes, It it)
+bool equal(pattern_segment_bytes<BytesCount> const& bytes, It it) noexcept
 {
     auto const first  = bytes.data();
     auto const length = bytes.size();
@@ -13,7 +14,7 @@ bool equal(pattern_segment_bytes<BytesCount> const& bytes, It it)
 }
 
 template <typename It, size_t Bytes, size_t UnknownBytes>
-bool equal(pattern_segment<Bytes, UnknownBytes> const& segment, It it)
+bool equal(pattern_segment<Bytes, UnknownBytes> const& segment, It it) noexcept
 {
 #ifdef _DEBUG
     if constexpr (UnknownBytes != 0 && std::is_class_v<It>)
@@ -23,7 +24,7 @@ bool equal(pattern_segment<Bytes, UnknownBytes> const& segment, It it)
 }
 
 template <typename It, class... Segment>
-bool equal(pattern<Segment...> const& pat, It it)
+bool equal(pattern<Segment...> const& pat, It it) noexcept
 {
     if constexpr (sizeof...(Segment) == 1)
     {

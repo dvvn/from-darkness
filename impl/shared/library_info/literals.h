@@ -2,8 +2,14 @@
 
 #include "library_info/construct.h"
 #include "string/static.h"
+#include "concepts.h"
 
-namespace fd::inline literals
+namespace fd
+{
+template <basic_constant_string Name>
+class named_library_info;
+
+inline namespace literals
 {
 #ifdef _DEBUG
 inline library_info operator"" _dll(wchar_t const* name, size_t const length)
@@ -21,9 +27,13 @@ library_info operator"" _dll()
 }
 #endif
 
-template <constant_string Name>
-library_info operator"" _dll()
+template <basic_constant_string Name>
+#ifdef _DEBUG
+requires complete<named_library_info<Name>>
+#endif
+named_library_info<Name> operator"" _dll()
 {
-    return {Name + L".dll"};
+    return {};
 }
-} // namespace fd::inline literals
+} // namespace literals
+} // namespace fd

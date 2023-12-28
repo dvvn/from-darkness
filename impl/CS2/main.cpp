@@ -12,7 +12,6 @@
 #include "hooked/directx11.h"
 #include "hooked/game_entity_system.h"
 #include "hooked/winapi.h"
-#include "library_info/construct.h"
 #include "library_info/engine.h"
 #include "library_info/render_system_dx11.h"
 #include "library_info/schema_system.h"
@@ -31,11 +30,9 @@ bool fd::context::run()
     log_activator log_activator;
 #endif
 
-    render_system_dx11_lib const rendersystemdx11_dll;
-
     gui::render_context render_context;
     gui::native_win32_backend system_backend{&render_context};
-    gui::native_dx11_backend render_backend{&render_context, rendersystemdx11_dll};
+    gui::native_dx11_backend render_backend{&render_context, "rendersystemdx11"_dll.pattern().DXGI_swap_chain()};
     auto menu = make_menu_example([=] {
         if (!this->resume())
             unreachable();
@@ -43,12 +40,12 @@ bool fd::context::run()
 
     entity_cache ent_cache;
 
-    tier0_lib const tier_dll;
-    auto const [cvar_system] = tier_dll.interface();
-    engine_lib const engine_dll;
+    auto const tier0_dll                = "tier0"_dll;
+    auto const [cvar_system]            = tier0_dll.interface();
+    auto const engine_dll               = "engine2"_dll;
     auto const [engine, game_resources] = engine_dll.interface();
-    schema_system_lib const schemasystem_dll;
-    auto const [schema_system] = schemasystem_dll.interface();
+    auto const schemasystem_dll         = "schemasystem"_dll;
+    auto const [schema_system]          = schemasystem_dll.interface();
 
     hook_backend_minhook hook_backend;
     create_hook_helper const hook_creator{&hook_backend};

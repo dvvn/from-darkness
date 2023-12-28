@@ -1,47 +1,46 @@
 ﻿#pragma once
-#include "library_info/interface.h"
-#include "library_info/root_interface.h"
+#include "library_info/interface_getter.h"
+#include "library_info/literals.h"
 #include "native/engine_client.h"
 #include "native/game_resource_service.h"
 
 namespace fd
 {
 template <>
-struct detail::library_interface_getter<struct engine_lib> : library_interface_getter<>
+class named_library_info<"engine2"_cs> final : public native_library_info
 {
-    using library_interface_getter<>::get;
-
-    native::engine_client* engine() const
+    struct interface_getter final : basic_interface_getter
     {
-        return get("Source2EngineToClient");
-    }
+        native::engine_client* engine() const
+        {
+            return basic_interface_getter::get("Source2EngineToClient");
+        }
 
-    native::game_resource_service* game_resource_service() const
-    {
-        return get("GameResourceServiceClient");
-    }
+        native::game_resource_service* game_resource_service() const
+        {
+            return basic_interface_getter::get("GameResourceServiceClient");
+        }
 
-    template <size_t I>
-    native::engine_client* get() const requires(I == 0u)
-    {
-        return engine();
-    }
+        template <size_t I>
+        native::engine_client* get() const requires(I == 0u)
+        {
+            return engine();
+        }
 
-    template <size_t I>
-    native::game_resource_service* get() const requires(I == 1u)
-    {
-        return game_resource_service();
-    }
-};
+        template <size_t I>
+        native::game_resource_service* get() const requires(I == 1u)
+        {
+            return game_resource_service();
+        }
+    };
 
-struct engine_lib final : native_library_info
-{
-    engine_lib()
+  public:
+    named_library_info()
         : native_library_info{L"engine2.dll"}
     {
     }
 
-    detail::library_interface_getter<engine_lib> interface() const
+    interface_getter interface() const
     {
         return {this};
     }

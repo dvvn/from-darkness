@@ -173,7 +173,7 @@ struct toupper_table final : basic_char_table<char>
 } // namespace detail
 
 template <class T>
-class char_table_wrapper final
+class char_table_wrapper
 {
     T table_;
 

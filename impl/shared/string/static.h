@@ -57,7 +57,7 @@ class basic_static_string
 #ifdef _DEBUG
         auto const old_size = size_;
 #endif
-        auto const buffer_first = std::data(buffer_);
+        auto const buffer_first = std::begin(buffer_);
         auto const buffer_last  = std::copy(first, last, buffer_first);
         size_                   = static_cast<size_type>(std::distance(buffer_first, buffer_last));
 #ifdef _DEBUG
@@ -225,10 +225,7 @@ class basic_static_string
     constexpr basic_static_string& append(It first, size_type count)
     {
         assert(size_ + count <= Length);
-        if constexpr (std::random_access_iterator<It>)
-            std::copy(first, first + count, buffer_ + size_);
-        else
-            std::copy_n(first, count, buffer_ + size_);
+        std::copy_n(first, count, buffer_ + size_);
         size_ += count;
         return *this;
     }
@@ -416,10 +413,7 @@ class basic_constant_string
     template <std::incrementable It>
     constexpr basic_constant_string(It source)
     {
-        if constexpr (std::random_access_iterator<It>)
-            std::copy(source, source + Length, std::data(buffer_));
-        else
-            std::copy_n(source, Length, std::data(buffer_));
+        std::copy_n(source, Length, std::data(buffer_));
     }
 
     constexpr pointer data() noexcept
@@ -514,8 +508,8 @@ constexpr auto operator+(basic_constant_string<Length_l, CharT_l> const& str_l, 
     assert(str_r[r_length] == '\0');
     basic_static_string<Length_l + r_length, string_join_char_t<CharT_l, CharT_r> > ret;
     auto dst_it = ret.data();
-    dst_it      = std::copy(str_l.data(), str_l.data() + str_l.size(), dst_it);
-    /*dst_it   =*/std::copy(str_r, str_r + r_length, dst_it);
+    dst_it      = std::copy_n(str_l.data(), str_l.size(), dst_it);
+    /*dst_it   =*/std::copy_n(str_r, r_length, dst_it);
     return ret;
 }
 
@@ -553,4 +547,13 @@ template <size_t Length>
 using constant_wstring = basic_constant_string<Length, wchar_t>;
 template <size_t Length>
 using constant_u8string = basic_constant_string<Length, char8_t>;
+
+inline namespace literals
+{
+template <basic_constant_string Str>
+constexpr auto operator"" _cs() -> std::remove_const_t<decltype(Str)>
+{
+    return Str;
+}
+} // namespace literals
 } // namespace fd

@@ -1,9 +1,12 @@
 ﻿#pragma once
 
-#include "type_traits/core.h"
+#include "type_traits/type_identity.h"
+
+#include <type_traits>
 
 namespace fd
 {
+
 template <typename P, size_t Count = 1, bool = std::is_pointer_v<P>>
 struct remove_pointer;
 

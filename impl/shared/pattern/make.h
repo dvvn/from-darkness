@@ -184,15 +184,22 @@ constexpr auto make_pattern()
 
 inline namespace literals
 {
+#ifdef _DEBUG
 template <constant_string Pattern>
 constexpr auto operator""_pat()
 {
-#ifndef _DEBUG
-    constexpr
-#endif
-        auto result = detail::make_pattern<Pattern>();
+    auto result = detail::make_pattern<Pattern>();
     return result;
 }
+#else
+template <constant_string Pattern>
+consteval auto operator""_pat()
+{
+    constexpr auto result = detail::make_pattern<Pattern>();
+    return result;
+}
+#endif
+
 } // namespace literals
 
 template <typename... Args>

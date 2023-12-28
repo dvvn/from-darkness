@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "algorithm/char.h"
-#include "library_info/function.h"
+#include "library_info/function_getter.h"
 #include "native/interface_register.h"
 
 #include <cassert>
@@ -26,17 +26,26 @@ struct interface_version_char_table : basic_char_table<bool>
     }
 };
 
+#ifdef _DEBUG
 inline constexpr char_table_wrapper<interface_version_char_table> interface_version_char;
-} // namespace detail
+#else
+inline constexpr struct : char_table_wrapper<interface_version_char_table>
+{
+    bool operator()(char const c) const
+    {
+        if (c < 0)
+            return false;
+        return char_table_wrapper::operator()(c);
+    }
+} interface_version_char;
+#endif
 
 template <bool ContainsVersion>
 interface_register* find_interface_register(
     interface_register* reg,                          //
     char const* const name, size_t const name_length, //
-    bool_constant<ContainsVersion>)
+    bool_constant<ContainsVersion>) noexcept
 {
-    using detail::interface_version_char;
-
     for (; reg != nullptr; reg = reg->next())
     {
         auto const reg_name      = reg->name();
@@ -76,20 +85,23 @@ interface_register* find_interface_register(
     }
     return reg;
 }
+} // namespace detail
 
-inline void* find_interface(interface_register* const root_ifc, string_view const name)
+inline void* find_interface(interface_register* const root_interface, string_view const interface_name) noexcept
 {
-    auto const name_data             = name.data();
-    auto const name_length           = name.length();
-    auto const name_contains_version = isdigit(name.back());
+    auto const name_data             = interface_name.data();
+    auto const name_length           = interface_name.length();
+    auto const name_contains_version = isdigit(interface_name.back());
 
     interface_register* found;
 
+    using detail::find_interface_register;
+
     if (name_contains_version)
-        found = find_interface_register(root_ifc, name_data, name_length, true_type());
+        found = find_interface_register(root_interface, name_data, name_length, true_type());
     else
     {
-        found = find_interface_register(root_ifc, name_data, name_length, false_type());
+        found = find_interface_register(root_interface, name_data, name_length, false_type());
 #ifdef _DEBUG
         if (found && found->name()[name_length] != '\0')
         {
@@ -107,12 +119,33 @@ inline void* find_interface(interface_register* const root_ifc, string_view cons
 }
 } // namespace native
 
+struct native_library_info::basic_interface_getter : basic_function_getter
+{
+    static safe_cast_lazy<void*> get(native::interface_register* const root_interface, string_view const interface_name)
+    {
+        return find_interface(root_interface, interface_name);
+    }
+
+    safe_cast_lazy<void*> get(string_view const name) const
+    {
+#ifdef _DEBUG
+        static std::pair<void const*, native::interface_register*> cached;
+        if (cached.first != this)
+            cached = {this, root_interface()};
+        return find_interface(cached.second, name);
+#else
+        return find_interface(root_interface(), name);
+#endif
+    }
+
+  private:
+    using basic_function_getter::create_interface;
+    using basic_function_getter::find;
+    native::interface_register* root_interface() const;
+};
+
 namespace detail
 {
-inline safe_cast_lazy<void*> library_interface_getter<>::get(string_view const name) const
-{
-    return (find_interface(root_interface(), name));
-}
 
 // template <class... T>
 // requires(sizeof...(T) > 1)

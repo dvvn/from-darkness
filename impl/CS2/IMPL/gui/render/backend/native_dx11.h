@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "gui/render/backend/basic_dx11.h"
-#include "library_info/render_system_dx11.h"
 #include "winapi/com_ptr.h"
 #include "noncopyable.h"
 #include "optional.h"
@@ -26,10 +25,10 @@ class native_dx11_device_data : public noncopyable
         d3d_device_->GetImmediateContext(&device_context_);
     }
 
-    native_dx11_device_data(render_system_dx11_lib const source = {})
+    /*native_dx11_device_data(render_system_dx11_lib const source = {})
         : native_dx11_device_data{source.pattern().DXGI_swap_chain()}
     {
-    }
+    }*/
 
     native_dx11_device_data(native_dx11_device_data&& other) noexcept
         : swap_chain_{std::move(other.swap_chain_)}

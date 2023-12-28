@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "type_traits/core.h"
+
+#include <type_traits>
 
 namespace fd
 {

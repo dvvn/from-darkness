@@ -162,7 +162,7 @@ class pattern
     {
     }
 
-    constexpr storage_type const& get() const
+    constexpr storage_type const& get() const noexcept
     {
         return bytes_;
     }
@@ -173,7 +173,7 @@ class pattern
         return boost::hana::at_c<Index>(bytes_);
     }
 
-    constexpr auto length() const
+    constexpr auto length() const noexcept
     {
         if constexpr ((complete<pattern_segment_constant_size<Segment>> && ...))
             return (pattern_segment_constant_size<Segment>::length + ...);

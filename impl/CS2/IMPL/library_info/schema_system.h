@@ -1,34 +1,34 @@
 ﻿#pragma once
-#include "library_info/root_interface.h"
+#include "library_info/interface_getter.h"
+#include "library_info/literals.h"
 #include "native/schema_system.h"
 
 namespace fd
 {
 template <>
-struct detail::library_interface_getter<struct schema_system_lib> : library_interface_getter<>
+class named_library_info<"schemasystem"_cs> final : native_library_info
 {
-    using library_interface_getter<>::get;
-
-    native::schema_system* schema_system() const
+    struct interface_getter final : basic_interface_getter
     {
-        return get("SchemaSystem");
-    }
+        native::schema_system* schema_system() const
+        {
+            return basic_interface_getter::get("SchemaSystem");
+        }
 
-    template <size_t I>
-    native::schema_system* get() const requires(I == 0u)
-    {
-        return schema_system();
-    }
-};
+        template <size_t I>
+        native::schema_system* get() const requires(I == 0u)
+        {
+            return schema_system();
+        }
+    };
 
-struct schema_system_lib : native_library_info
-{
-    schema_system_lib()
+  public:
+    named_library_info()
         : native_library_info{L"schemasystem.dll"}
     {
     }
 
-    detail::library_interface_getter<schema_system_lib> interface() const
+    interface_getter interface() const
     {
         return {this};
     }
