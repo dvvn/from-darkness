@@ -7,8 +7,9 @@
 
 namespace fd
 {
-struct library_info::basic_section_getter : basic_object_getter
+class library_info::basic_section_getter : public basic_object_getter
 {
+  public:
     using pointer = IMAGE_SECTION_HEADER const*;
 
     pointer find(string_view const name) const noexcept

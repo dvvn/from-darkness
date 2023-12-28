@@ -6,8 +6,9 @@
 
 namespace fd
 {
-struct library_info::basic_function_getter : basic_object_getter
+class library_info::basic_function_getter : public basic_object_getter
 {
+  public:
     void* find(string_view const name) const noexcept
     {
         auto const base_address = linfo_->data();
@@ -45,8 +46,9 @@ struct library_info::basic_function_getter : basic_object_getter
     }
 };
 
-struct native_library_info::basic_function_getter : library_info::basic_function_getter
+class native_library_info::basic_function_getter : public library_info::basic_function_getter
 {
+  public:
     void* create_interface() const
     {
         return find("CreateInterface");

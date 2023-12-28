@@ -135,15 +135,6 @@ class native_library_info::basic_interface_getter : public basic_object_getter_t
 namespace detail
 {
 
-  private:
-    using basic_function_getter::create_interface;
-    using basic_function_getter::find;
-    native::interface_register* root_interface() const;
-};
-
-namespace detail
-{
-
 // template <class... T>
 // requires(sizeof...(T) > 1)
 // auto library_interface_getter<native_library_info>::find() const -> packed_objects<T...>
