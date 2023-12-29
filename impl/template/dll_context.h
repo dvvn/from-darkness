@@ -1,5 +1,5 @@
 #pragma once
-#include "noncopyable.h"
+#include "basic_context.h"
 
 #include <Windows.h>
 
@@ -10,7 +10,7 @@ namespace fd
 {
 namespace detail
 {
-class dll_context : public noncopyable
+class dll_context : public basic_context
 {
     HINSTANCE instance_;
 

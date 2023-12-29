@@ -1,11 +1,12 @@
 ﻿#pragma once
 #include "functional/ignore.h"
+#include "basic_context.h"
 
 namespace fd
 {
 namespace detail
 {
-class exe_context
+class exe_context : public basic_context
 {
   public:
     static bool run();

@@ -1,15 +1,10 @@
 ﻿#pragma once
 
 #include "diagnostics/fatal.h"
+#include "functional/basic_vfunc.h"
 #include "functional/call_traits.h"
 #include "hook/callback.h"
 #include "hook/info.h"
-
-namespace fd
-{
-template <typename Fn, size_t FnSize>
-struct vfunc;
-}
 
 #define FD_HOOK_PROXY_TEMPLATE template <typename Fn>
 
@@ -20,64 +15,40 @@ namespace detail
 template <typename Fn>
 struct hook_proxy;
 
-template <typename Proxy>
-struct hook_proxy_target;
-
-template <typename Fn>
-struct hook_proxy_target<hook_proxy<Fn>> : type_identity<Fn>
-{
-};
-
-template <typename Fn>
-struct hook_proxy_target<hook_proxy<Fn> const> : type_identity<Fn>
-{
-};
-
-template <typename Fn>
-struct hook_proxy_target<hook_proxy<Fn> volatile> : type_identity<Fn>
-{
-};
-
-template <typename Fn>
-struct hook_proxy_target<hook_proxy<Fn> volatile const> : type_identity<Fn>
-{
-};
-
-template <typename Fn, bool Member>
-class original_func_invoker;
-
 template <typename Fn>
 #ifdef _DEBUG
 requires requires { typename function_info<Fn>::object_type; }
 #endif
-class original_func_invoker<Fn, true> : public noncopyable
+class member_func_invoker : public noncopyable
 {
-    using info = function_info<Fn>;
+    using fn_info = function_info<Fn>;
 
-    using object_type   = typename info::object_type;
-    using instance_type = conditional_t<std::is_const_v<object_type>, void const, void>;
+    using object_type = typename fn_info::object_type;
+
+    using object_pointer   = object_type*;
+    using instance_pointer = safe_cast_result<void*, object_pointer>;
 
     Fn original_;
 
     union
     {
-        object_type* object_;
-        instance_type* instance_;
+        object_pointer object_;
+        instance_pointer instance_;
     };
 
   public:
-    original_func_invoker(void* original, instance_type* proxy)
+    member_func_invoker(void* original, instance_pointer proxy)
         : original_{unsafe_cast_from(original)}
         , instance_{proxy}
     {
     }
 
     template <typename... Args>
-    auto operator()(Args&&... args) const noexcept(info::no_throw)
+    auto operator()(Args&&... args) const noexcept(fn_info::no_throw)
 #ifdef _DEBUG
-        -> std::invoke_result_t<Fn, object_type*, Args&&...>
+        -> std::invoke_result_t<Fn, object_pointer, Args&&...>
 #else
-        -> typename info::return_type
+        -> decltype(auto)
 #endif
     {
         return invoke(
@@ -90,41 +61,39 @@ class original_func_invoker<Fn, true> : public noncopyable
             std::forward<Args>(args)...);
     }
 
-    operator object_type*() const
+    operator object_pointer() const
     {
         return object_;
     }
 
-    object_type* operator->() const
+    object_pointer operator->() const
     {
         return object_;
     }
 };
 
 template <typename Fn>
-class original_func_invoker<Fn, false> : public noncopyable
+class non_member_func_invoker : public noncopyable
 {
-    using info = function_info<Fn>;
-
     Fn original_;
 
   public:
-    original_func_invoker(void* original)
+    non_member_func_invoker(void* original)
         : original_{unsafe_cast_from(original)}
     {
     }
 
-    original_func_invoker(Fn original)
+    non_member_func_invoker(Fn original)
         : original_{original}
     {
     }
 
     template <typename... Args>
-    auto operator()(Args&&... args) const noexcept(info::no_throw)
+    auto operator()(Args&&... args) const noexcept(function_info<Fn>::no_throw)
 #ifdef _DEBUG
         -> std::invoke_result_t<Fn, Args&&...>
 #else
-        -> typename info::return_type
+        -> decltype(auto)
 #endif
     {
         using std::invoke;
@@ -136,30 +105,31 @@ class original_func_invoker<Fn, false> : public noncopyable
     }
 };
 
-template <typename Fn, class Object>
-original_func_invoker(Fn, Object*) -> original_func_invoker<Fn, true>;
-
-template <typename Fn>
-original_func_invoker(Fn) -> original_func_invoker<Fn, false>;
-
-template <typename Callback, class Proxy, typename... Args>
-auto invoke_hook_proxy(Proxy* proxy, Args... args)
+template <typename Callback, class OriginalInvoker, class ObjectPointer, class Proxy, typename... Args>
+decltype(auto) invoke_hook_proxy_member(Proxy* proxy, Args&&... args)
 {
-    using fn_t = typename hook_proxy_target<Proxy>::type;
+    auto& callback = *unique_hook_proxy_data<Callback>.callback;
 
-    using original_invoker = original_func_invoker<fn_t, true>;
-    using object_pointer   = typename function_info<fn_t>::object_type*;
-
-    decltype(auto) callback = make_hook_callback_invoker(unique_hook_proxy_data<Callback>.callback);
-
-    if constexpr (std::invocable<Callback, original_invoker, Args...>)
-        return callback(original_invoker{unique_hook_proxy_data<Callback>.original, proxy}, args...);
-    else if constexpr (std::invocable<Callback, object_pointer, Args...>)
-        return callback(unsafe_cast<object_pointer>(proxy), args...);
-    else if constexpr (std::invocable<Callback, object_pointer>)
-        return callback(unsafe_cast<object_pointer>(proxy), args...);
+    if constexpr (std::invocable<Callback, OriginalInvoker, Args&&...>)
+        return invoke_hook_callback(callback, OriginalInvoker{unique_hook_proxy_data<Callback>.original, proxy}, std::forward<Args>(args)...);
+    else if constexpr (std::invocable<Callback, ObjectPointer, Args&&...>)
+        return invoke_hook_callback(callback, unsafe_cast<ObjectPointer>(proxy), std::forward<Args>(args)...);
+    else if constexpr (std::invocable<Callback, ObjectPointer>)
+        return invoke_hook_callback(callback, unsafe_cast<ObjectPointer>(proxy));
     else
-        return callback(args...);
+        return invoke_hook_callback(callback, std::forward<Args>(args)...);
+}
+
+template <typename Callback, class Func, typename... Args>
+decltype(auto) invoke_hook_proxy(hook_proxy<Func>* proxy, Args&&... args)
+{
+    return invoke_hook_proxy_member<Callback, member_func_invoker<Func>, typename function_info<Func>::object_type*>(proxy, std::forward<Args>(args)...);
+}
+
+template <typename Callback, class Func, typename... Args>
+decltype(auto) invoke_hook_proxy(hook_proxy<Func> const* proxy, Args&&... args)
+{
+    return invoke_hook_proxy_member<Callback, member_func_invoker<Func>, typename function_info<Func>::object_type*>(proxy, std::forward<Args>(args)...);
 }
 
 #define HOOK_PROXY_MEMBER(_CCV_, _CV_, _REF_, _NOEXCEPT_)                                 \
@@ -174,27 +144,27 @@ auto invoke_hook_proxy(Proxy* proxy, Args... args)
     };
 
 template <typename Callback, typename Fn, typename... Args>
-auto invoke_hook_proxy(type_identity<Fn> /*target*/, Args... args)
+decltype(auto) invoke_hook_proxy(type_identity<Fn> /*target*/, Args&&... args)
 {
-    using original_invoker = original_func_invoker<Fn, false>;
+    using original_invoker = non_member_func_invoker<Fn>;
 
-    decltype(auto) callback = make_hook_callback_invoker(unique_hook_proxy_data<Callback>.callback);
+    auto& callback = *unique_hook_proxy_data<Callback>.callback;
 
     if constexpr (std::invocable<Callback, original_invoker, Args...>)
-        return callback(original_invoker{unique_hook_proxy_data<Callback>.original}, args...);
+        return invoke_hook_callback(callback, original_invoker{unique_hook_proxy_data<Callback>.original}, std::forward<Args>(args)...);
     else
-        return callback(args...);
+        return invoke_hook_callback(callback, std::forward<Args>(args)...);
 }
 
-#define HOOK_PROXY_STATIC(_CCV_, _CV_UNUSED_, _REF_UNUSED_, _NOEXCEPT_)                   \
-    template <typename Ret, typename... Args>                                             \
-    struct hook_proxy<Ret(_CCV_*)(Args...) _NOEXCEPT_> : noncopyable                      \
-    {                                                                                     \
-        template <typename Callback>                                                      \
-        static Ret _CCV_ proxy(Args... args) _NOEXCEPT_                                   \
-        {                                                                                 \
-            return invoke_hook_proxy<Callback>(hook_proxy_target<hook_proxy>{}, args...); \
-        }                                                                                 \
+#define HOOK_PROXY_STATIC(_CCV_, _CV_UNUSED_, _REF_UNUSED_, _NOEXCEPT_)                                    \
+    template <typename Ret, typename... Args>                                                              \
+    struct hook_proxy<Ret(_CCV_*)(Args...) _NOEXCEPT_> : noncopyable                                       \
+    {                                                                                                      \
+        template <typename Callback>                                                                       \
+        static Ret _CCV_ proxy(Args... args) _NOEXCEPT_                                                    \
+        {                                                                                                  \
+            return invoke_hook_proxy<Callback>(type_identity<Ret(_CCV_*)(Args...) _NOEXCEPT_>{}, args...); \
+        }                                                                                                  \
     };
 
 #define HOOK_PROXY_STATIC_THISCALL(_CCV_, _CV_, _REF_, _NOEXCEPT_)                        \
@@ -235,14 +205,14 @@ hook_info<Callback> prepare_hook(Func const fn) requires(complete<Proxy<Func>>)
     return prepare_hook<Callback, Proxy<Func>>(fn, true_type{});
 }
 
-template <typename Callback, class Proxy, typename Func, size_t FuncSize>
-hook_info<Callback> prepare_hook(vfunc<Func, FuncSize> const target)
+template <typename Callback, class Proxy, typename Func>
+hook_info<Callback> prepare_hook(vfunc<Func> const target)
 {
     return prepare_hook<Callback, Proxy, Func>(target, true_type{});
 }
 
-template <typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy, typename Func, size_t FuncSize>
-hook_info<Callback> prepare_hook(vfunc<Func, FuncSize> const target)
+template <typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy, typename Func>
+hook_info<Callback> prepare_hook(vfunc<Func> const target)
 {
     return prepare_hook<Callback, Proxy<Func>, Func>(target, true_type{});
 }

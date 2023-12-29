@@ -1,8 +1,7 @@
 #include "debug/console.h"
 #include "debug/log.h"
 #include "entity_cache/holder.h"
-#include "functional/bind.h"
-#include "functional/vtable.h"
+#include "functional/vfunc.h"
 #include "gui/present.h"
 #include "gui/render/backend/native_dx11.h"
 #include "gui/render/backend/native_win32.h"
@@ -57,7 +56,9 @@ bool fd::context::run()
     hooked::DXGI_swap_chain::resize_buffers hk_resize_buffers{&render_backend};
     if (!hook_creator(vfunc{&IDXGISwapChain::ResizeBuffers, render_data.swap_chain()}, &hk_resize_buffers))
         return false;
-    hooked::DXGI_swap_chain::present hk_present{bind(gui::present, &render_backend, &system_backend, &render_context, &menu)};
+    hooked::DXGI_swap_chain::present hk_present{[&] {
+        gui::present(&render_backend, &system_backend, &render_context, &menu);
+    }};
     if (!hook_creator(vfunc{&IDXGISwapChain::Present, render_data.swap_chain()}, &hk_present))
         return false;
     win::window_info const main_window{system_backend.window()};

@@ -1,4 +1,5 @@
 #pragma once
+#include "functional/basic_vfunc.h"
 #include "functional/basic_vtable.h"
 #include "functional/call_traits.h"
 
@@ -18,15 +19,15 @@ _MEMBER_CALL(GET_VFUNC, , , )
 #endif
 #undef GET_VFUNC
 
-template <typename Fn>
-void* get_vfunc(Fn abstract_function, void* instance)
+template <typename Func>
+void* get_vfunc(Func abstract_function, void* instance)
 #if 0
-    requires(std::is_member_function_pointer_v<Fn>)
+    requires(std::is_member_function_pointer_v<Func>)
 #else
-    requires requires { typename function_info<Fn>::object_type; }
+    requires requires { typename function_info<Func>::object_type; }
 #endif
 {
-    using call_type = typename function_info<Fn>::call_type;
+    using call_type = typename function_info<Func>::call_type;
     auto function   = unsafe_cast<void*>(abstract_function);
     return get_vfunc<call_type>(function, instance);
 }
@@ -49,14 +50,14 @@ class pointer_extractor
     T* value_;
 
   public:
-    pointer_extractor(T* instance)
-        : value_{instance}
+    pointer_extractor(T* ptr)
+        : value_{ptr}
     {
     }
 
     template <class Packed>
-    pointer_extractor(Packed&& instance) requires requires { static_cast<T*>(instance.get()); }
-        : value_{instance.get()}
+    pointer_extractor(Packed&& ptr_packed) requires requires { static_cast<T*>(ptr_packed.get()); }
+        : value_{ptr_packed.get()}
     {
     }
 
@@ -65,61 +66,55 @@ class pointer_extractor
         return value_;
     }
 };
-} // namespace detail
 
-template <typename Fn, size_t FnSize = sizeof(Fn)>
-struct vfunc;
+template <typename Func, size_t FnSize = sizeof(Func)>
+class vfunc_impl;
 
-template <typename Fn>
-struct vfunc<Fn, sizeof(void*)>
+template <typename Func>
+class vfunc_impl<Func, sizeof(void*)>
 {
-    using function_type = Fn;
-
-    using info = function_info<function_type>;
-
-    using object_type = typename info::object_type;
-
-  private:
-    using instance_extractor = detail::pointer_extractor<object_type>;
+    using fn_info            = function_info<Func>;
+    using object_type        = typename fn_info::object_type;
+    using instance_extractor = pointer_extractor<object_type>;
 
     union
     {
-        function_type func_;
+        Func func_;
         void* func_ptr_;
     };
 
     basic_vtable<object_type> source_;
 
   public:
-    vfunc(size_t const index, instance_extractor instance)
+    vfunc_impl(size_t const index, instance_extractor instance)
         : func_ptr_(get_vfunc(index, instance))
         , source_(instance)
     {
     }
 
-    vfunc(function_type function, instance_extractor instance)
+    vfunc_impl(Func function, instance_extractor instance)
         : func_ptr_(get_vfunc(function, instance))
         , source_(instance)
     {
     }
 
-    vfunc(function_type function, instance_extractor instance, std::in_place_t)
+    vfunc_impl(Func function, instance_extractor instance, std::in_place_t)
         : func_(function)
         , source_(instance)
     {
     }
 
-    template <std::same_as<function_type> T>
+    template <std::same_as<Func> T>
     operator T() const
     {
         return func_;
     }
 
     template <typename... Args>
-    auto operator()(Args&&... args) const noexcept(info::no_throw) -> typename
+    auto operator()(Args&&... args) const noexcept(fn_info::no_throw) -> typename
 #ifdef _DEBUG
         // ReSharper disable once CppUseTypeTraitAlias
-        std::invoke_result<function_type, object_type*, Args&&...>::type
+        std::invoke_result<Func, object_type*, Args&&...>::type
 #else
         info::return_type
 #endif
@@ -127,6 +122,13 @@ struct vfunc<Fn, sizeof(void*)>
         using std::invoke;
         return invoke(func_, source_.instance(), std::forward<Args>(args)...);
     }
+};
+} // namespace detail
+
+template <typename Func>
+struct vfunc final : detail::vfunc_impl<Func>, basic_vfunc<Func>
+{
+    using detail::vfunc_impl<Func>::vfunc_impl;
 };
 
 template <typename Func, typename... Next>

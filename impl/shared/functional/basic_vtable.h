@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <cstddef>
 
 namespace fd
@@ -30,4 +29,4 @@ class basic_vtable final
         return (*vtable_)[function_index];
     }
 };
-}
+} // namespace fd

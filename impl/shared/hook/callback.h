@@ -49,38 +49,35 @@ concept callback_can_enter_exit = requires(Callback c) {
     c.exit();
 };
 
-template <typename Callback>
-decltype(auto) make_hook_callback_invoker(Callback* callback)
+template <typename Callback, typename... Args>
+decltype(auto) invoke_hook_callback(Callback& callback, Args&&... args)
 {
-    if constexpr (!detail::callback_can_enter_exit<Callback>)
+    if constexpr (!detail::callback_can_enter_exit<Callback&>)
     {
-        return *callback;
+        return callback(std::forward<Args>(args)...);
     }
     else
     {
-        return [callback]<typename... Args>(Args&&... args) {
 #ifdef _DEBUG
-            using fn_ret = std::invoke_result_t<Callback&, Args&&...>;
-            if constexpr (std::is_void_v<fn_ret>)
-            {
-                callback->enter();
-                std::invoke(*callback, std::forward<Args>(args)...);
-                callback->exit();
-            }
-            else
+        using fn_ret = std::invoke_result_t<Callback&, Args&&...>;
+        if constexpr (std::is_void_v<fn_ret>)
+        {
+            callback.enter();
+            callback(std::forward<Args>(args)...);
+            callback.exit();
+        }
+        else
 #endif
-            {
-                callback->enter();
-                invoke_on const lazy_exit{
-                    object_state::destruct{}, //
-                    [callback_ = callback] {
-                        callback_->exit();
-                    }};
-                return std::invoke(*callback, std::forward<Args>(args)...);
-            }
-        };
+        {
+            callback.enter();
+            invoke_on const lazy_exit{
+                object_state::destruct{}, //
+                [cb = &callback] {
+                    cb->exit();
+                }};
+            return callback(std::forward<Args>(args)...);
+        }
     }
 }
-
 } // namespace detail
 } // namespace fd
