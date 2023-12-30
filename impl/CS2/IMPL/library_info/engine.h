@@ -4,45 +4,36 @@
 #include "native/engine_client.h"
 #include "native/game_resource_service.h"
 
-namespace fd
+namespace fd::detail
 {
 template <>
-class named_library_info<"engine2"_cs> final : public native_library_info
+class library_object_getter<named_library_info<"engine2">>
 {
-    struct interface_getter final : basic_interface_getter
-    {
-        native::engine_client* engine() const
-        {
-            return basic_interface_getter::get("Source2EngineToClient");
-        }
-
-        native::game_resource_service* game_resource_service() const
-        {
-            return basic_interface_getter::get("GameResourceServiceClient");
-        }
-
-        template <size_t I>
-        native::engine_client* get() const requires(I == 0u)
-        {
-            return engine();
-        }
-
-        template <size_t I>
-        native::game_resource_service* get() const requires(I == 1u)
-        {
-            return game_resource_service();
-        }
-    };
+    native_library_interface_getter ifc_;
 
   public:
-    named_library_info()
-        : native_library_info{L"engine2.dll"}
+    library_object_getter(library_info const* linfo)
+        : ifc_{linfo}
     {
     }
 
-    interface_getter interface() const
+    native::engine_client* engine() const
     {
-        return {this};
+        return ifc_.find("Source2EngineToClient");
+    }
+
+    native::game_resource_service* game_resource_service() const
+    {
+        return ifc_.find("GameResourceServiceClient");
     }
 };
-} // namespace fd
+
+template <size_t I>
+auto get(library_object_getter<named_library_info<"engine2">> const& getter)
+{
+    if constexpr (I == 0)
+        return getter.engine();
+    else if constexpr (I == 1)
+        return getter.game_resource_service();
+}
+} // namespace fd::detail

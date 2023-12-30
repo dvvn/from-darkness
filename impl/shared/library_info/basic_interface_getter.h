@@ -1,11 +1,9 @@
 ﻿#pragma once
 #include "algorithm/char.h"
-#include "library_info/function_getter.h"
+#include "library_info/holder.h"
 #include "native/interface_register.h"
 
 #include <cassert>
-
-#undef interface
 
 namespace fd
 {
@@ -119,28 +117,19 @@ inline void* find_interface(interface_register* const root_interface, string_vie
 }
 } // namespace native
 
-class native_library_info::basic_interface_getter : public basic_object_getter_tag
+namespace detail
+{
+class native_library_interface_getter
 {
     native::interface_register* root_interface_;
 
   public:
-    basic_interface_getter(library_info const* linfo);
+    native_library_interface_getter(library_info const* linfo);
 
-    safe_cast_lazy<void*> get(string_view const name) const
+    safe_cast_lazy<void*> find(string_view const name) const
     {
         return find_interface(root_interface_, name);
     }
 };
-
-namespace detail
-{
-
-// template <class... T>
-// requires(sizeof...(T) > 1)
-// auto library_interface_getter<native_library_info>::find() const -> packed_objects<T...>
-// {
-//     auto const root = root_interface();
-//     return {safe_cast_from(find_interface(root, native::interface_name<T>::value))...};
-// }
 } // namespace detail
 } // namespace fd

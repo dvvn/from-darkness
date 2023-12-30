@@ -5,37 +5,63 @@
 #include <algorithm>
 #include <cassert>
 
-namespace fd
+template <typename V, class C, size_t Length>
+constexpr size_t size(V (C::*)[Length]) noexcept
 {
-class library_info::basic_section_getter : public basic_object_getter
+    return Length;
+}
+
+namespace fd::detail
+{
+class library_section_getter
 {
   public:
     using pointer = IMAGE_SECTION_HEADER const*;
 
+  private:
+    pointer first_;
+    pointer last_;
+
+  public:
+    library_section_getter(library_info const* linfo)
+    {
+        auto const nt = linfo->nt_header();
+
+        first_ = IMAGE_FIRST_SECTION(nt);
+        last_  = first_ + nt->FileHeader.NumberOfSections;
+    }
+
+    pointer begin() const
+    {
+        return first_;
+    }
+
+    pointer end() const
+    {
+        return last_;
+    }
+
     pointer find(string_view const name) const noexcept
     {
         using std::data;
-        using std::equal;
         using std::size;
 
-        auto const nt = linfo_->nt_header();
-
-        auto first_section      = IMAGE_FIRST_SECTION(nt);
-        auto const last_section = first_section + nt->FileHeader.NumberOfSections;
-
-        auto const name_first  = data(name);
         auto const name_length = size(name);
-        auto const name_last   = name_first + name_length;
 
-        assert(name_length < size(first_section->Name));
+        assert(name_length < size(&IMAGE_SECTION_HEADER::Name));
 
-        for (; first_section != last_section; ++first_section)
+        auto const name_first = data(name);
+        auto const name_last  = name_first + name_length;
+
+        for (auto it = begin(); it != end(); ++it)
         {
-            if (first_section->Name[name_length] != '\0')
+            using std::equal;
+
+            if (it->Name[name_length] != '\0')
                 continue;
-            if (!equal(name_first, name_last, first_section->Name))
+            if (!equal(name_first, name_last, it->Name))
                 continue;
-            return first_section;
+            return it;
         }
 
         return nullptr;
@@ -51,4 +77,29 @@ class library_info::basic_section_getter : public basic_object_getter
         return find(".text");
     }
 };
-} // namespace fd
+
+class library_section_getter_ex : public library_section_getter
+{
+    uint8_t* image_base_;
+
+  public:
+    library_section_getter_ex(library_info const* linfo)
+        : library_section_getter{linfo}
+        , image_base_{safe_cast_from(linfo->image_base())}
+    {
+    }
+
+    using library_section_getter::begin;
+    using library_section_getter::end;
+
+    uint8_t* begin(pointer const section) const
+    {
+        return image_base_ + section->VirtualAddress;
+    }
+
+    uint8_t* end(pointer const section) const
+    {
+        return begin(section) + section->SizeOfRawData;
+    }
+};
+} // namespace fd::detail

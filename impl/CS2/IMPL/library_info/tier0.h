@@ -3,34 +3,29 @@
 #include "library_info/literals.h"
 #include "native/cvar.h"
 
-namespace fd
+namespace fd::detail
 {
 template <>
-class named_library_info<"tier0"_cs> final : public native_library_info
+class library_object_getter<named_library_info<"tier0">>
 {
-    struct interface_getter : basic_interface_getter
-    {
-        native::cvar_system* cvar_system() const
-        {
-            return basic_interface_getter::get("VEngineCvar");
-        }
-
-        template <size_t I>
-        native::cvar_system* get() const requires(I == 0u)
-        {
-            return cvar_system();
-        }
-    };
+    native_library_interface_getter ifc_;
 
   public:
-    named_library_info()
-        : native_library_info{L"tier0.dll"}
+    library_object_getter(library_info const* linfo)
+        : ifc_{linfo}
     {
     }
 
-    interface_getter interface() const
+    native::cvar_system* cvar_system() const
     {
-        return {this};
+        return ifc_.find("VEngineCvar");
     }
 };
-} // namespace fd
+
+template <size_t I>
+auto get(library_object_getter<named_library_info<"tier0">> const& getter)
+{
+    if constexpr (I == 0)
+        return getter.cvar_system();
+}
+} // namespace fd::detail

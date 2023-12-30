@@ -40,7 +40,9 @@ struct pattern_segment_item
 template <size_t BytesCount>
 class transformed_pattern
 {
-    array<pattern_segment_item, BytesCount> buffer_;
+    using buffer_type = array<pattern_segment_item, BytesCount>;
+
+    buffer_type buffer_;
 
     template <bool V>
     static constexpr auto pattern_segment_item_unknown(pattern_segment_item const& item)
@@ -49,7 +51,14 @@ class transformed_pattern
     }
 
   public:
-    constexpr transformed_pattern(span<char const> const pattern) // todo: raw iterators
+#ifdef FD_PATTERN_NATIVE_SIZE
+    using size_type = size_t;
+#else
+    using size_type = small_type<size_t, BytesCount>;
+#endif
+
+    template <class T>
+    constexpr transformed_pattern(T const& pattern)
         : buffer_{}
     {
 #ifdef _DEBUG
@@ -57,16 +66,18 @@ class transformed_pattern
         using std::views::split;
         assert(distance(split(pattern, ' ')) == BytesCount);
 #endif
-        auto it              = buffer_.data();
-        auto byte0           = pattern.data();
-        auto const last_byte = byte0 + pattern.size_bytes();
+        using std::data;
+        using std::size;
+
+        auto it              = data(buffer_);
+        auto byte0           = data(pattern);
+        auto const last_byte = byte0 + size(pattern);
 
         // resharper ignore 'typename N'
 #ifdef __RESHARPER__
         // ReSharper disable once CppInconsistentNaming
         using N = size_t;
 #endif
-
         auto const store_byte = [&]<typename N, N Num, N Offset>(integral_constant<N, Num>, integral_constant<N, Offset>) {
             if (*byte0 == '?')
             {
@@ -113,12 +124,17 @@ class transformed_pattern
         }
     }
 
-    constexpr size_t segments_count() const
+    constexpr size_type segments_count() const
     {
-        size_t count = 0;
+        size_type count = 0;
 
+#ifdef _DEBUG
         auto first      = buffer_.data();
         auto const last = first + buffer_.size();
+#else
+        auto first      = buffer_.begin();
+        auto const last = buffer_.end();
+#endif
 
         for (; first != last; ++count)
         {
@@ -131,11 +147,14 @@ class transformed_pattern
 
     struct segment_view
     {
+#ifdef _DEBUG
         using iterator = pattern_segment_item const*;
-
+#else
+        using iterator = buffer_type::const_iterator;
+#endif
         iterator first;
         iterator last;
-        size_t jump;
+        size_type jump;
 
         /*constexpr pattern_size_type length() const
         {
@@ -145,18 +164,22 @@ class transformed_pattern
 
     constexpr segment_view segment(size_t skip = 0) const
     {
+#ifdef _DEBUG
         auto const first = buffer_.data();
         auto const last  = first + buffer_.size();
-
+#else
+        auto const first = buffer_.begin();
+        auto const last  = buffer_.end();
+#endif
         for (auto it = first; it != last;)
         {
-            auto const end  = std::find_if(it, last, pattern_segment_item_unknown<true>);
-            auto const next = std::find_if(end, last, pattern_segment_item_unknown<false>);
+            auto const unk_start = std::find_if(it, last, pattern_segment_item_unknown<true>);
+            auto const unk_end   = std::find_if(unk_start, last, pattern_segment_item_unknown<false>);
 
             if (skip == 0)
-                return {it, end, static_cast<size_t>(std::distance(end, next))};
+                return {it, unk_start, static_cast<size_type>(std::distance(unk_start, unk_end))};
 
-            it = next;
+            it = unk_end;
             --skip;
         }
 
@@ -167,7 +190,11 @@ class transformed_pattern
 template <constant_string Str>
 constexpr auto make_pattern()
 {
-    constexpr auto bytes_count = std::count(Str.data(), Str.data() + Str.length(), ' ') + 1;
+#ifdef _DEBUG
+    constexpr auto bytes_count = std::ranges::count(Str, ' ') + 1;
+#else
+    constexpr auto bytes_count = std::count(Str.begin(), Str.end(), ' ') + 1;
+#endif
     constexpr transformed_pattern<bytes_count> bytes{Str};
 
     constexpr auto make_segment = []<size_t Skip>(integral_constant<size_t, Skip>) {
@@ -216,15 +243,10 @@ constexpr auto make_pattern(Args const&... args)
         }
         else
         {
-            using std::data;
-            using std::size;
-            auto const str_data = data(str);
-            auto str_length     = size(str);
-            if constexpr (std::is_bounded_array_v<T>)
-                if (str_data[str_length - 1] == '\0')
-                    --str_length;
+            using std::begin;
+            detail::validate_raw_string(str);
             return pattern_segment<-1, -1>{
-                {str_data, str_length},
+                {begin(str), detail::string_end(str)},
                 val
             };
         }

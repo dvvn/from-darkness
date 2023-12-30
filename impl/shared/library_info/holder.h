@@ -8,37 +8,37 @@
 
 namespace fd
 {
-class library_info;
-
 namespace detail
 {
-struct library_object_getter_tag
+template <class L>
+class library_object_getter;
+
+template <size_t I, class L>
+void get(library_object_getter<L> const&);
+
+template <class ObjGetter, size_t I, typename GetResult = decltype(get<I>(std::declval<ObjGetter>()))>
+struct library_object_getter_tuple_element : type_identity<GetResult>
 {
 };
 
-struct library_object_getter : library_object_getter_tag
-{
-  protected:
-    library_info const* linfo_;
+template <class ObjGetter, size_t I>
+struct library_object_getter_tuple_element<ObjGetter, I, void>;
 
-  public:
-    library_object_getter(library_info const* linfo)
-        : linfo_{linfo}
-    {
-    }
-};
+template <class ObjGetter, size_t I = 0, typename GetResult = decltype(get<I>(std::declval<ObjGetter>()))>
+struct library_object_getter_tuple_size;
 
-template <class Getter, size_t Index = 0>
-struct library_object_getter_tuple_size : library_object_getter_tuple_size<Getter, Index + 1>
+template <class ObjGetter>
+struct library_object_getter_tuple_size<ObjGetter, 0, void>;
+
+template <class ObjGetter, size_t I>
+struct library_object_getter_tuple_size<ObjGetter, I, void> : integral_constant<size_t, I>
 {
 };
 
-template <class Getter, size_t Index>
-requires(Index != 0 && requires(Getter g) { g.template get<Index>(); } == false)
-struct library_object_getter_tuple_size<Getter, Index> : integral_constant<size_t, Index>
+template <class ObjGetter, size_t I, typename GetResult>
+struct library_object_getter_tuple_size<ObjGetter, I, GetResult*> : library_object_getter_tuple_size<ObjGetter, I + 1>
 {
 };
-
 } // namespace detail
 
 class library_info
@@ -52,6 +52,7 @@ class library_info
     static LIST_ENTRY* module_list();
     static LDR_DATA_TABLE_ENTRY_FULL* ldr_table(LIST_ENTRY* entry);
 
+#if 0
   protected:
     template <class... T>
     class packed_objects
@@ -75,12 +76,7 @@ class library_info
             }(std::make_index_sequence<sizeof...(T)>{});
         }
     };
-
-    using basic_object_getter_tag = detail::library_object_getter_tag;
-    using basic_object_getter     = detail::library_object_getter;
-    class basic_function_getter;
-    class basic_pattern_getter;
-    class basic_section_getter;
+#endif
 
   public:
     library_info(wstring_view name);
@@ -220,24 +216,15 @@ inline void* library_info::vtable(string_view name) const
     return (addr3);
 }
 #endif
-
-class native_library_info : public library_info
-{
-  protected:
-    class basic_function_getter;
-    class basic_interface_getter;
-
-  public:
-    using library_info::library_info;
-};
 } // namespace fd
 
-template <size_t I, std::derived_from<fd::detail::library_object_getter_tag> Getter>
-struct std::tuple_element<I, Getter> : type_identity<decltype(declval<Getter>().template get<I>())>
+template <size_t I, class Info>
+struct std::tuple_element<I, fd::detail::library_object_getter<Info>> :
+    fd::detail::library_object_getter_tuple_element<fd::detail::library_object_getter<Info>, I>
 {
 };
 
-template <std::derived_from<fd::detail::library_object_getter_tag> Getter>
-struct std::tuple_size<Getter> : fd::detail::library_object_getter_tuple_size<Getter>
+template <class Info>
+struct std::tuple_size<fd::detail::library_object_getter<Info>> : fd::detail::library_object_getter_tuple_size<fd::detail::library_object_getter<Info>>
 {
 };

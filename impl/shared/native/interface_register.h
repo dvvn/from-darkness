@@ -1,7 +1,5 @@
 #pragma once
 
-#undef interface
-
 namespace fd::native
 {
 class interface_register

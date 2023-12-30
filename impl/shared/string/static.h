@@ -40,7 +40,8 @@ using select_iterator = conditional_t<
     sizeof(It) != sizeof(Ptr)
 #endif
         && std::is_trivially_destructible_v<It>,
-    It, Ptr>;
+    It,
+    Ptr>;
 } // namespace detail
 
 template <size_t Length, typename CharT>
@@ -100,6 +101,13 @@ class basic_static_string
     {
         pre_construct();
         assign_internal(first, last);
+    }
+
+    template <size_t L, typename C>
+    constexpr basic_static_string(C const (&source)[L])
+    {
+        pre_construct();
+        assign_internal(source, std::next(source, L - 1));
     }
 
     template <std::incrementable It>
@@ -303,70 +311,6 @@ class basic_static_string<0, CharT>;
 template <typename CharT>
 class basic_static_string<-1, CharT>;
 
-template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r>
-constexpr bool operator==(basic_static_string<Length_l, CharT_l> const& str_l, basic_static_string<Length_r, CharT_r> const& str_r)
-{
-    auto const l_length = str_l.length();
-    if (l_length == str_r.length())
-    {
-        auto const l_data = str_l.data();
-        return std::equal(l_data, l_data + l_length, str_r.data());
-    }
-    return false;
-}
-
-template <size_t Length_l, typename CharT_l, typename CharT_r, size_t Length_r>
-constexpr bool operator==(basic_static_string<Length_l, CharT_l> const& str_l, CharT_r const (&str_r)[Length_r])
-{
-    constexpr auto r_length = Length_r - 1;
-    assert(str_r[r_length] == '\0');
-
-    if constexpr (Length_l >= r_length)
-    {
-        auto const l_length = str_l.length();
-        if (l_length == r_length)
-        {
-            auto const l_data = str_l.data();
-            return std::equal(l_data, l_data + r_length, str_r);
-        }
-    }
-    return false;
-}
-
-template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r>
-constexpr auto operator+(basic_static_string<Length_l, CharT_l> const& str_l, basic_static_string<Length_r, CharT_r> const& str_r)
-    -> basic_static_string<Length_l + Length_r, string_join_char_t<CharT_l, CharT_r> >
-{
-    basic_static_string<Length_l + Length_r, string_join_char_t<CharT_l, CharT_r> > ret;
-    ret.append(str_l);
-    ret.append(str_r);
-    return ret;
-}
-
-template <size_t Length_l, typename CharT_l, typename CharT_r, size_t Length_r>
-constexpr auto operator+(basic_static_string<Length_l, CharT_l> const& str_l, CharT_r const (&str_r)[Length_r])
-    -> basic_static_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r> >
-{
-    constexpr auto r_length = Length_r - 1;
-    assert(str_r[r_length] == '\0');
-    basic_static_string<Length_l + r_length, string_join_char_t<CharT_l, CharT_r> > ret;
-    ret.append(str_l);
-    ret.append(str_r, r_length);
-    return ret;
-}
-
-template <typename CharT_l, size_t Length_l, size_t Length_r, typename CharT_r>
-constexpr auto operator+(CharT_l const (&str_l)[Length_l], basic_static_string<Length_r, CharT_r> const& str_r)
-    -> basic_static_string<Length_l - 1 + Length_r, string_join_char_t<CharT_l, CharT_r> >
-{
-    constexpr auto l_length = Length_l - 1;
-    assert(str_r[l_length] == '\0');
-    basic_static_string<l_length + Length_r, string_join_char_t<CharT_l, CharT_r> > ret;
-    ret.append(str_l, l_length);
-    ret.append(str_r);
-    return ret;
-}
-
 template <typename CharT, size_t Length>
 basic_static_string(CharT const (&)[Length]) -> basic_static_string<Length - 1, CharT>;
 #endif
@@ -500,44 +444,6 @@ class basic_constant_string
 #endif
 };
 
-template <size_t Length_l, typename CharT_l, typename CharT_r, size_t Length_r>
-constexpr auto operator+(basic_constant_string<Length_l, CharT_l> const& str_l, CharT_r const (&str_r)[Length_r])
-    -> basic_constant_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r> >
-{
-    constexpr auto r_length = Length_r - 1;
-    assert(str_r[r_length] == '\0');
-    basic_static_string<Length_l + r_length, string_join_char_t<CharT_l, CharT_r> > ret;
-    auto dst_it = ret.data();
-    dst_it      = std::copy_n(str_l.data(), str_l.size(), dst_it);
-    /*dst_it   =*/std::copy_n(str_r, r_length, dst_it);
-    return ret;
-}
-
-template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r>
-constexpr bool operator==(basic_constant_string<Length_l, CharT_l> const& str_l, basic_constant_string<Length_r, CharT_r> const& str_r)
-{
-    if constexpr (Length_l == Length_r)
-    {
-        auto const l_data = str_l.data();
-        return std::equal(l_data, l_data + Length_l, str_r.data());
-    }
-    return false;
-}
-
-template <size_t Length_l, typename CharT_l, typename CharT_r, size_t Length_r>
-constexpr bool operator==(basic_constant_string<Length_l, CharT_l> const& str_l, CharT_r const (&str_r)[Length_r])
-{
-    constexpr auto r_length = Length_r - 1;
-    assert(str_r[r_length] == '\0');
-
-    if constexpr (Length_l == r_length)
-    {
-        auto const l_data = str_l.data();
-        return std::equal(l_data, l_data + r_length, str_r);
-    }
-    return false;
-}
-
 template <typename CharT, size_t Length>
 basic_constant_string(CharT const (&)[Length]) -> basic_constant_string<Length - 1, CharT>;
 
@@ -547,6 +453,196 @@ template <size_t Length>
 using constant_wstring = basic_constant_string<Length, wchar_t>;
 template <size_t Length>
 using constant_u8string = basic_constant_string<Length, char8_t>;
+
+namespace detail
+{
+#if 0
+template <class T>
+struct is_static_string_impl : false_type
+{
+};
+
+template <size_t L, typename Ch>
+struct is_static_string_impl<basic_static_string<L, Ch>> : true_type
+{
+};
+
+template <class T>
+concept is_static_string = is_static_string_impl<T>::value;
+
+template <class T>
+struct is_constant_string_impl : false_type
+{
+};
+
+template <size_t L, typename Ch>
+struct is_constant_string_impl<basic_constant_string<L, Ch>> : true_type
+{
+};
+
+template <class T>
+concept is_constant_string = is_constant_string_impl<T>::value;
+#else
+template <class T>
+concept is_static_string = requires(T str) {
+    []<size_t L, typename Ch>(basic_static_string<L, Ch>) {
+    }(str);
+};
+template <class T>
+concept is_constant_string = requires(T str) {
+    []<size_t L, typename Ch>(basic_constant_string<L, Ch>) {
+    }(str);
+};
+#endif
+template <class S>
+concept has_max_size = requires { 1u + S::max_size(); };
+
+template <class S>
+concept known_max_size = has_max_size<S> || std::is_bounded_array_v<S>;
+
+template <class T>
+struct string_value : type_identity<typename T::value_type>
+{
+};
+
+template <class T, size_t S>
+struct string_value<T[S]> : type_identity<T>
+{
+};
+
+template <class T>
+struct string_max_size;
+
+template <size_t L, typename C>
+struct string_max_size<basic_static_string<L, C>> : integral_constant<size_t, L>
+{
+};
+
+template <size_t L, typename C>
+struct string_max_size<basic_constant_string<L, C>> : integral_constant<size_t, L>
+{
+};
+
+template <class T, size_t S>
+struct string_max_size<T[S]> : integral_constant<size_t, S - 1>
+{
+};
+
+template <template <size_t L, typename C> class String, class S_l, class S_r>
+using sized_string_join_result = String<
+    string_max_size<S_l>::value + string_max_size<S_r>::value, //
+    string_join_char_t<typename string_value<S_l>::type, typename string_value<S_r>::type>>;
+
+template <class S_l, class S_r>
+using static_string_join_result = sized_string_join_result<basic_static_string, S_l, S_r>;
+template <class S_l, class S_r>
+using constant_string_join_result = sized_string_join_result<basic_constant_string, S_l, S_r>;
+
+template <typename T>
+constexpr auto string_end(T const& str)
+{
+    using std::end;
+    return end(str) - std::is_bounded_array_v<T>;
+}
+
+template <typename T>
+constexpr void validate_raw_string(T const& str)
+{
+    if constexpr (std::is_bounded_array_v<T>)
+        assert(*std::rbegin(str) == '\0');
+}
+
+template <typename T>
+constexpr void validate_static_string(T const& str)
+{
+    if constexpr (is_static_string<T>)
+        assert(str.size() == str.max_size());
+}
+
+template <typename S_l, typename S_r>
+constexpr auto join_to_static_string(S_l const& str_l, S_r const& str_r) -> static_string_join_result<S_l, S_r>
+{
+    static_string_join_result<S_l, S_r> ret;
+
+#ifdef BOOST_STATIC_STRING_HPP
+    using std::begin;
+
+    ret.append(begin(str_l), string_end(str_l));
+    ret.append(begin(str_r), string_end(str_r));
+#else
+    ret.append(str_l);
+    ret.append(str_r);
+#endif
+    return ret;
+}
+
+template <typename S_l, typename S_r>
+constexpr auto join_to_constant_string(S_l const& str_l, S_r const& str_r) -> constant_string_join_result<S_l, S_r>
+{
+    validate_raw_string(str_r);
+    validate_static_string(str_r);
+    validate_raw_string(str_l);
+    validate_static_string(str_l);
+
+    using std::begin;
+    using std::data;
+    using std::end;
+
+    constant_string_join_result<S_l, S_r> ret;
+    auto dst_it = data(ret);
+    dst_it      = std::copy(begin(str_l), string_end(str_l), dst_it);
+    /*dst_it   =*/std::copy(begin(str_r), string_end(str_r), dst_it);
+    return ret;
+}
+
+template <class L, class R>
+constexpr bool equal_string_size(L const& str_l, R const& str_r)
+{
+    using std::size;
+    return size(str_l) - std::is_bounded_array_v<L> == size(str_r) - std::is_bounded_array_v<R>;
+}
+
+template <typename S_l, typename S_r>
+constexpr bool equal_string(S_l const& str_l, S_r const& str_r)
+{
+    validate_raw_string(str_l);
+    validate_raw_string(str_r);
+
+    using std::begin;
+    using std::equal;
+
+    return equal_string_size(str_l, str_r) && equal(begin(str_l), string_end(str_l), begin(str_r));
+}
+} // namespace detail
+
+template <typename S_l, typename S_r>
+constexpr detail::static_string_join_result<S_l, S_r> operator+(S_l const& str_l, S_r const& str_r) requires(
+    (detail::is_static_string<S_l> || detail::is_static_string<S_r>) &&
+#ifdef BOOST_STATIC_STRING_HPP
+    (detail::is_constant_string<S_l> || detail::is_constant_string<S_r>)
+#else
+    (detail::known_max_size<S_l> || detail::known_max_size<S_r>)
+#endif
+)
+{
+    return detail::join_to_static_string(str_l, str_r);
+}
+
+template <typename S_l, typename S_r>
+constexpr auto operator+(S_l const& str_l, S_r const& str_r) -> detail::constant_string_join_result<S_l, S_r> requires(
+    (detail::is_constant_string<S_l> || detail::is_constant_string<S_r>) && //
+    (std::is_bounded_array_v<S_l> || std::is_bounded_array_v<S_r>))
+{
+    return detail::join_to_constant_string(str_l, str_r);
+}
+
+template <typename S_l, typename S_r>
+constexpr bool operator==(S_l const& str_l, S_r const& str_r) requires(
+    (detail::has_max_size<S_l> || detail::has_max_size<S_r>) && //
+    (detail::known_max_size<S_l> || detail::known_max_size<S_r>))
+{
+    return detail::equal_string(str_l, str_r);
+}
 
 inline namespace literals
 {

@@ -5,11 +5,23 @@
 #include "pattern/basic_holder.h"
 #endif
 
-namespace fd
+namespace fd::detail
 {
-class library_info::basic_pattern_getter : public basic_object_getter
+class library_pattern_getter
 {
+#if 0
+
+#else
+    library_section_getter_ex
+#endif
+        getter_;
+
   public:
+    library_pattern_getter(library_info const* linfo)
+        : getter_{linfo}
+    {
+    }
+
     template <class... Segment>
     void* find(pattern<Segment...> const& pat) const noexcept
     {
@@ -20,16 +32,10 @@ class library_info::basic_pattern_getter : public basic_object_getter
         if (found != last)
             return found;
 #else
-        auto const nt       = linfo_->nt_header();
-        auto const img_base = safe_cast<uint8_t>(linfo_->image_base());
-
-        auto first_section      = IMAGE_FIRST_SECTION(nt);
-        auto const last_section = first_section + nt->FileHeader.NumberOfSections;
-
-        for (; first_section != last_section; ++first_section)
+        for (auto section = getter_.begin(); section != getter_.end(); ++section)
         {
-            auto const first = img_base + first_section->VirtualAddress;
-            auto const last  = first + first_section->SizeOfRawData;
+            auto const first = getter_.begin(section);
+            auto const last  = getter_.end(section);
 
             auto const found = find_pattern(first, last, pat);
             if (found == last)
@@ -40,4 +46,4 @@ class library_info::basic_pattern_getter : public basic_object_getter
         return nullptr;
     }
 };
-} // namespace fd
+} // namespace fd::detail

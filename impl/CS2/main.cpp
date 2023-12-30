@@ -31,7 +31,7 @@ bool fd::context::run()
 
     gui::render_context render_context;
     gui::native_win32_backend system_backend{&render_context};
-    gui::native_dx11_backend render_backend{&render_context, "rendersystemdx11"_dll.pattern().DXGI_swap_chain()};
+    gui::native_dx11_backend render_backend{&render_context, "rendersystemdx11"_dll.obj().DXGI_swap_chain()};
     auto menu = make_menu_example([=] {
         if (!this->resume())
             unreachable();
@@ -40,11 +40,11 @@ bool fd::context::run()
     entity_cache ent_cache;
 
     auto const tier0_dll                = "tier0"_dll;
-    auto const [cvar_system]            = tier0_dll.interface();
+    auto const [cvar_system]            = tier0_dll.obj();
     auto const engine_dll               = "engine2"_dll;
-    auto const [engine, game_resources] = engine_dll.interface();
+    auto const [engine, game_resources] = engine_dll.obj();
     auto const schemasystem_dll         = "schemasystem"_dll;
-    auto const [schema_system]          = schemasystem_dll.interface();
+    auto const [schema_system]          = schemasystem_dll.obj();
 
     hook_backend_minhook hook_backend;
     create_hook_helper const hook_creator{&hook_backend};
