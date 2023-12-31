@@ -8,7 +8,7 @@ struct entity
 {
     native::entity_instance* instance;
 
-    bool equal(native::entity_instance* other) const
+    bool equal(native::entity_instance const* other) const
     {
         return instance == other;
     }
