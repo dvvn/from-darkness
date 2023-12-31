@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "library_info/holder.h"
+#include "library_info.h"
 
 #include <algorithm>
 #include <cassert>
@@ -89,17 +89,14 @@ class library_section_getter_ex : public library_section_getter
     {
     }
 
-    using library_section_getter::begin;
-    using library_section_getter::end;
-
-    uint8_t* begin(pointer const section) const
+    uint8_t* get_begin(pointer const section) const
     {
         return image_base_ + section->VirtualAddress;
     }
 
-    uint8_t* end(pointer const section) const
+    uint8_t* get_end(pointer const section) const
     {
-        return begin(section) + section->SizeOfRawData;
+        return get_begin(section) + section->SizeOfRawData;
     }
 };
 } // namespace fd::detail

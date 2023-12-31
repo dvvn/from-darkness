@@ -14,11 +14,11 @@ class library_pattern_getter
 #else
     library_section_getter_ex
 #endif
-        getter_;
+        section_;
 
   public:
     library_pattern_getter(library_info const* linfo)
-        : getter_{linfo}
+        : section_{linfo}
     {
     }
 
@@ -32,10 +32,10 @@ class library_pattern_getter
         if (found != last)
             return found;
 #else
-        for (auto section = getter_.begin(); section != getter_.end(); ++section)
+        for (auto section = section_.begin(); section != section_.end(); ++section)
         {
-            auto const first = getter_.begin(section);
-            auto const last  = getter_.end(section);
+            auto const first = section_.get_begin(section);
+            auto const last  = section_.get_end(section);
 
             auto const found = find_pattern(first, last, pat);
             if (found == last)

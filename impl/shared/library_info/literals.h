@@ -40,21 +40,21 @@ class named_library_info final : public named_library_info_base<Name>::type
 
 inline namespace literals
 {
-#ifdef _DEBUG
-inline library_info operator"" _dll(wchar_t const* name, size_t const length)
-{
-    return {
-        wstring_view{name, length},
-        L".dll"
-    };
-}
-#else
-template <constant_wstring Name>
-library_info operator"" _dll()
-{
-    return {Name + L".dll"};
-}
-#endif
+// #ifdef _DEBUG
+// inline library_info operator"" _dll(wchar_t const* name, size_t const length)
+//{
+//     return {
+//         wstring_view{name, length},
+//         L".dll"
+//     };
+// }
+// #else
+// template <constant_wstring Name>
+// library_info operator"" _dll()
+//{
+//     return {Name + L".dll"};
+// }
+// #endif
 
 template <basic_constant_string Name>
 auto operator"" _dll() -> detail::named_library_info<Name>

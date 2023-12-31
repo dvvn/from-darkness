@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "algorithm/char.h"
-#include "library_info/holder.h"
 #include "native/interface_register.h"
+#include "library_info.h"
 
 #include <cassert>
 
@@ -46,8 +46,8 @@ interface_register* find_interface_register(
 {
     for (; reg != nullptr; reg = reg->next())
     {
-        auto const reg_name      = reg->name();
-        auto const reg_name_last = reg_name + name_length;
+        auto const reg_name_first = reg->name();
+        auto const reg_name_last  = reg_name_first + name_length;
 
         if (!ContainsVersion)
         {
@@ -59,19 +59,22 @@ interface_register* find_interface_register(
             if (*reg_name_last != '\0')
                 continue;
         }
-        if (!std::equal(reg_name, reg_name_last, name))
+        if (!std::equal(reg_name_first, reg_name_last, name))
         {
             continue;
         }
         if constexpr (!ContainsVersion)
         {
-            auto version_start = reg_name_last + 1;
-            if (interface_version_char(*version_start))
-                goto _CHECK_DIGIT; // MSVC fails without this
-            (void)0;
+            auto version_first = reg_name_last + 1;
+            if (!interface_version_char(*version_first))
+                continue;
+#ifdef _MSC_VER
+            // ReSharper disable once CppRedundantControlFlowJump
+            goto _CHECK_DIGIT;
+#endif
         _CHECK_DIGIT:
-            ++version_start;
-            auto const version_start_chr = *version_start;
+            ++version_first;
+            auto const version_start_chr = *version_first;
             if (version_start_chr != '\0')
             {
                 if (!isdigit(version_start_chr))
@@ -123,8 +126,13 @@ class native_library_interface_getter
 {
     native::interface_register* root_interface_;
 
+    static native::interface_register* get_root_interface(library_info const* linfo);
+
   public:
-    native_library_interface_getter(library_info const* linfo);
+    native_library_interface_getter(library_info const* linfo)
+        : root_interface_{get_root_interface(linfo)}
+    {
+    }
 
     safe_cast_lazy<void*> find(string_view const name) const
     {

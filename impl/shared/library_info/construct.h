@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "library_info/holder.h"
+#include "library_info.h"
 
 #include <algorithm>
 
