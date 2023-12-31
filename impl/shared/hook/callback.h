@@ -52,7 +52,7 @@ concept callback_can_enter_exit = requires(Callback c) {
 template <typename Callback, typename... Args>
 decltype(auto) invoke_hook_callback(Callback& callback, Args&&... args)
 {
-    if constexpr (!detail::callback_can_enter_exit<Callback&>)
+    if constexpr (!callback_can_enter_exit<Callback&>)
     {
         return callback(std::forward<Args>(args)...);
     }
@@ -70,11 +70,9 @@ decltype(auto) invoke_hook_callback(Callback& callback, Args&&... args)
 #endif
         {
             callback.enter();
-            invoke_on const lazy_exit{
-                object_state::destruct{}, //
-                [cb = &callback] {
-                    cb->exit();
-                }};
+            invoke_on_destruct const lazy_exit{[cb = &callback] {
+                cb->exit();
+            }};
             return callback(std::forward<Args>(args)...);
         }
     }
