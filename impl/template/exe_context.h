@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "functional/ignore.h"
 #include "basic_context.h"
 
 namespace fd
@@ -11,9 +10,10 @@ class exe_context : public basic_context
   public:
     static bool run();
 
-    static bool start(int argc, int* argv)
+    static bool start(int const argc, int* argv)
     {
-        ignore_unused(argc, argv);
+        std::ignore = argc;
+        std::ignore = argv;
         return run();
     }
 };
@@ -25,7 +25,7 @@ using context = detail::exe_context;
 } // namespace fd
 
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
-int main(int argc, int* argv)
+int main(int const argc, int* argv)
 {
     using fd::detail::exe_context_instance;
 

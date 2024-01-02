@@ -58,7 +58,7 @@ class transformed_pattern
 #endif
 
     template <class T>
-    constexpr transformed_pattern(T const& pat)
+    constexpr transformed_pattern(T const& pat) noexcept
         : buffer_{}
     {
         using std::data;
@@ -119,7 +119,7 @@ class transformed_pattern
         }
     }
 
-    constexpr size_type segments_count() const
+    constexpr size_type segments_count() const noexcept
     {
         size_type count = 0;
 
@@ -157,7 +157,7 @@ class transformed_pattern
         }*/
     };
 
-    constexpr segment_view segment(size_t skip = 0) const
+    constexpr segment_view segment(size_t skip = 0) const noexcept
     {
 #ifdef _DEBUG
         auto const first = buffer_.data();
@@ -182,8 +182,8 @@ class transformed_pattern
     }
 };
 
-template <auto Str>
-constexpr auto make_pattern()
+template <constant_string Str>
+constexpr auto make_pattern() noexcept
 {
     constexpr auto bytes_count = []() -> size_t {
 #ifdef _DEBUG
@@ -208,30 +208,32 @@ constexpr auto make_pattern()
         return pattern{make_segment(integral_constant<size_t, Index>{})...};
     }(std::make_index_sequence<segments_count>{});
 }
+
+template <constant_string Str>
+inline constexpr auto make_pattern_result = make_pattern<Str>();
 } // namespace detail
 
 inline namespace literals
 {
-#ifdef _DEBUG
+#ifdef _MSC_VER
 template <basic_constant_string Pattern>
-constexpr auto operator""_pat()
-{
-    auto result = detail::make_pattern<Pattern>();
-    return result;
-}
 #else
 template <constant_string Pattern>
-consteval auto operator""_pat()
-{
-    constexpr auto result = detail::make_pattern<Pattern>();
-    return result;
-}
 #endif
+constexpr auto operator""_pat() noexcept
+{
+#ifdef _DEBUG
+    auto result = detail::make_pattern<Pattern>();
+    return result;
+#else
+    return detail::make_pattern_result<Pattern>();
+#endif
+}
 
 } // namespace literals
 
 template <typename... Args>
-constexpr auto make_pattern(Args const&... args)
+constexpr auto make_pattern(Args const&... args) noexcept
 {
     constexpr auto segments_count = ((sizeof(Args) == sizeof(char) || std::constructible_from<span<char const>, Args const&>)+...);
 
