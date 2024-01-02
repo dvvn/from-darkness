@@ -26,6 +26,24 @@ class patter_to_string_info
         return chars_count_hex_max + spaces_count + unknown_chars_count;
     }
 
+    template <class... Segment>
+    static constexpr size_t predict_size()
+    {
+        return predict_size((pattern_segment_constant_size<Segment>::known + ...), (pattern_segment_constant_size<Segment>::unknown + ...));
+    }
+
+    template <class Pattern>
+    static constexpr size_t predict_size(Pattern const& pat)
+    {
+        size_t known_bytes_count, unknown_bytes_count;
+
+        boost::hana::unpack(pat.get(), [&](auto&... segment) {
+            known_bytes_count   = (segment.known() + ...);
+            unknown_bytes_count = (segment.unknown() + ...);
+        });
+        return predict_size(known_bytes_count, unknown_bytes_count);
+    }
+
     template <bool LastSegment, size_t Bytes, size_t UnknownBytes>
     static constexpr void append(pattern_segment<Bytes, UnknownBytes> const& segment, auto& out_str)
 #ifdef _DEBUG
@@ -42,7 +60,7 @@ class patter_to_string_info
 #ifdef _DEBUG
                 assert(err == std::errc{});
                 if (!std::is_constant_evaluated())
-                    std::fill(buff_end, to_chars_buff_end, 0);
+                    std::fill(buff_end, to_chars_buff_end, '\0');
 #endif
                 if (byte > 0xF)
                 {
@@ -93,49 +111,77 @@ class patter_to_string_info
             }
         }
     }
+
+    template <class Pattern, class OutStr, size_t... I>
+    static constexpr void write(Pattern const& pat, OutStr& out_str, std::index_sequence<I...> seq)
+    {
+        constexpr auto last_index = seq.size() - 1;
+        auto const& pat_raw       = pat.get();
+        (append<I == last_index>(boost::hana::at_c<I>(pat_raw), out_str), ...);
+    }
+
+    template <class OutStr, class... Segment>
+    static constexpr void write(pattern<Segment...> const& pat, OutStr& out_str)
+    {
+        write(pat, out_str, std::make_index_sequence<sizeof...(Segment)>());
+    }
+};
+
+template <class Pattern>
+struct pattern_to_string_result : type_identity<string>
+{
+};
+
+template <class... Segment>
+struct pattern_to_string_result<pattern<Segment...>> : type_identity<static_string<patter_to_string_info::predict_size<Segment...>()>>
+{
+};
+
+template <class Pattern>
+class pattern_to_string : public noncopyable
+{
+  public:
+    using string_type = typename pattern_to_string_result<Pattern>::type;
+
+  private:
+    Pattern const* pat_;
+    string_type out_str_;
+
+  public:
+    constexpr pattern_to_string(Pattern const& pat)
+        : pat_{&pat}
+    {
+    }
+
+    constexpr string_type&& get()
+    {
+        return std::move(out_str_);
+    }
+
+  private:
+    constexpr void reserve()
+    {
+        if constexpr (std::same_as<string_type, string>)
+        {
+            if (!std::is_constant_evaluated())
+                out_str_.reserve(patter_to_string_info::predict_size(*pat_));
+        }
+    }
+
+  public:
+    constexpr void write()
+    {
+        reserve();
+        patter_to_string_info::write(*pat_, out_str_);
+    }
 };
 } // namespace detail
 
 template <class... Segment>
-constexpr auto to_string(pattern<Segment...> const& pat)
+constexpr auto to_string(pattern<Segment...> const& pat) //-> typename detail::pattern_to_string_result<pattern<Segment...>>::type
 {
-    using info = detail::patter_to_string_info;
-
-    auto const call_impl = [&](auto& out_str) {
-        [&out_str, &pat]<size_t... I>(std::integer_sequence<size_t, I...> seq) {
-            constexpr auto last_index = seq.size() - 1;
-            auto const& pat_raw       = pat.get();
-            (info::append<I == last_index>(boost::hana::at_c<I>(pat_raw), out_str), ...);
-        }(std::make_integer_sequence<size_t, sizeof...(Segment)>());
-    };
-
-    if constexpr ((complete<pattern_segment_constant_size<Segment>> && ...))
-    {
-        constexpr auto known_bytes_count   = ((pattern_segment_constant_size<Segment>::known) + ...);
-        constexpr auto unknown_bytes_count = ((pattern_segment_constant_size<Segment>::unknown) + ...);
-
-        static_string<info::predict_size(known_bytes_count, unknown_bytes_count)> out_str;
-        call_impl(out_str);
-        return out_str;
-    }
-    else
-    {
-        string out_str;
-
-        if (!std::is_constant_evaluated())
-        {
-            size_t known_bytes_count, unknown_bytes_count;
-
-            boost::hana::unpack(pat.get(), [&](auto&... segment) {
-                known_bytes_count   = (static_cast<size_t>(segment.known()) + ...);
-                unknown_bytes_count = (static_cast<size_t>(segment.unknown()) + ...);
-            });
-
-            out_str.reserve(info::predict_size(known_bytes_count, unknown_bytes_count));
-        }
-
-        call_impl(out_str);
-        return std::move(out_str);
-    }
+    detail::pattern_to_string helper{pat};
+    helper.write();
+    return helper.get();
 }
 } // namespace fd

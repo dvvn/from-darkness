@@ -1,4 +1,5 @@
-﻿#include "functional/ignore.h"
+﻿#if 0
+#include "functional/ignore.h"
 #include "debug/console.h"
 
 #include <boost/nowide/iostream.hpp>
@@ -28,6 +29,7 @@ system_console::~system_console()
 
 system_console::system_console()
 {
+    
     if (!AllocConsole())
     {
         if (exists())
@@ -93,3 +95,4 @@ bool system_console::exists() const
 }
 
 } // namespace fd_NAMESPACE
+#endif

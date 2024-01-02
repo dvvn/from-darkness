@@ -57,17 +57,9 @@ class dll_context : public basic_context
 };
 
 inline dll_context dll_context_instance;
-} // namespace detail
 
-using context = detail::dll_context;
-} // namespace fd
-
-// ReSharper disable once CppInconsistentNaming
-// ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
-BOOL WINAPI DllMain(HINSTANCE instance, DWORD const reason, LPCVOID const reserved)
+inline BOOL dll_main(HINSTANCE instance, DWORD const reason, LPCVOID const reserved) noexcept
 {
-    using fd::detail::dll_context_instance;
-
     // ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
     switch (reason)
     {
@@ -96,5 +88,14 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD const reason, LPCVOID const reserv
 
     return TRUE;
 }
+} // namespace detail
 
-#undef FD_DLLMAIN
+using context = detail::dll_context;
+} // namespace fd
+
+// ReSharper disable once CppInconsistentNaming
+// ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
+BOOL WINAPI DllMain(HINSTANCE instance, DWORD const reason, LPCVOID const reserved)
+{
+    return fd::detail::dll_main(instance, reason, reserved);
+}

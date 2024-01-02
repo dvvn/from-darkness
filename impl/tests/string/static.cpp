@@ -2,15 +2,6 @@
 
 namespace fd
 {
-inline namespace literals
-{
-template <basic_static_string Str>
-constexpr auto operator"" _ss() -> std::remove_const_t<decltype(Str)>
-{
-    return Str;
-}
-} // namespace literals
-
 static_assert("hello"_cs == "hello");
 static_assert("hello" == "hello"_cs);
 static_assert("hello"_ss == "hello");

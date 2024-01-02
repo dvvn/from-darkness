@@ -1,14 +1,11 @@
 ﻿#pragma once
-
-#if 1
 #include "container/span.h"
-#else
+#include "string/view.h"
+#include "type_traits/conditional.h"
+#include "type_traits/integral_constant.h"
 #include "type_traits/small_type.h"
 
-#define BOOST_STATIC_STRING_STANDALONE
-#include <boost/static_string.hpp>
-#endif
-
+#include <algorithm>
 #include <cassert>
 
 namespace fd
@@ -21,15 +18,6 @@ struct string_join_char : conditional<sizeof(CharT_l) >= sizeof(CharT_r), CharT_
 template <typename CharT_l, typename CharT_r>
 using string_join_char_t = typename string_join_char<CharT_l, CharT_r>::type;
 
-#ifdef BOOST_STATIC_STRING_HPP
-using boost::static_strings::basic_static_string;
-
-template <size_t Length, typename T>
-constexpr auto size(basic_static_string<Length, T> const&) -> integral_constant<small_type<T, Length>, Length>
-{
-    return {};
-}
-#else
 namespace detail
 {
 template <class It, typename Ptr>
@@ -40,324 +28,282 @@ using select_iterator = conditional_t<
     sizeof(It) != sizeof(Ptr)
 #endif
         && std::is_trivially_destructible_v<It>,
-    It,
-    Ptr>;
-} // namespace detail
+    It, Ptr>;
 
-template <size_t Length, typename CharT>
-struct basic_static_cstring; // null terminated static string
-
-template <size_t Length, typename CharT>
-class basic_static_string
+template <typename CharT, size_t Length, class Config>
+class basic_static_string_full
 {
-    using buffer_type = CharT[Length];
+    static constexpr size_t buffer_size = Config::null_terminated ? Length + 1 : Length;
 
-    template <typename It>
-    constexpr void assign_internal(It first, It last)
+    using iterator_holder       = span<CharT>;
+    using const_iterator_holder = basic_string_view<CharT> /*span<CharT const>*/;
+
+    iterator_holder make_iterator_holder()
     {
-#ifdef _DEBUG
-        auto const old_size = size_;
-#endif
-        auto const buffer_first = std::begin(buffer_);
-        auto const buffer_last  = std::copy(first, last, buffer_first);
-        size_                   = static_cast<size_type>(std::distance(buffer_first, buffer_last));
-#ifdef _DEBUG
-        if (size_ < old_size)
-            std::fill(buffer_last, std::end(buffer_), static_cast<CharT>('\0'));
-#endif
+        return {data(), size_};
     }
 
-    constexpr void pre_construct() noexcept
+    const_iterator_holder make_iterator_holder() const
     {
-#ifdef _DEBUG
-        size_ = 0;
-#endif
+        return {data(), size_};
     }
 
   public:
-    using size_type       = small_type<size_t, Length>;
-    using difference_type = /*small_type<ptrdiff_t, Length>*/ ptrdiff_t;
-
     using value_type      = CharT;
     using pointer         = CharT*;
     using const_pointer   = CharT const*;
     using reference       = CharT&;
     using const_reference = CharT const&;
 
-    using iterator       = detail::select_iterator<typename span<CharT>::iterator, pointer>;
-    using const_iterator = detail::select_iterator<typename span<CharT const>::iterator, const_pointer>;
+    using iterator       = select_iterator<typename iterator_holder::iterator, pointer>;
+    using const_iterator = select_iterator<typename const_iterator_holder::iterator, const_pointer>;
 
+    using size_type       = small_type<size_t, buffer_size>;
+    using difference_type = /*small_type<ptrdiff_t, buffer_size>*/ ptrdiff_t;
+
+    using config_type = Config;
+
+    template <class Config2>
+    using rebind_config = basic_static_string_full<CharT, Length, Config2>;
+
+    template <class Config2>
+    constexpr basic_static_string_full<CharT, Length, Config2> set_config(Config2 config = {}) const
+    {
+        return {*this, config};
+    }
+
+  private:
+    using buffer_type = CharT[buffer_size];
+
+    using max_size_constant = integral_constant<size_type, Length>;
+    using size_type_stored  = conditional_t<Config::dynamic, size_type, max_size_constant>;
+
+  public:
+    [[no_unique_address]] //
+    config_type config_;
     buffer_type buffer_;
-    size_type size_;
+    [[no_unique_address]] //
+    size_type_stored size_;
 
-    constexpr basic_static_string()
-        : buffer_{}
-        , size_{0}
+  private:
+    constexpr void write_null_terminator()
+    {
+        if constexpr (Config::null_terminated)
+            if constexpr (Config::dynamic)
+                buffer_[size_] = '\0';
+            else
+                buffer_[Length] = '\0';
+    }
+
+    /*constexpr void fill_unused(pointer it)
+    {
+        std::fill_n(it, buffer_size - size_, static_cast<CharT>('\0'));
+    }
+
+    constexpr void fill_unused()
+    {
+        std::fill(buffer_ + size_, buffer_ + buffer_size, static_cast<CharT>('\0'));
+    }*/
+
+  public:
+    constexpr basic_static_string_full(config_type config = {})
+        : config_{config}
+        , buffer_{}
+        , size_{}
     {
     }
 
     template <typename It>
-    constexpr basic_static_string(It first, It last)
+    constexpr basic_static_string_full(It first, It last)
+        : basic_static_string_full{}
     {
-        pre_construct();
-        assign_internal(first, last);
+        assign(first, last);
     }
 
-    template <size_t L, typename C>
-    constexpr basic_static_string(C const (&source)[L])
+    template <typename CharT2 = CharT, size_t Length2 = Length + 1>
+    constexpr basic_static_string_full(CharT2 const (&arr)[Length2], Config config = {})
+        : basic_static_string_full{config}
     {
-        pre_construct();
-        assign_internal(source, std::next(source, L - 1));
+        assign_range(arr);
     }
+
+    template <typename ConfigOld>
+    constexpr basic_static_string_full(basic_static_string_full<CharT, Length, ConfigOld> const& str, Config config)
+        : basic_static_string_full{config}
+    {
+        assign_range(str);
+    }
+
+    /*constexpr basic_static_string_full(value_type const (&arr)[Length]) requires(Config::null_terminated)
+        : basic_static_string_full{}
+    {
+        assign_range(arr);
+    }*/
 
     template <std::incrementable It>
-    constexpr basic_static_string(It source)
+    constexpr basic_static_string_full(It source)
+        : basic_static_string_full{}
     {
-        pre_construct();
-        assign_internal(source, std::next(source, Length));
+        assign(source, Length);
     }
 
-    template <typename It>
-    constexpr basic_static_string& assign(It first, It last)
-    {
-        assign_internal(first, last);
-        return *this;
-    }
-
-    constexpr pointer data() noexcept
-    {
-        return std::data(buffer_);
-    }
-
-    constexpr const_pointer data() const noexcept
-    {
-        return std::data(buffer_);
-    }
-
-    constexpr size_type size() const noexcept
-    {
-        return size_;
-    }
-
-    constexpr bool empty() const noexcept
-    {
-        return size_ == 0;
-    }
-
-    constexpr size_type length() const noexcept
-    {
-        return size_;
-    }
-
-    static integral_constant<size_type, Length> max_size() noexcept
-    {
-        return {};
-    }
-
-    constexpr iterator begin() noexcept
-    {
-        if constexpr (std::is_pointer_v<iterator>)
-            return data();
-        else
-            return span{data(), size_}.begin();
-    }
-
-    constexpr const_iterator begin() const noexcept
-    {
-        if constexpr (std::is_pointer_v<const_iterator>)
-            return data();
-        else
-            return span{data(), size_}.begin();
-    }
-
-    constexpr iterator end() noexcept
-    {
-        if constexpr (std::is_pointer_v<iterator>)
-            return data() + size_;
-        else
-            return span{data(), size_}.end();
-    }
-
-    constexpr const_iterator end() const noexcept
-    {
-        if constexpr (std::is_pointer_v<const_iterator>)
-            return data() + size_;
-        else
-            return span{data(), size_}.end();
-    }
-
-#ifdef _MSC_VER
-    // ReSharper disable CppInconsistentNaming
-
-    constexpr pointer _Unchecked_begin() noexcept
-    {
-        return data();
-    }
-
-    constexpr const_pointer _Unchecked_begin() const noexcept
-    {
-        return data();
-    }
-
-    constexpr pointer _Unchecked_end() noexcept
-    {
-        return data() + size_;
-    }
-
-    constexpr const_pointer _Unchecked_end() const noexcept
-    {
-        return data() + size_;
-    }
-
-    // ReSharper restore CppInconsistentNaming
-#endif
-
-    constexpr void push_back(value_type chr)
+    constexpr void push_back(value_type chr) requires(Config::dynamic)
     {
         assert(size_ < Length);
         buffer_[size_] = chr;
         ++size_;
+        write_null_terminator();
+    }
+
+  private:
+    template <typename It>
+    constexpr size_type append(size_type buff_size, It first, It last)
+    {
+        auto const extra_size = std::distance(first, last);
+        assert(buff_size + extra_size <= Length);
+        std::copy(first, last, buffer_ + buff_size);
+        write_null_terminator();
+        return static_cast<size_type>(extra_size);
     }
 
     template <typename It>
-    constexpr basic_static_string& append(It first, It last)
+    constexpr void append(size_type size, It first, size_type count)
     {
-        auto const extra_size = std::distance(first, last);
-        assert(size_ + extra_size <= Length);
-        std::copy(first, last, buffer_ + size_);
-        size_ += static_cast<size_type>(extra_size);
+        assert(size + count <= Length);
+        std::copy_n(first, count, buffer_ + size);
+        write_null_terminator();
+    }
+
+    template <typename Rng>
+    constexpr size_type append_range(size_type buff_size, Rng const& rng)
+    {
+        if constexpr (std::ranges::forward_range<Rng> || std::ranges::sized_range<Rng>)
+        {
+            using std::data;
+            using std::size;
+            auto rng_size = size(rng);
+            if constexpr (std::is_bounded_array_v<Rng>)
+            {
+                --rng_size;
+                assert(rng[rng_size] == '\0');
+            }
+            append(buff_size, data(rng), rng_size);
+            return static_cast<size_type>(rng_size);
+        }
+        else
+        {
+            using std::begin;
+            using std::end;
+            return append(buff_size, begin(rng), end(rng));
+        }
+    }
+
+  public:
+    template <typename It>
+    constexpr basic_static_string_full& append(It first, It last) requires(Config::dynamic)
+    {
+        size_ += append(size_, first, last);
         return *this;
     }
 
     template <typename It>
-    constexpr basic_static_string& append(It first, size_type count)
+    constexpr basic_static_string_full& append(It first, size_type count) requires(Config::dynamic)
     {
-        assert(size_ + count <= Length);
-        std::copy_n(first, count, buffer_ + size_);
+        append(size_, first, count);
         size_ += count;
         return *this;
     }
 
     template <typename Rng>
-    constexpr basic_static_string& append(Rng const& rng)
-#ifdef _DEBUG
-        requires requires { std::data(rng); }
-#endif
+    constexpr basic_static_string_full& append_range(Rng const& rng) requires(Config::dynamic)
     {
-        using std::data;
-        using std::size;
-
-        auto rng_size = size(rng);
-        if constexpr (std::is_bounded_array_v<Rng>)
-        {
-            assert(rng[rng_size - 1] == '\0');
-            --rng_size;
-        }
-
-        return append(data(rng), rng_size);
-    }
-};
-
-#if 0
-template <class Result, class... S>
-struct string_join_result;
-
-template <size_t Length, typename CharT, class... S>
-struct string_join_result<CharT[Length], S...> : string_join_result<basic_static_string<Length - 1, std::remove_const_t<CharT> >, S...>
-{
-};
-
-template <size_t Length, typename CharT>
-struct string_join_result<basic_static_string<Length, CharT> > : type_identity<basic_static_string<Length, CharT> >
-{
-};
-
-template <size_t Length, typename CharT>
-struct string_join_result<basic_static_string<Length, CharT> const> : type_identity<basic_static_string<Length, CharT> >
-{
-};
-
-template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r, class... S>
-struct string_join_result<basic_static_string<Length_l, CharT_l>, basic_static_string<Length_r, CharT_r>, S...> :
-    string_join_result<basic_static_string<Length_l + Length_r, string_join_char_t<CharT_l, CharT_r> >, S...>
-{
-};
-
-template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r, class... S>
-struct string_join_result<basic_static_string<Length_l, CharT_l> const, basic_static_string<Length_r, CharT_r>, S...> :
-    string_join_result<basic_static_string<Length_l + Length_r, CharT_l> const, S...>
-{
-};
-
-template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r, class... S>
-struct string_join_result<basic_static_string<Length_l, CharT_l>, CharT_r[Length_r], S...> :
-    string_join_result<basic_static_string<Length_l + Length_r - 1, string_join_char_t<CharT_l, CharT_r> >, S...>
-{
-};
-
-template <size_t Length_l, typename CharT_l, size_t Length_r, typename CharT_r, class... S>
-struct string_join_result<basic_static_string<Length_l, CharT_l> const, CharT_r[Length_r], S...> :
-    string_join_result<basic_static_string<Length_l + Length_r - 1, CharT_l> const, S...>
-{
-};
-#endif
-
-template <size_t Length, typename CharT>
-class basic_static_string<Length, CharT const>;
-
-template <typename CharT>
-class basic_static_string<0, CharT>;
-
-template <typename CharT>
-class basic_static_string<-1, CharT>;
-
-template <typename CharT, size_t Length>
-basic_static_string(CharT const (&)[Length]) -> basic_static_string<Length - 1, CharT>;
-#endif
-
-template <size_t Length>
-using static_string = basic_static_string<Length, char>;
-template <size_t Length>
-using static_wstring = basic_static_string<Length, wchar_t>;
-template <size_t Length>
-using static_u8string = basic_static_string<Length, char8_t>;
-
-template <size_t Length, typename CharT>
-class basic_constant_string
-{
-    using buffer_type = CharT[Length];
-
-  public:
-    using size_type       = small_type<size_t, Length>;
-    using difference_type = /*small_type<ptrdiff_t, Length>*/ ptrdiff_t;
-
-    using value_type      = CharT;
-    using pointer         = CharT*;
-    using const_pointer   = CharT const*;
-    using reference       = CharT&;
-    using const_reference = CharT const&;
-
-    using iterator       = detail::select_iterator<typename span<CharT>::iterator, pointer>;
-    using const_iterator = detail::select_iterator<typename span<CharT const>::iterator, const_pointer>;
-
-    buffer_type buffer_;
-
-    constexpr basic_constant_string()
-        : buffer_{}
-    {
+        size_ += append_range(size_, rng);
+        return *this;
     }
 
     template <typename It>
-    constexpr basic_constant_string(It first, It last)
+    constexpr basic_static_string_full& assign(It first, It last)
     {
-        assert(std::distance(first, last) == Length);
-        std::copy(first, last, std::data(buffer_));
+        if constexpr (Config::dynamic)
+            assert(std::distance(first, last) <= Length);
+        else
+            assert(std::distance(first, last) == Length);
+
+        auto const buffer_first = std::data(buffer_);
+        auto const buffer_last  = std::copy(first, last, buffer_first);
+        if constexpr (Config::dynamic)
+        {
+            size_ = static_cast<size_type>(std::distance(buffer_first, buffer_last));
+            // #ifdef _DEBUG
+            //  fill_unused(buffer_last);
+            //  return *this;
+            // #endif
+        }
+        write_null_terminator();
+        return *this;
     }
 
-    template <std::incrementable It>
-    constexpr basic_constant_string(It source)
+    template <typename It>
+    constexpr basic_static_string_full& assign(It first, size_type length)
     {
-        std::copy_n(source, Length, std::data(buffer_));
+        if constexpr (Config::dynamic)
+            assert(length <= Length);
+        else
+            assert(length == Length);
+
+        auto const buffer_first = std::data(buffer_);
+        auto const buffer_last  = std::copy_n(first, length, buffer_first);
+        if constexpr (Config::dynamic)
+        {
+            size_ = length;
+            // #ifdef _DEBUG
+            //   fill_unused(buffer_last);
+            //   return *this;
+            // #endif
+        }
+        write_null_terminator();
+        return *this;
+    }
+
+    template <typename Rng>
+    constexpr basic_static_string_full& assign_range(Rng const& rng)
+    {
+        if constexpr (Config::dynamic)
+        {
+            assert(size_ == 0);
+            append_range(rng);
+            // #ifdef _DEBUG
+            //  fill_unused();
+            // #endif
+        }
+        else
+        {
+            auto const rng_size = append_range(0, rng);
+            assert(rng_size == size_);
+        }
+
+        return *this;
+    }
+
+    template <typename Rng, typename Rng2>
+    constexpr basic_static_string_full& assign_range(Rng const& rng, Rng2 const& rng2)
+    {
+        if constexpr (Config::dynamic)
+        {
+            assert(size_ == 0);
+            append_range(rng);
+            append_range(rng2);
+            // #ifdef _DEBUG
+            //  fill_unused();
+            // #endif
+        }
+        else
+        {
+            auto rng_size  = append_range(0, rng);
+            auto rng2_size = append_range(rng_size, rng2);
+            assert(rng_size + rng2_size == size_);
+        }
+        return *this;
     }
 
     constexpr pointer data() noexcept
@@ -370,19 +316,27 @@ class basic_constant_string
         return std::data(buffer_);
     }
 
-    constexpr integral_constant<size_type, Length> size() const noexcept
+    constexpr size_type_stored size() const noexcept
+    {
+        return size_;
+    }
+
+    constexpr size_type_stored length() const noexcept
+    {
+        return size_;
+    }
+
+    static max_size_constant max_size() noexcept
     {
         return {};
     }
 
-    constexpr integral_constant<size_type, Length> length() const noexcept
+    constexpr bool empty() const noexcept
     {
-        return {};
-    }
-
-    static integral_constant<size_type, Length> max_size() noexcept
-    {
-        return {};
+        if constexpr (Config::dynamic)
+            return size_ == 0;
+        else
+            return false;
     }
 
     constexpr iterator begin() noexcept
@@ -390,7 +344,7 @@ class basic_constant_string
         if constexpr (std::is_pointer_v<iterator>)
             return data();
         else
-            return span{buffer_}.begin();
+            return make_iterator_holder().begin();
     }
 
     constexpr const_iterator begin() const noexcept
@@ -398,23 +352,59 @@ class basic_constant_string
         if constexpr (std::is_pointer_v<const_iterator>)
             return data();
         else
-            return span{buffer_}.begin();
+            return make_iterator_holder().begin();
     }
 
     constexpr iterator end() noexcept
     {
         if constexpr (std::is_pointer_v<iterator>)
-            return data() + Length;
+            return data() + size_;
         else
-            return span{buffer_}.end();
+            return make_iterator_holder().end();
     }
 
     constexpr const_iterator end() const noexcept
     {
         if constexpr (std::is_pointer_v<const_iterator>)
-            return data() + Length;
+            return data() + size_;
         else
-            return span{buffer_}.end();
+            return make_iterator_holder().end();
+    }
+
+    template <typename CharT_2, size_t Length_2>
+    constexpr bool operator==(CharT_2 const (&other)[Length_2]) const
+    {
+        using std::equal;
+        constexpr auto other_size = Length_2 - 1;
+        assert(other[other_size] == '\0');
+        return size_ == other_size && equal(other, other + other_size, data());
+    }
+
+  private:
+    template <class Other>
+    constexpr bool equal_helper(Other const& other) const noexcept
+    {
+        auto const other_size = other.size();
+        if (other_size != size())
+            return false;
+        auto const other_data = other.data();
+        using std::equal;
+        if (!equal(other_data, other_data + other_size, data()))
+            return false;
+        return true;
+    }
+
+  public:
+    template <typename CharT_2, size_t Length_2, class Config2>
+    constexpr bool operator==(basic_static_string_full<CharT_2, Length_2, Config2> const& other) const
+    {
+        return equal_helper(other);
+    }
+
+    template <typename CharT_2>
+    constexpr bool operator==(basic_string_view<CharT_2> const other) const
+    {
+        return equal_helper(other);
     }
 
 #ifdef _MSC_VER
@@ -432,224 +422,180 @@ class basic_constant_string
 
     constexpr pointer _Unchecked_end() noexcept
     {
-        return data() + Length;
+        return data() + size_;
     }
 
     constexpr const_pointer _Unchecked_end() const noexcept
     {
-        return data() + Length;
+        return data() + size_;
     }
 
     // ReSharper restore CppInconsistentNaming
 #endif
 };
 
+template <typename CharT, class Config>
+class basic_static_string_full<CharT, 0, Config>;
+
+template <bool NullTerminated, bool Dynamic>
+struct basic_static_string_config
+{
+    static constexpr bool null_terminated = NullTerminated;
+    static constexpr bool dynamic         = Dynamic;
+};
+
+#ifdef _DEBUG
+// struct for better read
+#define STATIC_STRING_CONFIG(_NAME_, ...)                   \
+    struct _NAME_ : basic_static_string_config<__VA_ARGS__> \
+    {                                                       \
+    };
+#else
+using _NAME_ = basic_static_string_config < __VA_ARGS__;
+#endif
+
+STATIC_STRING_CONFIG(static_string_config, false, true)
+STATIC_STRING_CONFIG(static_cstring_config, true, true)
+STATIC_STRING_CONFIG(constant_string_config, false, false)
+STATIC_STRING_CONFIG(constant_cstring_config, true, false)
+#undef STATIC_STRING_CONFIG
+
+template <typename S_l, typename S_r>
+struct static_string_join_result;
+
+template <typename S_l, typename S_r>
+using static_string_join_result_t = typename static_string_join_result<S_l, S_r>::type;
+
+template <typename CharT_l, size_t Length_l, typename Config_l, typename CharT_r, size_t Length_r, typename Config_r>
+struct static_string_join_result<basic_static_string_full<CharT_l, Length_l, Config_l>, basic_static_string_full<CharT_r, Length_r, Config_r>> :
+    type_identity<basic_static_string_full< //
+        conditional_t<sizeof(CharT_l) >= sizeof(CharT_r), CharT_l, CharT_r>, Length_l + Length_r,
+        basic_static_string_config<Config_l::null_terminated, Config_l::dynamic || Config_r::dynamic>>>
+{
+};
+
+template <typename CharT_l, size_t Length_l, typename Config, typename CharT_r, size_t Length_r>
+struct static_string_join_result<basic_static_string_full<CharT_l, Length_l, Config>, CharT_r[Length_r]> :
+    type_identity<basic_static_string_full< //
+        conditional_t<sizeof(CharT_l) >= sizeof(CharT_r), CharT_l, CharT_r>, Length_l + Length_r - 1, Config>>
+{
+};
+
+template <typename CharT_l, size_t Length_l, typename Config_l, typename CharT_r, size_t Length_r, typename Config_r>
+constexpr auto operator+(basic_static_string_full<CharT_l, Length_l, Config_l> const& str_l, basic_static_string_full<CharT_r, Length_r, Config_r> const& str_r)
+    -> static_string_join_result_t<basic_static_string_full<CharT_l, Length_l, Config_l>, basic_static_string_full<CharT_r, Length_r, Config_r>>
+{
+    static_string_join_result_t<basic_static_string_full<CharT_l, Length_l, Config_l>, basic_static_string_full<CharT_r, Length_r, Config_r>> str_out;
+    str_out.assign_range(str_l, str_r);
+    return str_out;
+}
+
+template <typename CharT_l, size_t Length_l, typename Config_l, typename CharT_r, size_t Length_r>
+constexpr auto operator+(basic_static_string_full<CharT_l, Length_l, Config_l> const& str_l, CharT_r const (&str_r)[Length_r])
+    -> static_string_join_result_t<basic_static_string_full<CharT_l, Length_l, Config_l>, CharT_r[Length_r]>
+{
+    static_string_join_result_t<basic_static_string_full<CharT_l, Length_l, Config_l>, CharT_r[Length_r]> str_out;
+    str_out.assign_range(str_l, str_r);
+    return str_out;
+}
+
+template <typename CharT_l, size_t Length_l, typename CharT_r, size_t Length_r, typename Config_r>
+constexpr auto operator+(CharT_l const (&str_l)[Length_l], basic_static_string_full<CharT_r, Length_r, Config_r> const& str_r)
+    -> static_string_join_result_t<basic_static_string_full<CharT_r, Length_r, Config_r>, CharT_l[Length_l]>
+{
+    static_string_join_result_t<basic_static_string_full<CharT_r, Length_r, Config_r>, CharT_l[Length_l]> str_out;
+    str_out.assign_range(str_l, str_r);
+    return str_out;
+}
+
 template <typename CharT, size_t Length>
-basic_constant_string(CharT const (&)[Length]) -> basic_constant_string<Length - 1, CharT>;
-
-template <size_t Length>
-using constant_string = basic_constant_string<Length, char>;
-template <size_t Length>
-using constant_wstring = basic_constant_string<Length, wchar_t>;
-template <size_t Length>
-using constant_u8string = basic_constant_string<Length, char8_t>;
-
-namespace detail
-{
-#if 0
-template <class T>
-struct is_static_string_impl : false_type
-{
-};
-
-template <size_t L, typename Ch>
-struct is_static_string_impl<basic_static_string<L, Ch>> : true_type
-{
-};
-
-template <class T>
-concept is_static_string = is_static_string_impl<T>::value;
-
-template <class T>
-struct is_constant_string_impl : false_type
-{
-};
-
-template <size_t L, typename Ch>
-struct is_constant_string_impl<basic_constant_string<L, Ch>> : true_type
-{
-};
-
-template <class T>
-concept is_constant_string = is_constant_string_impl<T>::value;
-#else
-template <class T>
-concept is_static_string = requires(T str) {
-    []<size_t L, typename Ch>(basic_static_string<L, Ch>) {
-    }(str);
-};
-template <class T>
-concept is_constant_string = requires(T str) {
-    []<size_t L, typename Ch>(basic_constant_string<L, Ch>) {
-    }(str);
-};
-#endif
-template <class S>
-concept has_max_size = requires { 1u + S::max_size(); };
-
-template <class S>
-concept known_max_size = has_max_size<S> || std::is_bounded_array_v<S>;
-
-template <class T>
-struct string_value : type_identity<typename T::value_type>
-{
-};
-
-template <class T, size_t S>
-struct string_value<T[S]> : type_identity<T>
-{
-};
-
-template <class T>
-struct string_max_size;
-
-template <size_t L, typename C>
-struct string_max_size<basic_static_string<L, C>> : integral_constant<size_t, L>
-{
-};
-
-template <size_t L, typename C>
-struct string_max_size<basic_constant_string<L, C>> : integral_constant<size_t, L>
-{
-};
-
-template <class T, size_t S>
-struct string_max_size<T[S]> : integral_constant<size_t, S - 1>
-{
-};
-
-template <template <size_t L, typename C> class String, class S_l, class S_r>
-using sized_string_join_result = String<
-    string_max_size<S_l>::value + string_max_size<S_r>::value, //
-    string_join_char_t<typename string_value<S_l>::type, typename string_value<S_r>::type>>;
-
-template <class S_l, class S_r>
-using static_string_join_result = sized_string_join_result<basic_static_string, S_l, S_r>;
-template <class S_l, class S_r>
-using constant_string_join_result = sized_string_join_result<basic_constant_string, S_l, S_r>;
-
-template <typename T>
-constexpr auto string_end(T const& str)
-{
-    using std::end;
-    return end(str) - std::is_bounded_array_v<T>;
-}
-
-template <typename T>
-constexpr void validate_raw_string(T const& str)
-{
-    if constexpr (std::is_bounded_array_v<T>)
-        assert(*std::rbegin(str) == '\0');
-}
-
-template <typename T>
-constexpr void validate_static_string(T const& str)
-{
-    if constexpr (is_static_string<T>)
-        assert(str.size() == str.max_size());
-}
-
-template <typename S_l, typename S_r>
-constexpr auto join_to_static_string(S_l const& str_l, S_r const& str_r) -> static_string_join_result<S_l, S_r>
-{
-    static_string_join_result<S_l, S_r> ret;
-
-#ifdef BOOST_STATIC_STRING_HPP
-    using std::begin;
-
-    ret.append(begin(str_l), string_end(str_l));
-    ret.append(begin(str_r), string_end(str_r));
-#else
-    ret.append(str_l);
-    ret.append(str_r);
-#endif
-    return ret;
-}
-
-template <typename S_l, typename S_r>
-constexpr auto join_to_constant_string(S_l const& str_l, S_r const& str_r) -> constant_string_join_result<S_l, S_r>
-{
-    validate_raw_string(str_r);
-    validate_static_string(str_r);
-    validate_raw_string(str_l);
-    validate_static_string(str_l);
-
-    using std::begin;
-    using std::data;
-    using std::end;
-
-    constant_string_join_result<S_l, S_r> ret;
-    auto dst_it = data(ret);
-    dst_it      = std::copy(begin(str_l), string_end(str_l), dst_it);
-    /*dst_it   =*/std::copy(begin(str_r), string_end(str_r), dst_it);
-    return ret;
-}
-
-template <class L, class R>
-constexpr bool equal_string_size(L const& str_l, R const& str_r)
-{
-    using std::size;
-    return size(str_l) - std::is_bounded_array_v<L> == size(str_r) - std::is_bounded_array_v<R>;
-}
-
-template <typename S_l, typename S_r>
-constexpr bool equal_string(S_l const& str_l, S_r const& str_r)
-{
-    validate_raw_string(str_l);
-    validate_raw_string(str_r);
-
-    using std::begin;
-    using std::equal;
-
-    return equal_string_size(str_l, str_r) && equal(begin(str_l), string_end(str_l), begin(str_r));
-}
+basic_static_string_full(CharT const (&)[Length]) -> basic_static_string_full<CharT, Length - 1, constant_cstring_config>;
+template <typename CharT, size_t Length, typename Config>
+basic_static_string_full(CharT const (&)[Length], Config) -> basic_static_string_full<CharT, Length - 1, Config>;
 } // namespace detail
 
-template <typename S_l, typename S_r>
-constexpr detail::static_string_join_result<S_l, S_r> operator+(S_l const& str_l, S_r const& str_r) requires(
-    (detail::is_static_string<S_l> || detail::is_static_string<S_r>) &&
-#ifdef BOOST_STATIC_STRING_HPP
-    (detail::is_constant_string<S_l> || detail::is_constant_string<S_r>)
+#define STATIC_STRING_SPEC_1(_NAME_, _PREFIX_)                                                                                                     \
+    template <typename CharT, size_t Length>                                                                                                       \
+    class basic_##_NAME_##_##_PREFIX_##string : public detail::basic_static_string_full<CharT, Length, detail::_NAME_##_##_PREFIX_##string_config> \
+    {                                                                                                                                              \
+      public:                                                                                                                                      \
+        using detail::basic_static_string_full<CharT, Length, detail::_NAME_##_##_PREFIX_##string_config>::basic_static_string_full;               \
+    };                                                                                                                                             \
+    template <typename CharT, size_t Length>                                                                                                       \
+    basic_##_NAME_##_##_PREFIX_##string(CharT const(&)[Length])->basic_##_NAME_##_##_PREFIX_##string<CharT, Length - 1>;
+
+#if defined(_MSC_VER) && 0 /*currently all versions broken*/
+#define STATIC_STRING_SPEC_2(_NAME_, _PREFIX_)                                                                                           \
+    template <size_t Length>                                                                                                             \
+    struct _NAME_##_##_PREFIX_##string : detail::basic_static_string_full<char, Length, detail::_NAME_##_##_PREFIX_##string_config>      \
+    {                                                                                                                                    \
+        using detail::basic_static_string_full<char, Length, detail::_NAME_##_##_PREFIX_##string_config>::basic_static_string_full;      \
+    };                                                                                                                                   \
+    template <size_t Length>                                                                                                             \
+    _NAME_##_##_PREFIX_##string(char const(&)[Length])->_NAME_##_##_PREFIX_##string<Length - 1>;                                         \
+    template <size_t Length>                                                                                                             \
+    struct _NAME_##_w##_PREFIX_##string : detail::basic_static_string_full<wchar_t, Length, detail::_NAME_##_##_PREFIX_##string_config>  \
+    {                                                                                                                                    \
+        using detail::basic_static_string_full<wchar_t, Length, detail::_NAME_##_##_PREFIX_##string_config>::basic_static_string_full;   \
+    };                                                                                                                                   \
+    template <size_t Length>                                                                                                             \
+    _NAME_##_w##_PREFIX_##string(wchar_t const(&)[Length])->_NAME_##_w##_PREFIX_##string<Length - 1>;                                    \
+    template <size_t Length>                                                                                                             \
+    struct _NAME_##_u8##_PREFIX_##string : detail::basic_static_string_full<char8_t, Length, detail::_NAME_##_##_PREFIX_##string_config> \
+    {                                                                                                                                    \
+        using detail::basic_static_string_full<char8_t, Length, detail::_NAME_##_##_PREFIX_##string_config>::basic_static_string_full;   \
+    };                                                                                                                                   \
+    template <size_t Length>                                                                                                             \
+    _NAME_##_u8##_PREFIX_##string(char8_t const(&)[Length])->_NAME_##_u8##_PREFIX_##string<Length - 1>;
 #else
-    (detail::known_max_size<S_l> || detail::known_max_size<S_r>)
+#define STATIC_STRING_SPEC_2(_NAME_, _PREFIX_)                                                 \
+    template <size_t Length>                                                                   \
+    using _NAME_##_##_PREFIX_##string = basic_##_NAME_##_##_PREFIX_##string<char, Length>;     \
+    template <size_t Length>                                                                   \
+    using _NAME_##_w##_PREFIX_##string = basic_##_NAME_##_##_PREFIX_##string<wchar_t, Length>; \
+    template <size_t Length>                                                                   \
+    using _NAME_##_u8##_PREFIX_##string = basic_##_NAME_##_##_PREFIX_##string<char8_t, Length>;
 #endif
-)
-{
-    return detail::join_to_static_string(str_l, str_r);
-}
 
-template <typename S_l, typename S_r>
-constexpr auto operator+(S_l const& str_l, S_r const& str_r) -> detail::constant_string_join_result<S_l, S_r> requires(
-    (detail::is_constant_string<S_l> || detail::is_constant_string<S_r>) && //
-    (std::is_bounded_array_v<S_l> || std::is_bounded_array_v<S_r>))
-{
-    return detail::join_to_constant_string(str_l, str_r);
-}
+#define STATIC_STRING_SPEC(_NAME_, _PREFIX_) \
+    STATIC_STRING_SPEC_1(_NAME_, _PREFIX_);  \
+    STATIC_STRING_SPEC_2(_NAME_, _PREFIX_);
 
-template <typename S_l, typename S_r>
-constexpr bool operator==(S_l const& str_l, S_r const& str_r) requires(
-    (detail::has_max_size<S_l> || detail::has_max_size<S_r>) && //
-    (detail::known_max_size<S_l> || detail::known_max_size<S_r>))
-{
-    return detail::equal_string(str_l, str_r);
-}
+STATIC_STRING_SPEC(static, );
+STATIC_STRING_SPEC(static, c);
+STATIC_STRING_SPEC(constant, );
+STATIC_STRING_SPEC(constant, c);
+
+#undef STATIC_STRING_SPEC_1
+#undef STATIC_STRING_SPEC_2
+#undef STATIC_STRING_SPEC
 
 inline namespace literals
 {
+#if 0
+template <basic_constant_cstring Str>
+constexpr auto operator"" _cs() -> typename decltype(Str)::template rebind_config<detail::constant_string_config>
+{
+    return Str.template set_config<detail::constant_string_config>();
+}
+
+template <basic_constant_cstring Str>
+constexpr auto operator"" _ss() -> typename decltype(Str)::template rebind_config<detail::static_string_config>
+{
+    return Str.template set_config<detail::static_string_config>();
+}
+#else
 template <basic_constant_string Str>
 constexpr auto operator"" _cs() -> std::remove_const_t<decltype(Str)>
 {
     return Str;
 }
+
+template <basic_static_string Str>
+constexpr auto operator"" _ss() -> std::remove_const_t<decltype(Str)>
+{
+    return Str;
+}
+#endif
 } // namespace literals
 } // namespace fd

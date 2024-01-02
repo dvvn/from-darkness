@@ -61,6 +61,13 @@ template <>
 struct pattern_segment_bytes<-1> : span<char const>
 {
     using span::span;
+
+    template <size_t Length>
+    constexpr pattern_segment_bytes(char const (&str)[Length])
+        : span{str, Length - 1}
+    {
+        assert(str[Length - 1] == '\0');
+    }
 };
 
 #ifdef FD_PATTERN_NATIVE_SIZE

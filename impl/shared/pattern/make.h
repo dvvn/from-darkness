@@ -58,20 +58,15 @@ class transformed_pattern
 #endif
 
     template <class T>
-    constexpr transformed_pattern(T const& pattern)
+    constexpr transformed_pattern(T const& pat)
         : buffer_{}
     {
-#ifdef _DEBUG
-        using std::ranges::distance;
-        using std::views::split;
-        assert(distance(split(pattern, ' ')) == BytesCount);
-#endif
         using std::data;
         using std::size;
 
         auto it              = data(buffer_);
-        auto byte0           = data(pattern);
-        auto const last_byte = byte0 + size(pattern);
+        auto byte0           = data(pat);
+        auto const last_byte = byte0 + size(pat);
 
         // resharper ignore 'typename N'
 #ifdef __RESHARPER__
@@ -187,14 +182,20 @@ class transformed_pattern
     }
 };
 
-template <constant_string Str>
+template <auto Str>
 constexpr auto make_pattern()
 {
+    constexpr auto bytes_count = []() -> size_t {
 #ifdef _DEBUG
-    constexpr auto bytes_count = std::ranges::count(Str, ' ') + 1;
+        auto const first = Str.data();
+        auto const last  = first + Str.size();
 #else
-    constexpr auto bytes_count = std::count(Str.begin(), Str.end(), ' ') + 1;
+        auto const first = buffer_.begin();
+        auto const last  = buffer_.end();
 #endif
+        return std::count(first, last, ' ');
+    }() + 1;
+
     constexpr transformed_pattern<bytes_count> bytes{Str};
 
     constexpr auto make_segment = []<size_t Skip>(integral_constant<size_t, Skip>) {
@@ -212,7 +213,7 @@ constexpr auto make_pattern()
 inline namespace literals
 {
 #ifdef _DEBUG
-template <constant_string Pattern>
+template <basic_constant_string Pattern>
 constexpr auto operator""_pat()
 {
     auto result = detail::make_pattern<Pattern>();
@@ -238,18 +239,9 @@ constexpr auto make_pattern(Args const&... args)
 
     auto const make_segment = [&]<typename T>(T const& str, size_t val) {
         if constexpr (sizeof(T) == sizeof(char) && !std::is_class_v<T>)
-        {
             return pattern_segment<sizeof(T), -1>{&str, val};
-        }
         else
-        {
-            using std::begin;
-            detail::validate_raw_string(str);
-            return pattern_segment<-1, -1>{
-                {begin(str), detail::string_end(str)},
-                val
-            };
-        }
+            return pattern_segment<-1, -1>{str, val};
     };
     auto const make_segment_at = [&]<size_t I>(integral_constant<size_t, I>) {
         constexpr auto index = I % 2 ? I + 1 : I;

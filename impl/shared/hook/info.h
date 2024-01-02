@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "functional/ignore.h"
 #include "noncopyable.h"
 
 #include <memory>
