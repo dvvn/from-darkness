@@ -1,5 +1,3 @@
-#include "debug/console.h"
-#include "debug/log.h"
 #include "entity_cache/holder.h"
 #include "functional/vfunc.h"
 #include "gui/present.h"
@@ -22,12 +20,12 @@
 
 bool fd::context::run()
 {
-#ifdef _DEBUG
-    system_console console;
-    if (!console.exists())
-        return false;
-    log_activator log_activator;
-#endif
+//#ifdef _DEBUG
+//    system_console console;
+//    if (!console.exists())
+//        return false;
+//    log_activator log_activator;
+//#endif
 
     gui::render_context render_context;
     gui::native_win32_backend system_backend{&render_context};
@@ -76,7 +74,7 @@ bool fd::context::run()
     if (!hook_backend.enable())
         return false;
 
-    log("loaded!");
+    //log("loaded!");
 
     if (!this->pause())
         return false;

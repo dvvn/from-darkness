@@ -1,4 +1,3 @@
-#include "debug/log.h"
 #include "gui/present.h"
 #include "gui/render/backend/own_dx11.h"
 #include "gui/render/backend/own_win32.h"
@@ -10,9 +9,9 @@
 
 bool fd::context::run()
 {
-#ifdef _DEBUG
-    log_activator log_activator;
-#endif
+    // #ifdef _DEBUG
+    //     log_activator log_activator;
+    // #endif
 
     gui::render_context render_ctx;
     gui::own_win32_backend system_bk;
