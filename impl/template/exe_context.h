@@ -5,29 +5,36 @@ namespace fd
 {
 namespace detail
 {
-class exe_context : public basic_context
+class exe_context_holder : public basic_context
 {
-  public:
-    static bool run();
+  protected:
+    bool attach();
+};
 
-    static bool start(int const argc, int* argv)
+inline struct : exe_context_holder
+{
+    int operator()(int const argc, int* argv)
     {
         std::ignore = argc;
         std::ignore = argv;
-        return run();
-    }
-};
 
-inline exe_context exe_context_instance;
+        return attach() ? EXIT_SUCCESS : EXIT_FAILURE;
+    }
+} exe_context;
 } // namespace detail
 
-using context = detail::exe_context;
+using context = detail::exe_context_holder;
+
+bool context_holder(context* ctx);
+
+inline bool context::attach()
+{
+    return context_holder(this);
+}
 } // namespace fd
 
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 int main(int const argc, int* argv)
 {
-    using fd::detail::exe_context_instance;
-
-    return exe_context_instance.start(argc, argv) ? EXIT_SUCCESS : EXIT_FAILURE;
+    return fd::detail::exe_context(argc, argv);
 }

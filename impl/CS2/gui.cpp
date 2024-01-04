@@ -7,11 +7,9 @@
 //
 #include "exe_context.h"
 
-bool fd::context::run()
+bool fd::context_holder(context* const ctx)
 {
-    // #ifdef _DEBUG
-    //     log_activator log_activator;
-    // #endif
+    auto logger = ctx->make_debug_logger();
 
     gui::render_context render_ctx;
     gui::own_win32_backend system_bk;
@@ -21,6 +19,8 @@ bool fd::context::run()
     auto menu = make_menu_example([&system_bk] {
         system_bk.close();
     });
+
+    logger("Loaded");
 
     while (system_bk.update())
     {

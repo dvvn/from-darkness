@@ -183,20 +183,21 @@ class transformed_pattern
 };
 
 template <constant_string Str>
+inline constexpr size_t pattern_bytes_count = [] {
+#ifdef _DEBUG
+    auto const first = Str.data();
+    auto const last  = first + Str.size();
+#else
+    auto const first = buffer_.begin();
+    auto const last  = buffer_.end();
+#endif
+    return std::count(first, last, ' ');
+}() + 1;
+
+template <constant_string Str>
 constexpr auto make_pattern() noexcept
 {
-    constexpr auto bytes_count = []() -> size_t {
-#ifdef _DEBUG
-        auto const first = Str.data();
-        auto const last  = first + Str.size();
-#else
-        auto const first = buffer_.begin();
-        auto const last  = buffer_.end();
-#endif
-        return std::count(first, last, ' ');
-    }() + 1;
-
-    constexpr transformed_pattern<bytes_count> bytes{Str};
+    constexpr transformed_pattern<pattern_bytes_count<Str>> bytes{Str};
 
     constexpr auto make_segment = []<size_t Skip>(integral_constant<size_t, Skip>) {
         constexpr auto tmp_segment    = bytes.segment(Skip);
@@ -220,15 +221,18 @@ template <basic_constant_string Pattern>
 #else
 template <constant_string Pattern>
 #endif
+#ifdef _DEBUG
 constexpr auto operator""_pat() noexcept
 {
-#ifdef _DEBUG
     auto result = detail::make_pattern<Pattern>();
     return result;
-#else
-    return detail::make_pattern_result<Pattern>();
-#endif
 }
+#else
+constexpr auto& operator""_pat() noexcept
+{
+    return detail::make_pattern_result<Pattern>;
+}
+#endif
 
 } // namespace literals
 

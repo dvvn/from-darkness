@@ -18,20 +18,15 @@
 #include "dll_context.h"
 #include "menu_example.h"
 
-bool fd::context::run()
+bool fd::context_holder(context* const ctx)
 {
-//#ifdef _DEBUG
-//    system_console console;
-//    if (!console.exists())
-//        return false;
-//    log_activator log_activator;
-//#endif
+    auto logger = ctx->make_debug_logger();
 
     gui::render_context render_context;
     gui::native_win32_backend system_backend{&render_context};
     gui::native_dx11_backend render_backend{&render_context, "rendersystemdx11"_dll.obj().DXGI_swap_chain()};
     auto menu = make_menu_example([=] {
-        if (!this->resume())
+        if (!ctx->resume())
             unreachable();
     });
 
@@ -74,9 +69,9 @@ bool fd::context::run()
     if (!hook_backend.enable())
         return false;
 
-    //log("loaded!");
+    logger("Loaded");
 
-    if (!this->pause())
+    if (!ctx->pause())
         return false;
 
     return true;

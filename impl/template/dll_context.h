@@ -5,15 +5,15 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <tuple>
 
 namespace fd
 {
 namespace detail
 {
-class dll_context : public basic_context
+class dll_context_holder : public basic_context
 {
     HINSTANCE instance_;
-
     HANDLE thread_;
     DWORD thread_id_;
 
@@ -23,79 +23,83 @@ class dll_context : public basic_context
         FreeLibraryAndExitThread(instance_, success ? EXIT_SUCCESS : EXIT_FAILURE);
     }
 
-    bool run();
+  protected:
+    bool attach(HINSTANCE instance);
 
   public:
-    // ReSharper disable once CppPossiblyUninitializedMember
-    dll_context()
+    dll_context_holder()
     {
+        std::ignore = this;
     }
 
-    bool pause() const
+    bool pause()
     {
         return SuspendThread(thread_) != static_cast<DWORD>(-1);
     }
 
-    bool resume() const
+    bool resume()
     {
         return ResumeThread(thread_) != static_cast<DWORD>(-1);
     }
-
-    bool start(HINSTANCE instance)
-    {
-        instance_ = instance;
-        thread_   = CreateThread(
-            nullptr, 0,
-            [](LPVOID this_ptr) -> DWORD {
-                auto const ctx     = static_cast<dll_context *>(this_ptr);
-                auto const success = ctx->run();
-                ctx->stop(success);
-            },
-            this, 0, &thread_id_);
-        return thread_ != INVALID_HANDLE_VALUE;
-    }
 };
 
-inline dll_context dll_context_instance;
-
-inline BOOL dll_main(HINSTANCE instance, DWORD const reason, LPCVOID const reserved) noexcept
+inline struct : dll_context_holder
 {
-    // ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
-    switch (reason)
+    BOOL operator()(HINSTANCE instance, DWORD const reason, LPCVOID const reserved) noexcept
     {
-    case DLL_PROCESS_ATTACH: {
-        // Initialize once for each new process.
-        // Return FALSE to fail DLL load.
-        if (!dll_context_instance.start(instance))
-            return FALSE;
-        break;
-    }
+        // ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
+        switch (reason)
+        {
+        case DLL_PROCESS_ATTACH: {
+            // Initialize once for each new process.
+            // Return FALSE to fail DLL load.
+            if (!this->attach(instance))
+                return FALSE;
+            break;
+        }
 #if 0
     case DLL_THREAD_ATTACH: // Do thread-specific initialization.
         break;
     case DLL_THREAD_DETACH: // Do thread-specific cleanup.
         break;
 #endif
-    case DLL_PROCESS_DETACH:
-        if (reserved != nullptr) // do not do cleanup if process termination scenario
-        {
+        case DLL_PROCESS_DETACH:
+            if (reserved != nullptr) // do not do cleanup if process termination scenario
+            {
+                break;
+            }
+
+            // Perform any necessary cleanup.
             break;
         }
 
-        // Perform any necessary cleanup.
-        break;
+        return TRUE;
     }
-
-    return TRUE;
-}
+} dll_context;
 } // namespace detail
 
-using context = detail::dll_context;
+using context = detail::dll_context_holder;
+
+bool context_holder(context *ctx);
+
+inline bool context::attach(HINSTANCE instance)
+{
+    instance_ = instance;
+    thread_   = CreateThread(
+        nullptr, 0,
+        [](LPVOID this_ptr) -> DWORD {
+            auto const ctx     = static_cast<dll_context_holder *>(this_ptr);
+            auto const success = context_holder(ctx);
+            ctx->stop(success);
+        },
+        this, 0, &thread_id_);
+    return thread_ != INVALID_HANDLE_VALUE;
+}
 } // namespace fd
 
 // ReSharper disable once CppInconsistentNaming
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 BOOL WINAPI DllMain(HINSTANCE instance, DWORD const reason, LPCVOID const reserved)
 {
-    return fd::detail::dll_main(instance, reason, reserved);
+    return fd::detail::dll_context(instance, reason, reserved);
 }

@@ -2,14 +2,13 @@
 
 #include "container/vector/small.h"
 #include "string/static.h"
-#include "string/view.h"
+#include "type_traits/conditional.h"
 #include "noncopyable.h"
 
 #include <Windows.h>
 #include <corecrt_io.h>
 
 #include <cassert>
-#include <vector>
 
 namespace fd
 {
@@ -56,43 +55,45 @@ class system_console_mode_setter : public noncopyable
         assert(old_mode_ != -1);
     }
 };
-
 } // namespace detail
 
 class system_console : public noncopyable
 {
+    bool console_allocated_;
     HANDLE out_;
 
-    void write_raw(wchar_t const* ptr, size_t const length)
+#ifdef UNICODE
+    template <size_t BufferSize = -1>
+    void write_wide(char const* buff, size_t const length)
     {
-        DWORD written;
-        WriteConsoleW(out_, ptr, length, &written, nullptr);
-        assert(written == length);
-
-        std::ignore = this;
+        using buff_t = conditional_t<BufferSize == -1, small_vector<wchar_t, 512>, basic_static_string<wchar_t, BufferSize>>;
+        buff_t const wbuff{buff, buff + length};
+        return write(wbuff.data(), wbuff.size());
     }
+#else
 
-    void write_raw(char const* ptr, size_t const length)
-    {
-        DWORD written;
-        WriteConsoleA(out_, ptr, length, &written, nullptr);
-        assert(written == length);
-
-        std::ignore = this;
-    }
+#endif
 
   public:
+    using native_char_type = wchar_t;
+
     ~system_console()
     {
-        FreeConsole();
+        if (console_allocated_)
+            FreeConsole();
     }
 
     system_console()
+        : console_allocated_{false}
     {
         if (!exists())
         {
             if (!AllocConsole())
+            {
+                assert(0 && "AllocConsole error!");
                 return;
+            }
+            console_allocated_ = true;
         }
 
         out_ = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -103,46 +104,53 @@ class system_console : public noncopyable
         return GetConsoleWindow() != INVALID_HANDLE_VALUE;
     }
 
-    void write(wstring_view const in_str)
+    void write(wchar_t const* ptr, size_t const length)
     {
 #ifdef UNICODE
-        write_raw(in_str.data(), in_str.length());
+        DWORD written;
+        WriteConsoleW(out_, ptr, length, &written, nullptr);
+        assert(written == length);
 #else
-        detail::system_console_char_converter<char8_t> const buff{in_str};
-        write(buff.view());
+        FIXME
 #endif
     }
 
-    /*template <size_t Length>
-    void write(wchar_t const (&in_str)[Length])
+    void write(char const* ptr, size_t const length)
     {
 #ifdef UNICODE
-        write_raw(in_str, Length - 1);
+        return write_wide(ptr, length);
 #else
-        detail::system_console_char_converter<char8_t> const buff{in_str};
-        write(buff.view());
+        DWORD written;
+        WriteConsoleA(out_, ptr, length, &written, nullptr);
+        assert(written == length);
 #endif
-    }*/
+    }
+
+    void write(wstring_view const in_str)
+    {
+#ifdef UNICODE
+        write(in_str.data(), in_str.length());
+#else
+        FIXME
+#endif
+    }
 
     void write(string_view const in_str)
     {
-#ifndef UNICODE
-        write_raw(in_str.data(), in_str.length());
+#ifdef UNICODE
+        write_wide(in_str.data(), in_str.size());
 #else
-                detail::system_console_char_converter<wchar_t> const buff{in_str};
-        write(buff.view());
+        FIXME
 #endif
     }
 
     template <size_t Length>
     void write(char const (&in_str)[Length])
     {
-        std::vector<int> xx;
 #ifdef UNICODE
-        write_raw(in_str, Length - 1);
+        write_wide<Length - 1>(in_str, Length - 1);
 #else
-        constant_wstring const buff;
-        write_raw(buff.data(), buff.length());
+        FIXME
 #endif
     }
 
