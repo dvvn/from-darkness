@@ -11,11 +11,9 @@ namespace detail
 class basic_context : public noncopyable
 {
   public:
-    [[nodiscard]]
-    static basic_logger<system_console> make_logger()
-    {
+    static constexpr auto make_logger = []() /*[[nodiscard]]*/-> basic_logger<system_console> {
         return {};
-    }
+    };
 
 #ifdef _DEBUG
     static constexpr auto make_debug_logger = make_logger;
