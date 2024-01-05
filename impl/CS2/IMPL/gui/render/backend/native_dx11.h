@@ -178,10 +178,9 @@ class basic_native_dx11_backend : basic_dx11_backend
     }
 };
 
-template <class Context>
 struct native_dx11_backend final : basic_native_dx11_backend, noncopyable
 {
-    native_dx11_backend(Context*, native_dx11_device_data&& data)
+    native_dx11_backend(native_dx11_device_data&& data)
         : basic_native_dx11_backend{std::move(data)}
     {
     }

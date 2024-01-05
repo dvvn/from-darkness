@@ -6,25 +6,17 @@ namespace fd::gui
 {
 namespace detail
 {
-inline constexpr auto present_new_frame = []<class T>(T* ptr) requires requires { ptr->new_frame(); }
-{
-    ptr->new_frame();
-};
+#define PRESENT_SIMPLE_FN(_FN_)                                                                     \
+    inline constexpr auto present_##_FN_ = []<class T>(T* ptr) requires requires { ptr->_FN_(); } \
+    {                                                                                             \
+        ptr->_FN_();                                                                              \
+    };
+PRESENT_SIMPLE_FN(new_frame);
+PRESENT_SIMPLE_FN(begin_frame);
+PRESENT_SIMPLE_FN(end_frame);
+PRESENT_SIMPLE_FN(render);
 
-inline constexpr auto present_begin_frame = []<class T>(T* ptr) requires requires { ptr->begin_frame(); }
-{
-    ptr->begin_frame();
-};
-
-inline constexpr auto present_end_frame = []<class T>(T* ptr) requires requires { ptr->end_frame(); }
-{
-    ptr->end_frame();
-};
-
-inline constexpr auto present_render = []<class T>(T* ptr) requires requires { ptr->render(); }
-{
-    ptr->render();
-};
+#undef PRESENT_SIMPLE_FN
 
 template <class Invoker, class... T>
 void present_helper(Invoker invoker, T*... ptr)
@@ -47,15 +39,15 @@ inline constexpr auto present_frame = []<class B, typename C>(B* backend, C* ctx
 template <class... T>
 void present_helper(decltype(present_frame) invoker, T*... args)
 {
-    constexpr auto extract_context = []<class C, class... Args>(this auto& self, C* ctx, Args... next) {
-        if constexpr ((backend_can_render<T, C> || ...))
+    constexpr auto extract_context = []<class Context, class... Args>(this auto& self, Context* ctx, Args... next) {
+        if constexpr ((backend_can_render<T, Context> || ...))
             return ctx;
         else
             return self(next...);
     };
 
-    constexpr auto extract_backend = []<class B, class... Args>(this auto& self, B* backend, Args... next) {
-        if constexpr ((backend_can_render<B, T> || ...))
+    constexpr auto extract_backend = []<class Backend, class... Args>(this auto& self, Backend* backend, Args... next) {
+        if constexpr ((backend_can_render<Backend, T> || ...))
             return backend;
         else
             return self(next...);

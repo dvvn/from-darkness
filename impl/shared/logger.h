@@ -1,15 +1,18 @@
 #pragma once
 
 #include "container/vector/small.h"
+#include "functional/invoke_on.h"
 #include "type_traits/conditional.h"
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/xchar.h>
 
+FMT_BEGIN_NAMESPACE
+
 template <typename Fn, typename C>
-requires(std::is_bind_expression_v<Fn> && fmt::is_formattable<std::invoke_result_t<Fn>, C>::value)
-struct fmt::formatter<Fn, C> : formatter<std::decay_t<std::invoke_result_t<Fn>>, C>
+requires(std::is_bind_expression_v<Fn> && is_formattable<std::invoke_result_t<Fn>, C>::value)
+struct formatter<Fn, C> : formatter<std::decay_t<std::invoke_result_t<Fn>>, C>
 {
     template <typename FnFwd>
     auto format(FnFwd&& binder, auto& ctx) const -> decltype(ctx.out())
@@ -21,6 +24,17 @@ struct fmt::formatter<Fn, C> : formatter<std::decay_t<std::invoke_result_t<Fn>>,
         return formatter<std::decay_t<ret_t>, C>::format(std::invoke(std::forward<FnFwd>(binder)), ctx);
     }
 };
+
+template <class T>
+requires requires(T str) {
+    []<typename CharT, size_t Length, class Config>(fd::detail::basic_static_string_full<CharT, Length, Config> const&) {
+    }(str);
+}
+struct detail::is_string_like<T> : std::true_type
+{
+};
+
+FMT_END_NAMESPACE
 
 namespace fd
 {
@@ -35,18 +49,30 @@ class basic_logger
 
     Out out_;
 
-    template <typename C, class FmtArgs>
-    void write(fmt::basic_string_view<C> fmt_str, FmtArgs fmt_args)
+  public:
+    using native_char_type = typename Out::native_char_type;
+
+    template <typename C>
+    using buffer_char_type = conditional_t<std::same_as<C, char> && std::same_as<native_char_type, wchar_t>, wchar_t, C>;
+
+  private:
+    template <typename C>
+    using buffer_type = small_vector<buffer_char_type<C>, 512>;
+
+    template <class Fmt, class FmtArgs>
+    void write(Fmt fmt_str, FmtArgs fmt_args)
     {
         auto const time = std::chrono::system_clock::now().time_since_epoch();
 
-        using buff_char_t = conditional_t<std::same_as<C, char> && std::same_as<typename Out::native_char_type, wchar_t>, wchar_t, C>;
-        small_vector<buff_char_t, 512> buff;
+        buffer_type<typename Fmt::value_type> buff;
         auto it = std::back_inserter(buff);
 
         fmt::format_to(it, "[{:%H:%M:%S}]", time);
         buff.push_back(' ');
-        fmt::vformat_to(it, fmt_str, fmt_args);
+        if constexpr (std::is_null_pointer_v<FmtArgs>)
+            std::copy_n(fmt_str.data(), fmt_str.size(), it);
+        else
+            fmt::vformat_to(it, fmt_str, fmt_args);
         buff.push_back('\n');
 
         out_.write(buff.data(), buff.size());
@@ -54,46 +80,114 @@ class basic_logger
 
   public:
     template <typename... Args>
-    void operator()(fmt::format_string<Args...> fmt, Args&&... args)
+    void operator()(fmt::format_string<Args...> fmt, Args&&... args) requires(sizeof...(Args) != 0)
     {
         write(fmt.get(), fmt::format_args{fmt::make_format_args(args...)});
     }
 
     template <typename... Args>
-    void operator()(fmt::wformat_string<Args...> fmt, Args&&... args)
+    void operator()(fmt::wformat_string<Args...> fmt, Args&&... args) requires(sizeof...(Args) != 0)
     {
         write(fmt.get(), fmt::wformat_args{fmt::make_wformat_args(args...)});
     }
 
-    /*Out* operator->()
+    void operator()(string_view const str)
     {
-        return &out_;
+        write(str, nullptr);
     }
 
-    Out const* operator->() const
+    void operator()(wstring_view const str)
     {
-        return &out_;
-    }*/
+        write(str, nullptr);
+    }
+
+    // for optimization use 'make_constant_string<native_char_type>(XXX)'
+#if 1
+  private:
+    class notification_invoker : public noncopyable
+    {
+        basic_logger* self_;
+
+      public:
+        notification_invoker(basic_logger* self)
+            : self_{self}
+        {
+        }
+
+        void operator()(integral_constant<invoke_on_state, invoke_on_state::construct>) const
+        {
+            std::invoke(*self_, "Created");
+        }
+
+        void operator()(integral_constant<invoke_on_state, invoke_on_state::destruct>) const
+        {
+            std::invoke(*self_, "Destroyed");
+        }
+    };
+
+  public:
+    [[nodiscard]]
+    auto make_notification() -> invoke_on<invoke_on_state::construct | invoke_on_state::destruct, notification_invoker>
+    {
+        return {this};
+    }
+#else
+    [[nodiscard]]
+    auto make_notification()
+    {
+        return make_invoke_on<invoke_on_state::construct | invoke_on_state::destruct>([this]<invoke_on_state State>(integral_constant<invoke_on_state, State>) {
+            if constexpr (State == invoke_on_state::construct)
+                write("Created", nullptr);
+            else if constexpr (State == invoke_on_state::destruct)
+                write("Destroyed", nullptr);
+        });
+    }
+#endif
 };
 
-struct fake_logger
+#if 0
+template <class Out>
+class basic_debug_logger : public basic_logger<Out>
+{
+  public:
+    using basic_logger<Out>::native_char_type;
+    using basic_logger<Out>::operator();
+
+    ~basic_debug_logger()
+    {
+        operator()(make_constant_string<native_char_type>("Destroyed"));
+    }
+
+    basic_debug_logger()
+    {
+        operator()(make_constant_string<native_char_type>("Created"));
+    }
+};
+#endif
+
+struct empty_logger
 {
 #ifdef _DEBUG
     template <typename... Args>
-    void operator()(fmt::format_string<Args...> fmt, Args&&... args)
+    void operator()(fmt::format_string<Args...> fmt, Args&&... args) requires(sizeof...(Args) != 0)
     {
     }
 
     template <typename... Args>
-    void operator()(fmt::wformat_string<Args...> fmt, Args&&... args)
+    void operator()(fmt::wformat_string<Args...> fmt, Args&&... args) requires(sizeof...(Args) != 0)
     {
     }
-#else
+#endif
+
     template <typename... Args>
     void operator()(Args&&... args)
     {
     }
-#endif
+
+    static auto notification()
+    {
+        return std::ignore;
+    }
 };
 
 template <class T, class Out>

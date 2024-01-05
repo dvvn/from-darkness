@@ -1,9 +1,6 @@
 #include "entity_cache/holder.h"
 #include "functional/vfunc.h"
 #include "gui/present.h"
-#include "gui/render/backend/native_dx11.h"
-#include "gui/render/backend/native_win32.h"
-#include "gui/render/context.h"
 #include "hook/backend/minhook.h"
 #include "hook/creator.h"
 #include "hooked/directx11.h"
@@ -20,11 +17,11 @@
 
 bool fd::context_holder(context* const ctx)
 {
-    auto logger = ctx->make_debug_logger();
+    auto logger              = ctx->make_debug_logger();
+    auto logger_notification = logger.make_notification();
 
-    gui::render_context render_context;
-    gui::native_win32_backend system_backend{&render_context};
-    gui::native_dx11_backend render_backend{&render_context, "rendersystemdx11"_dll.obj().DXGI_swap_chain()};
+    auto gui_data = ctx->make_gui_data();
+
     auto menu = make_menu_example([=] {
         if (!ctx->resume())
             unreachable();
@@ -42,20 +39,20 @@ bool fd::context_holder(context* const ctx)
     hook_backend_minhook hook_backend;
     create_hook_helper const hook_creator{&hook_backend};
 
-    auto const& render_data = render_backend.data();
-    hooked::DXGI_factory::create_swap_chain hk_create_swap_chain{&render_backend};
+    auto const& render_data = gui_data.render_backend.data();
+    hooked::DXGI_factory::create_swap_chain hk_create_swap_chain{&gui_data.render_backend};
     if (!hook_creator(vfunc{&IDXGIFactory::CreateSwapChain, render_data.DXGI_factory()}, &hk_create_swap_chain))
         return false;
-    hooked::DXGI_swap_chain::resize_buffers hk_resize_buffers{&render_backend};
+    hooked::DXGI_swap_chain::resize_buffers hk_resize_buffers{&gui_data.render_backend};
     if (!hook_creator(vfunc{&IDXGISwapChain::ResizeBuffers, render_data.swap_chain()}, &hk_resize_buffers))
         return false;
     hooked::DXGI_swap_chain::present hk_present{[&] {
-        gui::present(&render_backend, &system_backend, &render_context, &menu);
+        gui_data.present(&menu);
     }};
     if (!hook_creator(vfunc{&IDXGISwapChain::Present, render_data.swap_chain()}, &hk_present))
         return false;
-    win::window_info const main_window{system_backend.window()};
-    hooked::winapi::wndproc hk_wndproc{&system_backend};
+    win::window_info const main_window{gui_data.system_backend.window()};
+    hooked::winapi::wndproc hk_wndproc{&gui_data.system_backend};
     if (!hook_creator(main_window.proc(), &hk_wndproc))
         return false;
     using cache_entity_vfunc = vfunc<void* (native::game_resource_service::*)(native::entity_instance*, native::CBaseHandle)>;

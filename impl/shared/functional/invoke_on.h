@@ -131,7 +131,13 @@ class invoke_on
                     if constexpr (std::convertible_to<stored_callback, bool>)
                         if (!callback_)
                             return;
-                callback_();
+                using state_constant = integral_constant<invoke_on_state, CurrentState>;
+                if constexpr (std::invocable<Callback, state_constant>)
+                    callback_(state_constant{});
+                else if constexpr (std::invocable<Callback, invoke_on_state>)
+                    callback_(State);
+                else
+                    callback_();
             }
     }
 
@@ -139,6 +145,13 @@ class invoke_on
     ~invoke_on()
     {
         do_call<invoke_on_state::destruct>();
+    }
+
+    template <typename... Args>
+    constexpr invoke_on(Args&&... args) requires(std::constructible_from<Callback, Args && ...>)
+        : callback_{std::forward<Args>(args)...}
+    {
+        do_call<invoke_on_state::construct>();
     }
 
     constexpr invoke_on(raw_callback&& callback)
@@ -181,6 +194,12 @@ class invoke_on
         return *this;
     }
 };
+
+template <invoke_on_state State, typename Callback>
+constexpr invoke_on<State, std::remove_cvref_t<Callback>> make_invoke_on(Callback&& callback)
+{
+    return {std::forward<Callback>(callback)};
+}
 
 template <typename Callback>
 class invoke_on<invoke_on_state::construct, Callback>

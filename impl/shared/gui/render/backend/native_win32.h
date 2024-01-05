@@ -49,7 +49,7 @@ class basic_native_win32_backend : public basic_win32_backend
   protected:
     basic_native_win32_backend(HWND window)
         : basic_win32_backend{window}
-        , window_(window)
+        , window_{window}
     {
     }
 
@@ -65,16 +65,8 @@ class basic_native_win32_backend : public basic_win32_backend
     }
 };
 
-template <class Context>
 struct native_win32_backend final : basic_native_win32_backend, noncopyable
 {
-    native_win32_backend(Context*)
-    {
-    }
-
-    native_win32_backend(Context*, HWND window)
-        : basic_native_win32_backend{window}
-    {
-    }
+    using basic_native_win32_backend::basic_native_win32_backend;
 };
 } // namespace fd::gui

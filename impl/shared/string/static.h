@@ -523,43 +523,58 @@ basic_static_string_full(CharT const (&)[Length], Config) -> basic_static_string
     };                                                                                                                                             \
     template <typename CharT, size_t Length>                                                                                                       \
     basic_##_NAME_##_##_PREFIX_##string(CharT const(&)[Length])->basic_##_NAME_##_##_PREFIX_##string<CharT, Length - 1>;
+#define STATIC_STRING_SPEC_2(_NAME_, _PREFIX_)                 \
+    STATIC_STRING_SPEC_2_HELPER(char, _NAME_, _, _PREFIX_)     \
+    STATIC_STRING_SPEC_2_HELPER(wchar_t, _NAME_, _w, _PREFIX_) \
+    STATIC_STRING_SPEC_2_HELPER(char8_t, _NAME_, _u8, _PREFIX_)
 
 #if defined(_MSC_VER) && 0 /*currently all versions broken*/
-#define STATIC_STRING_SPEC_2(_NAME_, _PREFIX_)                                                                                           \
-    template <size_t Length>                                                                                                             \
-    struct _NAME_##_##_PREFIX_##string : detail::basic_static_string_full<char, Length, detail::_NAME_##_##_PREFIX_##string_config>      \
-    {                                                                                                                                    \
-        using detail::basic_static_string_full<char, Length, detail::_NAME_##_##_PREFIX_##string_config>::basic_static_string_full;      \
-    };                                                                                                                                   \
-    template <size_t Length>                                                                                                             \
-    _NAME_##_##_PREFIX_##string(char const(&)[Length])->_NAME_##_##_PREFIX_##string<Length - 1>;                                         \
-    template <size_t Length>                                                                                                             \
-    struct _NAME_##_w##_PREFIX_##string : detail::basic_static_string_full<wchar_t, Length, detail::_NAME_##_##_PREFIX_##string_config>  \
-    {                                                                                                                                    \
-        using detail::basic_static_string_full<wchar_t, Length, detail::_NAME_##_##_PREFIX_##string_config>::basic_static_string_full;   \
-    };                                                                                                                                   \
-    template <size_t Length>                                                                                                             \
-    _NAME_##_w##_PREFIX_##string(wchar_t const(&)[Length])->_NAME_##_w##_PREFIX_##string<Length - 1>;                                    \
-    template <size_t Length>                                                                                                             \
-    struct _NAME_##_u8##_PREFIX_##string : detail::basic_static_string_full<char8_t, Length, detail::_NAME_##_##_PREFIX_##string_config> \
-    {                                                                                                                                    \
-        using detail::basic_static_string_full<char8_t, Length, detail::_NAME_##_##_PREFIX_##string_config>::basic_static_string_full;   \
-    };                                                                                                                                   \
-    template <size_t Length>                                                                                                             \
-    _NAME_##_u8##_PREFIX_##string(char8_t const(&)[Length])->_NAME_##_u8##_PREFIX_##string<Length - 1>;
+#define STATIC_STRING_SPEC_2_HELPER(_CHAR_T_, _NAME_, _SUFFIX_, _PREFIX_)                                                                      \
+    template <size_t Length>                                                                                                                   \
+    struct _NAME_##_SUFFIX_##_PREFIX_##string : detail::basic_static_string_full<_CHAR_T_, Length, detail::_NAME_##_##_PREFIX_##string_config> \
+    {                                                                                                                                          \
+        using detail::basic_static_string_full<_CHAR_T_, Length, detail::_NAME_##_##_PREFIX_##string_config>::basic_static_string_full;        \
+    };                                                                                                                                         \
+    template <size_t Length>                                                                                                                   \
+    _NAME_##_SUFFIX_##_PREFIX_##string(_CHAR_T_ const(&)[Length])->_NAME_##_SUFFIX_##_PREFIX_##string<Length - 1>;
+
+#define STATIC_STRING_SPEC_3_HELPER(_CHAR_T_, _NAME_, _SUFFIX_, _PREFIX_)                                                     \
+    template <std::same_as<_CHAR_T_> CharT_override, typename CharT, size_t Length>                                           \
+    constexpr _NAME_##_SUFFIX_##_PREFIX_##string<Length - 1> make_##_NAME_##_##_PREFIX_##string(const CharT(&str)[Length])    \
+    {                                                                                                                         \
+        return {str};                                                                                             \
+    }                                                                                                                         \
+    template <size_t Length>                                                                                                  \
+    constexpr _NAME_##_SUFFIX_##_PREFIX_##string<Length - 1> make_##_NAME_##_##_PREFIX_##string(const _CHAR_T_(&str)[Length]) \
+    {                                                                                                                         \
+        return {str};                                                                                             \
+    }
+#define STATIC_STRING_SPEC_3(_NAME_, _PREFIX_)                 \
+    STATIC_STRING_SPEC_3_HELPER(char, _NAME_, _, _PREFIX_)     \
+    STATIC_STRING_SPEC_3_HELPER(wchar_t, _NAME_, _w, _PREFIX_) \
+    STATIC_STRING_SPEC_3_HELPER(char8_t, _NAME_, _u8, _PREFIX_)
 #else
-#define STATIC_STRING_SPEC_2(_NAME_, _PREFIX_)                                                 \
-    template <size_t Length>                                                                   \
-    using _NAME_##_##_PREFIX_##string = basic_##_NAME_##_##_PREFIX_##string<char, Length>;     \
-    template <size_t Length>                                                                   \
-    using _NAME_##_w##_PREFIX_##string = basic_##_NAME_##_##_PREFIX_##string<wchar_t, Length>; \
-    template <size_t Length>                                                                   \
-    using _NAME_##_u8##_PREFIX_##string = basic_##_NAME_##_##_PREFIX_##string<char8_t, Length>;
+#define STATIC_STRING_SPEC_2_HELPER(_CHAR_T_, _NAME_, _SUFFIX_, _PREFIX_) \
+    template <size_t Length>                                              \
+    using _NAME_##_SUFFIX_##_PREFIX_##string = basic_##_NAME_##_##_PREFIX_##string<_CHAR_T_, Length>;
+#define STATIC_STRING_SPEC_3(_NAME_, _PREFIX_)                                                                                              \
+    template <typename CharT_override, typename CharT, size_t Length>                                                                       \
+    constexpr basic_##_NAME_##_##_PREFIX_##string<CharT_override, Length - 1> make_##_NAME_##_##_PREFIX_##string(const CharT(&str)[Length]) \
+        requires(!std::same_as<CharT_override, CharT>)                                                                                      \
+    {                                                                                                                                       \
+        return {str};                                                                                                           \
+    }                                                                                                                                       \
+    template <typename CharT, size_t Length>                                                                                                \
+    constexpr basic_##_NAME_##_##_PREFIX_##string<CharT, Length - 1> make_##_NAME_##_##_PREFIX_##string(const CharT(&str)[Length])          \
+    {                                                                                                                                       \
+        return {str};                                                                                                           \
+    }
 #endif
 
 #define STATIC_STRING_SPEC(_NAME_, _PREFIX_) \
     STATIC_STRING_SPEC_1(_NAME_, _PREFIX_);  \
-    STATIC_STRING_SPEC_2(_NAME_, _PREFIX_);
+    STATIC_STRING_SPEC_2(_NAME_, _PREFIX_);  \
+    STATIC_STRING_SPEC_3(_NAME_, _PREFIX_);
 
 STATIC_STRING_SPEC(static, );
 STATIC_STRING_SPEC(static, c);
@@ -567,7 +582,10 @@ STATIC_STRING_SPEC(constant, );
 STATIC_STRING_SPEC(constant, c);
 
 #undef STATIC_STRING_SPEC_1
+#undef STATIC_STRING_SPEC_2_HELPER
 #undef STATIC_STRING_SPEC_2
+#undef STATIC_STRING_SPEC_3_HELPER
+#undef STATIC_STRING_SPEC_3
 #undef STATIC_STRING_SPEC
 
 inline namespace literals

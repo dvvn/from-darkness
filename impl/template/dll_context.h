@@ -1,17 +1,47 @@
 #pragma once
+#include "gui/present.h"
+#include "gui/render/backend/native_dx11.h"
+#include "gui/render/backend/native_win32.h"
+#include "gui/render/context.h"
 #include "basic_context.h"
 
 #include <Windows.h>
 
 #include <cassert>
-#include <cstdlib>
-#include <tuple>
 
 namespace fd
 {
 namespace detail
 {
-class dll_context_holder : public basic_context
+class dll_context_data
+{
+    struct gui_data
+    {
+        gui::render_context ctx;
+        gui::native_win32_backend system_backend;
+        gui::native_dx11_backend render_backend;
+
+        gui_data()
+            : render_backend{"rendersystemdx11"_dll.obj().DXGI_swap_chain()}
+        {
+        }
+
+        template <typename... T>
+        void present(T *data)
+        {
+            gui::present(&render_backend, &system_backend, &ctx, data...);
+        }
+    };
+
+  public:
+    [[nodiscard]]
+    static gui_data make_gui_data()
+    {
+        return {};
+    }
+};
+
+class dll_context_holder : public basic_context, public dll_context_data
 {
     HINSTANCE instance_;
     HANDLE thread_;
