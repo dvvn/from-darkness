@@ -51,7 +51,7 @@ class exe_context_holder : public basic_context, public exe_context_data
     bool attach();
 };
 
-inline struct : exe_context_holder
+struct exe_context : exe_context_holder
 {
     int operator()(int const argc, int* argv)
     {
@@ -60,7 +60,7 @@ inline struct : exe_context_holder
 
         return attach() ? EXIT_SUCCESS : EXIT_FAILURE;
     }
-} exe_context;
+};
 } // namespace detail
 
 using context = detail::exe_context_holder;
@@ -76,5 +76,6 @@ inline bool context::attach()
 // ReSharper disable once CppNonInlineFunctionDefinitionInHeaderFile
 int main(int const argc, int* argv)
 {
-    return fd::detail::exe_context(argc, argv);
+    fd::detail::exe_context ctx;
+    return ctx(argc, argv);
 }

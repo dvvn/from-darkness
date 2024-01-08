@@ -1,8 +1,6 @@
 #pragma once
 
-#include "container/vector/small.h"
 #include "functional/invoke_on.h"
-#include "type_traits/conditional.h"
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
@@ -30,7 +28,13 @@ requires requires(T str) {
     []<typename CharT, size_t Length, class Config>(fd::detail::basic_static_string_full<CharT, Length, Config> const&) {
     }(str);
 }
-struct detail::is_string_like<T> : std::true_type
+struct detail::
+#if FMT_VERSION < 100202
+    is_string_like
+#else
+    is_std_string_like
+#endif
+    <T> : std::true_type
 {
 };
 
@@ -41,31 +45,21 @@ namespace fd
 template <class Out>
 class basic_logger
 {
-    template <class T, class Out1>
+    /*template <class T, class Out1>
     friend T& get(basic_logger<Out1>& logger);
 
     template <class T, class Out1>
-    friend T const& get(basic_logger<Out1> const& logger);
+    friend T const& get(basic_logger<Out1> const& logger);*/
 
     Out out_;
-
-  public:
-    using native_char_type = typename Out::native_char_type;
-
-    template <typename C>
-    using buffer_char_type = conditional_t<std::same_as<C, char> && std::same_as<native_char_type, wchar_t>, wchar_t, C>;
-
-  private:
-    template <typename C>
-    using buffer_type = small_vector<buffer_char_type<C>, 512>;
 
     template <class Fmt, class FmtArgs>
     void write(Fmt fmt_str, FmtArgs fmt_args)
     {
         auto const time = std::chrono::system_clock::now().time_since_epoch();
 
-        buffer_type<typename Fmt::value_type> buff;
-        auto it = std::back_inserter(buff);
+        decltype(auto) buff = out_.template get_buffer<typename Fmt::value_type>();
+        std::back_insert_iterator it{buff};
 
         fmt::format_to(it, "[{:%H:%M:%S}]", time);
         buff.push_back(' ');
@@ -190,7 +184,7 @@ struct empty_logger
     }
 };
 
-template <class T, class Out>
+/*template <class T, class Out>
 T& get(basic_logger<Out>& logger)
 {
     return logger.out_;
@@ -200,5 +194,5 @@ template <class T, class Out>
 T const& get(basic_logger<Out> const& logger)
 {
     return logger.out_;
-}
+}*/
 } // namespace fd

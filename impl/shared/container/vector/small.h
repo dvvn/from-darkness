@@ -7,5 +7,5 @@
 namespace fd
 {
 template <typename T, size_t BufferSize>
-using small_vector = boost::container::small_vector<T, BufferSize>;
+using small_vector = boost::container::small_vector<T, BufferSize, std::allocator<T>>;
 }

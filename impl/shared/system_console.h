@@ -1,49 +1,19 @@
 #pragma once
 
+#include "container/array.h"
 #include "container/vector/small.h"
-#include "string/static.h"
-#include "type_traits/conditional.h"
 #include "noncopyable.h"
 
 #include <Windows.h>
 #include <corecrt_io.h>
 
+#include <algorithm>
 #include <cassert>
 
 namespace fd
 {
 namespace detail
 {
-template <typename CharT, class Buff = small_vector<CharT, 512>>
-class system_console_char_converter
-{
-    Buff buff_;
-
-  public:
-    template <class StrIt>
-    system_console_char_converter(StrIt const& in)
-    {
-#ifdef _DEBUG
-        using std::data;
-        using std::size;
-        auto const first = data(in);
-        auto const last  = first + size(in);
-#else
-        using std::data;
-        using std::size;
-        auto const first = begin(in);
-        auto const last  = end(in);
-#endif
-        // WIP
-        buff_.assign(first, last);
-    }
-
-    basic_string_view<CharT> view() const
-    {
-        return {buff_.data(), buff_.size()};
-    }
-};
-
 class system_console_mode_setter : public noncopyable
 {
     int old_mode_;
@@ -57,26 +27,43 @@ class system_console_mode_setter : public noncopyable
 };
 } // namespace detail
 
-class system_console : public noncopyable
+class system_console
+#ifndef UNICODE
+    : public noncopyable
+#endif
 {
     bool console_allocated_;
     HANDLE out_;
 
-#ifdef UNICODE
-    template <size_t BufferSize = -1>
-    void write_wide(char const* buff, size_t const length)
+    template <typename T>
+    struct char_buffer : small_vector<T, 1024>, noncopyable
     {
-        using buff_t = conditional_t<BufferSize == -1, small_vector<wchar_t, 512>, basic_static_string<wchar_t, BufferSize>>;
-        buff_t const wbuff{buff, buff + length};
-        return write(wbuff.data(), wbuff.size());
+        char_buffer() = default;
+    };
+
+#ifdef UNICODE
+    char_buffer<wchar_t> wchar_buffer_;
+
+    template <size_t BufferSize = -1>
+    void write_wide(char const* buff, size_t const length = BufferSize) noexcept
+    {
+        if constexpr (BufferSize == -1)
+        {
+            wchar_buffer_.assign(buff, buff + length);
+            write(wchar_buffer_.data(), length);
+        }
+        else
+        {
+            array<wchar_t, BufferSize> wbuff;
+            std::copy_n(buff, length, wbuff.begin());
+            write(wbuff.data(), length);
+        }
     }
 #else
 
 #endif
 
   public:
-    using native_char_type = wchar_t;
-
     ~system_console()
     {
         if (console_allocated_)
@@ -118,7 +105,7 @@ class system_console : public noncopyable
     void write(char const* ptr, size_t const length)
     {
 #ifdef UNICODE
-        return write_wide(ptr, length);
+        write_wide(ptr, length);
 #else
         DWORD written;
         WriteConsoleA(out_, ptr, length, &written, nullptr);
@@ -138,22 +125,45 @@ class system_console : public noncopyable
     void write(string_view const in_str)
     {
 #ifdef UNICODE
-        write_wide(in_str.data(), in_str.size());
+        write_wide(in_str.data(), in_str.length());
 #else
-        FIXME
+        write(in_str.data(), in_str.length());
 #endif
     }
 
+#ifdef UNICODE
     template <size_t Length>
     void write(char const (&in_str)[Length])
     {
-#ifdef UNICODE
-        write_wide<Length - 1>(in_str, Length - 1);
-#else
-        FIXME
+        write_wide<Length - 1>(in_str);
+    }
 #endif
+
+    void write(u8string_view in_str) const;
+
+#ifdef UNICODE
+    template <typename C>
+    char_buffer<wchar_t>& get_buffer() &
+    {
+#ifdef _DEBUG
+        static_assert(std::same_as<C, char> || std::same_as<C, wchar_t>);
+#endif
+        wchar_buffer_.clear();
+        return wchar_buffer_;
+    }
+#else
+
+#endif
+    template <typename C>
+    char_buffer<C> get_buffer() &&
+    {
+        return {};
     }
 
-    void write(u8string_view const in_str) const;
+    template <typename C>
+    char_buffer<C> get_buffer() const&
+    {
+        return {};
+    }
 };
 } // namespace fd
