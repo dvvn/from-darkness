@@ -5,29 +5,16 @@
 
 namespace fd
 {
-namespace detail
-{
 template <basic_constant_string Name>
-struct named_library_info_base : type_identity<library_info>
+class named_library_info final : public library_info
 {
-};
+    using object_getter = detail::library_object_getter<named_library_info>;
 
-template <basic_constant_string Name>
-struct named_library_info_raw_name
-{
-    static constexpr auto value = Name + L".dll";
-};
-
-template <basic_constant_string Name>
-class named_library_info final : public named_library_info_base<Name>::type
-{
-    using base_type     = typename named_library_info_base<Name>::type;
-    using raw_name      = named_library_info_raw_name<Name>;
-    using object_getter = library_object_getter<named_library_info>;
+    static constexpr auto raw_name = Name + L".dll";
 
   public:
     named_library_info()
-        : base_type({raw_name::value.data(), raw_name::value.size()})
+        : library_info{raw_name}
     {
     }
 
@@ -36,7 +23,6 @@ class named_library_info final : public named_library_info_base<Name>::type
         return {this};
     }
 };
-} // namespace detail
 
 inline namespace literals
 {
@@ -57,7 +43,7 @@ inline namespace literals
 // #endif
 
 template <basic_constant_string Name>
-auto operator"" _dll() -> detail::named_library_info<Name>
+auto operator"" _dll() -> named_library_info<Name>
 {
     return {};
 }

@@ -7,10 +7,14 @@
 
 #include <cassert>
 
-namespace fd::detail
+namespace fd
+{
+using render_system_dx11_dll = named_library_info<"rendersystemdx11">;
+
+namespace detail
 {
 template <>
-class library_object_getter<named_library_info<"rendersystemdx11">>
+class library_object_getter<render_system_dx11_dll>
 {
     library_pattern_getter pattern_;
 
@@ -34,9 +38,10 @@ class library_object_getter<named_library_info<"rendersystemdx11">>
 };
 
 template <size_t I>
-auto get(library_object_getter<named_library_info<"rendersystemdx11">> const& getter)
+auto get(library_object_getter<render_system_dx11_dll> const& getter)
 {
     if constexpr (I == 0)
         return getter.DXGI_swap_chain();
 }
-} // namespace fd::detail
+} // namespace detail
+} // namespace fd

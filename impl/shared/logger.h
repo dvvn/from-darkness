@@ -1,10 +1,18 @@
 #pragma once
 
 #include "functional/invoke_on.h"
+#include "string/view.h"
+#include "noncopyable.h"
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/xchar.h>
+
+namespace fd::detail
+{
+template <typename CharT, size_t Length, class Config>
+class basic_static_string_full;
+}
 
 FMT_BEGIN_NAMESPACE
 

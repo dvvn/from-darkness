@@ -3,10 +3,14 @@
 #include "library_info/literals.h"
 #include "native/schema_system.h"
 
-namespace fd::detail
+namespace fd
+{
+using schema_system_dll=named_library_info<"schemasystem">;
+
+namespace detail
 {
 template <>
-class library_object_getter<named_library_info<"schemasystem">>
+class library_object_getter<schema_system_dll>
 {
     native_library_interface_getter ifc_;
 
@@ -23,9 +27,10 @@ class library_object_getter<named_library_info<"schemasystem">>
 };
 
 template <size_t I>
-auto get(library_object_getter<named_library_info<"schemasystem">> const& getter)
+auto get(library_object_getter<schema_system_dll> const& getter)
 {
     if constexpr (I == 0)
         return getter.schema_system();
 }
-} // namespace fd::detail
+} // namespace detail
+} // namespace fd

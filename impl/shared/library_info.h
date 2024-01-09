@@ -39,6 +39,9 @@ template <class ObjGetter, size_t I, typename GetResult>
 struct library_object_getter_tuple_size<ObjGetter, I, GetResult*> : library_object_getter_tuple_size<ObjGetter, I + 1>
 {
 };
+
+template <typename CharT, size_t Length, class Config>
+class basic_static_string_full;
 } // namespace detail
 
 class library_info
@@ -49,8 +52,8 @@ class library_info
         LDR_DATA_TABLE_ENTRY* entry_;
     };
 
-    static LIST_ENTRY* module_list();
-    static LDR_DATA_TABLE_ENTRY_FULL* ldr_table(LIST_ENTRY* entry);
+    inline static LIST_ENTRY* module_list();
+    inline static LDR_DATA_TABLE_ENTRY_FULL* ldr_table(LIST_ENTRY* entry);
 
 #if 0
   protected:
@@ -79,8 +82,14 @@ class library_info
 #endif
 
   public:
-    library_info(wstring_view name);
-    library_info(wstring_view name, wstring_view ext);
+    inline library_info(wchar_t const* name, size_t length);
+
+    inline library_info(wstring_view name);
+    [[deprecated]]
+    inline library_info(wstring_view name, wstring_view ext);
+
+    template <size_t Length, class Config>
+    library_info(detail::basic_static_string_full<wchar_t, Length, Config> const& name);
 
     template <std::derived_from<library_info> Other>
     library_info(Other other);

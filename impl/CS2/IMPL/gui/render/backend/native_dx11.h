@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "gui/render/backend/basic_dx11.h"
+#include "library_info/native/render_system_dx11.h"
 #include "winapi/com_ptr.h"
 #include "noncopyable.h"
 #include "optional.h"
@@ -21,7 +22,7 @@ class native_dx11_device_data : public noncopyable
     native_dx11_device_data(IDXGISwapChain* sc)
     {
         swap_chain_.attach(sc);
-        swap_chain_->GetDevice(IID_PPV_ARGS(&d3d_device_));
+        std::ignore = swap_chain_->GetDevice(IID_PPV_ARGS(&d3d_device_));
         d3d_device_->GetImmediateContext(&device_context_);
     }
 
@@ -64,19 +65,19 @@ class native_dx11_device_data : public noncopyable
     win::com_ptr<IDXGIFactory> DXGI_factory() const
     {
         win::com_ptr<IDXGIDevice> device;
-        d3d_device_->QueryInterface(IID_PPV_ARGS(&device));
+        std::ignore = d3d_device_->QueryInterface(IID_PPV_ARGS(&device));
         win::com_ptr<IDXGIAdapter> adapter;
         // device->GetParent(IID_PPV_ARGS(&adapter));
-        device->GetAdapter(&adapter);
+        std::ignore = device->GetAdapter(&adapter);
         IDXGIFactory* factory;
-        adapter->GetParent(IID_PPV_ARGS(&factory));
+        std::ignore = adapter->GetParent(IID_PPV_ARGS(&factory));
         return {factory, std::in_place};
     }
 
     win::com_ptr<ID3D11Texture2D> back_buffer() const
     {
         ID3D11Texture2D* back_buffer;
-        swap_chain_->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
+        std::ignore = swap_chain_->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
         return {back_buffer, std::in_place};
     }
 
@@ -101,7 +102,7 @@ class basic_native_dx11_backend : basic_dx11_backend
     bool init_render_target(ID3D11Texture2D* back_buffer)
     {
         DXGI_SWAP_CHAIN_DESC swap_chain_desc;
-        data_.swap_chain()->GetDesc(&swap_chain_desc);
+        std::ignore = data_.swap_chain()->GetDesc(&swap_chain_desc);
 
         D3D11_RENDER_TARGET_VIEW_DESC target_view_desc;
 #ifndef _DEBUG
@@ -142,8 +143,8 @@ class basic_native_dx11_backend : basic_dx11_backend
         : basic_dx11_backend{data.d3d_device(), data.device_context()}
         , data_{std::move(data)}
     {
-        if (!init_render_target())
-            assert(0 && "failed to create render target view");
+        auto const init_result = init_render_target();
+        assert(init_result == true); // failed to create render target view
     }
 
   public:
@@ -157,8 +158,8 @@ class basic_native_dx11_backend : basic_dx11_backend
 
     void resize()
     {
-        if (!create_render_target())
-            assert(0 && "failed to create render target view");
+        auto const create_result = create_render_target();
+        assert(create_result == true); // failed to create render target view
     }
 
     void reset()
@@ -180,7 +181,7 @@ class basic_native_dx11_backend : basic_dx11_backend
 
 struct native_dx11_backend final : basic_native_dx11_backend, noncopyable
 {
-    native_dx11_backend(native_dx11_device_data&& data)
+    native_dx11_backend(native_dx11_device_data&& data = render_system_dx11_dll{}.obj().DXGI_swap_chain())
         : basic_native_dx11_backend{std::move(data)}
     {
     }

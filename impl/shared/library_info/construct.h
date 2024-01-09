@@ -6,7 +6,7 @@
 
 namespace fd
 {
-inline LIST_ENTRY* library_info::module_list()
+LIST_ENTRY* library_info::module_list()
 {
 #ifdef _WIN64
     auto const mem = reinterpret_cast<TEB*>(__readgsqword(FIELD_OFFSET(NT_TIB64, Self)));
@@ -19,24 +19,14 @@ inline LIST_ENTRY* library_info::module_list()
     return &ldr->InMemoryOrderModuleList;
 }
 
-inline LDR_DATA_TABLE_ENTRY_FULL* library_info::ldr_table(LIST_ENTRY* entry)
+LDR_DATA_TABLE_ENTRY_FULL* library_info::ldr_table(LIST_ENTRY* entry)
 {
     return CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY_FULL, InMemoryOrderLinks);
 }
 
-template <std::derived_from<library_info> Other>
-library_info::library_info(Other other)
-    : entry_{other.entry_}
+library_info::library_info(wchar_t const* name, size_t const length)
 {
-}
-
-inline library_info::library_info(wstring_view const name)
-{
-    using std::data;
-    using std::size;
-
-    auto const name_first = data(name);
-    auto const name_last  = name_first + size(name);
+    auto const name_last = name + length;
 
     auto const root_list = module_list();
     for (auto list_entry = root_list->Flink; list_entry != root_list; list_entry = list_entry->Flink)
@@ -48,7 +38,7 @@ inline library_info::library_info(wstring_view const name)
         auto const entry = ldr_table(list_entry);
         if (!entry->BaseDllName)
             continue;
-        if (!equal(name_first, name_last, begin(entry->BaseDllName), end(entry->BaseDllName)))
+        if (!equal(name, name_last, begin(entry->BaseDllName), end(entry->BaseDllName)))
             continue;
 
         entry_full_ = entry;
@@ -58,7 +48,24 @@ inline library_info::library_info(wstring_view const name)
     entry_full_ = nullptr;
 }
 
-inline library_info::library_info(wstring_view const name, wstring_view const ext)
+template <size_t Length, class Config>
+library_info::library_info(detail::basic_static_string_full<wchar_t, Length, Config> const& name)
+    : library_info{name.data(), name.length()}
+{
+}
+
+template <std::derived_from<library_info> Other>
+library_info::library_info(Other other)
+    : entry_{other.entry_}
+{
+}
+
+library_info::library_info(wstring_view const name)
+    : library_info{name.data(), name.length()}
+{
+}
+
+library_info::library_info(wstring_view const name, wstring_view const ext)
 {
     using std::data;
     using std::size;

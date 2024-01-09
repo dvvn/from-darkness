@@ -1,20 +1,36 @@
-#include "exe_context.h"
+#include "core/basic_exe_context.h"
+#include "gui/own_data.h"
 #include "menu_example.h"
 
-bool fd::context_holder(context* const ctx)
+namespace fd
 {
-    auto logger              = ctx->make_debug_logger();
-    auto logger_notification = logger.make_notification();
+class gui_test_context : public basic_context
+{
+  protected:
+    [[no_unique_address]] basic_context_data_holder<gui::own_data_dx11> gui_data;
 
-    auto gui_data = ctx->make_gui_data();
+  public:
+    void run()
+    {
+        auto&& logger             = this->debug_logger.get();
+        auto const FD_RANDOM_NAME = logger.make_notification();
 
-    auto menu = make_menu_example([&] {
-        gui_data.system_backend.close();
-    });
+        auto gui_data = this->gui_data.get();
 
-    logger("Loaded");
+        auto menu = make_menu_example([&] {
+            gui_data.system_backend.close();
+        });
 
-    gui_data.present(&menu);
+        logger("Loaded");
 
+        gui_data.present(&menu);
+    }
+};
+
+bool attach_context()
+{
+    gui_test_context ctx;
+    ctx.run();
     return true;
 }
+} // namespace fd

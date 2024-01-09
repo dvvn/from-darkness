@@ -4,10 +4,14 @@
 #include "native/engine_client.h"
 #include "native/game_resource_service.h"
 
-namespace fd::detail
+namespace fd
+{
+using engine2_dll = named_library_info<"engine2">;
+
+namespace detail
 {
 template <>
-class library_object_getter<named_library_info<"engine2">>
+class library_object_getter<engine2_dll>
 {
     native_library_interface_getter ifc_;
 
@@ -29,11 +33,12 @@ class library_object_getter<named_library_info<"engine2">>
 };
 
 template <size_t I>
-auto get(library_object_getter<named_library_info<"engine2">> const& getter)
+auto get(library_object_getter<engine2_dll> const& getter)
 {
     if constexpr (I == 0)
         return getter.engine();
     else if constexpr (I == 1)
         return getter.game_resource_service();
 }
-} // namespace fd::detail
+} // namespace detail
+} // namespace fd
