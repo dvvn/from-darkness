@@ -9,7 +9,7 @@
 namespace fd
 {
 template <typename T, size_t Size = CHAR_MAX>
-struct basic_char_table : array<T, Size + 1>
+class basic_char_table : public array<T, Size + 1>
 {
   protected:
     using base_array = array<T, Size + 1>;
@@ -76,7 +76,7 @@ struct basic_char_table : array<T, Size + 1>
 
 template <typename T, size_t Size>
 requires(Size > CHAR_MAX)
-struct basic_char_table<T, Size>;
+class basic_char_table<T, Size>;
 
 namespace detail
 {
@@ -117,58 +117,32 @@ inline constexpr default_char_table<T> default_char_table_v;
 
 struct islower_table final : basic_char_table<bool>
 {
-    constexpr islower_table()
-        : basic_char_table{default_char_table_v<bool>}
-    {
-        set('a', 'z', true);
-    }
+    islower_table();
 };
 
 struct isupper_table final : basic_char_table<bool>
 {
-    constexpr isupper_table()
-        : basic_char_table{default_char_table_v<bool>}
-    {
-        set('A', 'Z', true);
-    }
+    isupper_table();
 };
 
 struct isdigit_table final : basic_char_table<bool>
 {
-    constexpr isdigit_table()
-        : basic_char_table{default_char_table_v<bool>}
-    {
-        set('0', '9', true);
-    }
+    isdigit_table();
 };
 
 struct isxdigit_table final : basic_char_table<bool>
 {
-    constexpr isxdigit_table()
-        : basic_char_table{default_char_table_v<bool>}
-    {
-        set('0', '9', true);
-        set('a', 'f', true);
-        set('A', 'F', true);
-    }
+    isxdigit_table();
 };
 
 struct tolower_table final : basic_char_table<char>
 {
-    constexpr tolower_table()
-        : basic_char_table{default_char_table_v<char>}
-    {
-        set('A', 'Z', 'a', 'z');
-    }
+    tolower_table();
 };
 
 struct toupper_table final : basic_char_table<char>
 {
-    constexpr toupper_table()
-        : basic_char_table{default_char_table_v<char>}
-    {
-        set('a', 'z', 'A', 'Z');
-    }
+    toupper_table();
 };
 } // namespace detail
 
@@ -190,13 +164,13 @@ class char_table_wrapper
     }
 };
 
-inline constexpr char_table_wrapper<detail::islower_table> islower;
-inline constexpr char_table_wrapper<detail::isupper_table> isupper;
-inline constexpr char_table_wrapper<detail::isdigit_table> isdigit;
-inline constexpr char_table_wrapper<detail::isxdigit_table> isxdigit;
+extern char_table_wrapper<detail::islower_table> const islower;
+extern char_table_wrapper<detail::isupper_table> const isupper;
+extern char_table_wrapper<detail::isdigit_table> const isdigit;
+extern char_table_wrapper<detail::isxdigit_table> const isxdigit;
 
-inline constexpr char_table_wrapper<detail::tolower_table> tolower;
-inline constexpr char_table_wrapper<detail::toupper_table> toupper;
+extern char_table_wrapper<detail::tolower_table> const tolower;
+extern char_table_wrapper<detail::toupper_table> const toupper;
 
 namespace detail
 {

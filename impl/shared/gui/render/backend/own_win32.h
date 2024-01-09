@@ -1,34 +1,40 @@
 ﻿#pragma once
 
-#include "noncopyable.h"
 #include "gui/render/backend/basic_win32.h"
 
 #include <Windows.h>
 
 namespace fd::gui
 {
-class own_win32_backend_data : public noncopyable
+class basic_own_win32_backend;
+
+namespace detail
 {
-    friend class own_win32_backend;
+class own_win32_backend_data
+{
+    friend class basic_own_win32_backend;
 
     WNDCLASSEX info_;
     HWND window_;
 
-  public:
+  protected:
     ~own_win32_backend_data();
     own_win32_backend_data();
 };
+} // namespace detail
 
-class own_win32_backend final : public own_win32_backend_data, public basic_win32_backend
+class basic_own_win32_backend final : public detail::own_win32_backend_data, public basic_win32_backend
 {
     bool active_;
 
   public:
-    own_win32_backend();
+    basic_own_win32_backend();
 
     bool update();
     void close();
 
     HWND window() const;
 };
-}
+
+using own_win32_backend = noncopyable_wrapper<basic_own_win32_backend>;
+} // namespace fd::gui

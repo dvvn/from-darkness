@@ -14,7 +14,7 @@ template <class T>
 class basic_context_data_holder<T, true>
 {
   public:
-    using value_type      = noncopyable_proxy_t<T>;
+    using value_type      = noncopyable_wrapper<T>;
     using reference       = value_type&;
     using const_reference = value_type const&;
 
@@ -45,7 +45,7 @@ class basic_context_data_holder<T, false>
     }
 
   public:
-    using value_type = noncopyable_proxy_t<T>;
+    using value_type = noncopyable_wrapper<T>;
 
     value_type get()
     {
@@ -79,8 +79,8 @@ class basic_context
 #endif
 
   public:
-    basic_context() = default;
+    basic_context();
 };
 
-inline bool attach_context();
+bool attach_context();
 } // namespace fd

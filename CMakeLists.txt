@@ -505,19 +505,19 @@ Dependency_Load_Imgui()
 
 Load_SHARED()
 
-if(EXISTS ${_FD_TESTS_DIR}/main.cpp)
-
-else()
 file(GLOB_RECURSE _tests_src ${_FD_TESTS_DIR}/*.cpp)
-add_library(FD_TESTS ${_tests_src})
-target_link_libraries(FD_TESTS PUBLIC ${_FD_SHARED_TARGET})
+if(EXISTS ${_FD_TESTS_DIR}/main.cpp)
+    add_executable(FD_TESTS ${_tests_src})
+else()
+    add_library(FD_TESTS ${_tests_src})
 endif()
+target_link_libraries(FD_TESTS PUBLIC ${_FD_SHARED_TARGET})
+target_include_directories(FD_TESTS PUBLIC ${_FD_TESTS_DIR})
 
 macro(Finish_library _name)
-    target_link_libraries(${_name} PUBLIC ${_FD_SHARED_TARGET} FD_TESTS)
+    target_link_libraries(${_name} PUBLIC ${_FD_SHARED_TARGET})
     target_include_directories(${_name} PUBLIC ${_FD_PROJECT_DIR} ${_FD_TEMPLATE_DIR})
 endmacro()
-
 
 if(EXISTS ${_FD_PROJECT_DIR}/main.cpp)
     add_library(FD_${_FD_TARGET} SHARED ${_FD_PROJECT_DIR}/main.cpp)

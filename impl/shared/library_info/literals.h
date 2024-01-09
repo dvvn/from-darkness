@@ -10,11 +10,11 @@ class named_library_info final : public library_info
 {
     using object_getter = detail::library_object_getter<named_library_info>;
 
-    static constexpr auto raw_name = Name + L".dll";
+    static constexpr auto full_name = Name + L".dll";
 
   public:
     named_library_info()
-        : library_info{raw_name}
+        : library_info{full_name}
     {
     }
 

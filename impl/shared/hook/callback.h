@@ -8,37 +8,16 @@ namespace fd
 {
 class basic_hook_callback : public noncopyable
 {
-    static constexpr auto memory_order = std::memory_order_relaxed;
-
     std::atomic_size_t called_;
 
   protected:
-    ~basic_hook_callback()
-    {
-        // in_use_.wait(true, order);
-        do
-        {
-            // nothing here
-        }
-        while (called_.load(memory_order) != 0);
-    }
+    ~basic_hook_callback();
 
   public:
-    basic_hook_callback()
-        : called_{0}
-    {
-    }
+    basic_hook_callback();
 
-    void enter() noexcept
-    {
-        ++called_;
-    }
-
-    void exit() noexcept
-    {
-        --called_;
-        // in_use_.notify_one();
-    }
+    void enter() noexcept;
+    void exit() noexcept;
 };
 
 namespace detail

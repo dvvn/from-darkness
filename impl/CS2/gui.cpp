@@ -4,7 +4,7 @@
 
 namespace fd
 {
-class gui_test_context : public basic_context
+class gui_test_context : public basic_context, public basic_exe_context
 {
   protected:
     [[no_unique_address]] basic_context_data_holder<gui::own_data_dx11> gui_data;
@@ -26,6 +26,7 @@ class gui_test_context : public basic_context
         gui_data.present(&menu);
     }
 };
+
 
 bool attach_context()
 {

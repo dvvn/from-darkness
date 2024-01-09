@@ -1,17 +1,18 @@
 ﻿#include "diagnostics/fatal.h"
-#include "winapi/window_info.h"
 #include "gui/render/backend/own_win32.h"
+#include "winapi/window_info.h"
 
 #include <Windows.h>
 #include <tchar.h>
 
 namespace fd::gui
 {
-DECLSPEC_NOINLINE static LRESULT CALLBACK wnd_proc(HWND window, UINT const message, WPARAM wparam, LPARAM lparam)
+namespace detail
 {
+static const WNDPROC own_wnd_proc = [](HWND window, UINT const message, WPARAM wparam, LPARAM lparam) -> LRESULT {
     union
     {
-        own_win32_backend* backend;
+        basic_own_win32_backend* backend;
         LONG_PTR window_user_data;
     };
 
@@ -42,44 +43,44 @@ DECLSPEC_NOINLINE static LRESULT CALLBACK wnd_proc(HWND window, UINT const messa
     }
 
 #if 0
-    switch (msg) // NOLINT(hicpp-multiway-paths-covered)
-    {
-    /*case WM_CREATE: {
-        auto lpcs = reinterpret_cast<LPCREATESTRUCT>(lparam);
-        auto d3d  = reinterpret_cast<LONG>(lpcs->lpCreateParams);
-        SetWindowLongPtr(hwnd, GWLP_USERDATA, d3d);
-        break;
-    }*/
-    case WM_SIZE: {
-        if (wparam == SIZE_MINIMIZED)
-            break;
+        switch (msg) // NOLINT(hicpp-multiway-paths-covered)
+        {
+            /*case WM_CREATE: {
+                auto lpcs = reinterpret_cast<LPCREATESTRUCT>(lparam);
+                auto d3d  = reinterpret_cast<LONG>(lpcs->lpCreateParams);
+                SetWindowLongPtr(hwnd, GWLP_USERDATA, d3d);
+                break;
+            }*/
+        case WM_SIZE: {
+            if (wparam == SIZE_MINIMIZED)
+                break;
 
-        auto &d3d = *reinterpret_cast<basic_win32_backend *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-        if (!d3d)
-            break;
+            auto &d3d = *reinterpret_cast<basic_win32_backend *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+            if (!d3d)
+                break;
 
 #ifdef RESET_BACK_BUFFER_ON_RESIZE
-        if (!d3d.resize(LOWORD(lparam), HIWORD(lparam)))
-            break;
-        d3d.reset();
+            if (!d3d.resize(LOWORD(lparam), HIWORD(lparam)))
+                break;
+            d3d.reset();
 #else
 #error "not implemented"
 #endif
-        return FALSE;
-    }
-    case WM_SYSCOMMAND: {
-        if ((wparam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
             return FALSE;
-        break;
-    }
-    case WM_DESTROY: {
-        PostQuitMessage(0);
-        return FALSE;
-    }
-    }
-    return ::DefWindowProc(hwnd, msg, wparam, lparam);
+        }
+        case WM_SYSCOMMAND: {
+            if ((wparam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+                return FALSE;
+            break;
+        }
+        case WM_DESTROY: {
+            PostQuitMessage(0);
+            return FALSE;
+        }
+        }
+        return ::DefWindowProc(hwnd, msg, wparam, lparam);
 #endif
-}
+};
 
 own_win32_backend_data::~own_win32_backend_data()
 {
@@ -89,8 +90,8 @@ own_win32_backend_data::~own_win32_backend_data()
 
 own_win32_backend_data::own_win32_backend_data()
 {
-    constexpr auto window_name = _T("") __TIMESTAMP__;
-    constexpr auto class_name  = _T("") __TIME__;
+    auto const window_name = _T("") __TIMESTAMP__;
+    auto const class_name  = _T("") __TIME__;
 
 #ifndef _DEBUG
     memset(&info_, 0, sizeof(WNDCLASSEX));
@@ -98,7 +99,7 @@ own_win32_backend_data::own_win32_backend_data()
     info_ = {
         .cbSize        = sizeof(WNDCLASSEX), //
         .style         = CS_CLASSDC,
-        .lpfnWndProc   = wnd_proc,
+        .lpfnWndProc   = own_wnd_proc,
         .hInstance     = GetModuleHandle(nullptr),
         .lpszClassName = class_name};
 
@@ -130,14 +131,15 @@ own_win32_backend_data::own_win32_backend_data()
     ShowWindow(window_, SW_SHOWDEFAULT);
     UpdateWindow(window_);
 }
+} // namespace detail
 
-own_win32_backend::own_win32_backend()
+basic_own_win32_backend::basic_own_win32_backend()
     : basic_win32_backend(window_)
     , active_(true)
 {
 }
 
-bool own_win32_backend::update()
+bool basic_own_win32_backend::update()
 {
     MSG msg;
     while (PeekMessage(&msg, window_, 0U, 0U, PM_REMOVE))
@@ -149,14 +151,14 @@ bool own_win32_backend::update()
     return active_;
 }
 
-void own_win32_backend::close()
+void basic_own_win32_backend::close()
 {
     // assert(active_ == true);
     active_ = false;
     // SetWindowLongPtr(window_, GWLP_USERDATA, NULL);
 }
 
-HWND own_win32_backend::window() const
+HWND basic_own_win32_backend::window() const
 {
     return window_;
 }

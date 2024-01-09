@@ -16,7 +16,7 @@
 
 namespace fd
 {
-inline class : public basic_context, public basic_dll_context
+static class : public basic_context, public basic_dll_context
 {
   protected:
     [[no_unique_address]] basic_context_data_holder<gui::native_data_dx11> gui_data;
@@ -79,12 +79,12 @@ inline class : public basic_context, public basic_dll_context
     }
 } dll_context;
 
-basic_dll_context* get_dll_context()
+basic_dll_context* get_dll_context() noexcept
 {
     return &dll_context;
 }
 
-size_t get_dll_context_stack_size()
+size_t get_dll_context_stack_size() noexcept
 {
     return 0; // not implemented
 }

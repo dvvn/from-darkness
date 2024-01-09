@@ -33,7 +33,7 @@ class patter_to_string_info
     }
 
     template <class Pattern>
-    static constexpr size_t predict_size(Pattern const& pat)
+    static size_t predict_size(Pattern const& pat)
     {
         size_t known_bytes_count, unknown_bytes_count;
 
@@ -45,7 +45,7 @@ class patter_to_string_info
     }
 
     template <bool LastSegment, size_t Bytes, size_t UnknownBytes>
-    static constexpr void append(pattern_segment<Bytes, UnknownBytes> const& segment, auto& out_str)
+    static void append(pattern_segment<Bytes, UnknownBytes> const& segment, auto& out_str)
 #ifdef _DEBUG
         requires requires { out_str.push_back(0); }
 #endif
