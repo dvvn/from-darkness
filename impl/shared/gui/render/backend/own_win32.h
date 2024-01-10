@@ -10,7 +10,7 @@ class basic_own_win32_backend;
 
 namespace detail
 {
-class own_win32_backend_data
+class own_win32_backend_data : public noncopyable
 {
     friend class basic_own_win32_backend;
 
@@ -36,5 +36,5 @@ class basic_own_win32_backend final : public detail::own_win32_backend_data, pub
     HWND window() const;
 };
 
-using own_win32_backend = noncopyable_wrapper<basic_own_win32_backend>;
+using own_win32_backend = basic_own_win32_backend;
 } // namespace fd::gui

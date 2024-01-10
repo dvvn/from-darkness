@@ -28,19 +28,8 @@ static const WNDPROC own_wnd_proc = [](HWND window, UINT const message, WPARAM w
         return NULL;
     }
 
-    auto [response, retval] = static_cast<basic_win32_backend*>(backend)->update(window, message, wparam, lparam);
-
-    using enum win32_backend_update_response;
-    switch (response)
-    {
-    case skipped:
-    case updated:
-        return DefWindowProc(window, message, wparam, lparam);
-    case locked:
-        return retval;
-    default:
-        unreachable();
-    }
+    auto const result = static_cast<basic_win32_backend*>(backend)->update(window, message, wparam, lparam);
+    return result.retval_or_default(window, message, wparam, lparam);
 
 #if 0
         switch (msg) // NOLINT(hicpp-multiway-paths-covered)

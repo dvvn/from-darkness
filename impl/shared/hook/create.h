@@ -39,24 +39,4 @@ bool create_hook(Backend* const backend, Target const target, Callback* const ca
     auto info = prepare_hook<Callback>(target);
     return create_hook(backend, info, callback);
 }
-
-template <class Backend>
-class create_hook_helper
-{
-    Backend* const backend_;
-
-  public:
-    create_hook_helper(Backend* const backend)
-        : backend_{backend}
-    {
-    }
-
-    template <class Target, class Callback>
-    bool operator()(Target const target, Callback* const callback) const
-    {
-        auto info = prepare_hook<Callback>(target);
-        return create_hook(backend_, info, callback);
-    }
-};
-
 } // namespace fd

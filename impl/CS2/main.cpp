@@ -1,7 +1,5 @@
 #include "entity_cache/holder.h"
 #include "functional/vfunc.h"
-#include "hook/backend/minhook.h"
-#include "hook/creator.h"
 #include "hooked/directx11.h"
 #include "hooked/game_entity_system.h"
 #include "hooked/winapi.h"
@@ -10,13 +8,13 @@
 #include "library_info/native/tier0.h"
 #include "winapi/window_info.h"
 //
-#include "core/basic_dll_context.h"
+#include "core/dll_context.h"
 #include "gui/native_data.h"
 #include "menu_example.h"
 
 namespace fd
 {
-static class : public basic_context, public basic_dll_context
+static class : public basic_context, public dll_context
 {
   protected:
     [[no_unique_address]] basic_context_data_holder<gui::native_data_dx11> gui_data;
@@ -40,8 +38,7 @@ static class : public basic_context, public basic_dll_context
         auto const [engine, game_resources] = engine2_dll{}.obj();
         auto const [schema_system]          = schema_system_dll{}.obj();
 
-        hook_backend_minhook hook_backend;
-        create_hook_helper const hook_creator{&hook_backend};
+        auto&& hook_creator = this->hook_creator.get();
 
         auto const& render_data = gui_data.render_backend.data();
         hooked::DXGI_factory::create_swap_chain hk_create_swap_chain{&gui_data.render_backend};
@@ -55,9 +52,8 @@ static class : public basic_context, public basic_dll_context
         }};
         if (!hook_creator(vfunc{&IDXGISwapChain::Present, render_data.swap_chain()}, &hk_present))
             return false;
-        win::window_info const main_window{gui_data.system_backend.window()};
         hooked::winapi::wndproc hk_wndproc{&gui_data.system_backend};
-        if (!hook_creator(main_window.proc(), &hk_wndproc))
+        if (!hook_creator(gui_data.system_backend.window().proc(), &hk_wndproc))
             return false;
         using cache_entity_vfunc = vfunc<void* (native::game_resource_service::*)(native::entity_instance*, native::CBaseHandle)>;
         hooked::game_entity_system::on_add_entity hk_on_add_entity{&ent_cache};
@@ -67,7 +63,7 @@ static class : public basic_context, public basic_dll_context
         if (!hook_creator(cache_entity_vfunc{15, game_resources}, &hk_on_remove_entity))
             return false;
 
-        if (!hook_backend.enable())
+        if (!hook_creator->enable())
             return false;
 
         logger("Loaded");

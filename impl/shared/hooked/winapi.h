@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "gui/render/backend/basic_win32.h"
 #include "hook/proxy.h"
 
 #include <Windows.h>
@@ -22,30 +21,27 @@ class wndproc final : public basic_hook_callback
         auto const& original, //
         HWND window, UINT message, WPARAM wparam, LPARAM lparam) const noexcept
     {
-        // todo: check are unput must be blocked before update
-        // if not, always call original
-        // or add extra state and check it inside update
-
-        // if (backend_->minimized())
-        // return original(window, message, wparam, lparam);
-
-        auto [response, retval] = backend_->update(window, message, wparam, lparam);
-
-        using enum gui::win32_backend_update_response;
-        switch (response)
+#if 0
+        if (menu->closed())
         {
-        case skipped:
-            return original(window, message, wparam, lparam);
-        case updated:
-            return DefWindowProc(window, message, wparam, lparam);
-        case locked:
-            return retval;
-        default:
-            unreachable();
+            switch (message)
+            {
+            case WM_MOUSEMOVE:
+            case WM_NCMOUSEMOVE:
+                //
+            case WM_MOUSELEAVE:
+            case WM_NCMOUSELEAVE:
+                //
+            case WM_MOUSEWHEEL:
+            case WM_MOUSEHWHEEL:
+                //
+            case WM_SETCURSOR:
+                return original(window, message, wparam, lparam);
+            }
         }
+#endif
+        auto const result = backend_->update(window, message, wparam, lparam);
+        return result.retval_or_default_or_original(window, message, wparam, lparam, original);
     }
 };
-
-// template <class SystemBackend>
-// wndproc(SystemBackend*) -> wndproc<SystemBackend>;
 } // namespace fd::hooked::winapi

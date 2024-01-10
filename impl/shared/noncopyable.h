@@ -14,6 +14,7 @@ using
 #endif
         boost::noncopyable;
 
+#if 0
 namespace detail
 {
 template <class T, bool Copyable = std::copyable<T>>
@@ -31,6 +32,8 @@ struct noncopyable_wrapper_impl<T, false> : type_identity<T>
 {
 };
 } // namespace detail
+
 template <class T>
 using noncopyable_wrapper = typename detail::noncopyable_wrapper_impl<T>::type;
+#endif
 } // namespace fd

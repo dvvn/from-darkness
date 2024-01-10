@@ -2,7 +2,6 @@
 
 #include "preprocessor/random.h"
 #include "logger.h"
-#include "noncopyable.h"
 #include "system_console.h"
 
 namespace fd
@@ -14,7 +13,7 @@ template <class T>
 class basic_context_data_holder<T, true>
 {
   public:
-    using value_type      = noncopyable_wrapper<T>;
+    using value_type      = T;
     using reference       = value_type&;
     using const_reference = value_type const&;
 
@@ -45,7 +44,7 @@ class basic_context_data_holder<T, false>
     }
 
   public:
-    using value_type = noncopyable_wrapper<T>;
+    using value_type = T;
 
     value_type get()
     {

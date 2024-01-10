@@ -1,42 +1,87 @@
-﻿#include "gui/render/backend/native_win32.h"
-
-#include <utility>
+﻿#include "functional/cast.h"
+#include "gui/render/backend/native_win32.h"
+#include "type_traits/conditional.h"
+#include "type_traits/integral_constant.h"
 
 namespace fd::gui
 {
-static HWND find_main_native_window() noexcept
+namespace detail
 {
-    std::pair compare_data{
-        static_cast<HWND>(nullptr), //
-        [console = GetConsoleWindow(), current_process = GetCurrentProcessId()](HWND current_window) -> bool {
-            if (current_window == console)
+template <bool HaveConsole>
+class find_native_main_window_helper
+{
+    using console_type = conditional_t<HaveConsole, HWND, false_type>;
+
+    [[no_unique_address]] console_type console_;
+    DWORD current_process_;
+
+    static console_type default_console_value() noexcept
+    {
+        if constexpr (HaveConsole)
+            return GetConsoleWindow();
+        else
+            return {};
+    }
+
+  public:
+    find_native_main_window_helper(console_type console = default_console_value()) noexcept
+        : console_{console}
+        , current_process_{GetCurrentProcessId()}
+    {
+    }
+
+    bool operator()(HWND current_window) const noexcept
+    {
+        if constexpr (HaveConsole)
+            if (console_ == current_window)
                 return false;
-            if (GetWindow(current_window, GW_OWNER))
-                return false;
-            if (!IsWindowVisible(current_window))
-                return false;
-            DWORD process_id;
-            GetWindowThreadProcessId(current_window, &process_id);
-            if (current_process != process_id)
-                return false;
+        if (GetWindow(current_window, GW_OWNER))
+            return false;
+        if (!IsWindowVisible(current_window))
+            return false;
+        DWORD process_id;
+        GetWindowThreadProcessId(current_window, &process_id);
+        if (current_process_ != process_id)
+            return false;
+        return true;
+    }
+};
 
-            return true;
-        }};
+template <bool HaveConsole>
+struct find_native_main_window_data
+{
+    find_native_main_window_helper<HaveConsole> compare;
+    HWND window = nullptr;
+};
 
-    EnumWindows(
-        [](HWND current_window, LPARAM const lparam) -> BOOL {
-            auto& [current_window_stored, compare_fn] = *reinterpret_cast<decltype(compare_data)*>(lparam);
+find_native_main_window_data(HWND) -> find_native_main_window_data<true>;
+find_native_main_window_data() -> find_native_main_window_data<false>;
 
-            auto const check_next = compare_fn(current_window) == false;
-            if (!check_next)
-                current_window_stored = current_window;
+static HWND find_native_main_window() noexcept
+{
+    auto const enum_windows_proxy = []<class T>(T data) {
+        EnumWindows(
+            [](HWND current_window, LPARAM const lparam) -> BOOL {
+                T* const data_ptr = unsafe_cast_from(lparam);
+                if (!data_ptr->compare(current_window))
+                    return FALSE;
+                data_ptr->window = current_window;
+                return TRUE;
+            },
+            unsafe_cast_from(&data));
 
-            return check_next;
-        },
-        reinterpret_cast<LPARAM>(&compare_data));
+        return data.window;
+    };
 
-    return get<HWND>(compare_data);
+    HWND console;
+#ifdef _DEBUG
+    console = GetConsoleWindow();
+#else
+    console = nullptr;
+#endif
+    return console ? enum_windows_proxy(find_native_main_window_data{console}) : enum_windows_proxy(find_native_main_window_data{});
 }
+} // namespace detail
 
 basic_native_win32_backend::basic_native_win32_backend(HWND window)
     : basic_win32_backend{window}
@@ -45,11 +90,11 @@ basic_native_win32_backend::basic_native_win32_backend(HWND window)
 }
 
 basic_native_win32_backend::basic_native_win32_backend()
-    : basic_native_win32_backend{find_main_native_window()}
+    : basic_native_win32_backend{detail::find_native_main_window()}
 {
 }
 
-HWND basic_native_win32_backend::window() const
+win::window_info basic_native_win32_backend::window() const
 {
     return window_;
 }
