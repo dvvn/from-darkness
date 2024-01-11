@@ -1,10 +1,11 @@
 #include "core/basic_exe_context.h"
 #include "gui/own_data.h"
+#include "preprocessor/random.h"
 #include "menu_example.h"
 
 namespace fd
 {
-class gui_test_context : public basic_context, public basic_exe_context
+class gui_test_context : public basic_exe_context
 {
   protected:
     [[no_unique_address]] basic_context_data_holder<gui::own_data_dx11> gui_data;
@@ -12,10 +13,10 @@ class gui_test_context : public basic_context, public basic_exe_context
   public:
     void run()
     {
-        auto&& logger             = this->debug_logger.get();
-        auto const FD_RANDOM_NAME = logger.make_notification();
+        auto&& logger = this->debug_logger.get();
+        FD_RANDOM_VAR = logger.make_status_notification();
 
-        auto gui_data = this->gui_data.get();
+        auto&& gui_data = this->gui_data.get();
 
         auto menu = make_menu_example([&] {
             gui_data.system_backend.close();
@@ -26,7 +27,6 @@ class gui_test_context : public basic_context, public basic_exe_context
         gui_data.present(&menu);
     }
 };
-
 
 bool attach_context()
 {

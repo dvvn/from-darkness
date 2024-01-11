@@ -8,24 +8,20 @@
 #include "library_info/native/tier0.h"
 #include "winapi/window_info.h"
 //
-#include "core/dll_context.h"
-#include "gui/native_data.h"
+#include "core/dll_context_dx11.h"
+#include "preprocessor/random.h"
 #include "menu_example.h"
 
 namespace fd
 {
-static class : public basic_context, public dll_context
+static struct : dll_context_dx11
 {
-  protected:
-    [[no_unique_address]] basic_context_data_holder<gui::native_data_dx11> gui_data;
-
-  public:
     bool run()
     {
-        auto&& logger             = this->debug_logger.get();
-        auto const FD_RANDOM_NAME = logger.make_notification();
+        auto&& logger = this->debug_logger.get();
+        FD_RANDOM_VAR = logger.make_status_notification();
 
-        auto gui_data = this->gui_data.get();
+        auto&& gui_data = this->gui_data.get();
 
         auto menu = make_menu_example([=] {
             if (!this->resume())

@@ -3,4 +3,4 @@
 namespace fd
 {
 basic_context::basic_context() = default;
-}
+} // namespace fd

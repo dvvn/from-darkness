@@ -13,7 +13,24 @@ using
     noncopyable =
 #endif
         boost::noncopyable;
+#if 0
+class noncopyable_assginable : boost::noncopyable_::base_token
+{
+  protected:
+    ~noncopyable_assginable()                             = default;
+    constexpr noncopyable_assginable()                    = default;
+    noncopyable_assginable(noncopyable_assginable const&) = delete;
+};
 
+class noncopyable_constructible : boost::noncopyable_::base_token
+{
+  protected:
+    ~noncopyable_constructible()          = default;
+    constexpr noncopyable_constructible() = default;
+
+    noncopyable_constructible& operator=(noncopyable_constructible const&) = delete;
+};
+#endif
 #if 0
 namespace detail
 {

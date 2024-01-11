@@ -129,7 +129,7 @@ class basic_logger
 
   public:
     [[nodiscard]]
-    auto make_notification() -> invoke_on<invoke_on_state::construct | invoke_on_state::destruct, notification_invoker>
+    auto make_status_notification() -> invoke_on<invoke_on_state::construct | invoke_on_state::destruct, notification_invoker>
     {
         return {this};
     }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "preprocessor/random.h"
 #include "logger.h"
 #include "system_console.h"
 
@@ -61,8 +60,10 @@ class basic_context_data_holder<T, false>
 
 class basic_context
 {
+    using logger_target = system_console;
+
   protected:
-    using logger_type       = basic_context_data_holder<basic_logger<system_console>>;
+    using logger_type       = basic_context_data_holder<basic_logger<logger_target>>;
     using empty_logger_type = basic_context_data_holder<empty_logger>;
 
 #ifdef _DEBUG
@@ -72,9 +73,8 @@ class basic_context
         logger_type debug_logger;
     };
 #else
-    logger_type logger;
-    [[no_unique_address]] //
-    empty_logger_type debug_logger;
+    [[no_unique_address]] logger_type logger;
+    [[no_unique_address]] empty_logger_type debug_logger;
 #endif
 
   public:

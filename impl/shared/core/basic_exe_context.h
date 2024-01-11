@@ -1,10 +1,9 @@
 #pragma once
-// ReSharper disable once CppUnusedIncludeDirective
 #include "core/basic_context.h"
 
 namespace fd
 {
-class basic_exe_context
+class basic_exe_context:public basic_context
 {
 };
 } // namespace fd

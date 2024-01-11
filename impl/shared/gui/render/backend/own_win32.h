@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "gui/render/backend/basic_win32.h"
+#include "winapi/window_info.h"
 
 #include <Windows.h>
 
@@ -33,7 +34,7 @@ class basic_own_win32_backend final : public detail::own_win32_backend_data, pub
     bool update();
     void close();
 
-    HWND window() const;
+    win::window_info window() const;
 };
 
 using own_win32_backend = basic_own_win32_backend;

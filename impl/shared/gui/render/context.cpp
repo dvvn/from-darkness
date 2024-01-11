@@ -35,7 +35,7 @@ render_context::render_context()
 
     /*assert(ImGui::FindSettingsHandler("Window"));
    ImGui::RemoveSettingsHandler("Window");*/
-    context_.SettingsHandlers.clear();
+    context_.SettingsHandlers.clear_destruct();
     context_.IO.IniFilename = nullptr;
 
     ImGui::StyleColorsDark();

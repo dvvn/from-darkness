@@ -10,7 +10,7 @@ class dll_context : public basic_dll_context
 {
     using hook_backend_type = hook_backend_minhook;
 
-  public:
+  protected:
     [[no_unique_address]] basic_context_data_holder<create_hook_helper<hook_backend_type>> hook_creator;
 };
 } // namespace fd

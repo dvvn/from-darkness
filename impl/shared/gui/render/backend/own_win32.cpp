@@ -1,6 +1,5 @@
 ﻿#include "diagnostics/fatal.h"
 #include "gui/render/backend/own_win32.h"
-#include "winapi/window_info.h"
 
 #include <Windows.h>
 #include <tchar.h>
@@ -95,20 +94,23 @@ own_win32_backend_data::own_win32_backend_data()
     auto const class_atom = RegisterClassEx(&info_);
     assert(class_atom != INVALID_ATOM);
 
-    win::window_size size;
+    int size_x, size_y, size_w, size_h;
     auto const parent = GetDesktopWindow();
-    if (RECT parent_rect; parent && GetWindowRect(parent, &parent_rect))
+    if (win::rect parent_rect; /*parent &&*/ GetWindowRect(parent, &parent_rect))
     {
-        win::window_size_simple const parent_size(parent_rect);
-        size.x = parent_rect.bottom * 0.05;
-        size.y = parent_rect.right * 0.05;
-        size.w = parent_size.w * 0.8;
-        size.h = parent_size.h * 0.8;
+        size_x = parent_rect.x * 0.05;
+        size_y = parent_rect.y * 0.05;
+        size_w = parent_rect.w * 0.8;
+        size_h = parent_rect.h * 0.8;
+    }
+    else
+    {
+        size_x = size_y = size_w = size_h = CW_USEDEFAULT;
     }
 
     window_ = CreateWindow(
         MAKEINTATOM(class_atom), window_name, WS_OVERLAPPEDWINDOW, //
-        size.x, size.y, size.w, size.h,                            //
+        size_x, size_y, size_w, size_h,                            //
         parent, nullptr, info_.hInstance, nullptr);
     assert(window_ != nullptr);
 
@@ -147,7 +149,7 @@ void basic_own_win32_backend::close()
     // SetWindowLongPtr(window_, GWLP_USERDATA, NULL);
 }
 
-HWND basic_own_win32_backend::window() const
+win::window_info basic_own_win32_backend::window() const
 {
     return window_;
 }

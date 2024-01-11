@@ -9,7 +9,7 @@ namespace detail
 bool attach_thread(HINSTANCE instance) noexcept;
 }
 
-class basic_dll_context
+class basic_dll_context : public basic_context
 {
     friend bool detail::attach_thread(HINSTANCE) noexcept;
 
@@ -33,6 +33,6 @@ class basic_dll_context
     bool terminate(DWORD exit_code = EXIT_SUCCESS);
 };
 
-basic_dll_context* get_dll_context()noexcept;
-size_t get_dll_context_stack_size()noexcept;
+basic_dll_context* get_dll_context() noexcept;
+size_t get_dll_context_stack_size() noexcept;
 } // namespace fd

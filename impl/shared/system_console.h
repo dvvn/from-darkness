@@ -1,14 +1,12 @@
 #pragma once
 
-#include "container/array.h"
 #include "container/vector/small.h"
+#include "string/view.h"
 #include "noncopyable.h"
 
 #include <Windows.h>
-#include <corecrt_io.h>
 
 #include <algorithm>
-#include <cassert>
 
 namespace fd
 {
@@ -19,18 +17,11 @@ class system_console_mode_setter : public noncopyable
     int old_mode_;
 
   public:
-    system_console_mode_setter(int const descriptor, int const mode)
-        : old_mode_{_setmode(descriptor, mode)}
-    {
-        assert(old_mode_ != -1);
-    }
+    system_console_mode_setter(int descriptor, int mode);
 };
 } // namespace detail
 
-class system_console
-#ifndef UNICODE
-    : public noncopyable
-#endif
+class system_console : public noncopyable
 {
     bool console_allocated_;
     HANDLE out_;
@@ -44,92 +35,30 @@ class system_console
 #ifdef UNICODE
     char_buffer<wchar_t> wchar_buffer_;
 
-    template <size_t BufferSize = -1>
-    void write_wide(char const* buff, size_t const length = BufferSize) noexcept
+    template <size_t BufferSize>
+    void write_wide(char const* buff) noexcept
     {
-        if constexpr (BufferSize == -1)
-        {
-            wchar_buffer_.assign(buff, buff + length);
-            write(wchar_buffer_.data(), length);
-        }
-        else
-        {
-            array<wchar_t, BufferSize> wbuff;
-            std::copy_n(buff, length, wbuff.begin());
-            write(wbuff.data(), length);
-        }
+        wchar_t wbuff[BufferSize];
+        using std::data;
+        std::copy(buff, buff + BufferSize, data(wbuff));
+        write(data(wbuff), BufferSize);
     }
+
+    void write_wide(char const* buff, size_t length) noexcept;
 #else
 
 #endif
 
   public:
-    ~system_console()
-    {
-        if (console_allocated_)
-            FreeConsole();
-    }
+    ~system_console();
+    system_console();
 
-    system_console()
-        : console_allocated_{false}
-    {
-        if (!exists())
-        {
-            if (!AllocConsole())
-            {
-                assert(0 && "AllocConsole error!");
-                return;
-            }
-            console_allocated_ = true;
-        }
+    static bool exists();
 
-        out_ = GetStdHandle(STD_OUTPUT_HANDLE);
-    }
-
-    static bool exists()
-    {
-        return GetConsoleWindow() != INVALID_HANDLE_VALUE;
-    }
-
-    void write(wchar_t const* ptr, size_t const length)
-    {
-#ifdef UNICODE
-        DWORD written;
-        WriteConsoleW(out_, ptr, length, &written, nullptr);
-        assert(written == length);
-#else
-        FIXME
-#endif
-    }
-
-    void write(char const* ptr, size_t const length)
-    {
-#ifdef UNICODE
-        write_wide(ptr, length);
-#else
-        DWORD written;
-        WriteConsoleA(out_, ptr, length, &written, nullptr);
-        assert(written == length);
-#endif
-    }
-
-    void write(wstring_view const in_str)
-    {
-#ifdef UNICODE
-        write(in_str.data(), in_str.length());
-#else
-        FIXME
-#endif
-    }
-
-    void write(string_view const in_str)
-    {
-#ifdef UNICODE
-        write_wide(in_str.data(), in_str.length());
-#else
-        write(in_str.data(), in_str.length());
-#endif
-    }
+    void write(wchar_t const* ptr, size_t length);
+    void write(char const* ptr, size_t length);
+    void write(wstring_view in_str);
+    void write(string_view in_str);
 
 #ifdef UNICODE
     template <size_t Length>
@@ -137,9 +66,12 @@ class system_console
     {
         write_wide<Length - 1>(in_str);
     }
+#else
+    template <size_t Length>
+    void write(wchar_t const (&in_str)[Length]) = delete; // WIP
 #endif
 
-    void write(u8string_view in_str) const;
+    void write(u8string_view in_str) const = delete;
 
 #ifdef UNICODE
     template <typename C>

@@ -86,13 +86,13 @@ class own_dx11_backend final : own_dx11_backend_data, public basic_dx11_backend,
 {
     using basic_dx11_backend::render;
 
-    win::window_size_simple last_size_;
+    win::rect last_rect_;
 
   public:
-    own_dx11_backend(HWND hwnd)
-        : own_dx11_backend_data{hwnd}
+    own_dx11_backend(win::window_info const info)
+        : own_dx11_backend_data{info.handle()}
         , basic_dx11_backend{device_.get(), device_context_.get()}
-        , last_size_{win::window_info{hwnd}.size()}
+        , last_rect_{info.size()}
     {
     }
 
@@ -107,15 +107,15 @@ class own_dx11_backend final : own_dx11_backend_data, public basic_dx11_backend,
         swap_chain_->Present(1, 0);
     }
 
-    void resize(win::window_size_simple const& size)
+    void resize(win::rect const& current_rect)
     {
-        if (last_size_ == size)
+        if (last_rect_ == current_rect)
             return;
-        last_size_ = size;
+        last_rect_ = current_rect;
 
         //????????
         // render_target_.release();
-        swap_chain_->ResizeBuffers(0, size.w, size.h, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+        swap_chain_->ResizeBuffers(0, current_rect.w, current_rect.h, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
         create_render_target();
     }
 };
