@@ -1,9 +1,10 @@
 #pragma once
 
 #include "gui/obj_holder.h"
-#include "string/view.h"
 
 #include <imgui_internal.h>
+
+#include <string_view>
 
 namespace ImGui::inline ex
 {
@@ -27,11 +28,11 @@ namespace fd::gui
 template <typename Fn>
 class tab_bar_item
 {
-    string_view name_;
+    std::string_view name_;
     Fn callback_;
 
   public:
-    tab_bar_item(string_view const name, Fn callback)
+    tab_bar_item(std::string_view const name, Fn callback)
         : name_{name}
         , callback_{std::move(callback)}
     {
@@ -52,7 +53,7 @@ struct tab_bar
     using items_storage = detail::obj_holder<tab_bar_item<Fn>...>;
 
 #ifdef _DEBUG
-    using id_stored = string_view;
+    using id_stored = std::string_view;
 #else
     using id_stored = char const*;
 #endif

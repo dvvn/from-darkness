@@ -1,12 +1,12 @@
 #pragma once
 
-#include "noncopyable.h"
+#include <boost/noncopyable.hpp>
 
 #include <imgui_internal.h>
 
 namespace fd::gui
 {
-class render_context final : public noncopyable
+class render_context final : public boost::noncopyable
 {
     ImFontAtlas font_atlas_;
     ImGuiContext context_;

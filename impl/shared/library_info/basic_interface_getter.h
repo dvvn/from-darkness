@@ -14,7 +14,7 @@ class native_library_interface_getter
 
   public:
     native_library_interface_getter(library_info const* linfo);
-    safe_cast_lazy<void*> find(string_view name) const;
+    safe_cast_lazy<void*> find(std::string_view name) const;
 };
 } // namespace detail
 } // namespace fd

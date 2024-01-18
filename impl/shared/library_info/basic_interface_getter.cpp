@@ -1,7 +1,7 @@
-﻿#include "algorithm/char.h"
-#include "library_info/basic_interface_getter.h"
+﻿#include "library_info/basic_interface_getter.h"
 
 #include <cassert>
+#include <cctype>
 
 namespace fd
 {
@@ -12,35 +12,33 @@ namespace detail
 // XXXX_123
 // XXXXV123
 // XXXX123
-struct interface_version_char_table : basic_char_table<bool>
+static bool interface_version_char(char const c) noexcept
 {
-    interface_version_char_table()
-        : basic_char_table{isdigit.table()}
+    switch (c)
     {
-        set('_', true);
-        set('V', true);
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case 'V':
+    case '_':
+        return true;
+    default:
+        return false;
     }
-};
-
-#ifdef _DEBUG
-static char_table_wrapper<interface_version_char_table> const interface_version_char;
-#else
-static struct : char_table_wrapper<interface_version_char_table>
-{
-    bool operator()(char const c) const
-    {
-        if (c < 0)
-            return false;
-        return char_table_wrapper::operator()(c);
-    }
-} const interface_version_char;
-#endif
+}
 
 template <bool ContainsVersion>
 static interface_register* find_interface_register(
     interface_register* reg,                          //
     char const* const name, size_t const name_length, //
-    bool_constant<ContainsVersion>) noexcept
+    std::bool_constant<ContainsVersion>) noexcept
 {
     for (; reg != nullptr; reg = reg->next())
     {
@@ -75,7 +73,7 @@ static interface_register* find_interface_register(
             auto const version_start_chr = *version_first;
             if (version_start_chr != '\0')
             {
-                if (!isdigit(version_start_chr))
+                if (!std::isdigit(version_start_chr))
                     continue;
                 goto _CHECK_DIGIT;
             }
@@ -86,25 +84,25 @@ static interface_register* find_interface_register(
 }
 } // namespace detail
 
-static void* find_interface(interface_register* const root_interface, string_view const interface_name) noexcept
+static void* find_interface(interface_register* const root_interface, std::string_view const interface_name) noexcept
 {
     auto const name_data             = interface_name.data();
     auto const name_length           = interface_name.length();
-    auto const name_contains_version = isdigit(interface_name.back());
+    auto const name_contains_version = std::isdigit(interface_name.back());
 
     interface_register* found;
 
     using detail::find_interface_register;
 
     if (name_contains_version)
-        found = find_interface_register(root_interface, name_data, name_length, true_type());
+        found = find_interface_register(root_interface, name_data, name_length, std::true_type());
     else
     {
-        found = find_interface_register(root_interface, name_data, name_length, false_type());
+        found = find_interface_register(root_interface, name_data, name_length, std::false_type());
 #ifdef _DEBUG
         if (found && found->name()[name_length] != '\0')
         {
-            auto const found_again = find_interface_register(found->next(), name_data, name_length, false_type());
+            auto const found_again = find_interface_register(found->next(), name_data, name_length, std::false_type());
             if (found_again)
             {
                 assert(0 && "found multiple iterfaces for given name");
@@ -125,7 +123,7 @@ native_library_interface_getter::native_library_interface_getter(library_info co
 {
 }
 
-safe_cast_lazy<void*> native_library_interface_getter::find(string_view const name) const
+safe_cast_lazy<void*> native_library_interface_getter::find(std::string_view const name) const
 {
     return find_interface(root_interface_, name);
 }

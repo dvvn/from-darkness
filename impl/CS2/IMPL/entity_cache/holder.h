@@ -1,9 +1,10 @@
 ﻿#pragma once
-#include "container/vector/static.h"
 #include "entity_cache/player.h"
 #include "native/handle.h"
 #include "native/player_controller.h"
-#include "noncopyable.h"
+
+#include <boost/container/static_vector.hpp>
+#include <boost/noncopyable.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -11,12 +12,12 @@
 
 namespace fd
 {
-class entity_cache : public noncopyable
+class entity_cache : public boost::noncopyable
 {
     using cached_player = std::shared_ptr<player>;
     using cached_xxx    = void; // reserved
 
-    using players_storage = static_vector<cached_player, 64>;
+    using players_storage = boost::container::static_vector<cached_player, 64>;
     using xxx_storage     = void; // reserved
 
     players_storage players_;

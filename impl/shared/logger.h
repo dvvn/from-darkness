@@ -1,8 +1,8 @@
 #pragma once
 
 #include "functional/invoke_on.h"
-#include "string/view.h"
-#include "noncopyable.h"
+
+#include <boost/noncopyable.hpp>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
@@ -31,6 +31,7 @@ struct formatter<Fn, C> : formatter<std::decay_t<std::invoke_result_t<Fn>>, C>
     }
 };
 
+#if 0
 template <class T>
 requires requires(T str) {
     []<typename CharT, size_t Length, class Config>(fd::detail::basic_static_string_full<CharT, Length, Config> const&) {
@@ -45,7 +46,7 @@ struct detail::
     <T> : std::true_type
 {
 };
-
+#endif
 FMT_END_NAMESPACE
 
 namespace fd
@@ -93,12 +94,12 @@ class basic_logger
         write(fmt.get(), fmt::wformat_args{fmt::make_wformat_args(args...)});
     }
 
-    void operator()(string_view const str)
+    void operator()(std::string_view const str)
     {
         write(str, nullptr);
     }
 
-    void operator()(wstring_view const str)
+    void operator()(std::wstring_view const str)
     {
         write(str, nullptr);
     }
@@ -106,7 +107,7 @@ class basic_logger
     // for optimization use 'make_constant_string<native_char_type>(XXX)'
 #if 1
   private:
-    class notification_invoker : public noncopyable
+    class notification_invoker : public boost::noncopyable
     {
         basic_logger* self_;
 
@@ -116,12 +117,12 @@ class basic_logger
         {
         }
 
-        void operator()(integral_constant<invoke_on_state, invoke_on_state::construct>) const
+        void operator()(std::integral_constant<invoke_on_state, invoke_on_state::construct>) const
         {
             std::invoke(*self_, "Created");
         }
 
-        void operator()(integral_constant<invoke_on_state, invoke_on_state::destruct>) const
+        void operator()(std::integral_constant<invoke_on_state, invoke_on_state::destruct>) const
         {
             std::invoke(*self_, "Destroyed");
         }

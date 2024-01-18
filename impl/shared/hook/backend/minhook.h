@@ -1,9 +1,9 @@
 ﻿#pragma once
-#include "noncopyable.h"
+#include <boost/noncopyable.hpp>
 
 namespace fd
 {
-class hook_backend_minhook final : public noncopyable
+class hook_backend_minhook final : public boost::noncopyable
 {
   public:
     ~hook_backend_minhook();

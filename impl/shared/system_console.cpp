@@ -70,7 +70,7 @@ void system_console::write(char const* ptr, size_t const length)
 #endif
 }
 
-void system_console::write(wstring_view const in_str)
+void system_console::write(std::wstring_view const in_str)
 {
 #ifdef UNICODE
     write(in_str.data(), in_str.length());
@@ -79,7 +79,7 @@ void system_console::write(wstring_view const in_str)
 #endif
 }
 
-void system_console::write(string_view const in_str)
+void system_console::write(std::string_view const in_str)
 {
 #ifdef UNICODE
     write_wide(in_str.data(), in_str.length());

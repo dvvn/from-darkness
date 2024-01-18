@@ -1,10 +1,8 @@
 ﻿#pragma once
 
-#include "diagnostics/fatal.h"
 #include "functional/basic_vfunc.h"
 #include "functional/call_traits.h"
 #include "hook/callback.h"
-#include "hook/info.h"
 
 #define FD_HOOK_PROXY_TEMPLATE template <typename Fn>
 
@@ -19,7 +17,7 @@ template <typename Fn>
 #ifdef _DEBUG
 requires requires { typename function_info<Fn>::object_type; }
 #endif
-class member_func_invoker : public noncopyable
+class member_func_invoker : public boost::noncopyable
 {
     using fn_info = function_info<Fn>;
 
@@ -73,7 +71,7 @@ class member_func_invoker : public noncopyable
 };
 
 template <typename Fn>
-class non_member_func_invoker : public noncopyable
+class non_member_func_invoker : public boost::noncopyable
 {
     Fn original_;
 
@@ -108,16 +106,14 @@ class non_member_func_invoker : public noncopyable
 template <typename Callback, class OriginalInvoker, class ObjectPointer, class Proxy, typename... Args>
 decltype(auto) invoke_hook_proxy_member(Proxy* proxy, Args&&... args)
 {
-    auto& callback = *unique_hook_proxy_data<Callback>.callback;
-
     if constexpr (std::invocable<Callback, OriginalInvoker, Args&&...>)
-        return invoke_hook_callback(callback, OriginalInvoker{unique_hook_proxy_data<Callback>.original, proxy}, std::forward<Args>(args)...);
+        return invoke_hook_callback<Callback>(OriginalInvoker{global_hook_original_func<Callback>, proxy}, std::forward<Args>(args)...);
     else if constexpr (std::invocable<Callback, ObjectPointer, Args&&...>)
-        return invoke_hook_callback(callback, unsafe_cast<ObjectPointer>(proxy), std::forward<Args>(args)...);
+        return invoke_hook_callback<Callback>(unsafe_cast<ObjectPointer>(proxy), std::forward<Args>(args)...);
     else if constexpr (std::invocable<Callback, ObjectPointer>)
-        return invoke_hook_callback(callback, unsafe_cast<ObjectPointer>(proxy));
+        return invoke_hook_callback<Callback>(unsafe_cast<ObjectPointer>(proxy));
     else
-        return invoke_hook_callback(callback, std::forward<Args>(args)...);
+        return invoke_hook_callback<Callback>(std::forward<Args>(args)...);
 }
 
 template <typename Callback, class Func, typename... Args>
@@ -132,50 +128,48 @@ decltype(auto) invoke_hook_proxy(hook_proxy<Func> const* proxy, Args&&... args)
     return invoke_hook_proxy_member<Callback, member_func_invoker<Func>, typename function_info<Func>::object_type*>(proxy, std::forward<Args>(args)...);
 }
 
-#define HOOK_PROXY_MEMBER(_CCV_, _CV_, _REF_, _NOEXCEPT_)                                 \
-    template <typename Ret, class Object, typename... Args>                               \
-    struct hook_proxy<Ret (_CCV_ Object::*)(Args...) _CV_ _REF_ _NOEXCEPT_> : noncopyable \
-    {                                                                                     \
-        template <typename Callback>                                                      \
-        Ret _CCV_ proxy(Args... args) _CV_ _REF_ _NOEXCEPT_                               \
-        {                                                                                 \
-            return invoke_hook_proxy<Callback>(this, args...);                            \
-        }                                                                                 \
+#define HOOK_PROXY_MEMBER(_CCV_, _CV_, _REF_, _NOEXCEPT_)                                        \
+    template <typename Ret, class Object, typename... Args>                                      \
+    struct hook_proxy<Ret (_CCV_ Object::*)(Args...) _CV_ _REF_ _NOEXCEPT_> : boost::noncopyable \
+    {                                                                                            \
+        template <typename Callback>                                                             \
+        Ret _CCV_ proxy(Args... args) _CV_ _REF_ _NOEXCEPT_                                      \
+        {                                                                                        \
+            return invoke_hook_proxy<Callback>(this, args...);                                   \
+        }                                                                                        \
     };
 
 template <typename Callback, typename Fn, typename... Args>
-decltype(auto) invoke_hook_proxy(type_identity<Fn> /*target*/, Args&&... args)
+decltype(auto) invoke_hook_proxy(std::type_identity<Fn> /*target*/, Args&&... args)
 {
     using original_invoker = non_member_func_invoker<Fn>;
 
-    auto& callback = *unique_hook_proxy_data<Callback>.callback;
-
     if constexpr (std::invocable<Callback, original_invoker, Args...>)
-        return invoke_hook_callback(callback, original_invoker{unique_hook_proxy_data<Callback>.original}, std::forward<Args>(args)...);
+        return invoke_hook_callback<Callback>(original_invoker{global_hook_original_func<Callback>}, std::forward<Args>(args)...);
     else
-        return invoke_hook_callback(callback, std::forward<Args>(args)...);
+        return invoke_hook_callback<Callback>(std::forward<Args>(args)...);
 }
 
-#define HOOK_PROXY_STATIC(_CCV_, _CV_UNUSED_, _REF_UNUSED_, _NOEXCEPT_)                                    \
-    template <typename Ret, typename... Args>                                                              \
-    struct hook_proxy<Ret(_CCV_*)(Args...) _NOEXCEPT_> : noncopyable                                       \
-    {                                                                                                      \
-        template <typename Callback>                                                                       \
-        static Ret _CCV_ proxy(Args... args) _NOEXCEPT_                                                    \
-        {                                                                                                  \
-            return invoke_hook_proxy<Callback>(type_identity<Ret(_CCV_*)(Args...) _NOEXCEPT_>{}, args...); \
-        }                                                                                                  \
+#define HOOK_PROXY_STATIC(_CCV_, _CV_UNUSED_, _REF_UNUSED_, _NOEXCEPT_)                                         \
+    template <typename Ret, typename... Args>                                                                   \
+    struct hook_proxy<Ret(_CCV_*)(Args...) _NOEXCEPT_> : boost::noncopyable                                     \
+    {                                                                                                           \
+        template <typename Callback>                                                                            \
+        static Ret _CCV_ proxy(Args... args) _NOEXCEPT_                                                         \
+        {                                                                                                       \
+            return invoke_hook_proxy<Callback>(std::type_identity<Ret(_CCV_*)(Args...) _NOEXCEPT_>{}, args...); \
+        }                                                                                                       \
     };
 
-#define HOOK_PROXY_STATIC_THISCALL(_CCV_, _CV_, _REF_, _NOEXCEPT_)                        \
-    template <typename Ret, class Object, typename... Args>                               \
-    struct hook_proxy<Ret(_CCV_*)(Object _CV_ * _REF_, Args...) _NOEXCEPT_> : noncopyable \
-    {                                                                                     \
-        template <typename Callback>                                                      \
-        Ret _CCV_ proxy(Args... args) _CV_ _REF_ _NOEXCEPT_                               \
-        {                                                                                 \
-            return invoke_hook_proxy<Callback>(this, args...);                            \
-        }                                                                                 \
+#define HOOK_PROXY_STATIC_THISCALL(_CCV_, _CV_, _REF_, _NOEXCEPT_)                               \
+    template <typename Ret, class Object, typename... Args>                                      \
+    struct hook_proxy<Ret(_CCV_*)(Object _CV_ * _REF_, Args...) _NOEXCEPT_> : boost::noncopyable \
+    {                                                                                            \
+        template <typename Callback>                                                             \
+        Ret _CCV_ proxy(Args... args) _CV_ _REF_ _NOEXCEPT_                                      \
+        {                                                                                        \
+            return invoke_hook_proxy<Callback>(this, args...);                                   \
+        }                                                                                        \
     };
 
 #ifdef _MSC_VER
@@ -192,28 +186,4 @@ _NON_MEMBER_CALL_THISCALL_CV_REF_NOEXCEPT(HOOK_PROXY_STATIC_THISCALL) // macro f
 #undef HOOK_PROXY_MEMBER
 
 } // namespace detail
-
-template <typename Callback, class Proxy, typename Func, bool Inner = false>
-hook_info<Callback> prepare_hook(Func const fn, bool_constant<Inner> = {}) requires(Inner || complete<Proxy>)
-{
-    return {unsafe_cast<void*>(fn), unsafe_cast<void*>(&Proxy::template proxy<Callback>)};
-}
-
-template <typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy, typename Func>
-hook_info<Callback> prepare_hook(Func const fn) requires(complete<Proxy<Func>>)
-{
-    return prepare_hook<Callback, Proxy<Func>>(fn, true_type{});
-}
-
-template <typename Callback, class Proxy, typename Func>
-hook_info<Callback> prepare_hook(vfunc<Func> const target)
-{
-    return prepare_hook<Callback, Proxy, Func>(target, true_type{});
-}
-
-template <typename Callback, FD_HOOK_PROXY_TEMPLATE class Proxy = detail::hook_proxy, typename Func>
-hook_info<Callback> prepare_hook(vfunc<Func> const target)
-{
-    return prepare_hook<Callback, Proxy<Func>, Func>(target, true_type{});
-}
 } // namespace fd

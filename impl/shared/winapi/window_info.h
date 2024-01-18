@@ -1,7 +1,7 @@
 #pragma once
-#include "type_traits/conditional.h"
-
 #include <Windows.h>
+
+#include <type_traits>
 
 namespace fd::win
 {
@@ -103,7 +103,7 @@ struct rect_small
 };
 } // namespace detail
 
-using rect = conditional_t<
+using rect = std::conditional_t<
     sizeof(detail::rect_cpp20) == sizeof(RECT), //
     detail::rect_cpp20,
 #ifdef _DEBUG

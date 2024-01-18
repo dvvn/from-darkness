@@ -5,7 +5,7 @@
 namespace fd
 {
 template <class>
-struct vtable_call_type_for : type_identity<default_call_type_member>
+struct vtable_call_type_for : std::type_identity<default_call_type_member>
 {
 };
 

@@ -1,12 +1,12 @@
 ﻿#pragma once
-#include "noncopyable.h"
+#include <boost/noncopyable.hpp>
 
 #include <imgui.h>
 
 namespace fd::gui
 {
 template <class Callback, typename UnloadHandler>
-class menu final : public noncopyable
+class menu final : public boost::noncopyable
 {
     Callback data_;
     UnloadHandler unload_handler_;

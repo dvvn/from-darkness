@@ -1,7 +1,5 @@
 #pragma once
 
-#include "noncopyable.h"
-
 #include <cassert>
 #include <utility>
 

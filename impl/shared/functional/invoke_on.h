@@ -1,10 +1,7 @@
 #pragma once
-#include "type_traits/conditional.h"
-#include "type_traits/integral_constant.h"
-#include "optional.h"
-
 #include <cassert>
 #include <functional>
+#include <optional>
 
 namespace fd
 {
@@ -49,20 +46,22 @@ class basic_invoke_on_wrapped_callback<Callback, true>
 };
 
 template <typename Callback>
-class basic_invoke_on_wrapped_callback<Callback, false> : optional<Callback>
+class basic_invoke_on_wrapped_callback<Callback, false> : std::optional<Callback>
 {
+    using base = std::optional<Callback>;
+
   public:
     template <typename Fn>
     basic_invoke_on_wrapped_callback(Fn&& callback) requires(std::constructible_from<Callback, Fn &&>)
-        : optional<Callback>{std::forward<Fn>(callback)}
+        : base{std::forward<Fn>(callback)}
     {
     }
 
-    using optional<Callback>::operator=;
+    using base::operator=;
 
-    using optional<Callback>::operator*;
-    using optional<Callback>::has_value;
-    using optional<Callback>::operator bool;
+    using base::operator*;
+    using base::has_value;
+    using base::operator bool;
 };
 
 template <typename Callback>
@@ -113,8 +112,8 @@ class invoke_on
     static constexpr bool store_wrapped = State & invoke_on_state::move || (State & invoke_on_state::destruct && std::movable<raw_callback>);
     static constexpr bool store_raw     = State & (invoke_on_state::copy | invoke_on_state::destruct);
 
-    using stored_callback_gap = false_type;
-    using stored_callback     = conditional_t<store_wrapped, wrapped_callback, conditional_t<store_raw, raw_callback, stored_callback_gap>>;
+    using stored_callback_gap = std::false_type;
+    using stored_callback     = std::conditional_t<store_wrapped, wrapped_callback, std::conditional_t<store_raw, raw_callback, stored_callback_gap>>;
 
     [[no_unique_address]] //
     stored_callback callback_;
@@ -131,7 +130,7 @@ class invoke_on
                     if constexpr (std::convertible_to<stored_callback, bool>)
                         if (!callback_)
                             return;
-                using state_constant = integral_constant<invoke_on_state, CurrentState>;
+                using state_constant = std::integral_constant<invoke_on_state, CurrentState>;
                 if constexpr (std::invocable<Callback, state_constant>)
                     callback_(state_constant{});
                 else if constexpr (std::invocable<Callback, invoke_on_state>)
@@ -196,6 +195,7 @@ class invoke_on
 };
 
 template <invoke_on_state State, typename Callback>
+[[nodiscard]]
 constexpr invoke_on<State, std::remove_cvref_t<Callback>> make_invoke_on(Callback&& callback)
 {
     return {std::forward<Callback>(callback)};

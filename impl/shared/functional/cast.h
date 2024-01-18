@@ -1,7 +1,5 @@
 #pragma once
 #include "functional/invoke_cast.h"
-#include "type_traits/conditional.h"
-#include "type_traits/integral_constant.h"
 #include "type_traits/remove_pointer.h"
 
 namespace fd
@@ -124,7 +122,7 @@ struct safe_cast_simple_ref
 };
 
 template <typename P, size_t Count = 0>
-struct pointers_count : integral_constant<size_t, Count>
+struct pointers_count : std::integral_constant<size_t, Count>
 {
 };
 
@@ -149,26 +147,26 @@ inline constexpr bool are_pointer_const_v = are_pointer_const<P, Index, Pointers
 template <typename T, typename Ptr, size_t Index = 0, size_t Limit = pointers_count<Ptr>::value>
 struct make_pointer_like :
     make_pointer_like<
-        conditional_t<are_pointer_const_v<Ptr, Index, Limit>, T const*, T*>, //
+        std::conditional_t<are_pointer_const_v<Ptr, Index, Limit>, T const*, T*>, //
         Ptr, Index + 1, Limit>
 {
 };
 
 template <typename T, typename Ptr, size_t Limit>
-struct make_pointer_like<T, Ptr, Limit, Limit> : type_identity<T>
+struct make_pointer_like<T, Ptr, Limit, Limit> : std::type_identity<T>
 {
 };
 
 template <typename T, typename P1, typename P2, size_t Index = 0, size_t Limit = pointers_count<P2>::value>
 struct rewrap_pointer_like :
     rewrap_pointer_like<
-        conditional_t<are_pointer_const_v<P1, Index, Limit> || are_pointer_const_v<P2, Index, Limit>, T const*, T*>, //
+        std::conditional_t<are_pointer_const_v<P1, Index, Limit> || are_pointer_const_v<P2, Index, Limit>, T const*, T*>, //
         P1, P2, Index + 1, Limit>
 {
 };
 
 template <typename T, typename P1, typename P2, size_t Limit>
-struct rewrap_pointer_like<T, P1, P2, Limit, Limit> : type_identity<T>
+struct rewrap_pointer_like<T, P1, P2, Limit, Limit> : std::type_identity<T>
 {
 };
 
@@ -283,7 +281,7 @@ struct custom_cast
     From from;
 
     template <typename To>
-    To operator()(type_identity<To>) const
+    To operator()(std::type_identity<To>) const
 #ifdef _DEBUG
         requires(std::invocable<Impl<To>, From const&>)
 #endif
@@ -293,7 +291,7 @@ struct custom_cast
     }
 
     template <typename To>
-    To operator()(type_identity<To>)
+    To operator()(std::type_identity<To>)
 #ifdef _DEBUG
         requires(std::invocable<Impl<To>, From&>)
 #endif

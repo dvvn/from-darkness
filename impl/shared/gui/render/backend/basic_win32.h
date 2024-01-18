@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "noncopyable.h"
+#include <boost/noncopyable.hpp>
 
 #include <Windows.h>
 
@@ -49,7 +49,7 @@ class win32_backend_update_result
 };
 } // namespace detail
 
-class basic_win32_backend : public noncopyable
+class basic_win32_backend : public boost::noncopyable
 {
   public:
     using update_result = detail::win32_backend_update_result;

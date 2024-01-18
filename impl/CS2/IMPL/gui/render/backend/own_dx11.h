@@ -2,9 +2,8 @@
 #include "gui/render/backend/basic_dx11.h"
 #include "winapi/com_ptr.h"
 #include "winapi/window_info.h"
-#include "noncopyable.h"
 #ifdef _DEBUG
-#include "library_info/literals.h"
+#include "library_info.h"
 #endif
 
 #include <d3d11.h>
@@ -82,7 +81,7 @@ class own_dx11_backend_data
     }
 };
 
-class own_dx11_backend final : own_dx11_backend_data, public basic_dx11_backend, public noncopyable
+class own_dx11_backend final : own_dx11_backend_data, public basic_dx11_backend, public boost::noncopyable
 {
     using basic_dx11_backend::render;
 

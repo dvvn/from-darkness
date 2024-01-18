@@ -1,6 +1,6 @@
 #include "core/basic_exe_context.h"
 #include "gui/own_data.h"
-#include "preprocessor/random.h"
+#include "preprocessor.h"
 #include "menu_example.h"
 
 namespace fd
@@ -14,7 +14,7 @@ class gui_test_context : public basic_exe_context
     void run()
     {
         auto&& logger = this->debug_logger.get();
-        FD_RANDOM_VAR = logger.make_status_notification();
+        FD_UNUSED_VAR = logger.make_status_notification();
 
         auto&& gui_data = this->gui_data.get();
 

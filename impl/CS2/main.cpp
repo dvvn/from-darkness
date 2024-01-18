@@ -9,8 +9,8 @@
 #include "winapi/window_info.h"
 //
 #include "core/dll_context_dx11.h"
-#include "preprocessor/random.h"
 #include "menu_example.h"
+#include "preprocessor.h"
 
 namespace fd
 {
@@ -19,13 +19,13 @@ static struct : dll_context_dx11
     bool run()
     {
         auto&& logger = this->debug_logger.get();
-        FD_RANDOM_VAR = logger.make_status_notification();
+        FD_UNUSED_VAR = logger.make_status_notification();
 
         auto&& gui_data = this->gui_data.get();
 
         auto menu = make_menu_example([=] {
             if (!this->resume())
-                unreachable();
+                std::unreachable();
         });
 
         entity_cache ent_cache;

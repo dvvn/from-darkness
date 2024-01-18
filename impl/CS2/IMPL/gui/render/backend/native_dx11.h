@@ -2,8 +2,6 @@
 #include "gui/render/backend/basic_dx11.h"
 #include "library_info/native/render_system_dx11.h"
 #include "winapi/com_ptr.h"
-#include "noncopyable.h"
-#include "optional.h"
 
 #include <d3d11.h>
 
@@ -12,7 +10,7 @@
 
 namespace fd::gui
 {
-class native_dx11_device_data : public noncopyable
+class native_dx11_device_data : public boost::noncopyable
 {
     win::com_ptr<IDXGISwapChain> swap_chain_;
     win::com_ptr<ID3D11Device> d3d_device_;

@@ -1,8 +1,9 @@
-﻿#include "diagnostics/fatal.h"
-#include "gui/render/backend/own_win32.h"
+﻿#include "gui/render/backend/own_win32.h"
 
 #include <Windows.h>
 #include <tchar.h>
+
+#include <cassert>
 
 namespace fd::gui
 {

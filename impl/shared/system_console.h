@@ -1,18 +1,18 @@
 #pragma once
 
-#include "container/vector/small.h"
-#include "string/view.h"
-#include "noncopyable.h"
+#include <boost/container/small_vector.hpp>
+#include <boost/noncopyable.hpp>
 
 #include <Windows.h>
 
 #include <algorithm>
+#include <string_view>
 
 namespace fd
 {
 namespace detail
 {
-class system_console_mode_setter : public noncopyable
+class system_console_mode_setter : public boost::noncopyable
 {
     int old_mode_;
 
@@ -21,16 +21,13 @@ class system_console_mode_setter : public noncopyable
 };
 } // namespace detail
 
-class system_console : public noncopyable
+class system_console : public boost::noncopyable
 {
     bool console_allocated_;
     HANDLE out_;
 
     template <typename T>
-    struct char_buffer : small_vector<T, 1024>, noncopyable
-    {
-        char_buffer() = default;
-    };
+    using char_buffer = boost::container::small_vector<T, 1024>;
 
 #ifdef UNICODE
     char_buffer<wchar_t> wchar_buffer_;
@@ -39,9 +36,8 @@ class system_console : public noncopyable
     void write_wide(char const* buff) noexcept
     {
         wchar_t wbuff[BufferSize];
-        using std::data;
-        std::copy(buff, buff + BufferSize, data(wbuff));
-        write(data(wbuff), BufferSize);
+        std::copy(buff, buff + BufferSize, std::data(wbuff));
+        write(std::data(wbuff), BufferSize);
     }
 
     void write_wide(char const* buff, size_t length) noexcept;
@@ -57,8 +53,8 @@ class system_console : public noncopyable
 
     void write(wchar_t const* ptr, size_t length);
     void write(char const* ptr, size_t length);
-    void write(wstring_view in_str);
-    void write(string_view in_str);
+    void write(std::wstring_view in_str);
+    void write(std::string_view in_str);
 
 #ifdef UNICODE
     template <size_t Length>
@@ -70,8 +66,6 @@ class system_console : public noncopyable
     template <size_t Length>
     void write(wchar_t const (&in_str)[Length]) = delete; // WIP
 #endif
-
-    void write(u8string_view in_str) const = delete;
 
 #ifdef UNICODE
     template <typename C>

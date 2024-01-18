@@ -73,7 +73,7 @@ window_info::window_info(HWND handle)
 namespace detail
 {
 template <class T>
-static auto get_rect_view0(T* ptr, size_t const offset) -> conditional_t<std::is_const_v<T>, RECT const, RECT>*
+static auto get_rect_view0(T* ptr, size_t const offset) -> std::conditional_t<std::is_const_v<T>, RECT const, RECT>*
 {
     return unsafe_cast_from(reinterpret_cast<uintptr_t>(ptr) - offset);
 }

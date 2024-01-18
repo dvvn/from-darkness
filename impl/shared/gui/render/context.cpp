@@ -1,5 +1,4 @@
-﻿
-#include "gui/render/context.h"
+﻿#include "gui/render/context.h"
 
 #include <memory>
 

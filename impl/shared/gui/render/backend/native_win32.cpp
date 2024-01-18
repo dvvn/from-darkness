@@ -1,7 +1,5 @@
 ﻿#include "functional/cast.h"
 #include "gui/render/backend/native_win32.h"
-#include "type_traits/conditional.h"
-#include "type_traits/integral_constant.h"
 
 namespace fd::gui
 {
@@ -10,7 +8,7 @@ namespace detail
 template <bool HaveConsole>
 class find_native_main_window_helper
 {
-    using console_type = conditional_t<HaveConsole, HWND, false_type>;
+    using console_type = std::conditional_t<HaveConsole, HWND, std::false_type>;
 
     [[no_unique_address]] console_type console_;
     DWORD current_process_;

@@ -11,7 +11,7 @@ class basic_own_win32_backend;
 
 namespace detail
 {
-class own_win32_backend_data : public noncopyable
+class own_win32_backend_data : public boost::noncopyable
 {
     friend class basic_own_win32_backend;
 

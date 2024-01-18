@@ -1,10 +1,36 @@
 ﻿#pragma once
 
 #include "functional/cast.h"
-#include "library_info/core.h"
-#include "string/view.h"
 
-#include <cassert>
+#include <windows.h>
+#include <winternl.h>
+
+#include <string_view>
+
+// ReSharper disable CppInconsistentNaming
+
+// see https://www.vergiliusproject.com/kernels/x64/Windows%2011/22H2%20(2022%20Update)/_LDR_DATA_TABLE_ENTRY
+typedef struct _LDR_DATA_TABLE_ENTRY_FULL
+{
+    LIST_ENTRY InLoadOrderLinks;
+    LIST_ENTRY InMemoryOrderLinks;
+    LIST_ENTRY InInitializationOrderLinks;
+
+    union
+    {
+        PVOID DllBase;
+        PIMAGE_DOS_HEADER DosHeader;
+        ULONG_PTR DllBaseAddress;
+    };
+
+    PVOID EntryPoint;
+
+    ULONG SizeOfImage;
+    UNICODE_STRING FullDllName;
+    UNICODE_STRING BaseDllName;
+} LDR_DATA_TABLE_ENTRY_FULL, *PLDR_DATA_TABLE_ENTRY_FULL;
+
+// ReSharper restore CppInconsistentNaming
 
 namespace fd
 {
@@ -17,7 +43,7 @@ template <size_t I, class L>
 void get(library_object_getter<L> const&);
 
 template <class ObjGetter, size_t I, typename GetResult = decltype(get<I>(std::declval<ObjGetter>()))>
-struct library_object_getter_tuple_element : type_identity<GetResult>
+struct library_object_getter_tuple_element : std::type_identity<GetResult>
 {
 };
 
@@ -31,7 +57,7 @@ template <class ObjGetter>
 struct library_object_getter_tuple_size<ObjGetter, 0, void>;
 
 template <class ObjGetter, size_t I>
-struct library_object_getter_tuple_size<ObjGetter, I, void> : integral_constant<size_t, I>
+struct library_object_getter_tuple_size<ObjGetter, I, void> : std::integral_constant<size_t, I>
 {
 };
 
@@ -44,16 +70,13 @@ template <typename CharT, size_t Length, class Config>
 class basic_static_string_full;
 } // namespace detail
 
-class library_info
+class library_info final
 {
     union
     {
-        LDR_DATA_TABLE_ENTRY_FULL* entry_full_;
-        LDR_DATA_TABLE_ENTRY* entry_;
+        PLDR_DATA_TABLE_ENTRY_FULL entry_full_;
+        PLDR_DATA_TABLE_ENTRY entry_;
     };
-
-    inline static LIST_ENTRY* module_list();
-    inline static LDR_DATA_TABLE_ENTRY_FULL* ldr_table(LIST_ENTRY* entry);
 
 #if 0
   protected:
@@ -82,43 +105,20 @@ class library_info
 #endif
 
   public:
-    inline library_info(wchar_t const* name, size_t length);
+    library_info(PLDR_DATA_TABLE_ENTRY_FULL entry);
+    library_info(PLDR_DATA_TABLE_ENTRY entry);
 
-    inline library_info(wstring_view name);
     [[deprecated]]
-    inline library_info(wstring_view name, wstring_view ext);
+    library_info(wchar_t const* name, size_t length);
 
-    template <size_t Length, class Config>
-    library_info(detail::basic_static_string_full<wchar_t, Length, Config> const& name);
+    library_info(std::wstring_view name);
+    library_info(std::wstring_view name, std::wstring_view extension);
 
-    template <std::derived_from<library_info> Other>
-    library_info(Other other);
+    explicit operator bool() const;
 
-    explicit operator bool() const
-    {
-        return entry_ != nullptr;
-    }
-
-    IMAGE_DOS_HEADER* dos_header() const
-    {
-        auto const dos = entry_full_->DosHeader;
-        assert(dos->e_magic == IMAGE_DOS_SIGNATURE);
-        return dos;
-    }
-
-    IMAGE_NT_HEADERS* nt_header() const
-    {
-        auto const dos = dos_header();
-        auto const nt  = unsafe_cast<IMAGE_NT_HEADERS*>(entry_full_->DllBaseAddress + dos->e_lfanew);
-        assert(nt->Signature == IMAGE_NT_SIGNATURE);
-        return nt;
-    }
-
-    void* image_base() const
-    {
-        auto const nt = nt_header();
-        return unsafe_cast_from(nt->OptionalHeader.ImageBase);
-    }
+    IMAGE_DOS_HEADER* dos_header() const;
+    IMAGE_NT_HEADERS* nt_header() const;
+    void* image_base() const;
 
     /*uint8_t* begin() const
     {
@@ -130,101 +130,36 @@ class library_info
         return unsafe_cast_from(entry_full_->DllBaseAddress + entry_full_->SizeOfImage);
     }*/
 
-    uint8_t* data() const
-    {
-        return safe_cast_from(entry_full_->DllBase);
-    }
+    uint8_t* data() const;
+    ULONG size() const;
 
-    ULONG size() const
-    {
-        return entry_full_->SizeOfImage;
-    }
+    std::wstring_view name() const;
+    std::wstring_view path() const;
 
-    wstring_view name() const
-    {
-        using std::data;
-        using std::size;
-        auto const& buff = entry_full_->BaseDllName;
-        return {data(buff), size(buff)};
-    }
-
-    wstring_view path() const
-    {
-        using std::data;
-        using std::size;
-        auto const& buff = entry_full_->FullDllName;
-        return {data(buff), size(buff)};
-    }
-
-    // void* vtable(string_view name) const;
+    // void* vtable(std::string_view name) const;
 };
 
-#if 0
-inline void* library_info::vtable(string_view name) const
+inline namespace literals
 {
-    union
-    {
-        uintptr_t rtti_descriptor_address;
-        void* rtti_descriptor;
-        char const* rtti_descriptor_view;
-    };
+// #ifdef _DEBUG
+// inline library_info operator"" _dll(wchar_t const* name, size_t const length)
+//{
+//     return {
+//         std::wstring_view{name, length},
+//         L".dll"
+//     };
+// }
+// #else
+// template <constant_wstring Name>
+// library_info operator"" _dll()
+//{
+//     return {Name + L".dll"};
+// }
+// #endif
 
-    // rtti_descriptor = find_rtti_descriptor(name, image_base, nt_header);
-    if (auto const space = name.find(' '); space == name.npos)
-    {
-        rtti_descriptor = find(make_pattern(".?A", 1, name, 0, "@@"));
-    }
-    else
-    {
-        auto const object_name = name.substr(0, space);
-        char object_tag;
+library_info operator"" _dll(wchar_t const* name, size_t length);
+} // namespace literals
 
-        if (object_name == "struct")
-            object_tag = 'U';
-        else if (object_name == "class")
-            object_tag = 'V';
-        else
-            unreachable();
-
-        auto const class_name = name.substr(space + 1);
-
-        rtti_descriptor = find(make_pattern(".?A", 0, object_tag, 0, class_name, 0, "@@"));
-    }
-
-    //---------
-
-    // we're doing - 0x8 here, because the location of the rtti typedescriptor is 0x8 bytes before the std::string
-    xref const type_descriptor{rtti_descriptor_address - sizeof(uintptr_t) * 2};
-
-    // dos + section->VirtualAddress, section->SizeOfRawData
-
-    auto const img_base = safe_cast<uint8_t>(image_base());
-
-    auto const rdata       = find(section::rdata);
-    auto const rdata_first = img_base + rdata->VirtualAddress;
-    auto const rdata_last  = rdata_first + rdata->SizeOfRawData;
-
-    auto const addr1 = std::find_if(rdata_first, rdata_last, [&type_descriptor](uint8_t const& found) -> bool {
-        return std::equal(type_descriptor.begin(), type_descriptor.end(), &found) && *unsafe_cast<uint32_t*>(&found - 0x8) == 0;
-    });
-    if (addr1 == rdata_last)
-        return nullptr;
-    xref const unnamed_xref2{unsafe_cast<uintptr_t>(addr1) - 0xC};
-    auto const addr2 = std::search(rdata_first, rdata_last, unnamed_xref2.begin(), unnamed_xref2.end());
-    if (addr2 == rdata_last)
-        return nullptr;
-
-    auto const text       = find(section::text);
-    auto const text_first = img_base + text->VirtualAddress;
-    auto const text_last  = text_first + text->SizeOfRawData;
-    xref const unnamed_xref3{unsafe_cast<uintptr_t>(addr2) + 4};
-    auto const addr3 = std::search(text_first, text_last, unnamed_xref3.begin(), unnamed_xref3.end());
-    if (addr3 == text_last)
-        return nullptr;
-
-    return (addr3);
-}
-#endif
 } // namespace fd
 
 template <size_t I, class Info>

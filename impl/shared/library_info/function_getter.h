@@ -29,7 +29,7 @@ class library_function_getter
         last_offset_ = std::min(export_dir->NumberOfNames, export_dir->NumberOfFunctions);
     }
 
-    void* find(string_view const name) const noexcept
+    void* find(std::string_view const name) const noexcept
     {
         auto const name_first  = name.data();
         auto const name_length = name.length();

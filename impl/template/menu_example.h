@@ -11,7 +11,7 @@ auto make_menu_example(UnloadHandler unload_handler)
     using gui::detail::obj_holder;
     using namespace gui;
 
-    constexpr auto make_item = [](string_view name, string_view str) {
+    constexpr auto make_item = [](std::string_view name, std::string_view str) {
         return tab_bar_item{
             name, //
             [str] {
